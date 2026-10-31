@@ -34,7 +34,8 @@ x-airflow-common: &airflow-common
     # La UI se publica bajo el prefijo del proxy de puertos del Code Editor (ver proxy-studio).
     # El acceso directo por http://<EIP>:8080/ (fallback) sigue funcionando.
     AIRFLOW__API__BASE_URL: http://localhost:8080/codeeditor/default/ports/8080/
-    AIRFLOW__CORE__EXECUTION_API_SERVER_URL: http://api-server:8080/execution/
+    # Con base_url, la API de ejecución también queda bajo el prefijo.
+    AIRFLOW__CORE__EXECUTION_API_SERVER_URL: http://api-server:8080/codeeditor/default/ports/8080/execution/
     AIRFLOW__CORE__LOAD_EXAMPLES: "false"
     # SimpleAuthManager (no apto para producción). Usuario admin; la contraseña viene del archivo
     # generado por user-data a partir de Secrets Manager (${prefix}/airflow-admin).
