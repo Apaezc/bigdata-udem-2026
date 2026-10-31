@@ -70,6 +70,8 @@ EOF
 }
 
 entorno_airflow() {
+  # standalone lanza sus componentes como subprocesos `airflow`: el venv debe estar en el PATH.
+  export PATH="$VENV/bin:$PATH"
   export AIRFLOW__CORE__DAGS_FOLDER="$ROOT_DIR/airflow/dags"
   export PYTHONPATH="$ROOT_DIR/airflow"
   export AIRFLOW__CORE__LOAD_EXAMPLES=false
