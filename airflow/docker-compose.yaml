@@ -1,7 +1,8 @@
 # Airflow 3.3.2 en una sola VM (EC2): LocalExecutor + Postgres 16.
 # Imagen base fijada por documentación oficial de Airflow 3.3.2 (apache/airflow:3.3.2).
 # Variables sensibles en .env (plantilla: .env.example). La VM genera el .env en user-data.
-# Servicios: postgres, init (db migrate), api-server (UI en 8080), scheduler, dag-processor, triggerer.
+# Servicios: postgres, init (db migrate), api-server (UI en 8080), scheduler, dag-processor, triggerer,
+# proxy-studio (UI vía túnel SSM + proxy de puertos del Code Editor, en 127.0.0.1:8081).
 # Límites de memoria pensados para una instancia de 8 GB (m7i-flex.large); ajustables con MEM_*.
 
 x-airflow-common: &airflow-common
@@ -30,6 +31,9 @@ x-airflow-common: &airflow-common
     AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:${POSTGRES_PASSWORD:?definir POSTGRES_PASSWORD en .env}@postgres/airflow
     AIRFLOW__CORE__FERNET_KEY: ${AIRFLOW_FERNET_KEY:?definir AIRFLOW_FERNET_KEY en .env}
     AIRFLOW__API_AUTH__JWT_SECRET: ${AIRFLOW_JWT_SECRET:?definir AIRFLOW_JWT_SECRET en .env}
+    # La UI se publica bajo el prefijo del proxy de puertos del Code Editor (ver proxy-studio).
+    # El acceso directo por http://<EIP>:8080/ (fallback) sigue funcionando.
+    AIRFLOW__API__BASE_URL: http://localhost:8080/codeeditor/default/ports/8080/
     AIRFLOW__CORE__EXECUTION_API_SERVER_URL: http://api-server:8080/execution/
     AIRFLOW__CORE__LOAD_EXAMPLES: "false"
     # SimpleAuthManager (no apto para producción). Usuario admin; la contraseña viene del archivo
@@ -126,6 +130,39 @@ services:
       api-server:
         condition: service_healthy
     mem_limit: ${MEM_TRIGGERER:-512m}
+
+  # El proxy de puertos del Code Editor (/codeeditor/default/ports/8080/) quita el prefijo de la
+  # ruta y rechaza %2F en la URL. Este nginx vuelve a poner el prefijo y quita el parámetro
+  # next de las redirecciones al login. Solo escucha en 127.0.0.1 (lo alcanza el túnel SSM).
+  proxy-studio:
+    image: nginx:1.27-alpine
+    ports:
+      - "127.0.0.1:8081:8081"
+    configs:
+      - source: nginx-studio
+        target: /etc/nginx/conf.d/default.conf
+    depends_on:
+      api-server:
+        condition: service_healthy
+    restart: always
+    mem_limit: 64m
+
+configs:
+  nginx-studio:
+    content: |
+      map $$upstream_http_location $$location_sin_next {
+        ~^(https?://[^/]+)?(?<base>[^?]*)(\?next=[^&]*)?$$ $$base;
+        default $$upstream_http_location;
+      }
+      server {
+        listen 8081;
+        absolute_redirect off;
+        proxy_set_header Host $$host;
+        proxy_hide_header Location;
+        add_header Location $$location_sin_next always;
+        location /codeeditor/default/ports/8080/ { proxy_pass http://api-server:8080; }
+        location / { proxy_pass http://api-server:8080/codeeditor/default/ports/8080/; }
+      }
 
 volumes:
   postgres-db-volume:
