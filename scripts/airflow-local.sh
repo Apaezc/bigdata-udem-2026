@@ -46,8 +46,11 @@ error_log $BASE/nginx-error.log;
 events { worker_connections 256; }
 http {
   access_log $BASE/nginx-access.log;
-  client_body_temp_path $BASE/nginx-tmp;
-  proxy_temp_path $BASE/nginx-tmp;
+  client_body_temp_path $BASE/nginx-tmp/body;
+  proxy_temp_path $BASE/nginx-tmp/proxy;
+  fastcgi_temp_path $BASE/nginx-tmp/fastcgi;
+  uwsgi_temp_path $BASE/nginx-tmp/uwsgi;
+  scgi_temp_path $BASE/nginx-tmp/scgi;
   map \$upstream_http_location \$location_sin_next {
     ~^(https?://[^/]+)?(?<base>[^?]*)(\\?next=[^&]*)?\$ \$base;
     default \$upstream_http_location;
@@ -93,9 +96,9 @@ up() {
   instalar
   escribir_nginx
   if [[ -f "$BASE/nginx.pid" ]] && kill -0 "$(cat "$BASE/nginx.pid")" 2>/dev/null; then
-    nginx -c "$NGINX_CONF" -s reload
+    nginx -p "$BASE" -e "$BASE/nginx-error.log" -c "$NGINX_CONF" -s reload
   else
-    nginx -c "$NGINX_CONF"
+    nginx -p "$BASE" -e "$BASE/nginx-error.log" -c "$NGINX_CONF"
   fi
   if pgrep -f "airflow standalone" >/dev/null; then
     msg "Airflow ya está corriendo."
@@ -117,7 +120,7 @@ up() {
 down() {
   pkill -f "airflow standalone" 2>/dev/null || true
   pkill -f "$VENV/bin/airflow" 2>/dev/null || true
-  [[ -f "$BASE/nginx.pid" ]] && nginx -c "$NGINX_CONF" -s stop 2>/dev/null || true
+  [[ -f "$BASE/nginx.pid" ]] && nginx -p "$BASE" -e "$BASE/nginx-error.log" -c "$NGINX_CONF" -s stop 2>/dev/null || true
   msg "Airflow local y nginx detenidos."
 }
 
