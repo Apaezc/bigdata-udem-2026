@@ -10,6 +10,7 @@
 source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
 
 requerir aws terraform zip jq
+exigir_cuenta
 
 BUCKET_ESTADO="$(tfstate_bucket)"
 LAKE="$(lake_bucket)"

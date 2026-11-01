@@ -6,6 +6,7 @@
 source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
 
 requerir aws terraform zip jq make
+exigir_cuenta
 SF_DIR="$ROOT_DIR/infra/snowflake"
 
 msg "Terraform apply: infra/snowflake (confirma el plan cuando lo pida)"

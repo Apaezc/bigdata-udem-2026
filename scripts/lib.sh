@@ -64,6 +64,21 @@ account_id() {
   aws sts get-caller-identity --query Account --output text
 }
 
+CUENTA_AWS=""
+exigir_cuenta() {
+  # Verifica la cuenta AWS real antes de cambiar infraestructura. Guarda el ID en CUENTA_AWS.
+  local real
+  real="$(account_id 2>/dev/null || true)"
+  if [[ -z "$real" || "$real" == "None" ]]; then
+    error "No hay credenciales AWS válidas (aws sts get-caller-identity falló). Define AWS_PROFILE con un perfil válido (en Code Editor no hace falta)."
+  fi
+  if [[ -n "${AWS_ACCOUNT_ID:-}" && "$AWS_ACCOUNT_ID" != "$real" ]]; then
+    error "AWS_ACCOUNT_ID=$AWS_ACCOUNT_ID no coincide con la cuenta real $real. Corrige el entorno (o .env) o usa AWS_PROFILE correcto."
+  fi
+  CUENTA_AWS="$real"
+  msg "Cuenta AWS: $real · región: $AWS_REGION · perfil: ${AWS_PROFILE:-por defecto}"
+}
+
 lake_bucket() {
   echo "${PREFIX}-lake-$(account_id)-${AWS_REGION}"
 }
