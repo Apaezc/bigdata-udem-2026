@@ -8,6 +8,12 @@ source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
 requerir aws terraform zip jq make
 SF_DIR="$ROOT_DIR/infra/snowflake"
 
+# Init con backend S3 (mismas flags que destroy.sh); -reconfigure evita el prompt si la caché local apunta a otro backend.
+msg "Terraform init: infra/snowflake"
+terraform -chdir="$SF_DIR" init -reconfigure -input=false -backend-config="bucket=$(tfstate_bucket)" \
+  -backend-config="key=snowflake/terraform.tfstate" -backend-config="region=$AWS_REGION" \
+  -backend-config="use_lockfile=true"
+
 msg "Terraform apply: infra/snowflake (confirma el plan cuando lo pida)"
 make -C "$SF_DIR" apply
 

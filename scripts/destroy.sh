@@ -59,7 +59,7 @@ elif [[ ! -f "$KEY" ]]; then
 else
   msg "Terraform destroy: infra/snowflake"
   cd "$SF_DIR" || exit 1
-  terraform init -input=false -backend-config="bucket=$BUCKET_ESTADO" \
+  terraform init -reconfigure -input=false -backend-config="bucket=$BUCKET_ESTADO" \
     -backend-config="key=snowflake/terraform.tfstate" -backend-config="region=$AWS_REGION" \
     -backend-config="use_lockfile=true"
   TF_VAR_private_key="$(cat "$KEY")" terraform destroy -input=false -auto-approve \
@@ -71,7 +71,7 @@ fi
 export TF_VAR_alert_email="${ALERT_EMAIL:-destroy@example.com}"
 msg "Terraform destroy: infra/aws"
 cd "$ROOT_DIR/infra/aws" || exit 1
-terraform init -input=false -backend-config="bucket=$BUCKET_ESTADO" \
+terraform init -reconfigure -input=false -backend-config="bucket=$BUCKET_ESTADO" \
   -backend-config="key=aws/terraform.tfstate" -backend-config="region=$AWS_REGION" \
   -backend-config="use_lockfile=true"
 terraform destroy -input=false -auto-approve

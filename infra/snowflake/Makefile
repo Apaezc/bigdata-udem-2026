@@ -12,7 +12,7 @@ help: ## Lista los targets
 
 init: ## terraform init con backend S3 (requiere backend.hcl)
 	@test -f "$(BACKEND)" || { echo "Falta $(BACKEND). Copiar desde backend.hcl.example."; exit 1; }
-	terraform init -backend-config=$(BACKEND)
+	terraform init -reconfigure -backend-config=$(BACKEND)
 
 fmt: ## terraform fmt -recursive
 	terraform fmt -recursive
