@@ -14,7 +14,6 @@ from pyspark.sql import DataFrame
 from pyspark.sql import functions as F
 
 from pipeline import io, quality
-from pipeline.muestra import aplicar_muestra
 from pipeline.settings import rango_meses
 
 log = logging.getLogger(__name__)
@@ -141,22 +140,19 @@ def revisar_tamano(cfg: dict, meses: list[str]) -> float:
 def main(spark: Any, cfg: dict, args: Any) -> None:
     base = cfg["rutas"]["bronze"]
     mb = revisar_tamano(cfg, args.meses)
-    viajes = io.leer_viajes(spark, base, args.meses)
-    # Resumen de lectura: cuánto entra, cuánto se recorta y cuánto descarta la limpieza.
+    # Resumen de lectura: cuánto entra (con el límite de la corrida) y cuánto descarta la limpieza.
+    viajes = io.leer_fuente(spark, cfg, "viajes", args.meses, args.limite)
     leidas = viajes.count()
     log.info(
-        "Lectura viajes: %d filas (%.1f MB) desde %s, meses %s",
+        "Lectura viajes: %d filas (archivos %.1f MB, límite %s) desde %s, meses %s",
         leidas,
         mb,
+        args.limite or "ninguno",
         base,
         ",".join(args.meses),
     )
-    viajes = aplicar_muestra(viajes, cfg, args.limite)
-    if args.limite:
-        leidas = viajes.count()
-        log.info("Muestra/limite: %d filas (limite=%s)", leidas, args.limite)
-    zonas = io.leer_zonas(spark, base)
-    clima = clima_diario(io.leer_clima(spark, base, args.meses))
+    zonas = io.leer_fuente(spark, cfg, "zonas", args.meses, args.limite)
+    clima = clima_diario(io.leer_fuente(spark, cfg, "clima", args.meses, args.limite))
 
     silver = enriquecer(limpiar_viajes(viajes, args.meses), zonas, clima)
     total = quality.validar(

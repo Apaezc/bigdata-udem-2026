@@ -64,6 +64,33 @@ def leer_clima(spark: SparkSession, base: str, meses: list[str]) -> DataFrame:
     return spark.read.option("multiLine", True).json([ruta_clima(base, m) for m in meses])
 
 
+def leer_fuente(
+    spark: SparkSession, cfg: dict, fuente: str, meses: list[str], limite: int | None = None
+) -> DataFrame:
+    """Puerta única de lectura de fuentes crudas (bronze en dev/prod, la muestra en local).
+
+    Aplica el límite de filas de la corrida (--limite / preparar_entorno del DAG). Toda fuente
+    nueva se agrega a LECTORES y se lee con esta función, nunca con spark.read directo: así el
+    límite de spark_local y el cambio entre entornos funcionan solos.
+    """
+    from pipeline.muestra import aplicar_muestra  # import tardío: muestra importa io
+
+    if fuente not in LECTORES:
+        raise ValueError(
+            f"Fuente desconocida {fuente!r}. Declárala en io.LECTORES: {sorted(LECTORES)}"
+        )
+    df = LECTORES[fuente](spark, cfg["rutas"]["bronze"], meses)
+    return aplicar_muestra(df, cfg, limite)
+
+
+# Fuentes crudas: nombre -> lector(spark, base, meses).
+LECTORES = {
+    "viajes": leer_viajes,
+    "zonas": lambda spark, base, meses: leer_zonas(spark, base),
+    "clima": leer_clima,
+}
+
+
 def leer_silver(spark: SparkSession, cfg: dict, meses: list[str]) -> DataFrame:
     """Silver filtrado al rango de meses (partition pruning por pickup_date)."""
     df = spark.read.parquet(unir(cfg["rutas"]["silver"], CARPETA_CAPA["silver"]))

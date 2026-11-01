@@ -52,6 +52,7 @@ def test_no_import_errors(dag_bag):
 
 
 def test_cadena_glue_y_spark_local_desde_el_branch(dag):
+    assert dag.get_task("elegir_computo").upstream_task_ids == {"preparar_entorno"}
     assert dag.get_task("bronze").upstream_task_ids == {"elegir_computo"}
     assert dag.get_task("silver").upstream_task_ids == {"bronze"}
     assert dag.get_task("gold").upstream_task_ids == {"silver"}
@@ -70,7 +71,7 @@ def test_dag_es_manual_con_computo(dag):
     assert set(dag.params) == {"computo", "mes", "limite"}
     # Sin PIPELINE_ENTORNO el DAG es el de dev (Code Editor): spark_local por defecto.
     assert dag.params["computo"] == "spark_local"
-    assert dag.params["mes"] == ""
+    assert dag.params["mes"] is None
     assert dag.params["limite"] is None
 
 
@@ -92,3 +93,20 @@ def test_perfil_por_computo_se_renderiza_a_entero():
 
     plantilla = jinja2.Template(_segun_computo({"small": 2, "medium": 4, "large": 6}))
     assert int(plantilla.render(params={"computo": "glue_large"})) == 6
+
+
+@pytest.mark.parametrize(
+    ("entorno", "computo", "limite", "esperado"),
+    [
+        ("dev", "spark_local", None, 10_000),
+        ("dev", "spark_local", 100, 100),
+        ("dev", "spark_local", 50_000, 10_000),
+        ("dev", "glue_small", None, None),
+        ("dev", "glue_small", 500, 500),
+        ("prod", "glue_large", 500, None),
+    ],
+)
+def test_limite_efectivo(entorno, computo, limite, esperado):
+    from framework.tasks import limite_efectivo
+
+    assert limite_efectivo(entorno, computo, limite) == esperado

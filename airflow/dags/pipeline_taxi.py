@@ -8,7 +8,8 @@ Dos conceptos separados:
     spark_local  -> Spark en el Code Editor sobre la muestra (gratis; solo en dev), en ./lake.
     glue_small | glue_medium | glue_large -> Glue con 2, 4 o 6 workers.
   En dev se puede probar con recursos de prod (glue_large, varios meses) sin tocar prod.
-params.mes vacío = todos los meses de config/<entorno>.yaml; params.limite recorta los viajes.
+params.mes vacío = todos los meses de config/<entorno>.yaml. preparar_entorno decide el límite
+de filas: spark_local, máximo 10 000 por fuente; Glue, el que pida el desarrollador; prod, ninguno.
 """
 
 from __future__ import annotations
@@ -24,7 +25,7 @@ from airflow.sdk import DAG, Param
 # airflow/ es la raíz del paquete `framework`.
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from framework.tasks import glue_task, pipeline_local_task, snowflake_task
+from framework.tasks import glue_task, pipeline_local_task, preparar_entorno_task, snowflake_task
 
 ENTORNO = os.environ.get("PIPELINE_ENTORNO", "dev")
 if ENTORNO not in ("dev", "prod"):
@@ -57,8 +58,8 @@ with DAG(
             description="spark_local (muestra, gratis) | glue_small | glue_medium | glue_large",
         ),
         "mes": Param(
-            "",
-            type="string",
+            None,
+            type=["null", "string"],
             pattern=r"^(\d{4}-\d{2})?$",
             description="YYYY-MM; vacío = todos los meses del entorno",
         ),
@@ -70,7 +71,9 @@ with DAG(
         ),
     },
 ) as dag:
+    preparar = preparar_entorno_task(ENTORNO)
     elegir = BranchPythonOperator(task_id="elegir_computo", python_callable=_elegir_computo)
+    preparar >> elegir
 
     if "spark_local" in COMPUTO:
         silver_local = pipeline_local_task("silver_spark_local", step="silver")

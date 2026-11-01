@@ -17,6 +17,7 @@ Entorno y cómputo:
 
 from __future__ import annotations
 
+import logging
 import os
 from pathlib import Path
 from typing import Any
@@ -25,6 +26,7 @@ import yaml
 from airflow.providers.amazon.aws.operators.glue import GlueJobOperator
 from airflow.providers.common.sql.operators.sql import SQLExecuteQueryOperator
 from airflow.providers.standard.operators.bash import BashOperator
+from airflow.providers.standard.operators.python import PythonOperator
 
 PROFILES_FILE = Path(__file__).with_name("profiles.yaml")
 
@@ -40,7 +42,12 @@ VALID_STEPS = ("bronze", "silver", "gold", "all")
 # Raíz del repo (airflow/framework/tasks.py -> repo). En el Code Editor los DAGs se leen del repo.
 REPO_ROOT = Path(__file__).resolve().parents[2]
 MES_ARG = "{{ params.mes or 'todos' }}"
-LIMITE_ARG = "{{ params.limite or 0 }}"
+# El límite efectivo lo decide la tarea preparar_entorno (ver limite_efectivo).
+LIMITE_XCOM = "ti.xcom_pull(task_ids='preparar_entorno')"
+LIMITE_ARG = "{{ " + LIMITE_XCOM + " or 0 }}"
+
+# Spark local: tope de filas por fuente para validar la lógica sin traer todos los datos.
+LIMITE_SPARK_LOCAL = 10_000
 
 
 def load_profiles() -> dict[str, dict[str, Any]]:
@@ -155,6 +162,53 @@ def snowflake_task(
     )
 
 
+def limite_efectivo(entorno: str, computo: str, limite: int | None) -> int | None:
+    """Máximo de filas por fuente para esta corrida.
+
+    - spark_local (solo dev): como mucho LIMITE_SPARK_LOCAL; menos si el desarrollador pide menos.
+    - Glue en dev: el límite pedido, o ninguno (dev en Glue sirve para probar a escala real).
+    - prod: nunca hay límite (se ignora el parámetro).
+    """
+    if entorno == "prod":
+        return None
+    if computo == "spark_local":
+        return min(limite, LIMITE_SPARK_LOCAL) if limite else LIMITE_SPARK_LOCAL
+    return limite or None
+
+
+def _preparar_entorno(entorno: str, **context) -> int | None:
+    params = context["params"]
+    limite = limite_efectivo(entorno, params["computo"], params.get("limite"))
+    log = logging.getLogger("airflow.task")
+    log.info(
+        "Entorno: %s | cómputo: %s | meses: %s",
+        entorno,
+        params["computo"],
+        params.get("mes") or "todos",
+    )
+    if params["computo"] == "spark_local":
+        log.info(
+            "Spark local: cada fuente se lee con máximo %d filas. No pruebes con todos los "
+            "datos en local (la memoria del Code Editor es limitada y no aprendes nada nuevo): "
+            "valida aquí la lógica y usa glue_small o mayor para probar a escala.",
+            limite,
+        )
+    elif entorno == "prod" and params.get("limite"):
+        log.warning("En prod no se aplican límites: se ignora limite=%s.", params["limite"])
+    else:
+        log.info("Límite de filas: %s", limite or "ninguno")
+    return limite
+
+
+def preparar_entorno_task(entorno: str) -> PythonOperator:
+    """Primer paso del DAG: decide el límite de filas de la corrida y lo explica en el log."""
+    return PythonOperator(
+        task_id="preparar_entorno",
+        python_callable=_preparar_entorno,
+        op_kwargs={"entorno": entorno},
+    )
+
+
 def pipeline_local_task(task_id: str, step: str) -> BashOperator:
     """Ejecuta un step del pipeline con Spark local (env local) en la máquina de Airflow."""
     if step not in VALID_STEPS:
@@ -164,6 +218,6 @@ def pipeline_local_task(task_id: str, step: str) -> BashOperator:
         f'cd "{REPO_ROOT}" && PYTHONPATH="{REPO_ROOT}/src" "{python}" -m pipeline.run '
         f"--step {step} --env local --engine local"
         "{% if params.mes %} --mes {{ params.mes }}{% endif %}"
-        "{% if params.limite %} --limite {{ params.limite }}{% endif %}"
+        "{% set lim = " + LIMITE_XCOM + " %}{% if lim %} --limite {{ lim }}{% endif %}"
     )
     return BashOperator(task_id=task_id, bash_command=comando)

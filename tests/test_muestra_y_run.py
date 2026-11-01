@@ -122,3 +122,13 @@ def test_guardia_de_tamano_en_local(spark, tmp_path):
     cfg["limites"]["max_mb_entrada"] = 0.000001  # cualquier archivo lo supera
     with pytest.raises(silver.EntradaDemasiadoGrande, match="usa Glue"):
         silver.main(spark, cfg, Namespace(meses=[MES], limite=None))
+
+
+def test_leer_fuente_aplica_el_limite_y_rechaza_fuentes_no_declaradas(spark, tmp_path):
+    bronze = tmp_path / "bronze"
+    _armar_bronze(spark, bronze)
+    cfg = {"rutas": {"bronze": str(bronze)}, "muestra": {"max_rows": None}}
+    assert io.leer_fuente(spark, cfg, "viajes", [MES], 7).count() == 7
+    assert io.leer_fuente(spark, cfg, "zonas", [MES]).count() == 12
+    with pytest.raises(ValueError, match="Declárala en io.LECTORES"):
+        io.leer_fuente(spark, cfg, "citibike", [MES])
