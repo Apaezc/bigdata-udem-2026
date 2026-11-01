@@ -223,6 +223,13 @@ guardia_destruccion() {
   error "El plan destruye recursos. Si es intencional, repite con CONFIRMAR_DESTRUCCION=true (en deploy.yml: input confirmar_destruccion)."
 }
 
+stack_output() {
+  # Uso: stack_output <OutputKey>. Salida del stack de bootstrap (vacío si no existe).
+  local stack="${BOOTSTRAP_STACK:-${PREFIX}-bootstrap}"
+  aws cloudformation describe-stacks --stack-name "$stack" \
+    --query "Stacks[0].Outputs[?OutputKey=='$1'].OutputValue" --output text 2>/dev/null || true
+}
+
 studio_console_url() {
   # Salida StudioConsoleUrl del stack de bootstrap (nombre por defecto ${PREFIX}-bootstrap).
   local stack="${BOOTSTRAP_STACK:-${PREFIX}-bootstrap}"

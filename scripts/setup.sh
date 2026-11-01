@@ -75,4 +75,10 @@ EOF
   rm -f "$CONFIG_TMP"
   msg "Configuración creada en S3 (enable_glue=true, enable_airflow=false)."
 fi
+# Secrets del fork (AWS_ROLE_ARN, TF_STATE_BUCKET) desde los outputs del bootstrap.
+if gh auth status >/dev/null 2>&1; then
+  bash "$ROOT_DIR/scripts/secrets.sh" || aviso "No se pudieron cargar los secrets; reintenta con 'make secrets'."
+else
+  aviso "Falta autenticar gh para cargar los secrets del fork: 'gh auth login --web' y luego 'make secrets'."
+fi
 msg "Setup completado. Siguiente paso: make doctor"

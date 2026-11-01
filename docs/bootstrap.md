@@ -8,70 +8,44 @@ Este paso se hace una sola vez por alumno, desde la consola de AWS, con la cuent
 - Proveedor OIDC de GitHub (si no lo tienes ya) y rol `${prefix}-github-actions` para GitHub Actions (sin claves de acceso).
 - Política `${prefix}-boundary` (permissions boundary). Terraform solo puede crear roles `${prefix}-*` que la lleven, y tiene prohibido adjuntar `AdministratorAccess`, quitar el boundary o alterar las políticas de gobierno.
 - Bucket de state de Terraform (versionado, cifrado, sin acceso público, no se borra con el stack).
-- Presupuesto mensual con alertas al 50, 80 y 100 %.
+- Presupuesto `${prefix}-total` (gasto bruto) con alerta al 100 % como red de seguridad.
 - Lambda que, al borrar el stack, elimina apps, spaces y user profiles del dominio antes de borrarlo.
 
 Nota: este paso no crea Snowflake ni los recursos de `infra/aws/` (eso lo hace Terraform después).
 
-## 1. Datos de tu fork
+## 1. Generar tu enlace (sin copiar IDs)
 
-Haz fork del repositorio en tu cuenta de GitHub. Anota el dueño (`OWNER`) y el nombre (`REPO`) del fork.
+1. Haz fork del repositorio y habilita Actions en el fork.
+2. En el fork: **Actions > "Enlace de bootstrap" > Run workflow** (rama `main`).
+3. Abre el run terminado: el resumen trae el enlace **Launch Stack** con `GitHubOwner`, `GitHubOwnerId`,
+   `GitHubRepo` y `GitHubRepoId` ya completados con los datos de **tu fork**. No los cambies.
 
-Obtén los IDs numéricos. Son el dueño y el repositorio del **fork**, no de la plantilla:
+## 2. Lanzar el stack
 
-```bash
-curl -s https://api.github.com/repos/OWNER/REPO | jq '{owner: .owner.login, owner_id: .owner.id, repo: .name, repo_id: .id}'
-```
+1. Entra a la consola de AWS con tu usuario administrador, región **US East (Ohio) `us-east-2`**.
+2. Abre el enlace. En el formulario completa solo:
+   - **VpcId**: la VPC que dice *default*.
+   - **SubnetIds**: marca todas las subnets de esa VPC.
+   - **AlertEmail**: tu correo (confirma la suscripción que te llega).
+3. Marca *I acknowledge that AWS CloudFormation might create IAM resources with custom names* y pulsa
+   **Create stack**. Espera `CREATE_COMPLETE` (~4 min).
 
-Sin `jq`, busca en la respuesta los campos `"id"` dentro de `"owner"` (es `GitHubOwnerId`) y el `"id"` del nivel superior (es `GitHubRepoId`).
+Si la cuenta ya tiene el proveedor OIDC de GitHub, el stack falla con `EntityAlreadyExists`: bórralo y
+relánzalo con `ExistingGitHubOidcProviderArn` (ver "Problemas frecuentes").
 
-## 2. VPC y subnets por defecto
+## 3. Secrets del fork (automáticos)
 
-En la consola de VPC, región `us-east-2`, elige la **VPC por defecto** y anota su ID (`VpcId`). Anota al menos dos subnets de esa VPC (`SubnetIds`), de zonas de disponibilidad distintas.
+No copies outputs a mano. En el Code Editor, después de clonar tu fork, `make setup` carga
+`AWS_ROLE_ARN` y `TF_STATE_BUCKET` en el fork leyendo los outputs del stack. La primera vez autentica
+GitHub (`gh auth login --hostname github.com --git-protocol https --web`) y corre `make secrets`.
 
-## 3. Lanzar el stack
+## 4. Para el instructor
 
-Abre este enlace (reemplaza `REEMPLAZAR_TEMPLATE_URL` por la URL del template, codificada para URL; por ejemplo, la URL *raw* de `bootstrap/cloudformation/bootstrap.yaml` en tu fork):
-
-```
-https://us-east-2.console.aws.amazon.com/cloudformation/home?region=us-east-2#/stacks/create/review?stackName=bigdata-bootstrap&templateURL=REEMPLAZAR_TEMPLATE_URL
-```
-
-Completa los parámetros:
-
-| Parámetro | Valor |
-|---|---|
-| `GitHubOwner` | Dueño del fork (`OWNER`) |
-| `GitHubOwnerId` | ID numérico del dueño (paso 1) |
-| `GitHubRepo` | Nombre del fork (`REPO`) |
-| `GitHubRepoId` | ID numérico del repositorio (paso 1) |
-| `VpcId` | VPC por defecto (paso 2) |
-| `SubnetIds` | Subnets de la VPC por defecto (paso 2) |
-| `Prefix` | `bigdata` (si lo cambias, usa el mismo valor en Terraform) |
-| `AlertEmail` | Tu correo para alertas de presupuesto |
-| `BudgetUsd` | `50` por defecto |
-| `ExistingGitHubOidcProviderArn` | Déjalo vacío. Solo si la cuenta ya tiene el proveedor OIDC de GitHub, pega su ARN (ver "Problemas frecuentes") |
-
-En la sección de capacidades marca **"I acknowledge that AWS CloudFormation might create IAM resources with custom names"**. El stack crea roles y políticas con nombre fijo.
-
-Ejecuta **Submit** y espera a `CREATE_COMPLETE`.
-
-## 4. Copiar los outputs
-
-En la pestaña **Outputs** del stack:
-
-| Output | Dónde va |
-|---|---|
-| `GitHubActionsRoleArn` | Secret `AWS_ROLE_ARN` de tu fork |
-| `TfStateBucket` | Secret `TF_STATE_BUCKET` de tu fork |
-| `PermissionsBoundaryArn` | Referencia (Terraform lo arma solo; variable `permissions_boundary_arn`) |
-| `DomainId` | Referencia |
-| `StudioConsoleUrl` | Abrir SageMaker Studio |
-| `SageMakerExecutionRoleArn` | Solo referencia |
-
-Los secrets se configuran en tu fork: **Settings > Secrets and variables > Actions**: `AWS_ROLE_ARN` (output `GitHubActionsRoleArn`) y `TF_STATE_BUCKET` (output `TfStateBucket`). Sin ellos, `ci.yml` y `deploy.yml` fallan con un mensaje claro (en PRs desde forks el plan se omite a propósito). Los secrets de Snowflake se configuran aparte.
-
-La configuración de Terraform (correo de alertas del paso 3 = `AlertEmail`, Airflow, Glue y la fase 2 de Snowflake) no va en GitHub: `make setup` la guarda en `s3://<TfStateBucket>/config/aws.tfvars` (ver [README](../README.md#configuración-por-estudiante)).
+El enlace apunta a la plantilla en `s3://bigdata-udem-2026-publico/bootstrap/` (versionado, solo
+lectura, solo usuarios autenticados de AWS: sin descargas anónimas). Después de cada cambio en
+`bootstrap/cloudformation/bootstrap.yaml`: `make publicar-bootstrap` (publica una versión nueva, fija
+el enlace del workflow a esa versión y deja el cambio listo para commit). Al cerrar la semana de
+inscripción: `make retirar-bootstrap` (borra todas las versiones; los enlaces dejan de funcionar).
 
 ## 5. Abrir Code Editor
 

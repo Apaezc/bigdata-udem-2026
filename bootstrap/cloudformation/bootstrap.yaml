@@ -432,13 +432,13 @@ Resources:
   # ---------------------------------------------------------------------------
   # SageMaker Domain, usuario y Space de Code Editor.
   # ---------------------------------------------------------------------------
-  # Herramientas del curso que la imagen de Code Editor no trae (Java 17, Terraform, snow, zip, nginx, session-manager-plugin).
+  # Herramientas del curso que la imagen de Code Editor no trae (Java 17, Terraform, snow, zip, nginx, gh, session-manager-plugin).
   # Corre en cada arranque del space; lo que va al home persiste, asi que solo descarga la primera vez.
   CodeEditorToolsLifecycleConfig:
     Type: AWS::SageMaker::StudioLifecycleConfig
     Properties:
       # El contenido de un LCC es inmutable: si cambia el script, sube el sufijo del nombre.
-      StudioLifecycleConfigName: !Sub "${Prefix}-code-editor-tools-v4"
+      StudioLifecycleConfigName: !Sub "${Prefix}-code-editor-tools-v5"
       StudioLifecycleConfigAppType: CodeEditor
       StudioLifecycleConfigContent:
         Fn::Base64: |
@@ -485,6 +485,15 @@ Resources:
             else
               sudo -u sagemaker-user -H "$PY" -m pip install --user --quiet snowflake-cli || FALLOS+=" snow"
             fi
+          fi
+
+          # GitHub CLI (make secrets carga los secrets del fork).
+          if [[ ! -x "$BIN/gh" ]]; then
+            { GH_VER="$(curl -fsSL https://api.github.com/repos/cli/cli/releases/latest | "$PY" -c 'import json,sys; print(json.load(sys.stdin)["tag_name"].lstrip("v"))')" \
+              && curl -fsSL -o /tmp/gh.tgz "https://github.com/cli/cli/releases/download/v${GH_VER}/gh_${GH_VER}_linux_amd64.tar.gz" \
+              && tar -xzf /tmp/gh.tgz -C "$OPT" \
+              && ln -sfn "$OPT/gh_${GH_VER}_linux_amd64/bin/gh" "$BIN/gh"; } || FALLOS+=" gh"
+            rm -f /tmp/gh.tgz
           fi
 
           # session-manager-plugin (tunel SSM a Airflow): se extrae el .deb en el home, sin instalarlo.
