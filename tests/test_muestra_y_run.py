@@ -83,3 +83,42 @@ def test_muestra_y_pipeline_local_de_punta_a_punta(spark, tmp_path):
     gold_df = spark.read.parquet(str(tmp_path / "gold" / "daily_zone_metrics"))
     assert gold_df.agg({"viajes": "sum"}).first()[0] <= n
     assert set(gold_df.columns) >= {"fecha", "zona", "empresa", "viajes"}
+
+
+def _cfg_local(tmp_path, bronze):
+    return {
+        "entorno": "local",
+        "rutas": {
+            "bronze": str(bronze),
+            "silver": str(tmp_path / "silver"),
+            "gold": str(tmp_path / "gold"),
+        },
+        "muestra": {"max_rows": None},
+        "limites": {"max_mb_entrada": 500},
+    }
+
+
+def test_reproceso_con_limite_no_deja_dias_viejos(spark, tmp_path):
+    """Regresión: con overwrite dinámico, correr con --limite dejaba los días de la corrida
+    anterior y gold contaba más viajes que los procesados."""
+    bronze = tmp_path / "bronze"
+    _armar_bronze(spark, bronze)
+    cfg = _cfg_local(tmp_path, bronze)
+
+    silver.main(spark, cfg, Namespace(meses=[MES], limite=None))
+    gold.main(spark, cfg, Namespace(meses=[MES], limite=None))
+    silver.main(spark, cfg, Namespace(meses=[MES], limite=5))
+    gold.main(spark, cfg, Namespace(meses=[MES], limite=None))
+
+    assert spark.read.parquet(str(tmp_path / "silver" / "fhvhv_trips")).count() <= 5
+    viajes_gold = spark.read.parquet(str(tmp_path / "gold" / "daily_zone_metrics"))
+    assert viajes_gold.agg({"viajes": "sum"}).first()[0] <= 5
+
+
+def test_guardia_de_tamano_en_local(spark, tmp_path):
+    bronze = tmp_path / "bronze"
+    _armar_bronze(spark, bronze)
+    cfg = _cfg_local(tmp_path, bronze)
+    cfg["limites"]["max_mb_entrada"] = 0.000001  # cualquier archivo lo supera
+    with pytest.raises(silver.EntradaDemasiadoGrande, match="usa Glue"):
+        silver.main(spark, cfg, Namespace(meses=[MES], limite=None))

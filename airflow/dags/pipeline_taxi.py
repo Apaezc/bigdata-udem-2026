@@ -1,15 +1,14 @@
-"""DAG pipeline_taxi: bronze -> silver -> gold -> carga a Snowflake, por entorno.
+"""DAG pipeline_taxi: bronze -> silver -> gold -> carga a Snowflake.
 
-params.entorno elige el camino:
-- local: silver_local -> gold_local. Spark en la misma máquina que Airflow (Code Editor),
-  sobre la muestra. Gratis; valida la lógica. No carga a Snowflake.
-- dev:   bronze_dev -> silver_dev -> gold_dev -> cargar_dev. Glue `small`, 1 mes completo,
-  carga a BIGDATA.DEV.
-- prod:  bronze_prod -> silver_prod -> gold_prod -> cargar_prod. Glue `medium`/`large`, el año,
-  carga a BIGDATA.PROD. Lo usa el Airflow de prod (la VM), con DAGs desplegados por CI.
-params.mes vacío = todos los meses del entorno (config/<entorno>.yaml); params.limite recorta
-los viajes (vacío = sin recorte). El entorno por defecto viene de PIPELINE_ENTORNO
-(la VM de prod lo fija en "prod"; el Code Editor usa "local").
+Dos conceptos separados:
+- ENTORNO (dónde quedan los datos): lo fija cada Airflow con PIPELINE_ENTORNO y NO se elige
+  al lanzar. El Airflow del Code Editor es `dev` (s3://<lake>/dev/, BIGDATA.DEV); la VM es
+  `prod` (s3://<lake>/prod/, BIGDATA.PROD) y solo recibe DAGs por CI (merge a main).
+- params.computo (con qué recursos se calcula):
+    spark_local  -> Spark en el Code Editor sobre la muestra (gratis; solo en dev). Escribe en ./lake.
+    glue_small | glue_medium | glue_large -> Glue con 2, 4 o 6 workers.
+  En dev se puede probar con recursos de prod (glue_large, varios meses) sin tocar prod.
+params.mes vacío = todos los meses de config/<entorno>.yaml; params.limite recorta los viajes.
 """
 
 from __future__ import annotations
@@ -19,28 +18,28 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
-from airflow.models.param import Param
 from airflow.providers.standard.operators.python import BranchPythonOperator
-from airflow.sdk import DAG
+from airflow.sdk import DAG, Param
 
 # airflow/ es la raíz del paquete `framework`.
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from framework.tasks import glue_task, pipeline_local_task, snowflake_task
 
-ENTORNOS = ("local", "dev", "prod")
-ENTORNO_POR_DEFECTO = os.environ.get("PIPELINE_ENTORNO", "local")
-# Perfil Glue de cada step en la nube (profiles.yaml).
-PERFILES = {
-    "dev": {"bronze": "small", "silver": "small", "gold": "small"},
-    "prod": {"bronze": "small", "silver": "large", "gold": "medium"},
-}
+ENTORNO = os.environ.get("PIPELINE_ENTORNO", "dev")
+if ENTORNO not in ("dev", "prod"):
+    raise ValueError(
+        f"PIPELINE_ENTORNO inválido {ENTORNO!r}: usa 'dev' (Code Editor) o 'prod' (VM)"
+    )
+
+COMPUTO = {
+    "dev": ["spark_local", "glue_small", "glue_medium", "glue_large"],
+    "prod": ["glue_medium", "glue_large"],
+}[ENTORNO]
 
 
-def _elegir_entorno(**context) -> str:
-    """Primer task_id del camino según params.entorno."""
-    entorno = context["params"]["entorno"]
-    return "silver_local" if entorno == "local" else f"bronze_{entorno}"
+def _elegir_computo(**context) -> str:
+    return "silver_spark_local" if context["params"]["computo"] == "spark_local" else "bronze"
 
 
 with DAG(
@@ -48,13 +47,14 @@ with DAG(
     schedule=None,
     start_date=datetime(2024, 1, 1),
     catchup=False,
-    tags=["bigdata", "fhvhv"],
+    tags=["bigdata", "fhvhv", ENTORNO],
+    description=f"Pipeline FHVHV en el entorno {ENTORNO}",
     params={
-        "entorno": Param(
-            ENTORNO_POR_DEFECTO if ENTORNO_POR_DEFECTO in ENTORNOS else "local",
+        "computo": Param(
+            COMPUTO[0] if ENTORNO == "dev" else "glue_large",
             type="string",
-            enum=list(ENTORNOS),
-            description="local (muestra, Spark aquí) | dev (Glue small, 1 mes) | prod (Glue, año)",
+            enum=COMPUTO,
+            description="spark_local (muestra, gratis) | glue_small | glue_medium | glue_large",
         ),
         "mes": Param(
             "",
@@ -70,19 +70,18 @@ with DAG(
         ),
     },
 ) as dag:
-    elegir = BranchPythonOperator(task_id="elegir_entorno", python_callable=_elegir_entorno)
+    elegir = BranchPythonOperator(task_id="elegir_computo", python_callable=_elegir_computo)
 
-    silver_local = pipeline_local_task("silver_local", step="silver")
-    gold_local = pipeline_local_task("gold_local", step="gold")
-    elegir >> silver_local >> gold_local
+    if "spark_local" in COMPUTO:
+        silver_local = pipeline_local_task("silver_spark_local", step="silver")
+        gold_local = pipeline_local_task("gold_spark_local", step="gold")
+        elegir >> silver_local >> gold_local
 
-    for entorno, perfiles in PERFILES.items():
-        bronze = glue_task(
-            f"bronze_{entorno}", step="bronze", profile=perfiles["bronze"], env=entorno
-        )
-        silver = glue_task(
-            f"silver_{entorno}", step="silver", profile=perfiles["silver"], env=entorno
-        )
-        gold = glue_task(f"gold_{entorno}", step="gold", profile=perfiles["gold"], env=entorno)
-        cargar = snowflake_task(f"cargar_{entorno}", sql_file="sql/copy_gold.sql")
-        elegir >> bronze >> silver >> gold >> cargar
+    # bronze solo descarga (y omite lo que ya existe): siempre en el perfil más chico.
+    bronze = glue_task("bronze", step="bronze", env=ENTORNO, profile="small")
+    silver = glue_task("silver", step="silver", env=ENTORNO)
+    gold = glue_task("gold", step="gold", env=ENTORNO)
+    cargar = snowflake_task(
+        "cargar_gold", sql_file="sql/copy_gold.sql", params={"entorno": ENTORNO}
+    )
+    elegir >> bronze >> silver >> gold >> cargar

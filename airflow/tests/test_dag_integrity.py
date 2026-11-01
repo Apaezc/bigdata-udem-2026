@@ -51,46 +51,44 @@ def test_no_import_errors(dag_bag):
     assert DAG_ID in dag_bag.dags
 
 
-CAMINOS = {
-    "local": ["silver_local", "gold_local"],
-    "dev": ["bronze_dev", "silver_dev", "gold_dev", "cargar_dev"],
-    "prod": ["bronze_prod", "silver_prod", "gold_prod", "cargar_prod"],
-}
+def test_cadena_glue_y_spark_local_desde_el_branch(dag):
+    assert dag.get_task("bronze").upstream_task_ids == {"elegir_computo"}
+    assert dag.get_task("silver").upstream_task_ids == {"bronze"}
+    assert dag.get_task("gold").upstream_task_ids == {"silver"}
+    assert dag.get_task("cargar_gold").upstream_task_ids == {"gold"}
+    assert dag.get_task("silver_spark_local").upstream_task_ids == {"elegir_computo"}
+    assert dag.get_task("gold_spark_local").upstream_task_ids == {"silver_spark_local"}
+    assert dag.get_task("gold_spark_local").downstream_task_ids == set()
 
 
-@pytest.mark.parametrize("entorno", CAMINOS)
-def test_cada_entorno_es_una_cadena_desde_el_branch(dag, entorno):
-    tareas = CAMINOS[entorno]
-    assert dag.get_task(tareas[0]).upstream_task_ids == {"elegir_entorno"}
-    for anterior, siguiente in zip(tareas, tareas[1:], strict=False):
-        assert dag.get_task(siguiente).upstream_task_ids == {anterior}
-    assert dag.get_task(tareas[-1]).downstream_task_ids == set()
+def test_no_quedan_ramas_de_snowpark_ni_de_prod(dag):
+    assert not [t for t in dag.task_ids if "snowpark" in t or "prod" in t]
 
 
-def test_no_quedan_ramas_de_snowpark(dag):
-    assert not [t for t in dag.task_ids if "snowpark" in t]
-
-
-def test_dag_es_manual_con_params(dag):
+def test_dag_es_manual_con_computo(dag):
     assert type(dag.timetable).__name__ == "NullTimetable"
-    assert set(dag.params) == {"entorno", "mes", "limite"}
-    assert dag.params["entorno"] in CAMINOS
+    assert set(dag.params) == {"computo", "mes", "limite"}
+    # Sin PIPELINE_ENTORNO el DAG es el de dev (Code Editor): spark_local por defecto.
+    assert dag.params["computo"] == "spark_local"
     assert dag.params["mes"] == ""
     assert dag.params["limite"] is None
 
 
-@pytest.mark.parametrize("entorno", ["dev", "prod"])
-def test_glue_pasa_entorno_worker_type_y_workers(dag, entorno):
-    # StartJobRun falla con "Please set both Worker Type and Number of Workers" si falta uno.
-    for step in ("bronze", "silver", "gold"):
-        tarea = dag.get_task(f"{step}_{entorno}")
+def test_glue_toma_el_perfil_de_computo(dag):
+    for step in ("silver", "gold"):
+        tarea = dag.get_task(step)
+        assert "params.computo" in tarea.job_name
+        assert "params.computo" in str(tarea.run_job_kwargs["NumberOfWorkers"])
         assert tarea.run_job_kwargs["WorkerType"] == "G.1X"
-        assert tarea.run_job_kwargs["NumberOfWorkers"] >= 2
-        assert tarea.script_args["--env"] == entorno
+        assert tarea.script_args["--env"] == "dev"
         assert tarea.verbose is True
+    bronze = dag.get_task("bronze")
+    assert bronze.job_name.endswith("-small") and bronze.run_job_kwargs["NumberOfWorkers"] == 2
 
 
-def test_prod_usa_perfiles_mayores_que_dev(dag):
-    dev = dag.get_task("silver_dev").run_job_kwargs["NumberOfWorkers"]
-    prod = dag.get_task("silver_prod").run_job_kwargs["NumberOfWorkers"]
-    assert prod > dev
+def test_perfil_por_computo_se_renderiza_a_entero():
+    import jinja2
+    from framework.tasks import _segun_computo
+
+    plantilla = jinja2.Template(_segun_computo({"small": 2, "medium": 4, "large": 6}))
+    assert int(plantilla.render(params={"computo": "glue_large"})) == 6

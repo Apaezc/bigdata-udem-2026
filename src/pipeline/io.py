@@ -74,16 +74,71 @@ def leer_silver(spark: SparkSession, cfg: dict, meses: list[str]) -> DataFrame:
 # --- escritura --------------------------------------------------------------------------------
 
 
-def escribir_silver(df: DataFrame, cfg: dict) -> None:
+def escribir_silver(df: DataFrame, cfg: dict, meses: list[str]) -> None:
+    """Reemplaza silver de los meses procesados (todas sus particiones, no solo las que llegan).
+
+    Con overwrite dinámico solo se reescriben los días presentes en df: si un reproceso trae menos
+    días (filtro nuevo, --limite), los días viejos quedarían mezclados. Por eso se borran antes.
+    """
     ruta = unir(cfg["rutas"]["silver"], CARPETA_CAPA["silver"])
+    borrar_particiones(ruta, [f"pickup_date={m}-" for m in meses])
     df.write.mode("overwrite").partitionBy("pickup_date").parquet(ruta)
 
 
-def escribir_gold(df: DataFrame, cfg: dict) -> None:
+def escribir_gold(df: DataFrame, cfg: dict, meses: list[str]) -> None:
     ruta = unir(cfg["rutas"]["gold"], CARPETA_CAPA["gold"])
+    borrar_particiones(ruta, [f"mes={m}/" for m in meses])
     df.withColumn("mes", F.date_format("fecha", "yyyy-MM")).write.mode("overwrite").partitionBy(
         "mes"
     ).parquet(ruta)
+
+
+def borrar_particiones(ruta: str, prefijos: list[str]) -> None:
+    """Borra las carpetas de partición de `ruta` cuyo nombre empieza con alguno de los prefijos."""
+    if ruta.startswith("s3://"):
+        import boto3
+
+        bucket, _, base = ruta[len("s3://") :].partition("/")
+        s3 = boto3.client("s3")
+        paginador = s3.get_paginator("list_objects_v2")
+        for prefijo in prefijos:
+            claves = [
+                {"Key": o["Key"]}
+                for pagina in paginador.paginate(
+                    Bucket=bucket, Prefix=f"{base.rstrip('/')}/{prefijo}"
+                )
+                for o in pagina.get("Contents", [])
+            ]
+            for i in range(0, len(claves), 1000):
+                s3.delete_objects(Bucket=bucket, Delete={"Objects": claves[i : i + 1000]})
+        return
+    carpeta = Path(ruta)
+    if not carpeta.is_dir():
+        return
+    for hijo in carpeta.iterdir():
+        if hijo.is_dir() and any(hijo.name.startswith(p.rstrip("/")) for p in prefijos):
+            shutil.rmtree(hijo)
+
+
+def tamano_mb(rutas: list[str]) -> float:
+    """Tamaño total (MB) de los archivos bajo las rutas (carpetas o archivos; locales o s3://)."""
+    total = 0
+    for ruta in rutas:
+        if ruta.startswith("s3://"):
+            import boto3
+
+            bucket, _, prefijo = ruta[len("s3://") :].partition("/")
+            paginas = (
+                boto3.client("s3")
+                .get_paginator("list_objects_v2")
+                .paginate(Bucket=bucket, Prefix=prefijo)
+            )
+            total += sum(o["Size"] for p in paginas for o in p.get("Contents", []))
+        else:
+            r = Path(ruta)
+            archivos = [r] if r.is_file() else [f for f in r.rglob("*") if f.is_file()]
+            total += sum(f.stat().st_size for f in archivos)
+    return total / 1_048_576
 
 
 # --- archivos (bronze y muestra) -------------------------------------------------------------

@@ -11,5 +11,8 @@ muestra:
   sincronizar_desde: muestra
   # Recorte adicional de filas de viajes (null = toda la muestra). --limite lo reemplaza.
   max_rows: null
+limites:
+  # Guardia de Spark local (~2 GB de driver): por encima de esto, usar Glue.
+  max_mb_entrada: 500
 meses:
   - "2024-01"

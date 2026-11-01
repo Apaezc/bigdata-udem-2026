@@ -7,6 +7,7 @@ particionado por pickup_date.
 
 from __future__ import annotations
 
+import logging
 from typing import Any
 
 from pyspark.sql import DataFrame
@@ -15,6 +16,13 @@ from pyspark.sql import functions as F
 from pipeline import io, quality
 from pipeline.muestra import aplicar_muestra
 from pipeline.settings import rango_meses
+
+log = logging.getLogger(__name__)
+
+
+class EntradaDemasiadoGrande(RuntimeError):
+    """La entrada supera el máximo configurado para el entorno (p. ej. Spark local)."""
+
 
 DISTANCIA_MAX_MI = 100.0  # trip_miles está en millas
 DURACION_MIN_MIN = 1.0
@@ -116,14 +124,42 @@ def enriquecer(trips: DataFrame, zonas: DataFrame, clima: DataFrame) -> DataFram
     )
 
 
+def revisar_tamano(cfg: dict, meses: list[str]) -> float:
+    """MB de viajes a leer; error claro si superan limites.max_mb_entrada del entorno."""
+    base = cfg["rutas"]["bronze"]
+    mb = io.tamano_mb([io.dir_viajes(base, m) for m in meses])
+    maximo = (cfg.get("limites") or {}).get("max_mb_entrada")
+    if maximo and mb > maximo:
+        raise EntradaDemasiadoGrande(
+            f"La entrada pesa {mb:.0f} MB y el máximo para '{cfg['entorno']}' es {maximo} MB. "
+            "Spark local tiene ~2 GB de memoria: usa Glue (computo glue_small o mayor) o recorta "
+            "con --limite / LIMITE."
+        )
+    return mb
+
+
 def main(spark: Any, cfg: dict, args: Any) -> None:
     base = cfg["rutas"]["bronze"]
-    viajes = aplicar_muestra(io.leer_viajes(spark, base, args.meses), cfg, args.limite)
+    mb = revisar_tamano(cfg, args.meses)
+    viajes = io.leer_viajes(spark, base, args.meses)
+    # Resumen de lectura: cuánto entra, cuánto se recorta y cuánto descarta la limpieza.
+    leidas = viajes.count()
+    log.info(
+        "Lectura viajes: %d filas (%.1f MB) desde %s, meses %s",
+        leidas,
+        mb,
+        base,
+        ",".join(args.meses),
+    )
+    viajes = aplicar_muestra(viajes, cfg, args.limite)
+    if args.limite:
+        leidas = viajes.count()
+        log.info("Muestra/limite: %d filas (limite=%s)", leidas, args.limite)
     zonas = io.leer_zonas(spark, base)
     clima = clima_diario(io.leer_clima(spark, base, args.meses))
 
     silver = enriquecer(limpiar_viajes(viajes, args.meses), zonas, clima)
-    quality.validar(
+    total = quality.validar(
         silver,
         nombre="silver",
         llaves=("pickup_datetime", "pickup_date", "pu_location_id", "zona", "empresa"),
@@ -132,5 +168,6 @@ def main(spark: Any, cfg: dict, args: Any) -> None:
             "tarifa_base": (0, None),
             "duracion_min": (DURACION_MIN_MIN, DURACION_MAX_MIN),
         },
-    )
-    io.escribir_silver(silver, cfg)
+    )["total"]
+    log.info("Limpieza: %d -> %d filas (%d descartadas)", leidas, total, leidas - total)
+    io.escribir_silver(silver, cfg, args.meses)

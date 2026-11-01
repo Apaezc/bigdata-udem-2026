@@ -6,11 +6,11 @@ Convenciones (CONTRATO.md):
 - `prefix` se lee de la Variable de Airflow `prefix` (default "bigdata") al renderizar la
   tarea, mediante Jinja (`var.value.get`). No se consulta la base de datos al parsear el DAG.
 
-Entornos (params.entorno del DAG):
-- local: `pipeline_local_task` ejecuta `pipeline.run --env local --engine local` en un subproceso
-  con el Python del repo (`.venv`), en la misma máquina que Airflow (el Code Editor). La VM de
-  prod no tiene el código ni Spark: allí solo se usan dev/prod (Glue).
-- dev / prod: `glue_task` lanza el job Glue del perfil con --env dev|prod.
+Entorno y cómputo:
+- El entorno (dev o prod: dónde quedan los datos) lo fija cada Airflow con PIPELINE_ENTORNO.
+- params.computo elige los recursos: spark_local (solo en dev; `pipeline_local_task` corre
+  `pipeline.run --env local --engine local` con el Python del repo, en la misma máquina que
+  Airflow, sobre la muestra) o glue_small|glue_medium|glue_large (`glue_task` con profile=None).
 - mes vacío = todos los meses del entorno; limite vacío = sin recorte. A Glue se le pasa
   "todos" / "0" porque StartJobRun no acepta argumentos vacíos (run_glue.py los ignora).
 """
@@ -63,7 +63,17 @@ def glue_spark_ui_url(region: str, job_name: str, run_id: str) -> str:
 
 
 class GlueJobWithLinks(GlueJobOperator):
-    """GlueJobOperator que escribe en el log los enlaces a la consola y al Spark UI."""
+    """GlueJobOperator que escribe en el log los enlaces a la consola y al Spark UI.
+
+    Si el perfil sale de params.computo, NumberOfWorkers y Timeout llegan como texto (las
+    plantillas de Airflow renderizan strings) y StartJobRun exige enteros: se convierten aquí.
+    """
+
+    def execute(self, context):  # type: ignore[override]
+        for clave in ("NumberOfWorkers", "Timeout"):
+            if clave in self.run_job_kwargs:
+                self.run_job_kwargs[clave] = int(self.run_job_kwargs[clave])
+        return super().execute(context)
 
     def submit_job(self, context):  # type: ignore[override]
         run_id = super().submit_job(context)
@@ -76,16 +86,22 @@ class GlueJobWithLinks(GlueJobOperator):
         return run_id
 
 
+def _segun_computo(valores: dict[str, Any]) -> str:
+    """Plantilla Jinja que elige un valor por perfil a partir de params.computo (glue_<perfil>)."""
+    return "{{ " + repr(valores) + "[params.computo.replace('glue_', '')] }}"
+
+
 def glue_task(
     task_id: str,
     step: str,
-    profile: str,
     env: str,
+    profile: str | None = None,
     mes: str = MES_ARG,
     limite: str = LIMITE_ARG,
 ) -> GlueJobWithLinks:
-    """Tarea que ejecuta un step del pipeline en el job Glue `${prefix}-<profile>`.
+    """Tarea que ejecuta un step del pipeline en un job Glue `${prefix}-<perfil>`.
 
+    profile fijo ("small"...) o None para tomarlo de params.computo (glue_small|medium|large).
     El job ejecuta run_glue.py, que fija el engine glue. env: "dev" o "prod".
     """
     if step not in VALID_STEPS:
@@ -94,10 +110,16 @@ def glue_task(
         raise ValueError(f"env inválido {env!r}; glue_task admite 'dev' o 'prod'")
 
     profiles = load_profiles()
-    if profile not in profiles:
+    if profile is None:
+        job_name = f"{PREFIX_TEMPLATE}-" + "{{ params.computo.replace('glue_', '') }}"
+        workers = _segun_computo({p: c["number_of_workers"] for p, c in profiles.items()})
+        timeout = _segun_computo({p: c["timeout"] for p, c in profiles.items()})
+    elif profile in profiles:
+        job_name = profiles[profile]["job"].replace("${prefix}", PREFIX_TEMPLATE)
+        workers = profiles[profile]["number_of_workers"]
+        timeout = profiles[profile]["timeout"]
+    else:
         raise ValueError(f"perfil desconocido {profile!r}; válidos: {sorted(profiles)}")
-    cfg = profiles[profile]
-    job_name = cfg["job"].replace("${prefix}", PREFIX_TEMPLATE)
 
     return GlueJobWithLinks(
         task_id=task_id,
@@ -106,8 +128,8 @@ def glue_task(
         run_job_kwargs={
             # StartJobRun exige WorkerType junto con NumberOfWorkers (los jobs son G.1X).
             "WorkerType": "G.1X",
-            "NumberOfWorkers": cfg["number_of_workers"],
-            "Timeout": cfg["timeout"],
+            "NumberOfWorkers": workers,
+            "Timeout": timeout,
         },
         region_name=AWS_REGION,
         wait_for_completion=True,
@@ -120,13 +142,16 @@ def glue_task(
     )
 
 
-def snowflake_task(task_id: str, sql_file: str) -> SQLExecuteQueryOperator:
+def snowflake_task(
+    task_id: str, sql_file: str, params: dict[str, Any] | None = None
+) -> SQLExecuteQueryOperator:
     """Tarea que ejecuta un archivo SQL (relativo a la carpeta dags/) en Snowflake."""
     return SQLExecuteQueryOperator(
         task_id=task_id,
         conn_id=SNOWFLAKE_CONN_ID,
         sql=sql_file,
         split_statements=True,
+        params=params or {},
     )
 
 

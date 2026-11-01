@@ -50,4 +50,4 @@ def main(spark: Any, cfg: dict, args: Any) -> None:
         rangos={"viajes": (1, None), "distancia_promedio": (0, 100)},
         clave_unica=("fecha", "zona", "empresa"),
     )
-    io.escribir_gold(gold, cfg)
+    io.escribir_gold(gold, cfg, args.meses)

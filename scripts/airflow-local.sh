@@ -88,7 +88,7 @@ entorno_airflow() {
   # Rama local del DAG: descarga la muestra la primera vez (s3://<lake>/muestra).
   LAKE_BUCKET="$(lake_bucket)"
   export LAKE_BUCKET
-  export PIPELINE_ENTORNO=local
+  export PIPELINE_ENTORNO=dev
   # Conexión snowflake_default desde el secreto <prefix>/snowflake (igual que en la VM).
   local snow
   snow="$(aws secretsmanager get-secret-value --secret-id "$PREFIX/snowflake" \

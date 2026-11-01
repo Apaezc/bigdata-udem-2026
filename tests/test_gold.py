@@ -106,7 +106,7 @@ def test_escribir_gold_particiona_por_mes_y_conserva_columnas_en_el_archivo(spar
         ESQUEMA_SILVER,
     )
     cfg = {"rutas": {"gold": str(tmp_path)}}
-    io.escribir_gold(metricas_diarias_zona(silver), cfg)
+    io.escribir_gold(metricas_diarias_zona(silver), cfg, ["2024-01", "2024-02"])
 
     carpeta = tmp_path / "daily_zone_metrics" / "mes=2024-01"
     assert carpeta.is_dir()

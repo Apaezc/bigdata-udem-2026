@@ -6,7 +6,7 @@
 -- Idempotencia: con params.mes se reemplaza ese mes; sin mes se recarga todo el entorno.
 -- FORCE = TRUE porque Snowflake recuerda 64 días los archivos ya cargados (sin FORCE, repetir la
 -- carga de archivos que no cambiaron cargaría 0 filas después del DELETE).
-{%- set esquema = 'PROD' if params.entorno == 'prod' else 'DEV' %}
+{%- set esquema = 'PROD' if params.entorno == 'prod' else 'DEV' %}{# params.entorno lo fija la tarea (PIPELINE_ENTORNO) #}
 {%- set tabla = 'BIGDATA.' ~ esquema ~ '.DAILY_ZONE_METRICS' %}
 
 CREATE TABLE IF NOT EXISTS {{ tabla }} (
