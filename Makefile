@@ -10,7 +10,7 @@ export PREFIX AWS_REGION
 export PATH := $(CURDIR)/.venv/bin:$(PATH)
 
 .PHONY: help setup config doctor estado test secrets publicar-bootstrap retirar-bootstrap muestra run-local deploy airflow-on airflow-off airflow-local airflow-local-down airflow-local-estado \
-	airflow-habilitar airflow-deshabilitar snowflake snowflake-secreto \
+	airflow-habilitar airflow-deshabilitar snowflake snowflake-secreto snowflake-conexion \
 	airflow-tunel airflow-password desbloquear snowflake-ampliar-cuota destroy
 
 help: ## Muestra los targets disponibles
@@ -87,6 +87,9 @@ desbloquear: ## Revierte las acciones de Budgets (quita la política Deny), con 
 
 snowflake-ampliar-cuota: ## Amplía la cuota de créditos del resource monitor (CUOTA=N)
 	CUOTA=$(CUOTA) bash scripts/snowflake-ampliar-cuota.sh
+
+snowflake-conexion: ## Configura la conexión por defecto de snow (llave en ~/.snowflake/keys, connections.toml)
+	bash scripts/snowflake-conexion.sh
 
 destroy: ## Vacía el lake y destruye Snowflake y AWS; opcional: bootstrap y state (confirmación escrita)
 	bash scripts/destroy.sh

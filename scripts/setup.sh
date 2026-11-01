@@ -30,8 +30,21 @@ else
 fi
 
 msg "Validando región de Snowflake (snow sql)"
-SNOW_OUT="$(snow sql -q "select current_region()" 2>&1)" \
-  || error "No se pudo consultar Snowflake. Revisa la conexión con 'snow connection test'.\n$SNOW_OUT"
+consultar_region_snow() {
+  SNOW_OUT="$(snow sql -q "select current_region()" 2>&1)"
+}
+if ! consultar_region_snow; then
+  aviso "No se pudo consultar Snowflake: $SNOW_OUT"
+  RESPUESTA_CONEXION=n
+  if [[ -t 0 ]]; then
+    read -r -p "¿Configurar la conexión de snow ahora? [s/N]: " RESPUESTA_CONEXION
+  fi
+  [[ "$RESPUESTA_CONEXION" =~ ^[sS]$ ]] \
+    || error "Configura la conexión con: make snowflake-conexion"
+  bash "$ROOT_DIR/scripts/snowflake-conexion.sh"
+  consultar_region_snow \
+    || error "Snowflake sigue sin responder tras configurar la conexión. Revisa con 'make doctor'."
+fi
 
 SNOW_REGION="$(grep -oE '[A-Z]+_[A-Z0-9_]+' <<< "$SNOW_OUT" | grep -E '^(AWS|AZURE|GCP)_' | head -1 || true)"
 [[ -n "$SNOW_REGION" ]] || error "No se pudo leer la región de Snowflake. Salida:\n$SNOW_OUT"

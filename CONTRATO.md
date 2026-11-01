@@ -66,6 +66,6 @@ Variables del repo (opcionales): `PREFIX`. La configuración de Terraform (alert
 Workflows: `ci.yml` (PR: ruff lint y formato, pytest, pytest de DAGs, terraform fmt/validate/plan), `deploy.yml` (main/dispatch: falla si faltan los secrets, descarga la configuración, plan, guardia de destrucción, apply + empaquetar src → zip + sync dags/code/framework a S3 + enciende la VM de prod si el push cambió `airflow/` o `src/`, o con el input `encender_prod`), `airflow-on.yml`, `airflow-off.yml`, `debug-oidc.yml`. Acción `aws-actions/configure-aws-credentials@v6.3.0` (versiones verificadas contra GitHub en Fase 3).
 
 ## Makefile
-`setup`, `config`, `doctor`, `estado`, `test`, `run-local`, `deploy`, `snowflake`, `airflow-on`, `airflow-off`, `airflow-habilitar`, `airflow-deshabilitar`, `airflow-tunel`, `airflow-password`, `desbloquear`, `snowflake-ampliar-cuota`, `destroy` (+ `help`).
+`setup`, `config`, `doctor`, `estado`, `test`, `run-local`, `deploy`, `snowflake`, `airflow-on`, `airflow-off`, `airflow-habilitar`, `airflow-deshabilitar`, `airflow-tunel`, `airflow-password`, `desbloquear`, `snowflake-ampliar-cuota`, `snowflake-conexion`, `destroy` (+ `help`).
 `.env` (no versionado) guarda solo `PREFIX` y `AWS_REGION`; `scripts/lib.sh` lo lee (el entorno tiene prioridad). `ALERT_EMAIL`, `ENABLE_*` y `SNOWFLAKE_*` ya no se leen de `.env`: van en `config/aws.tfvars`.
 `make destroy`: vacía el lake, destruye infra/snowflake y luego infra/aws; opcionalmente (segunda confirmación) borra el stack de bootstrap y vacía/borra el bucket de state versionado.
