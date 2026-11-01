@@ -95,8 +95,10 @@ vaciar_y_borrar_bucket() {
     cuantos="$(jq '.Objects | length' <<< "$lote")"
     [[ "$cuantos" != "0" ]] || break
     salida="$(aws s3api delete-objects --bucket "$bucket" --delete "$lote")"
-    jq -e '(.Errors // []) | length == 0' <<< "$salida" >/dev/null \
-      || error "Errores al borrar objetos de $bucket: $salida"
+    # Con Quiet=true, AWS no devuelve nada si todo salió bien: solo hay error si llega .Errors.
+    if [[ -n "$salida" ]] && ! jq -e '(.Errors // []) | length == 0' <<< "$salida" >/dev/null; then
+      error "Errores al borrar objetos de $bucket: $salida"
+    fi
   done
   aws s3api delete-bucket --bucket "$bucket"
   msg "Bucket $bucket borrado."
