@@ -14,7 +14,7 @@ export PATH := $(CURDIR)/.venv/bin:$(PATH)
 	airflow-tunel airflow-password desbloquear snowflake-ampliar-cuota destroy limpieza-total
 
 help: ## Muestra los targets disponibles
-	@grep -E '^[a-zA-Z_-]+:.*## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*## "} {printf "  %-24s %s\n", $$1, $$2}'
+	@grep -hE '^[a-zA-Z_-]+:.*## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*## "} {printf "  %-24s %s\n", $$1, $$2}'
 
 setup: ## Verifica herramientas, alinea AWS_REGION y crea la configuración de AWS en S3 si no existe
 	bash scripts/setup.sh
