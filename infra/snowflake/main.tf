@@ -83,6 +83,28 @@ resource "snowflake_grant_privileges_to_account_role" "dev_schemas" {
   }
 }
 
+# ---------- Usuario de servicio de Airflow (dev en el Code Editor y prod en la VM) ----------
+# Autentica con key-pair. La llave privada vive solo en ~/.snowflake/keys/airflow_svc_rsa_key.p8;
+# scripts/snowflake.sh la copia al secreto <prefix>/snowflake de Secrets Manager (conexión snowflake_default).
+# Usa BIGDATA_DEV: crea y recarga las tablas de BIGDATA.DEV / BIGDATA.PROD (copy_gold.sql).
+
+resource "snowflake_service_user" "airflow" {
+  count = var.airflow_public_key == null ? 0 : 1
+
+  name              = "AIRFLOW_SVC"
+  default_warehouse = snowflake_warehouse.bigdata.name
+  default_role      = snowflake_account_role.dev.name
+  rsa_public_key    = var.airflow_public_key
+  comment           = "Usuario de servicio de Airflow (curso Big Data)"
+}
+
+resource "snowflake_grant_account_role" "dev_airflow" {
+  count = var.airflow_public_key == null ? 0 : 1
+
+  role_name = snowflake_account_role.dev.name
+  user_name = snowflake_service_user.airflow[0].name
+}
+
 # SELECT sobre tablas y vistas futuras de cada capa (las que cree el pipeline u otros roles).
 locals {
   future_selects = {

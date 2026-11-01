@@ -217,6 +217,21 @@ config_set() {
   msg "$clave actualizado en $origen"
 }
 
+conexion_snowflake_json() {
+  # Uso: conexion_snowflake_json <login> <account> <warehouse> <database> <role> <archivo-llave-privada>
+  # Imprime (en una línea) el JSON de conexión de Airflow para snowflake_default con key pair:
+  # el formato que leen airflow-local.sh y airflow-refresh.sh (user_data de la VM) y que
+  # apache-airflow-providers-snowflake 6.x entiende (login + extra.account/warehouse/database/role
+  # + extra.private_key_content con el PEM). La llave se lee del archivo, nunca de argumentos.
+  [[ $# -eq 6 ]] || error "conexion_snowflake_json: se esperan 6 argumentos."
+  [[ -s "$6" ]] || error "conexion_snowflake_json: no existe o está vacía la llave $6."
+  jq -cn --arg login "$1" --arg account "$2" --arg warehouse "$3" --arg database "$4" --arg role "$5" \
+    --rawfile key "$6" \
+    '{conn_type: "snowflake", login: $login,
+      extra: {account: $account, warehouse: $warehouse, database: $database, role: $role,
+              private_key_content: $key}}'
+}
+
 guardia_destruccion() {
   # Uso: guardia_destruccion <archivo-plan>. Si el plan elimina o reemplaza recursos, aborta
   # salvo que CONFIRMAR_DESTRUCCION=true. Requiere estar en el directorio de infra/aws y jq.

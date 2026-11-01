@@ -42,6 +42,22 @@ module "glue" {
   permissions_boundary_arn = local.permissions_boundary_arn
 }
 
+# Secreto con la conexión de Snowflake para Airflow (snowflake_default), siempre creado: lo leen
+# el Airflow de dev (Code Editor, scripts/airflow-local.sh) y el de prod (VM, cuando enable_airflow).
+# Terraform solo crea el contenedor; el valor (JSON de conexión con la llave de AIRFLOW_SVC) lo escribe
+# scripts/snowflake.sh con put-secret-value. No se declara secret_version: así Terraform no lo pisa.
+resource "aws_secretsmanager_secret" "snowflake" {
+  name                    = "${var.prefix}/snowflake"
+  description             = "Conexión Airflow a Snowflake (JSON de conexión de Airflow). La escribe make snowflake."
+  recovery_window_in_days = 0
+}
+
+# Antes vivía dentro de modules/airflow_vm (solo con enable_airflow): conserva el recurso existente.
+moved {
+  from = module.airflow_vm[0].aws_secretsmanager_secret.snowflake
+  to   = aws_secretsmanager_secret.snowflake
+}
+
 module "airflow_vm" {
   source = "./modules/airflow_vm"
   count  = var.enable_airflow ? 1 : 0

@@ -17,7 +17,7 @@ locals {
   instance_name  = "${var.prefix}-airflow"    # tag Name: lo buscan scripts/ y workflows
   sg_name        = "${var.prefix}-airflow-sg"
   secret_name    = "${var.prefix}/airflow-admin"
-  snowflake_name = "${var.prefix}/snowflake"
+  snowflake_name = "${var.prefix}/snowflake" # lo crea infra/aws (raíz); la VM solo lo lee
 
   lake_arn           = "arn:aws:s3:::${var.lake_bucket}"
   secret_arn_pattern = "arn:aws:secretsmanager:${local.region}:${local.account_id}:secret:${var.prefix}/*"
@@ -63,17 +63,6 @@ resource "aws_secretsmanager_secret_version" "admin" {
     username = "admin"
     password = random_password.admin.result
   })
-}
-
-# ---------------------------------------------------------------------------
-# Secreto con la conexion de Snowflake para Airflow (snowflake_default).
-# Terraform solo crea el contenedor; el alumno guarda el JSON de la conexion
-# (ver airflow/README.md). La VM lo lee en cada arranque.
-# ---------------------------------------------------------------------------
-resource "aws_secretsmanager_secret" "snowflake" {
-  name                    = local.snowflake_name
-  description             = "Conexion Airflow a Snowflake (JSON de conexion de Airflow). Lo completa el alumno."
-  recovery_window_in_days = 0
 }
 
 # ---------------------------------------------------------------------------
