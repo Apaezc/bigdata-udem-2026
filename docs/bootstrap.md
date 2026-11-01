@@ -28,7 +28,8 @@ Nota: este paso no crea Snowflake ni los recursos de `infra/aws/` (eso lo hace T
    - **SubnetIds**: marca todas las subnets de esa VPC.
    - **AlertEmail**: tu correo (confirma la suscripción que te llega).
 3. Marca *I acknowledge that AWS CloudFormation might create IAM resources with custom names* y pulsa
-   **Create stack**. Espera `CREATE_COMPLETE` (~4 min).
+   **Create stack** (el nombre del stack viene puesto: `bigdata-bootstrap`; el prefijo de los recursos es
+   `bigdata` por defecto, parámetro `Prefix`: no lo cambies). Espera `CREATE_COMPLETE` (~4 min).
 
 Si la cuenta ya tiene el proveedor OIDC de GitHub, el stack falla con `EntityAlreadyExists`: bórralo y
 relánzalo con `ExistingGitHubOidcProviderArn` (ver "Problemas frecuentes").

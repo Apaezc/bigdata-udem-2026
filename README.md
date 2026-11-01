@@ -83,7 +83,7 @@ Haz los pasos en este orden.
 
     Detalle: [infra/snowflake/README.md](infra/snowflake/README.md).
 
-12. **Prepara los datos (una vez).** `make muestra`: Glue baja el año de FHVHV a `bronze/` (~5.4 GB) y genera la muestra en `muestra/` (~US$0.15).
+12. **Prepara los datos (una vez).** `make muestra`: Glue baja el año de FHVHV a `bronze/` (~5.4 GB) y genera la muestra en `muestra/` (~US$0.15, ~5 min). Si termina en `TIMEOUT`, repítelo: retoma desde lo que ya descargó.
 13. **Desarrolla en local y dev.** `make run-local` (o `LIMITE=100` para una prueba rapidísima) y `make airflow-local` para el Airflow de dev: abre `https://<id-del-space>.studio.us-east-2.sagemaker.aws/codeeditor/default/ports/8080/` y lanza `pipeline_taxi`.
     - `<id-del-space>` es el subdominio de la URL del Code Editor que tienes abierta en el navegador: `https://<id-del-space>.studio.us-east-2.sagemaker.aws/codeeditor/default/...`. Copia esa parte y deja el final `/codeeditor/default/ports/8080/`.
     - El Airflow del Code Editor es siempre el entorno **dev** (no se elige al lanzar). Lo que eliges es el parámetro `computo`, que decide con qué recursos se calcula:

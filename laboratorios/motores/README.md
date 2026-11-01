@@ -10,7 +10,7 @@ Ejecuta **el mismo código** de silver y gold (`src/pipeline`) en dos motores y 
 
 ## Pasos
 
-1. **Glue:** en el Airflow de dev (`make airflow-local`) lanza `pipeline_taxi` con `entorno=dev` y `mes=2024-01`.
+1. **Glue:** en el Airflow de dev (`make airflow-local`) lanza `pipeline_taxi` con `computo=glue_small` y `mes=2024-01`.
    Anota la duración de `silver_dev` y `gold_dev` y, en la consola de Glue, `DPU-seconds` de cada run.
 2. **Snowpark Connect** (en el Code Editor):
    ```bash
