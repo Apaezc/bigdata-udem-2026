@@ -9,7 +9,7 @@ AWS_REGION ?= us-east-2
 export PREFIX AWS_REGION
 export PATH := $(CURDIR)/.venv/bin:$(PATH)
 
-.PHONY: help setup config doctor estado test secrets publicar-bootstrap muestra run-local deploy airflow-on airflow-off airflow-local airflow-local-down airflow-local-estado \
+.PHONY: help setup config doctor estado test secrets publicar-bootstrap retirar-bootstrap muestra run-local deploy airflow-on airflow-off airflow-local airflow-local-down airflow-local-estado \
 	airflow-habilitar airflow-deshabilitar snowflake \
 	airflow-tunel airflow-password desbloquear snowflake-ampliar-cuota destroy
 
@@ -37,8 +37,11 @@ muestra: ## Glue: bronze del año de prod + muestra para local (una vez por curs
 secrets: ## Carga AWS_ROLE_ARN y TF_STATE_BUCKET en tu fork (desde el bootstrap, con gh)
 	bash scripts/secrets.sh
 
-publicar-bootstrap: ## SOLO INSTRUCTOR: publica la plantilla de bootstrap para el enlace Launch Stack
+publicar-bootstrap: ## SOLO INSTRUCTOR: publica la plantilla (versión fija) para el enlace Launch Stack
 	bash scripts/publicar-bootstrap.sh
+
+retirar-bootstrap: ## SOLO INSTRUCTOR: retira la plantilla publicada (al cerrar la semana de inscripción)
+	bash scripts/publicar-bootstrap.sh --retirar
 
 run-local: ## Pipeline en local sobre la muestra (STEP=all|silver|gold MES=YYYY-MM LIMITE=N)
 	STEP=$(STEP) MES=$(MES) LIMITE=$(LIMITE) bash scripts/run-local.sh

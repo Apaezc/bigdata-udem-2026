@@ -41,9 +41,11 @@ GitHub (`gh auth login --hostname github.com --git-protocol https --web`) y corr
 
 ## 4. Para el instructor
 
-El enlace apunta a la plantilla publicada en un bucket público de lectura. Después de cada cambio en
-`bootstrap/cloudformation/bootstrap.yaml`: `make publicar-bootstrap` (bucket por defecto
-`bigdata-udem-2026-publico`; otro con la variable de repo `BOOTSTRAP_TEMPLATE_URL`).
+El enlace apunta a la plantilla en `s3://bigdata-udem-2026-publico/bootstrap/` (versionado, solo
+lectura, solo usuarios autenticados de AWS: sin descargas anónimas). Después de cada cambio en
+`bootstrap/cloudformation/bootstrap.yaml`: `make publicar-bootstrap` (publica una versión nueva, fija
+el enlace del workflow a esa versión y deja el cambio listo para commit). Al cerrar la semana de
+inscripción: `make retirar-bootstrap` (borra todas las versiones; los enlaces dejan de funcionar).
 
 ## 5. Abrir Code Editor
 
