@@ -58,7 +58,14 @@ Terraform se ejecuta desde esa terminal con las credenciales del rol de ejecuci�
 
 ## 6. Borrar el stack al terminar
 
-Lo más simple: `make destroy`. Vacía el lake, destruye Snowflake y AWS (Terraform) y, si lo confirmas, borra también el stack `bigdata-bootstrap` y el bucket de state (vaciando todas sus versiones). Hazlo desde una terminal local o CloudShell: borrar el bootstrap elimina el dominio de SageMaker y, con él, tu Code Editor.
+Lo más simple: `make destroy`. Vacía el lake, destruye Snowflake y AWS (Terraform) y, si lo confirmas, borra también el stack `bigdata-bootstrap` y el bucket de state (vaciando todas sus versiones).
+
+Confirmaciones del script (hay que escribirlas en una terminal interactiva):
+
+1. Antes de destruir nada, escribe `destruir <prefix> <cuenta>`, con tu prefijo (`bigdata` por defecto) y el ID de tu cuenta AWS. El script muestra ambos antes de pedir la confirmación: si no son los tuyos, no escribas la frase y cancela con Ctrl-C.
+2. Después, si quieres borrar también el bootstrap, responde `si` a la pregunta. Luego escribe `borrar bootstrap <prefix>`. Si respondes `no`, el stack y el bucket de state se quedan.
+
+Desde el Code Editor puedes correrlo y responder `no` a la pregunta del bootstrap. Para borrar también el bootstrap, usa una terminal local que tenga `infra/snowflake/terraform.tfvars` y la llave de Snowflake (`~/.snowflake/keys/terraform_svc_rsa_key.p8`): el borrado elimina el dominio de SageMaker y, con él, tu Code Editor. Si falta el `terraform.tfvars` o la llave, el script omite el destroy de Snowflake con un aviso; no lo ignores, porque entonces Snowflake queda sin borrar.
 
 A mano: borra el stack `bigdata-bootstrap` desde CloudFormation (después de `make destroy`). La Lambda elimina antes las apps, spaces y user profiles del dominio. Después CloudFormation borra el dominio.
 

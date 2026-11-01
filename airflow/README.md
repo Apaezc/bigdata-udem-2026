@@ -31,20 +31,38 @@ El Dockerfile es inline en el compose; no hay archivo extra.
 - Usuario de la UI: `admin`. La contraseña está en Secrets Manager (`${prefix}/airflow-admin`, campo `password`).
   User-data la escribe en `/opt/airflow/secrets/simple_auth_manager_passwords.json`.
   SimpleAuthManager no es apto para producción.
-- Conexión Snowflake `snowflake_default`: la arma la VM en cada arranque a partir del secreto `${prefix}/snowflake`
-  (Terraform solo crea el contenedor vacío). Guarda en él el JSON de conexión de Airflow (sin `'` dentro):
+- Conexión Snowflake `snowflake_default`: la escribe `make snowflake` en el secreto `${prefix}/snowflake` (script
+  `scripts/snowflake-secreto.sh`; Terraform solo crea el contenedor vacío). Es el JSON de conexión de Airflow, con el
+  usuario `AIRFLOW_SVC`, `account`, `warehouse` `BIGDATA_WH`, `database` `BIGDATA`, `role` `BIGDATA_DEV` y la llave
+  privada de `~/.snowflake/keys/airflow_svc_rsa_key.p8` en `private_key_content`. No hay que escribir el JSON a mano.
+  Lo leen el Airflow de dev (`make airflow-local` lo carga al arrancar) y el de prod (la VM lo arma en cada arranque).
+  - `AIRFLOW_SVC` lo crea Terraform con el rol `BIGDATA_DEV`, y su llave la genera el Makefile (`make airflow-key`).
+  - Para reescribir el secreto sin tocar Snowflake: `make snowflake-secreto`.
+  - Tras cambiar el secreto, reinicia Airflow: en dev, `make airflow-local-down && make airflow-local`; en prod,
+    `make airflow-off && make airflow-on` (o, dentro de la VM, `sudo /usr/local/bin/airflow-refresh.sh && sudo systemctl restart airflow`).
+- Logs de Glue: `verbose=True` copia en el log de la tarea los logs del job (CloudWatch `/aws-glue/jobs/...`) y los enlaces a la consola de Glue y al Spark UI.
 
-  ```bash
-  aws secretsmanager put-secret-value --secret-id bigdata/snowflake --secret-string '{
-    "conn_type": "snowflake", "login": "<USUARIO_SNOWFLAKE>",
-    "extra": {"account": "<org>-<cuenta>", "warehouse": "BIGDATA_WH", "database": "BIGDATA",
-              "role": "BIGDATA_DEV", "private_key_content": "-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"}}'
-  ```
+## Entorno y parámetros del DAG
 
-  El usuario debe tener el rol `BIGDATA_DEV` (variable `dev_users` de `infra/snowflake`) y una clave pública
-  registrada (`bootstrap/snowflake/gen_key.sh <USUARIO>` imprime el `ALTER USER`). Después, reinicia la VM
-  (`make airflow-off && make airflow-on`) o ejecuta en ella `sudo /usr/local/bin/airflow-refresh.sh && sudo systemctl restart airflow`.
-- Los logs de Glue no se muestran en la UI de Airflow (`verbose=False`: el rol de la VM no lee CloudWatch Logs por contrato). El log de la tarea trae los enlaces a la consola de Glue y al Spark UI.
+`pipeline_taxi` separa dos conceptos:
+
+- **Entorno** (dónde quedan los datos): lo fija cada Airflow con `PIPELINE_ENTORNO` y no se elige al lanzar el DAG.
+  El Airflow del Code Editor es `dev` (`s3://<lake>/dev/`, `BIGDATA.DEV`) y la VM es `prod` (`s3://<lake>/prod/`, `BIGDATA.PROD`).
+- **Cómputo** (con qué recursos se calcula): el parámetro `computo`.
+
+| `computo` | Recursos | Entornos | Notas |
+|---|---|---|---|
+| `spark_local` | Spark en el Code Editor, sobre la muestra | solo dev | Gratis. Máximo 10 000 filas por fuente. Escribe en `./lake` y no carga en Snowflake. Es el valor por defecto en dev |
+| `glue_small` | Glue, 2 workers | dev | |
+| `glue_medium` | Glue, 4 workers | dev, prod | |
+| `glue_large` | Glue, 6 workers | dev, prod | Es el valor por defecto en prod |
+
+Otros parámetros:
+
+- `mes`: vacío = todos los meses de `src/pipeline/config/<entorno>.yaml` (en dev, solo `2024-01`); o un mes en formato `YYYY-MM`.
+- `limite`: máximo de viajes por fuente. Vacío = sin recorte. Con `spark_local` se aplica el tope de 10 000; en prod se ignora.
+
+En dev puedes probar a escala con `glue_large` (varios meses) sin tocar prod.
 
 ## Ejecución local (prueba)
 
@@ -77,9 +95,10 @@ en la VM quedan `/opt/airflow/dags` y `/opt/airflow/framework`, y en el repo `ai
 ## Airflow de dev (Code Editor)
 
 `make airflow-local` instala Airflow 3.3.2 con pip en `~/.airflow-local` (solo la primera vez), levanta nginx en 8080 y
-`airflow standalone` en 8081, con los DAGs del repo. Mismo DAG, misma URL; el entorno por defecto es `local`
-(Spark del `.venv` del repo sobre la muestra) y se puede elegir `dev` (Glue small). Se detiene con `make airflow-local-down`
-y se cae si el Code Editor se apaga por inactividad.
+`airflow standalone` en 8081, con los DAGs del repo. Mismo DAG, misma URL. El entorno es siempre `dev`
+(`PIPELINE_ENTORNO=dev`) y el cómputo se elige con `computo` (por defecto `spark_local`, Spark del `.venv` sobre la muestra).
+Al arrancar lee el secreto `${prefix}/snowflake`; si cambia, reinicia con `make airflow-local-down && make airflow-local`.
+Se detiene con `make airflow-local-down` y se cae si el Code Editor se apaga por inactividad.
 
 Snowpark Connect ya no es parte del DAG: se compara contra Glue en el laboratorio de motores (sesión 7).
 
