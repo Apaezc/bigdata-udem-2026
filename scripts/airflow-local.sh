@@ -61,6 +61,8 @@ http {
     proxy_set_header Host \$host;
     proxy_hide_header Location;
     add_header Location \$location_sin_next always;
+    # Redirección al login relativa: el proxy de Studio antepone /ports/<puerto> a las rutas absolutas.
+    location = /api/v2/auth/login { return 307 ../../../auth/login; }
     location $PREFIJO { proxy_pass http://127.0.0.1:8081; }
     location / { proxy_pass http://127.0.0.1:8081$PREFIJO; }
   }

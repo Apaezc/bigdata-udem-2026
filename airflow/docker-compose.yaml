@@ -161,6 +161,8 @@ configs:
         proxy_set_header Host $$host;
         proxy_hide_header Location;
         add_header Location $$location_sin_next always;
+        # Redirección al login relativa: el proxy de Studio antepone /ports/<puerto> a las rutas absolutas.
+        location = /api/v2/auth/login { return 307 ../../../auth/login; }
         location /codeeditor/default/ports/8080/ { proxy_pass http://api-server:8080; }
         location / { proxy_pass http://api-server:8080/codeeditor/default/ports/8080/; }
       }
