@@ -112,7 +112,9 @@ up() {
     nginx -p "$BASE" -e "$BASE/nginx-error.log" -c "$NGINX_CONF"
   fi
   if pgrep -f "airflow standalone" >/dev/null; then
-    msg "Airflow ya está corriendo."
+    msg "Airflow ya está corriendo (para tomar cambios de configuración: make airflow-local-down)."
+  elif ss -ltn 2>/dev/null | grep -q ':8081 '; then
+    error "El puerto 8081 está ocupado por otro proceso (¿un Airflow anterior?). Corre 'make airflow-local-down'."
   else
     entorno_airflow
     msg "Arrancando airflow standalone (log: $BASE/airflow.log)"
@@ -129,8 +131,14 @@ up() {
 }
 
 down() {
-  pkill -f "airflow standalone" 2>/dev/null || true
-  pkill -f "$VENV/bin/airflow" 2>/dev/null || true
+  # Todo lo que corre con el Python del venv: standalone, sus componentes y los workers de
+  # uvicorn (se lanzan con "python -c ..." y no llevan "airflow" en la línea de comandos).
+  pkill -f "$VENV/bin/" 2>/dev/null || true
+  for _ in $(seq 1 15); do
+    pgrep -f "$VENV/bin/" >/dev/null || break
+    sleep 1
+  done
+  pkill -9 -f "$VENV/bin/" 2>/dev/null || true
   [[ -f "$BASE/nginx.pid" ]] && nginx -p "$BASE" -e "$BASE/nginx-error.log" -c "$NGINX_CONF" -s stop 2>/dev/null || true
   msg "Airflow local y nginx detenidos."
 }
