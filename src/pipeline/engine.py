@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import logging
 import os
+import sys
 
 from pyspark.sql import SparkSession
 
@@ -32,6 +33,8 @@ def get_spark(engine: str) -> SparkSession:
 
 
 def _local() -> SparkSession:
+    # Mismo Python en driver y workers (evita PYTHON_VERSION_MISMATCH con varios Python).
+    os.environ.setdefault("PYSPARK_PYTHON", sys.executable)
     return (
         SparkSession.builder.master("local[*]")
         .appName("pipeline-taxi")

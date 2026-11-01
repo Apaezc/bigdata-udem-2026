@@ -19,7 +19,7 @@ def spark():
 
 @pytest.fixture(scope="session")
 def muestra_viajes(spark):
-    return spark.read.option("header", True).csv(str(DATA / "yellow_tripdata_sample.csv"))
+    return spark.read.option("header", True).csv(str(DATA / "fhvhv_tripdata_sample.csv"))
 
 
 @pytest.fixture(scope="session")

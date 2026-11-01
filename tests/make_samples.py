@@ -3,7 +3,7 @@
 Uso: python tests/make_samples.py
 
 Salida:
-- yellow_tripdata_sample.csv: 100 viajes con columnas del esquema NYC TLC yellow
+- fhvhv_tripdata_sample.csv: 100 viajes con columnas del esquema NYC TLC FHVHV
   (90 válidos de enero 2024 + 10 outliers que deben filtrarse).
 - taxi_zone_lookup_sample.csv: subconjunto de zonas con los IDs reales.
 - open_meteo_sample.json: 31 días de enero 2024 con el formato de la archive API.
@@ -39,26 +39,32 @@ ZONAS = [
 ]
 
 COLUMNAS_TRIPS = [
-    "VendorID",
-    "tpep_pickup_datetime",
-    "tpep_dropoff_datetime",
-    "passenger_count",
-    "trip_distance",
-    "RatecodeID",
-    "store_and_fwd_flag",
+    "hvfhs_license_num",
+    "dispatching_base_num",
+    "originating_base_num",
+    "request_datetime",
+    "on_scene_datetime",
+    "pickup_datetime",
+    "dropoff_datetime",
     "PULocationID",
     "DOLocationID",
-    "payment_type",
-    "fare_amount",
-    "extra",
-    "mta_tax",
-    "tip_amount",
-    "tolls_amount",
-    "improvement_surcharge",
-    "total_amount",
+    "trip_miles",
+    "trip_time",
+    "base_passenger_fare",
+    "tolls",
+    "bcf",
+    "sales_tax",
     "congestion_surcharge",
     "airport_fee",
+    "tips",
+    "driver_pay",
+    "shared_request_flag",
+    "shared_match_flag",
+    "access_a_ride_flag",
+    "wav_request_flag",
+    "wav_match_flag",
 ]
+LICENCIAS = ["HV0003", "HV0005"]  # Uber, Lyft
 
 
 def _fila(
@@ -70,29 +76,36 @@ def _fila(
     do: int,
     tarifa: float,
     propina: float,
+    licencia: str | None = None,
 ) -> dict:
-    total = round(tarifa + 1.0 + 0.5 + propina + 0.0 + 1.0 + 2.5, 2)
     fmt = "%Y-%m-%d %H:%M:%S"
+    segundos = int((dropoff - pickup).total_seconds()) if dropoff else ""
+    licencia = licencia or rng.choice(LICENCIAS)
     return {
-        "VendorID": rng.choice([1, 2]),
-        "tpep_pickup_datetime": pickup.strftime(fmt),
-        "tpep_dropoff_datetime": dropoff.strftime(fmt) if dropoff else "",
-        "passenger_count": 1,
-        "trip_distance": distancia,
-        "RatecodeID": 1,
-        "store_and_fwd_flag": "N",
+        "hvfhs_license_num": licencia,
+        "dispatching_base_num": "B03404" if licencia == "HV0003" else "B03406",
+        "originating_base_num": "",
+        "request_datetime": (pickup - timedelta(minutes=5)).strftime(fmt),
+        "on_scene_datetime": "",
+        "pickup_datetime": pickup.strftime(fmt),
+        "dropoff_datetime": dropoff.strftime(fmt) if dropoff else "",
         "PULocationID": "" if pu is None else pu,
         "DOLocationID": do,
-        "payment_type": 1,
-        "fare_amount": tarifa,
-        "extra": 1.0,
-        "mta_tax": 0.5,
-        "tip_amount": propina,
-        "tolls_amount": 0.0,
-        "improvement_surcharge": 1.0,
-        "total_amount": total,
-        "congestion_surcharge": 2.5,
+        "trip_miles": distancia,
+        "trip_time": segundos,
+        "base_passenger_fare": tarifa,
+        "tolls": 0.0,
+        "bcf": round(tarifa * 0.025, 2),
+        "sales_tax": round(tarifa * 0.08875, 2),
+        "congestion_surcharge": 2.75,
         "airport_fee": 0.0,
+        "tips": propina,
+        "driver_pay": round(tarifa * 0.7, 2),
+        "shared_request_flag": "N",
+        "shared_match_flag": "N",
+        "access_a_ride_flag": "N",
+        "wav_request_flag": "N",
+        "wav_match_flag": "N",
     }
 
 
@@ -107,7 +120,7 @@ def generar_viajes(rng: random.Random) -> list[dict]:
         duracion = rng.randint(3, 90)
         distancia = round(rng.uniform(0.4, 25.0), 2)
         tarifa = round(3.0 + 2.5 * distancia + rng.uniform(0, 3), 2)
-        propina = round(tarifa * rng.uniform(0, 0.3), 2)
+        propina = round(tarifa * rng.uniform(0, 0.3), 2) if rng.random() < 0.3 else 0.0
         filas.append(
             _fila(
                 rng,
@@ -118,6 +131,7 @@ def generar_viajes(rng: random.Random) -> list[dict]:
                 rng.choice(ids),
                 tarifa,
                 propina,
+                LICENCIAS[i % 2],
             )
         )
 
@@ -150,7 +164,7 @@ def generar_viajes(rng: random.Random) -> list[dict]:
             1.0,
         ),
         _fila(rng, base, base + timedelta(minutes=15), 2.0, None, 79, 9.0, 1.0),  # PU nulo
-        _fila(rng, base, None, 2.0, 43, 79, 9.0, 1.0),  # dropoff nulo
+        _fila(rng, base, None, 2.0, 43, 79, 9.0, 1.0),  # sin dropoff (trip_time nulo)
     ]
     return filas + outliers
 
@@ -185,7 +199,7 @@ def main() -> None:
     rng = random.Random(SEMILLA)
 
     viajes = generar_viajes(rng)
-    with (DATA / "yellow_tripdata_sample.csv").open("w", newline="", encoding="utf-8") as f:
+    with (DATA / "fhvhv_tripdata_sample.csv").open("w", newline="", encoding="utf-8") as f:
         w = csv.DictWriter(f, fieldnames=COLUMNAS_TRIPS)
         w.writeheader()
         w.writerows(viajes)

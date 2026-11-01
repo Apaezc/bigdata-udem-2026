@@ -4,14 +4,15 @@ from datetime import date
 
 import pytest
 
-from pipeline.settings import ConfigError, cargar, inicio_fin_mes, validar_mes
+from pipeline.settings import ConfigError, cargar, inicio_fin_mes, rango_meses, validar_mes
 
 
-def test_local_usa_rutas_relativas_resueltas_y_muestra():
+def test_local_lee_la_muestra_con_rutas_absolutas():
     cfg = cargar("local")
-    assert cfg["rutas"]["bronze"].endswith("/lake/bronze")
+    assert cfg["rutas"]["bronze"].endswith("/lake/muestra")
     assert cfg["rutas"]["bronze"].startswith("/")
-    assert cfg["muestra"]["max_rows"] == 10000
+    assert cfg["muestra"]["sincronizar_desde"] == "muestra"
+    assert cfg["muestra"]["max_rows"] is None
     assert cfg["meses"] == ["2024-01"]
 
 
@@ -21,11 +22,21 @@ def test_dev_exige_lake_bucket(monkeypatch):
         cargar("dev")
 
 
-def test_dev_resuelve_placeholder_con_env(monkeypatch):
+@pytest.mark.parametrize("env", ["dev", "prod"])
+def test_dev_y_prod_comparten_bronze_y_separan_silver_y_gold(monkeypatch, env):
     monkeypatch.setenv("LAKE_BUCKET", "bigdata-lake-test-us-east-2")
-    cfg = cargar("dev")
-    assert cfg["rutas"]["silver"] == "s3://bigdata-lake-test-us-east-2/silver"
+    cfg = cargar(env)
+    assert cfg["rutas"]["bronze"] == "s3://bigdata-lake-test-us-east-2/bronze"
+    assert cfg["rutas"]["silver"] == f"s3://bigdata-lake-test-us-east-2/{env}/silver"
+    assert cfg["rutas"]["gold"] == f"s3://bigdata-lake-test-us-east-2/{env}/gold"
+    assert cfg["muestra"]["destino"] == "s3://bigdata-lake-test-us-east-2/muestra"
     assert cfg["muestra"]["max_rows"] is None
+
+
+def test_prod_procesa_el_anio_y_dev_un_mes(monkeypatch):
+    monkeypatch.setenv("LAKE_BUCKET", "x")
+    assert cargar("dev")["meses"] == ["2024-01"]
+    assert len(cargar("prod")["meses"]) == 12
 
 
 def test_entorno_desconocido():
@@ -42,3 +53,9 @@ def test_inicio_fin_mes_incluye_cambio_de_anio():
 def test_validar_mes_rechaza_formato_invalido(mes):
     with pytest.raises(ValueError):
         validar_mes(mes)
+
+
+def test_rango_meses_ordena_y_cubre_todo():
+    assert rango_meses(["2024-03", "2024-01"]) == (date(2024, 1, 1), date(2024, 4, 1))
+    with pytest.raises(ValueError):
+        rango_meses([])

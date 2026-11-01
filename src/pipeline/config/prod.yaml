@@ -1,13 +1,24 @@
-# Entorno prod: S3. {lake_bucket} se reemplaza por la variable de entorno LAKE_BUCKET
-# (en Glue llega como argumento --lake-bucket o como variable de entorno).
+# Entorno prod: Glue `medium`/`large` sobre el año completo; lo lanza el Airflow de prod.
+# bronze es compartido con dev; silver y gold van bajo prod/.
 entorno: prod
 rutas:
   bronze: s3://{lake_bucket}/bronze
-  silver: s3://{lake_bucket}/silver
-  gold: s3://{lake_bucket}/gold
+  silver: s3://{lake_bucket}/prod/silver
+  gold: s3://{lake_bucket}/prod/gold
 muestra:
   max_rows: null
+  objetivo_filas: 100000
+  destino: s3://{lake_bucket}/muestra
 meses:
   - "2024-01"
   - "2024-02"
   - "2024-03"
+  - "2024-04"
+  - "2024-05"
+  - "2024-06"
+  - "2024-07"
+  - "2024-08"
+  - "2024-09"
+  - "2024-10"
+  - "2024-11"
+  - "2024-12"

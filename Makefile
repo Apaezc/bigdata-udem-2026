@@ -9,7 +9,7 @@ AWS_REGION ?= us-east-2
 export PREFIX AWS_REGION
 export PATH := $(CURDIR)/.venv/bin:$(PATH)
 
-.PHONY: help setup config doctor estado test run-local deploy airflow-on airflow-off \
+.PHONY: help setup config doctor estado test muestra run-local deploy airflow-on airflow-off \
 	airflow-habilitar airflow-deshabilitar snowflake \
 	airflow-tunel airflow-password desbloquear snowflake-ampliar-cuota destroy
 
@@ -31,8 +31,11 @@ estado: ## Airflow (on/off + URL), últimos job runs de Glue, warehouse y costos
 test: ## Ruff y pytest
 	bash scripts/test.sh
 
-run-local: ## Ejecuta el pipeline en local (STEP=all MES=YYYY-MM)
-	STEP=$(STEP) MES=$(MES) bash scripts/run-local.sh
+muestra: ## Glue: bronze del año de prod + muestra para local (una vez por curso)
+	bash scripts/muestra.sh
+
+run-local: ## Pipeline en local sobre la muestra (STEP=all|silver|gold MES=YYYY-MM LIMITE=N)
+	STEP=$(STEP) MES=$(MES) LIMITE=$(LIMITE) bash scripts/run-local.sh
 
 deploy: ## terraform apply de infra/aws y sincronización de código, DAGs y framework a S3
 	bash scripts/deploy.sh

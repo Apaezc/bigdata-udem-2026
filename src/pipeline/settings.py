@@ -69,6 +69,14 @@ def inicio_fin_mes(mes: str) -> tuple[date, date]:
     return inicio, fin
 
 
+def rango_meses(meses: list[str]) -> tuple[date, date]:
+    """(primer día del primer mes, primer día del mes siguiente al último). El fin es exclusivo."""
+    if not meses:
+        raise ValueError("Se necesita al menos un mes")
+    ordenados = sorted(validar_mes(m) for m in meses)
+    return inicio_fin_mes(ordenados[0])[0], inicio_fin_mes(ordenados[-1])[1]
+
+
 def ultimo_dia_mes(mes: str) -> date:
     """Último día calendario del mes."""
     _, fin = inicio_fin_mes(mes)

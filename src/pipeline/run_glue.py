@@ -1,7 +1,7 @@
 """Entrypoint de AWS Glue: delega en pipeline.run.main con el engine fijo `glue`.
 
 Glue ejecuta este archivo (code/run_glue.py) con pipeline.zip en --extra-py-files.
-Argumentos del job: --step y --env (obligatorios); --mes y --lake-bucket (opcionales).
+Argumentos del job: --step y --env (obligatorios); --mes, --limite y --lake-bucket (opcionales).
 Terraform deja --env y --lake-bucket como argumentos por defecto del job; Airflow pasa
 --step, --env y --mes. El engine no se recibe: aquí siempre es `glue`.
 Con awsglue se leen con getResolvedOptions; fuera de Glue se usa sys.argv directamente.
@@ -14,7 +14,7 @@ import sys
 from pipeline.run import main
 
 REQUERIDOS = ("step", "env")
-OPCIONALES = ("mes", "lake-bucket")
+OPCIONALES = ("mes", "limite", "lake-bucket")
 
 
 def resueltos_a_argv(resueltos: dict[str, str]) -> list[str]:

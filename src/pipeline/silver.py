@@ -1,7 +1,8 @@
-"""Capa silver: limpieza de viajes y enriquecimiento con zonas y clima.
+"""Capa silver: limpieza de viajes FHVHV y enriquecimiento con zonas y clima.
 
 Funciones puras (DataFrame -> DataFrame): limpiar_viajes, clima_diario, enriquecer.
-main(spark, cfg, args) lee bronze, transforma, valida y escribe silver particionado por pickup_date.
+main(spark, cfg, args) lee los viajes de todos los meses, transforma, valida y escribe silver
+particionado por pickup_date.
 """
 
 from __future__ import annotations
@@ -12,44 +13,59 @@ from pyspark.sql import DataFrame
 from pyspark.sql import functions as F
 
 from pipeline import io, quality
-from pipeline.settings import inicio_fin_mes
+from pipeline.muestra import aplicar_muestra
+from pipeline.settings import rango_meses
 
-DISTANCIA_MAX_MI = 100.0  # trip_distance está en millas
+DISTANCIA_MAX_MI = 100.0  # trip_miles está en millas
 DURACION_MIN_MIN = 1.0
 DURACION_MAX_MIN = 180.0
 
+# hvfhs_license_num -> empresa (diccionario de datos de NYC TLC).
+EMPRESAS = {"HV0002": "Juno", "HV0003": "Uber", "HV0004": "Via", "HV0005": "Lyft"}
 
-def limpiar_viajes(trips: DataFrame, mes: str | None = None) -> DataFrame:
-    """Tipos, duración y filtros de outliers.
+# Componentes de lo que paga el pasajero (columnas FHVHV; nulos cuentan como 0).
+CARGOS = ["base_passenger_fare", "tolls", "bcf", "sales_tax", "congestion_surcharge", "airport_fee"]
 
-    Filtros: distancia > 0 y < 100 mi, tarifa > 0, duración entre 1 y 180 min,
-    pickup dentro del mes (si se indica `mes`) y ubicación de recogida no nula.
+
+def _empresa(col: str) -> F.Column:
+    expr = F.lit(None).cast("string")
+    for licencia, nombre in EMPRESAS.items():
+        expr = F.when(F.col(col) == licencia, nombre).otherwise(expr)
+    return F.coalesce(expr, F.concat(F.lit("Otra "), F.col(col)))
+
+
+def limpiar_viajes(trips: DataFrame, meses: list[str] | None = None) -> DataFrame:
+    """Tipos, duración, empresa, total pagado y filtros de outliers.
+
+    Filtros: distancia > 0 y < 100 mi, tarifa base > 0, duración entre 1 y 180 min,
+    pickup dentro del rango de meses (si se indica) y ubicación de recogida no nula.
     Agrega pickup_date (fecha de recogida, clave de partición).
     """
+    total = sum((F.coalesce(F.col(c).cast("double"), F.lit(0.0)) for c in CARGOS), F.lit(0.0))
     base = trips.select(
-        F.to_timestamp("tpep_pickup_datetime").alias("pickup_datetime"),
-        F.to_timestamp("tpep_dropoff_datetime").alias("dropoff_datetime"),
+        F.to_timestamp("pickup_datetime").alias("pickup_datetime"),
+        F.to_timestamp("dropoff_datetime").alias("dropoff_datetime"),
         F.col("PULocationID").cast("int").alias("pu_location_id"),
         F.col("DOLocationID").cast("int").alias("do_location_id"),
-        F.col("trip_distance").cast("double"),
-        F.col("fare_amount").cast("double"),
-        F.col("tip_amount").cast("double"),
-        F.col("total_amount").cast("double"),
-    ).withColumn(
-        "duracion_min",
-        (F.unix_timestamp("dropoff_datetime") - F.unix_timestamp("pickup_datetime")) / 60.0,
+        _empresa("hvfhs_license_num").alias("empresa"),
+        F.col("trip_miles").cast("double").alias("distancia_mi"),
+        (F.col("trip_time").cast("double") / 60.0).alias("duracion_min"),
+        F.col("base_passenger_fare").cast("double").alias("tarifa_base"),
+        F.coalesce(F.col("tips").cast("double"), F.lit(0.0)).alias("propina"),
+        F.col("driver_pay").cast("double").alias("pago_conductor"),
+        (total + F.coalesce(F.col("tips").cast("double"), F.lit(0.0))).alias("total_pagado"),
     )
 
     condicion = (
         F.col("pickup_datetime").isNotNull()
         & F.col("pu_location_id").isNotNull()
-        & (F.col("trip_distance") > 0)
-        & (F.col("trip_distance") < DISTANCIA_MAX_MI)
-        & (F.col("fare_amount") > 0)
+        & (F.col("distancia_mi") > 0)
+        & (F.col("distancia_mi") < DISTANCIA_MAX_MI)
+        & (F.col("tarifa_base") > 0)
         & F.col("duracion_min").between(DURACION_MIN_MIN, DURACION_MAX_MIN)
     )
-    if mes is not None:
-        inicio, fin = inicio_fin_mes(mes)
+    if meses:
+        inicio, fin = rango_meses(meses)
         condicion = (
             condicion
             & (F.col("pickup_datetime") >= F.lit(inicio.isoformat()).cast("timestamp"))
@@ -101,24 +117,20 @@ def enriquecer(trips: DataFrame, zonas: DataFrame, clima: DataFrame) -> DataFram
 
 
 def main(spark: Any, cfg: dict, args: Any) -> None:
-    mes = args.mes
-    viajes = io.leer_bronze_viajes(spark, cfg, args.engine, mes)
-    max_rows = (cfg.get("muestra") or {}).get("max_rows")
-    if max_rows:
-        viajes = viajes.limit(int(max_rows))  # muestra local: primeras N filas del bronze
+    base = cfg["rutas"]["bronze"]
+    viajes = aplicar_muestra(io.leer_viajes(spark, base, args.meses), cfg, args.limite)
+    zonas = io.leer_zonas(spark, base)
+    clima = clima_diario(io.leer_clima(spark, base, args.meses))
 
-    zonas = io.leer_bronze_zonas(spark, cfg, args.engine)
-    clima = clima_diario(io.leer_bronze_clima(spark, cfg, args.engine, mes))
-
-    silver = enriquecer(limpiar_viajes(viajes, mes), zonas, clima)
+    silver = enriquecer(limpiar_viajes(viajes, args.meses), zonas, clima)
     quality.validar(
         silver,
         nombre="silver",
-        llaves=("pickup_datetime", "pickup_date", "pu_location_id", "zona"),
+        llaves=("pickup_datetime", "pickup_date", "pu_location_id", "zona", "empresa"),
         rangos={
-            "trip_distance": (0, DISTANCIA_MAX_MI),
-            "fare_amount": (0, None),
+            "distancia_mi": (0, DISTANCIA_MAX_MI),
+            "tarifa_base": (0, None),
             "duracion_min": (DURACION_MIN_MIN, DURACION_MAX_MIN),
         },
     )
-    io.escribir_silver(silver, cfg, args.engine)
+    io.escribir_silver(silver, cfg)
