@@ -5,7 +5,7 @@ Dos conceptos separados:
   al lanzar. El Airflow del Code Editor es `dev` (s3://<lake>/dev/, BIGDATA.DEV); la VM es
   `prod` (s3://<lake>/prod/, BIGDATA.PROD) y solo recibe DAGs por CI (merge a main).
 - params.computo (con qué recursos se calcula):
-    spark_local  -> Spark en el Code Editor sobre la muestra (gratis; solo en dev). Escribe en ./lake.
+    spark_local  -> Spark en el Code Editor sobre la muestra (gratis; solo en dev), en ./lake.
     glue_small | glue_medium | glue_large -> Glue con 2, 4 o 6 workers.
   En dev se puede probar con recursos de prod (glue_large, varios meses) sin tocar prod.
 params.mes vacío = todos los meses de config/<entorno>.yaml; params.limite recorta los viajes.
