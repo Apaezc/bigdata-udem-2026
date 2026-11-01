@@ -15,6 +15,8 @@ from pipeline.run import main
 
 REQUERIDOS = ("step", "env")
 OPCIONALES = ("mes", "limite", "lake-bucket")
+# Airflow manda "todos" (sin --mes) y "0" (sin --limite): StartJobRun no acepta valores vacíos.
+VACIOS = (None, "", "todos", "0")
 
 
 def resueltos_a_argv(resueltos: dict[str, str]) -> list[str]:
@@ -24,7 +26,7 @@ def resueltos_a_argv(resueltos: dict[str, str]) -> list[str]:
     for clave, valor in resueltos.items():
         # getResolvedOptions de Glue 5.0 devuelve tambien otras claves (algunas con valor None):
         # solo se pasan al parser las del pipeline.
-        if clave in permitidas and valor is not None:
+        if clave in permitidas and valor not in VACIOS:
             argv += [f"--{clave.replace('_', '-')}", valor]
     return argv
 

@@ -51,44 +51,46 @@ def test_no_import_errors(dag_bag):
     assert DAG_ID in dag_bag.dags
 
 
-def test_dag_has_at_least_four_tasks(dag):
-    assert len(dag.tasks) >= 4
-    for tid in ("bronze", "silver", "gold", "cargar_gold"):
-        dag.get_task(tid)  # lanza si no existe
+CAMINOS = {
+    "local": ["silver_local", "gold_local"],
+    "dev": ["bronze_dev", "silver_dev", "gold_dev", "cargar_dev"],
+    "prod": ["bronze_prod", "silver_prod", "gold_prod", "cargar_prod"],
+}
 
 
-def test_glue_chain_order(dag):
-    assert dag.get_task("silver").upstream_task_ids == {"bronze"}
-    assert dag.get_task("gold").upstream_task_ids == {"silver"}
-    cargar = dag.get_task("cargar_gold")
-    assert cargar.upstream_task_ids == {"gold"}
-    assert {"bronze", "silver", "gold"} <= _upstream_ids(cargar)
+@pytest.mark.parametrize("entorno", CAMINOS)
+def test_cada_entorno_es_una_cadena_desde_el_branch(dag, entorno):
+    tareas = CAMINOS[entorno]
+    assert dag.get_task(tareas[0]).upstream_task_ids == {"elegir_entorno"}
+    for anterior, siguiente in zip(tareas, tareas[1:], strict=False):
+        assert dag.get_task(siguiente).upstream_task_ids == {anterior}
+    assert dag.get_task(tareas[-1]).downstream_task_ids == set()
 
 
-def test_snowpark_branch_order(dag):
-    assert dag.get_task("silver_snowpark").upstream_task_ids == {"bronze_snowpark"}
-    assert dag.get_task("gold_snowpark").upstream_task_ids == {"silver_snowpark"}
-    # La rama snowpark_connect escribe directo en Snowflake: no alimenta cargar_gold.
-    assert dag.get_task("gold_snowpark").downstream_task_ids == set()
-    assert "gold_snowpark" not in _upstream_ids(dag.get_task("cargar_gold"))
+def test_no_quedan_ramas_de_snowpark(dag):
+    assert not [t for t in dag.task_ids if "snowpark" in t]
 
 
-def test_branch_is_root_of_both_chains(dag):
-    assert dag.get_task("bronze").upstream_task_ids == {"elegir_engine"}
-    assert dag.get_task("bronze_snowpark").upstream_task_ids == {"elegir_engine"}
-
-
-def test_dag_is_manual_with_params(dag):
+def test_dag_es_manual_con_params(dag):
     assert type(dag.timetable).__name__ == "NullTimetable"
-    assert set(dag.params) >= {"mes", "env", "engine"}
-    assert dag.params["mes"] == "2024-01"
-    assert dag.params["env"] == "dev"
-    assert dag.params["engine"] == "glue"
+    assert set(dag.params) == {"entorno", "mes", "limite"}
+    assert dag.params["entorno"] in CAMINOS
+    assert dag.params["mes"] == ""
+    assert dag.params["limite"] is None
 
 
-def test_glue_tasks_pasan_worker_type_y_numero_de_workers(dag):
+@pytest.mark.parametrize("entorno", ["dev", "prod"])
+def test_glue_pasa_entorno_worker_type_y_workers(dag, entorno):
     # StartJobRun falla con "Please set both Worker Type and Number of Workers" si falta uno.
-    for task_id in ("bronze", "silver", "gold"):
-        kwargs = dag.get_task(task_id).run_job_kwargs
-        assert kwargs["WorkerType"] == "G.1X"
-        assert kwargs["NumberOfWorkers"] >= 2
+    for step in ("bronze", "silver", "gold"):
+        tarea = dag.get_task(f"{step}_{entorno}")
+        assert tarea.run_job_kwargs["WorkerType"] == "G.1X"
+        assert tarea.run_job_kwargs["NumberOfWorkers"] >= 2
+        assert tarea.script_args["--env"] == entorno
+        assert tarea.verbose is True
+
+
+def test_prod_usa_perfiles_mayores_que_dev(dag):
+    dev = dag.get_task("silver_dev").run_job_kwargs["NumberOfWorkers"]
+    prod = dag.get_task("silver_prod").run_job_kwargs["NumberOfWorkers"]
+    assert prod > dev

@@ -1,13 +1,20 @@
-"""DAG pipeline_taxi: bronze -> silver -> gold (Glue) -> carga a Snowflake.
+"""DAG pipeline_taxi: bronze -> silver -> gold -> carga a Snowflake, por entorno.
 
-Rama opcional: con params.engine = "snowpark_connect" se ejecutan los mismos steps con
-snowpark_connect_task (comparación de engines). Esa rama escribe directamente las tablas
-BIGDATA.<CAPA>.* en Snowflake, así que no necesita cargar_gold (solo cuelga de la rama Glue).
-Disparo manual: los params mes / env / engine se eligen al lanzar el DAG.
+params.entorno elige el camino:
+- local: silver_local -> gold_local. Spark en la misma máquina que Airflow (Code Editor),
+  sobre la muestra. Gratis; valida la lógica. No carga a Snowflake.
+- dev:   bronze_dev -> silver_dev -> gold_dev -> cargar_dev. Glue `small`, 1 mes completo,
+  carga a BIGDATA.DEV.
+- prod:  bronze_prod -> silver_prod -> gold_prod -> cargar_prod. Glue `medium`/`large`, el año,
+  carga a BIGDATA.PROD. Lo usa el Airflow de prod (la VM), con DAGs desplegados por CI.
+params.mes vacío = todos los meses del entorno (config/<entorno>.yaml); params.limite recorta
+los viajes (vacío = sin recorte). El entorno por defecto viene de PIPELINE_ENTORNO
+(la VM de prod lo fija en "prod"; el Code Editor usa "local").
 """
 
 from __future__ import annotations
 
+import os
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -16,20 +23,24 @@ from airflow.models.param import Param
 from airflow.providers.standard.operators.python import BranchPythonOperator
 from airflow.sdk import DAG
 
-# airflow/ es la raíz del paquete `framework` (en la VM, debe estar desplegada junto a dags/).
+# airflow/ es la raíz del paquete `framework`.
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from framework.tasks import (
-    glue_task,
-    snowflake_task,
-    snowpark_connect_task,
-)
+from framework.tasks import glue_task, pipeline_local_task, snowflake_task
+
+ENTORNOS = ("local", "dev", "prod")
+ENTORNO_POR_DEFECTO = os.environ.get("PIPELINE_ENTORNO", "local")
+# Perfil Glue de cada step en la nube (profiles.yaml).
+PERFILES = {
+    "dev": {"bronze": "small", "silver": "small", "gold": "small"},
+    "prod": {"bronze": "small", "silver": "large", "gold": "medium"},
+}
 
 
-def _elegir_engine(**context) -> str:
-    """Devuelve el task_id de la rama a ejecutar según params.engine."""
-    engine = context["params"]["engine"]
-    return "bronze_snowpark" if engine == "snowpark_connect" else "bronze"
+def _elegir_entorno(**context) -> str:
+    """Primer task_id del camino según params.entorno."""
+    entorno = context["params"]["entorno"]
+    return "silver_local" if entorno == "local" else f"bronze_{entorno}"
 
 
 with DAG(
@@ -37,32 +48,41 @@ with DAG(
     schedule=None,
     start_date=datetime(2024, 1, 1),
     catchup=False,
-    tags=["bigdata", "taxi"],
+    tags=["bigdata", "fhvhv"],
     params={
-        "mes": Param(
-            "2024-01",
+        "entorno": Param(
+            ENTORNO_POR_DEFECTO if ENTORNO_POR_DEFECTO in ENTORNOS else "local",
             type="string",
-            pattern=r"^\d{4}-\d{2}$",
-            description="Mes YYYY-MM",
+            enum=list(ENTORNOS),
+            description="local (muestra, Spark aquí) | dev (Glue small, 1 mes) | prod (Glue, año)",
         ),
-        "env": Param("dev", type="string", enum=["dev", "prod"]),
-        "engine": Param("glue", type="string", enum=["glue", "snowpark_connect"]),
+        "mes": Param(
+            "",
+            type="string",
+            pattern=r"^(\d{4}-\d{2})?$",
+            description="YYYY-MM; vacío = todos los meses del entorno",
+        ),
+        "limite": Param(
+            None,
+            type=["null", "integer"],
+            minimum=1,
+            description="Máximo de viajes a procesar; vacío = sin recorte",
+        ),
     },
 ) as dag:
-    elegir_engine = BranchPythonOperator(task_id="elegir_engine", python_callable=_elegir_engine)
+    elegir = BranchPythonOperator(task_id="elegir_entorno", python_callable=_elegir_entorno)
 
-    # Rama principal: Glue.
-    bronze = glue_task("bronze", step="bronze", profile="small")
-    silver = glue_task("silver", step="silver", profile="medium")
-    gold = glue_task("gold", step="gold", profile="medium")
+    silver_local = pipeline_local_task("silver_local", step="silver")
+    gold_local = pipeline_local_task("gold_local", step="gold")
+    elegir >> silver_local >> gold_local
 
-    # Rama opcional: Snowpark Connect (comparación).
-    bronze_snowpark = snowpark_connect_task("bronze_snowpark", step="bronze")
-    silver_snowpark = snowpark_connect_task("silver_snowpark", step="silver")
-    gold_snowpark = snowpark_connect_task("gold_snowpark", step="gold")
-
-    # Solo la rama Glue deja Parquet en S3 que cargar; si se elige snowpark_connect, queda skipped.
-    cargar_gold = snowflake_task("cargar_gold", sql_file="sql/copy_gold.sql")
-
-    elegir_engine >> bronze >> silver >> gold >> cargar_gold
-    elegir_engine >> bronze_snowpark >> silver_snowpark >> gold_snowpark
+    for entorno, perfiles in PERFILES.items():
+        bronze = glue_task(
+            f"bronze_{entorno}", step="bronze", profile=perfiles["bronze"], env=entorno
+        )
+        silver = glue_task(
+            f"silver_{entorno}", step="silver", profile=perfiles["silver"], env=entorno
+        )
+        gold = glue_task(f"gold_{entorno}", step="gold", profile=perfiles["gold"], env=entorno)
+        cargar = snowflake_task(f"cargar_{entorno}", sql_file="sql/copy_gold.sql")
+        elegir >> bronze >> silver >> gold >> cargar

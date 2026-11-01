@@ -24,3 +24,12 @@ def test_argv_de_glue_ignora_claves_ajenas_y_valores_none():
     )
     args = build_parser().parse_args(argv)
     assert (args.step, args.env, args.mes) == ("bronze", "dev", None)
+
+
+def test_argv_de_glue_ignora_todos_y_cero():
+    argv = resueltos_a_argv({"step": "silver", "env": "prod", "mes": "todos", "limite": "0"})
+    args = build_parser().parse_args(argv)
+    assert (args.mes, args.limite) == (None, None)
+    argv = resueltos_a_argv({"step": "silver", "env": "dev", "mes": "2024-03", "limite": "500"})
+    args = build_parser().parse_args(argv)
+    assert (args.mes, args.limite) == ("2024-03", 500)

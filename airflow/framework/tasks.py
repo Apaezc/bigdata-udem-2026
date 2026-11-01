@@ -6,26 +6,25 @@ Convenciones (CONTRATO.md):
 - `prefix` se lee de la Variable de Airflow `prefix` (default "bigdata") al renderizar la
   tarea, mediante Jinja (`var.value.get`). No se consulta la base de datos al parsear el DAG.
 
-Requisitos de la imagen de Airflow:
-- `src/` del repo debe estar en PYTHONPATH para `snowpark_connect_task` (ejecuta `pipeline.run`).
-  La VM de Airflow NO incluye `src/` ni el paquete de Snowpark Connect: la rama snowpark_connect
-  es opcional y requiere preparar la imagen (ver airflow/README.md).
-- `snowpark_connect_task` requiere el paquete de Snowpark Connect para Spark instalado en la
-  imagen (nombre de paquete [no verificado]: `snowpark-connect`). No está en requirements.txt.
+Entornos (params.entorno del DAG):
+- local: `pipeline_local_task` ejecuta `pipeline.run --env local --engine local` en un subproceso
+  con el Python del repo (`.venv`), en la misma máquina que Airflow (el Code Editor). La VM de
+  prod no tiene el código ni Spark: allí solo se usan dev/prod (Glue).
+- dev / prod: `glue_task` lanza el job Glue del perfil con --env dev|prod.
+- mes vacío = todos los meses del entorno; limite vacío = sin recorte. A Glue se le pasa
+  "todos" / "0" porque StartJobRun no acepta argumentos vacíos (run_glue.py los ignora).
 """
 
 from __future__ import annotations
 
 import os
-import subprocess
-import sys
 from pathlib import Path
 from typing import Any
 
 import yaml
 from airflow.providers.amazon.aws.operators.glue import GlueJobOperator
 from airflow.providers.common.sql.operators.sql import SQLExecuteQueryOperator
-from airflow.providers.standard.operators.python import PythonOperator
+from airflow.providers.standard.operators.bash import BashOperator
 
 PROFILES_FILE = Path(__file__).with_name("profiles.yaml")
 
@@ -37,6 +36,11 @@ SNOWFLAKE_CONN_ID = "snowflake_default"
 PREFIX_TEMPLATE = "{{ var.value.get('prefix', 'bigdata') }}"
 
 VALID_STEPS = ("bronze", "silver", "gold", "all")
+
+# Raíz del repo (airflow/framework/tasks.py -> repo). En el Code Editor los DAGs se leen del repo.
+REPO_ROOT = Path(__file__).resolve().parents[2]
+MES_ARG = "{{ params.mes or 'todos' }}"
+LIMITE_ARG = "{{ params.limite or 0 }}"
 
 
 def load_profiles() -> dict[str, dict[str, Any]]:
@@ -76,19 +80,18 @@ def glue_task(
     task_id: str,
     step: str,
     profile: str,
-    env: str = "{{ params.env }}",
-    mes: str = "{{ params.mes }}",
-    engine: str = "glue",
+    env: str,
+    mes: str = MES_ARG,
+    limite: str = LIMITE_ARG,
 ) -> GlueJobWithLinks:
     """Tarea que ejecuta un step del pipeline en el job Glue `${prefix}-<profile>`.
 
-    El job ejecuta run_glue.py, que fija el engine glue; por eso `engine` solo admite "glue".
-    Para snowpark_connect usar snowpark_connect_task.
+    El job ejecuta run_glue.py, que fija el engine glue. env: "dev" o "prod".
     """
     if step not in VALID_STEPS:
         raise ValueError(f"step inválido {step!r}; válidos: {VALID_STEPS}")
-    if engine != "glue":
-        raise ValueError("glue_task solo admite engine='glue'; usa snowpark_connect_task")
+    if env not in ("dev", "prod"):
+        raise ValueError(f"env inválido {env!r}; glue_task admite 'dev' o 'prod'")
 
     profiles = load_profiles()
     if profile not in profiles:
@@ -99,7 +102,7 @@ def glue_task(
     return GlueJobWithLinks(
         task_id=task_id,
         job_name=job_name,
-        script_args={"--step": step, "--env": env, "--mes": mes},
+        script_args={"--step": step, "--env": env, "--mes": mes, "--limite": limite},
         run_job_kwargs={
             # StartJobRun exige WorkerType junto con NumberOfWorkers (los jobs son G.1X).
             "WorkerType": "G.1X",
@@ -108,9 +111,9 @@ def glue_task(
         },
         region_name=AWS_REGION,
         wait_for_completion=True,
-        # verbose=True leería CloudWatch Logs con el rol de la VM, que (por contrato) no tiene
-        # permisos de logs. Los logs se consultan en Glue/CloudWatch con los enlaces del log.
-        verbose=False,
+        # Copia al log de la tarea los logs del job (CloudWatch /aws-glue/jobs/...): errores de
+        # Spark visibles en Airflow. El rol que ejecuta Airflow necesita leer esos logs.
+        verbose=True,
         # Sin durable se mantienen exactamente los script_args del contrato
         # (durable añade --airflow_task_uuid).
         durable=False,
@@ -127,38 +130,15 @@ def snowflake_task(task_id: str, sql_file: str) -> SQLExecuteQueryOperator:
     )
 
 
-def run_pipeline_step(step: str, env: str, mes: str) -> None:
-    """Ejecuta `pipeline.run` con engine snowpark_connect en un subproceso."""
-    cmd = [
-        sys.executable,
-        "-m",
-        "pipeline.run",
-        "--step",
-        step,
-        "--env",
-        env,
-        "--engine",
-        "snowpark_connect",
-        "--mes",
-        mes,
-    ]
-    subprocess.run(cmd, check=True)
-
-
-def snowpark_connect_task(
-    task_id: str,
-    step: str,
-    env: str = "{{ params.env }}",
-    mes: str = "{{ params.mes }}",
-) -> PythonOperator:
-    """Tarea opcional para comparar contra Glue: mismo step con engine snowpark_connect.
-
-    Requiere `src/` en PYTHONPATH y el paquete de Snowpark Connect en la imagen de Airflow.
-    """
+def pipeline_local_task(task_id: str, step: str) -> BashOperator:
+    """Ejecuta un step del pipeline con Spark local (env local) en la máquina de Airflow."""
     if step not in VALID_STEPS:
         raise ValueError(f"step inválido {step!r}; válidos: {VALID_STEPS}")
-    return PythonOperator(
-        task_id=task_id,
-        python_callable=run_pipeline_step,
-        op_kwargs={"step": step, "env": env, "mes": mes},
+    python = REPO_ROOT / ".venv" / "bin" / "python"
+    comando = (
+        f'cd "{REPO_ROOT}" && PYTHONPATH="{REPO_ROOT}/src" "{python}" -m pipeline.run '
+        f"--step {step} --env local --engine local"
+        "{% if params.mes %} --mes {{ params.mes }}{% endif %}"
+        "{% if params.limite %} --limite {{ params.limite }}{% endif %}"
     )
+    return BashOperator(task_id=task_id, bash_command=comando)

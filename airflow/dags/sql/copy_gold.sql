@@ -1,17 +1,18 @@
--- Carga la capa gold (Parquet escrito por el pipeline en Glue) a Snowflake.
--- Stage externo BIGDATA.GOLD.LAKE_GOLD -> s3://<lake>/gold/ (infra/snowflake).
+-- Carga la capa gold (Parquet escrito por Glue) a Snowflake, en el esquema del entorno.
+-- dev -> BIGDATA.DEV, prod -> BIGDATA.PROD. Stage BIGDATA.<ESQUEMA>.LAKE_GOLD -> s3://<lake>/<entorno>/gold/
+-- (infra/snowflake). Layout: daily_zone_metrics/mes=YYYY-MM/*.parquet; la columna `fecha` va
+-- dentro de los archivos. Orden y tipos = contrato de gold (src/pipeline/gold.py, COLUMNAS).
 --
--- Layout en S3: gold/daily_zone_metrics/mes=YYYY-MM/*.parquet. La columna `fecha` va dentro de
--- los archivos; la carpeta mes=... solo sirve para reprocesar un mes sin tocar los demas.
--- Orden y tipos de columnas = contrato de gold (src/pipeline/gold.py, COLUMNAS).
---
--- Idempotencia / reprocesos: antes del COPY se borra el mes en la tabla, y el COPY usa FORCE = TRUE
--- (Snowflake recuerda 64 dias los archivos ya cargados; sin FORCE, repetir la carga de un mes cuyos
--- archivos no cambiaron cargaria 0 filas despues del DELETE). {{ params.mes }} viene del DAG.
+-- Idempotencia: con params.mes se reemplaza ese mes; sin mes se recarga todo el entorno.
+-- FORCE = TRUE porque Snowflake recuerda 64 días los archivos ya cargados (sin FORCE, repetir la
+-- carga de archivos que no cambiaron cargaría 0 filas después del DELETE).
+{%- set esquema = 'PROD' if params.entorno == 'prod' else 'DEV' %}
+{%- set tabla = 'BIGDATA.' ~ esquema ~ '.DAILY_ZONE_METRICS' %}
 
-CREATE TABLE IF NOT EXISTS BIGDATA.GOLD.DAILY_ZONE_METRICS (
+CREATE TABLE IF NOT EXISTS {{ tabla }} (
     FECHA               DATE,
     ZONA                VARCHAR,
+    EMPRESA             VARCHAR,
     VIAJES              NUMBER(38, 0),
     INGRESO_TOTAL       FLOAT,
     PROPINA_PROMEDIO    FLOAT,
@@ -19,12 +20,16 @@ CREATE TABLE IF NOT EXISTS BIGDATA.GOLD.DAILY_ZONE_METRICS (
     LLUVIA_MM           FLOAT
 );
 
-DELETE FROM BIGDATA.GOLD.DAILY_ZONE_METRICS
+{% if params.mes -%}
+DELETE FROM {{ tabla }}
 WHERE FECHA >= TO_DATE('{{ params.mes }}-01')
   AND FECHA < DATEADD(MONTH, 1, TO_DATE('{{ params.mes }}-01'));
+{%- else -%}
+TRUNCATE TABLE {{ tabla }};
+{%- endif %}
 
-COPY INTO BIGDATA.GOLD.DAILY_ZONE_METRICS
-FROM '@BIGDATA.GOLD.LAKE_GOLD/daily_zone_metrics/mes={{ params.mes }}/'
+COPY INTO {{ tabla }}
+FROM '@BIGDATA.{{ esquema }}.LAKE_GOLD/daily_zone_metrics/{% if params.mes %}mes={{ params.mes }}/{% endif %}'
 FILE_FORMAT = (TYPE = PARQUET)
 MATCH_BY_COLUMN_NAME = CASE_INSENSITIVE
 PATTERN = '.*[.]parquet'
