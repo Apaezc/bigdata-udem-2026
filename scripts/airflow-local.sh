@@ -105,6 +105,9 @@ up() {
   [[ -x "$ROOT_DIR/.venv/bin/python" ]] \
     || error "Falta $ROOT_DIR/.venv (Spark de la rama local del DAG). Corre 'make setup' primero."
   instalar
+  if ! pgrep -f "airflow standalone" >/dev/null && ss -ltn 2>/dev/null | grep -q ':8081 '; then
+    error "El puerto 8081 está ocupado por otro proceso (¿un Airflow anterior?). Corre 'make airflow-local-down'."
+  fi
   escribir_nginx
   if [[ -f "$BASE/nginx.pid" ]] && kill -0 "$(cat "$BASE/nginx.pid")" 2>/dev/null; then
     nginx -p "$BASE" -e "$BASE/nginx-error.log" -c "$NGINX_CONF" -s reload
@@ -113,8 +116,6 @@ up() {
   fi
   if pgrep -f "airflow standalone" >/dev/null; then
     msg "Airflow ya está corriendo (para tomar cambios de configuración: make airflow-local-down)."
-  elif ss -ltn 2>/dev/null | grep -q ':8081 '; then
-    error "El puerto 8081 está ocupado por otro proceso (¿un Airflow anterior?). Corre 'make airflow-local-down'."
   else
     entorno_airflow
     msg "Arrancando airflow standalone (log: $BASE/airflow.log)"
@@ -131,14 +132,16 @@ up() {
 }
 
 down() {
-  # Todo lo que corre con el Python del venv: standalone, sus componentes y los workers de
-  # uvicorn (se lanzan con "python -c ..." y no llevan "airflow" en la línea de comandos).
-  pkill -f "$VENV/bin/" 2>/dev/null || true
+  # Todo lo que corre con el Python del venv (standalone y workers de uvicorn, que se lanzan
+  # con "python -c ...") y los componentes que Airflow renombra ("airflow api_server -- ...").
+  local patrones=("$VENV/bin/" "^airflow ")
+  local p
+  for p in "${patrones[@]}"; do pkill -f "$p" 2>/dev/null || true; done
   for _ in $(seq 1 15); do
-    pgrep -f "$VENV/bin/" >/dev/null || break
+    pgrep -f "$VENV/bin/" >/dev/null || pgrep -f "^airflow " >/dev/null || break
     sleep 1
   done
-  pkill -9 -f "$VENV/bin/" 2>/dev/null || true
+  for p in "${patrones[@]}"; do pkill -9 -f "$p" 2>/dev/null || true; done
   [[ -f "$BASE/nginx.pid" ]] && nginx -p "$BASE" -e "$BASE/nginx-error.log" -c "$NGINX_CONF" -s stop 2>/dev/null || true
   msg "Airflow local y nginx detenidos."
 }
