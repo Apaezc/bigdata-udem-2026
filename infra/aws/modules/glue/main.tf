@@ -52,9 +52,13 @@ data "aws_iam_policy_document" "glue_exec" {
   }
 
   statement {
-    sid       = "EscribirZonasTmpYLogs"
-    actions   = ["s3:PutObject", "s3:DeleteObject", "s3:AbortMultipartUpload"]
-    resources = [for p in local.escritura : "${local.lake_arn}/${p}/*"]
+    sid     = "EscribirZonasTmpYLogs"
+    actions = ["s3:PutObject", "s3:DeleteObject", "s3:AbortMultipartUpload"]
+    # EMRFS (S3 de Glue) crea marcadores de carpeta "<prefijo>_$folder$" en la raíz del bucket.
+    resources = concat(
+      [for p in local.escritura : "${local.lake_arn}/${p}/*"],
+      [for p in local.escritura : "${local.lake_arn}/${p}_$folder$"],
+    )
   }
 
   statement {
