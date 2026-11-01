@@ -214,7 +214,9 @@ resource "aws_instance" "airflow" {
   }
 
   lifecycle {
-    ignore_changes = [ami]
+    # associate_public_ip_address: con la VM apagada AWS no reporta IP pública y Terraform leería
+    # false, proponiendo recrear la instancia en cada deploy. La IP automática vuelve al encenderla.
+    ignore_changes = [ami, associate_public_ip_address]
   }
 }
 
