@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# PROTOTIPO: Airflow 3.3.2 dentro del Code Editor (sin VM ni Docker), para evaluar si reemplaza la VM.
+# Airflow de dev: Airflow 3.3.2 dentro del Code Editor (sin Docker). Lanza el DAG con
+# entorno=local (Spark aquí, sobre la muestra) o entorno=dev (Glue small). Prod es la VM.
 # Uso: airflow-local.sh up | down | estado
 #   up     instala (solo la primera vez), levanta nginx en 8080 y `airflow standalone` en 8081
 #   down   detiene Airflow y nginx
@@ -18,7 +19,7 @@ AIRFLOW_VERSION="3.3.2"
 instalar() {
   mkdir -p "$BASE" "$AIRFLOW_HOME"
   if ! command -v nginx >/dev/null; then
-    msg "Instalando nginx (paquete del sistema; se pierde al reiniciar el space)"
+    msg "Instalando nginx (normalmente lo instala el Lifecycle Config al arrancar el space)"
     sudo apt-get update -qq && sudo apt-get install -y -qq nginx >/dev/null
   fi
   if [[ ! -x "$VENV/bin/airflow" ]]; then
@@ -84,6 +85,10 @@ entorno_airflow() {
   export AIRFLOW_CONN_AWS_DEFAULT="{\"conn_type\": \"aws\", \"extra\": {\"region_name\": \"$AWS_REGION\"}}"
   export AWS_DEFAULT_REGION="$AWS_REGION"
   export AIRFLOW_VAR_PREFIX="$PREFIX"
+  # Rama local del DAG: descarga la muestra la primera vez (s3://<lake>/muestra).
+  LAKE_BUCKET="$(lake_bucket)"
+  export LAKE_BUCKET
+  export PIPELINE_ENTORNO=local
   # Conexión snowflake_default desde el secreto <prefix>/snowflake (igual que en la VM).
   local snow
   snow="$(aws secretsmanager get-secret-value --secret-id "$PREFIX/snowflake" \
@@ -97,6 +102,8 @@ entorno_airflow() {
 
 up() {
   requerir python3 aws jq
+  [[ -x "$ROOT_DIR/.venv/bin/python" ]] \
+    || error "Falta $ROOT_DIR/.venv (Spark de la rama local del DAG). Corre 'make setup' primero."
   instalar
   escribir_nginx
   if [[ -f "$BASE/nginx.pid" ]] && kill -0 "$(cat "$BASE/nginx.pid")" 2>/dev/null; then

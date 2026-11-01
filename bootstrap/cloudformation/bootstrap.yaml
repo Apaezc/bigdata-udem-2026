@@ -432,13 +432,13 @@ Resources:
   # ---------------------------------------------------------------------------
   # SageMaker Domain, usuario y Space de Code Editor.
   # ---------------------------------------------------------------------------
-  # Herramientas del curso que la imagen de Code Editor no trae (Java 17, Terraform, snow, zip, session-manager-plugin).
+  # Herramientas del curso que la imagen de Code Editor no trae (Java 17, Terraform, snow, zip, nginx, session-manager-plugin).
   # Corre en cada arranque del space; lo que va al home persiste, asi que solo descarga la primera vez.
   CodeEditorToolsLifecycleConfig:
     Type: AWS::SageMaker::StudioLifecycleConfig
     Properties:
       # El contenido de un LCC es inmutable: si cambia el script, sube el sufijo del nombre.
-      StudioLifecycleConfigName: !Sub "${Prefix}-code-editor-tools-v3"
+      StudioLifecycleConfigName: !Sub "${Prefix}-code-editor-tools-v4"
       StudioLifecycleConfigAppType: CodeEditor
       StudioLifecycleConfigContent:
         Fn::Base64: |
@@ -457,9 +457,10 @@ Resources:
           mkdir -p "$OPT" "$BIN"
           FALLOS=""
 
-          # zip/unzip: paquete del sistema, se pierde al reiniciar el space.
-          if ! command -v zip >/dev/null || ! command -v unzip >/dev/null; then
-            { $SUDO apt-get update -qq && $SUDO apt-get install -y -qq zip unzip; } || FALLOS+=" zip"
+          # zip/unzip y nginx (proxy del Airflow de dev): paquetes del sistema, se pierden al
+          # reiniciar el space, por eso se instalan en cada arranque.
+          if ! command -v zip >/dev/null || ! command -v unzip >/dev/null || ! command -v nginx >/dev/null; then
+            { $SUDO apt-get update -qq && $SUDO apt-get install -y -qq zip unzip nginx; } || FALLOS+=" zip/nginx"
           fi
 
           if [[ ! -x "$OPT/java17/bin/java" ]]; then
