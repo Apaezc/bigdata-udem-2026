@@ -11,7 +11,7 @@ export PATH := $(CURDIR)/.venv/bin:$(PATH)
 
 .PHONY: help setup config doctor estado test secrets publicar-bootstrap retirar-bootstrap muestra run-local deploy airflow-on airflow-off airflow-local airflow-local-down airflow-local-estado \
 	airflow-habilitar airflow-deshabilitar snowflake snowflake-secreto snowflake-conexion \
-	airflow-tunel airflow-password desbloquear snowflake-ampliar-cuota destroy
+	airflow-tunel airflow-password desbloquear snowflake-ampliar-cuota destroy limpieza-total
 
 help: ## Muestra los targets disponibles
 	@grep -E '^[a-zA-Z_-]+:.*## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*## "} {printf "  %-24s %s\n", $$1, $$2}'
@@ -93,3 +93,6 @@ snowflake-conexion: ## Configura la conexión por defecto de snow (llave en ~/.s
 
 destroy: ## Vacía el lake y destruye Snowflake y AWS; opcional: bootstrap y state (confirmación escrita)
 	bash scripts/destroy.sh
+
+limpieza-total: ## SOLO INSTRUCTOR: deja la cuenta como nueva tras make destroy (Snowflake, EFS, state, validación, secrets)
+	bash scripts/limpieza-total.sh
