@@ -55,22 +55,14 @@ Haz los pasos en este orden.
 1. **Snowflake: cuenta trial en AWS, región `us-east-2`.** Crea la cuenta de prueba en snowflake.com eligiendo la nube **AWS** y la región **US East (Ohio)**. Si queda en Azure/GCP o en otra región de AWS, `make setup` te lo avisará y tendrás que crear otra cuenta.
 2. **Cuenta AWS.** Crea tu cuenta de AWS (plan gratuito) y trabaja siempre en `us-east-2`. Entra con un usuario con permisos de administrador solo para lanzar el bootstrap.
 3. **Fork y Actions.** Haz fork de este repositorio en tu GitHub. En el fork, pestaña **Actions**, habilita los workflows ("I understand my workflows, go ahead and enable them").
-4. **Launch Stack (bootstrap AWS).** Sigue [docs/bootstrap.md](docs/bootstrap.md): obtén los IDs numéricos de tu usuario y repo, elige la VPC por defecto y lanza el stack `bigdata-bootstrap` con CloudFormation. Espera `CREATE_COMPLETE` y copia los outputs `GitHubActionsRoleArn` y `TfStateBucket`.
+4. **Launch Stack (bootstrap AWS).** En tu fork: **Actions > "Enlace de bootstrap" > Run workflow**. Abre el run y haz clic en el enlace **Launch Stack** del resumen: tus datos de GitHub ya vienen completados. Solo eliges la VPC *default*, todas sus subnets y tu correo, marcas la casilla de IAM y creas el stack. Espera `CREATE_COMPLETE` (~4 min). Detalle: [docs/bootstrap.md](docs/bootstrap.md).
 5. **Code Editor.** Abre `StudioConsoleUrl` -> perfil `estudiante` -> Space `dev` -> **Code Editor**.
 6. **Clona tu fork** en la terminal del Code Editor:
    ```bash
    git clone https://github.com/<TU_USUARIO>/<TU_FORK>.git && cd <TU_FORK>
    ```
 7. **`make setup`.** Verifica herramientas (Python 3.11+, Java 17, AWS CLI, Terraform, Snowflake CLI `snow`, jq, zip), crea `.venv`, valida que Snowflake esté en AWS, alinea `AWS_REGION` y, si todavía no existe, crea en S3 la configuración de Terraform (te pide el correo de alertas). Antes configura `snow` (`~/.snowflake/connections.toml`, conexión `[default]`) y comprueba con `make doctor`. Las herramientas las instala el Lifecycle Config del Code Editor al arrancar.
-8. **Secrets del fork** (Settings > Secrets and variables > Actions):
-
-   | Nombre | Tipo | Valor |
-   |---|---|---|
-   | `AWS_ROLE_ARN` | secret | output `GitHubActionsRoleArn` del bootstrap |
-   | `TF_STATE_BUCKET` | secret | output `TfStateBucket` del bootstrap |
-   | `SNOWFLAKE_ACCOUNT`, `SNOWFLAKE_USER`, `SNOWFLAKE_PRIVATE_KEY` | secrets | reservados para workflows de Snowflake; los workflows actuales no los usan |
-
-   La configuración de Terraform (correo de alertas, Airflow, Glue y la fase 2 de Snowflake) no va en secrets ni variables: está en S3 ([ver abajo](#configuración-por-estudiante)).
+8. **Secrets del fork: automáticos.** `make setup` los carga solo (`AWS_ROLE_ARN` y `TF_STATE_BUCKET`, leídos del bootstrap). La primera vez autentica GitHub en el Code Editor con `gh auth login --hostname github.com --git-protocol https --web` (abre el enlace, pega el código) y corre `make secrets`. No hay que copiar valores a mano.
 
 9. **`make deploy`.** Aplica `infra/aws` (lake, Glue, Athena, guardrails y, si lo activas, Airflow) y sube a S3 el código del pipeline (`pipeline.zip`, `run_glue.py`), los DAGs y el framework de Airflow. Para activar Airflow usa `make airflow-habilitar` (cambia la configuración y despliega). También se ejecuta solo en cada push a `main`.
 
@@ -115,6 +107,7 @@ Ejecuta `make help` para ver la lista actualizada.
 |---|---|
 | `make setup` | Verifica herramientas, crea `.venv`, valida la región de Snowflake, alinea `AWS_REGION` y crea la configuración de AWS en S3 si no existe |
 | `make config` | Muestra la configuración de AWS guardada en S3 |
+| `make secrets` | Carga `AWS_ROLE_ARN` y `TF_STATE_BUCKET` en tu fork desde el bootstrap (lo hace `make setup` si `gh` está autenticado) |
 | `make doctor` | Diagnóstico: versiones, AWS, Snowflake, Terraform, OIDC |
 | `make estado` | Estado de Airflow, últimos job runs de Glue, warehouse y costos |
 | `make test` | `ruff check`, `ruff format --check`, `pytest` (y tests de DAGs si Airflow está instalado) |
@@ -150,7 +143,7 @@ Estimaciones aproximadas; verifica precios vigentes en la consola de AWS y de Sn
 | El stack falla con `EntityAlreadyExists` (OIDC) | La cuenta ya tiene el proveedor de GitHub: relanza el stack con `ExistingGitHubOidcProviderArn` ([docs/bootstrap.md](docs/bootstrap.md)) |
 | GitHub Actions: `Not authorized to perform sts:AssumeRoleWithWebIdentity` | Revisa `AWS_ROLE_ARN` y los IDs numéricos del bootstrap. Ejecuta el workflow **Debug OIDC** y compara el claim `sub` |
 | `make setup` dice que Snowflake no está en AWS | Crea otra cuenta trial eligiendo AWS y `us-east-2` |
-| `ci.yml` o `deploy.yml` fallan pidiendo `AWS_ROLE_ARN` o `TF_STATE_BUCKET` | Crea esos secrets en el fork (en PRs desde forks el plan se omite a propósito) |
+| `ci.yml` o `deploy.yml` fallan pidiendo `AWS_ROLE_ARN` o `TF_STATE_BUCKET` | Corre `make secrets` en el Code Editor (con `gh auth login` hecho). En PRs desde forks el plan se omite a propósito |
 | `Falta la configuración en S3. Corre 'make setup' en Code Editor.` | Corre `make setup` en el Code Editor; crea `config/aws.tfvars` |
 | `El plan destruye recursos` en el deploy | Revisa la lista del plan. Si es intencional (p. ej. apagar Airflow), repite con `CONFIRMAR_DESTRUCCION=true` o el input `confirmar_destruccion` |
 | `AccessDenied` al lanzar jobs Glue o encender la VM | Probablemente actuó el presupuesto: `make estado` y `make desbloquear` |
@@ -177,5 +170,5 @@ airflow/      docker-compose, framework y DAGs
 tests/        pruebas del pipeline (pytest + PySpark local)
 scripts/      implementación de los targets de make
 docs/         bootstrap e integración
-.github/workflows/  ci, deploy (enciende prod), airflow-on/off, debug-oidc
+.github/workflows/  enlace-bootstrap, ci, deploy (enciende prod), airflow-on/off, debug-oidc
 ```

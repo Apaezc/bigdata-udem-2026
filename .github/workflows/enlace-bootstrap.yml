@@ -1,0 +1,52 @@
+name: Enlace de bootstrap
+
+# Paso 1 del curso: genera el enlace "Launch Stack" de CloudFormation con los datos de TU fork ya
+# completados (usuario, repo y sus IDs numéricos). Ejecútalo desde Actions > "Enlace de bootstrap"
+# > Run workflow y abre el enlace del resumen. No necesita secrets ni acceso a AWS.
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  REGION: us-east-2
+  STACK: bigdata-bootstrap
+  # Plantilla publicada por el instructor (scripts/publicar-bootstrap.sh). Se puede cambiar con la
+  # variable del repo BOOTSTRAP_TEMPLATE_URL.
+  TEMPLATE_URL: ${{ vars.BOOTSTRAP_TEMPLATE_URL || 'https://bigdata-udem-2026-publico.s3.us-east-2.amazonaws.com/bootstrap/bootstrap.yaml' }}
+
+jobs:
+  enlace:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generar enlace
+        env:
+          OWNER: ${{ github.repository_owner }}
+          OWNER_ID: ${{ github.repository_owner_id }}
+          REPO: ${{ github.event.repository.name }}
+          REPO_ID: ${{ github.repository_id }}
+        run: |
+          set -euo pipefail
+          url_encode() { jq -rn --arg v "$1" '$v|@uri'; }
+          URL="https://${REGION}.console.aws.amazon.com/cloudformation/home?region=${REGION}#/stacks/quickcreate"
+          URL+="?templateURL=$(url_encode "$TEMPLATE_URL")&stackName=${STACK}"
+          URL+="&param_GitHubOwner=$(url_encode "$OWNER")&param_GitHubOwnerId=${OWNER_ID}"
+          URL+="&param_GitHubRepo=$(url_encode "$REPO")&param_GitHubRepoId=${REPO_ID}"
+          {
+            echo "## Lanza tu bootstrap en AWS"
+            echo
+            echo "1. Entra a la consola de AWS con tu usuario administrador (región **us-east-2**)."
+            echo "2. Abre este enlace: **[Launch Stack](${URL})**"
+            echo "3. Los datos de GitHub ya vienen completados: **no los cambies**."
+            echo "   - GitHubOwner: \`${OWNER}\` (ID ${OWNER_ID})"
+            echo "   - GitHubRepo: \`${REPO}\` (ID ${REPO_ID})"
+            echo "4. Completa solo: **VpcId** (la que dice *default*), **SubnetIds** (marca todas las de esa VPC)"
+            echo "   y **AlertEmail** (tu correo)."
+            echo "5. Marca *I acknowledge that AWS CloudFormation might create IAM resources with custom names*"
+            echo "   y pulsa **Create stack**. Espera \`CREATE_COMPLETE\` (~4 min)."
+            echo
+            echo "Siguiente: abre Code Editor desde el output \`StudioConsoleUrl\` (ver README)."
+          } >> "$GITHUB_STEP_SUMMARY"
+          echo "Enlace: ${URL}"
