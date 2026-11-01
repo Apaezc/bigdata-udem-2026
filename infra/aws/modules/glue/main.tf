@@ -5,6 +5,13 @@ locals {
   lake_arn   = "arn:aws:s3:::${var.lake_bucket}"
   script_s3  = "s3://${var.lake_bucket}/code/run_glue.py"
 
+  # Prefijos de datos del pipeline: bronze compartido, muestra para local, dev/ y prod/ por entorno;
+  # silver/ y gold/ quedan para las sesiones de SQL.
+  datos     = ["bronze", "muestra", "dev", "prod", "silver", "gold"]
+  lectura   = concat(["code", "tmp"], local.datos)
+  escritura = concat(local.datos, ["tmp", "logs"])
+  listables = concat(local.datos, ["code", "tmp", "logs"])
+
   # Perfiles del contrato: workers G.1X y timeout en minutos.
   profiles = {
     small  = { workers = 2, timeout = 10 }
@@ -41,13 +48,13 @@ data "aws_iam_policy_document" "glue_exec" {
   statement {
     sid       = "LeerCodigoYZonas"
     actions   = ["s3:GetObject"]
-    resources = [for p in ["code", "bronze", "silver", "gold", "tmp"] : "${local.lake_arn}/${p}/*"]
+    resources = [for p in local.lectura : "${local.lake_arn}/${p}/*"]
   }
 
   statement {
     sid       = "EscribirZonasTmpYLogs"
     actions   = ["s3:PutObject", "s3:DeleteObject", "s3:AbortMultipartUpload"]
-    resources = [for p in ["bronze", "silver", "gold", "tmp", "logs"] : "${local.lake_arn}/${p}/*"]
+    resources = [for p in local.escritura : "${local.lake_arn}/${p}/*"]
   }
 
   statement {
@@ -58,7 +65,7 @@ data "aws_iam_policy_document" "glue_exec" {
     condition {
       test     = "StringLike"
       variable = "s3:prefix"
-      values   = ["bronze", "bronze/*", "silver", "silver/*", "gold", "gold/*", "code", "code/*", "tmp", "tmp/*", "logs", "logs/*"]
+      values   = flatten([for p in local.listables : [p, "${p}/*"]])
     }
   }
 

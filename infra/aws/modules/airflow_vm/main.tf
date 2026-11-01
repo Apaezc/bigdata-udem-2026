@@ -158,7 +158,7 @@ resource "aws_iam_instance_profile" "airflow" {
 # Red: SG sin ingress. La UI se usa solo por túnel SSM (make airflow-tunel) desde el Code Editor.
 # ---------------------------------------------------------------------------
 resource "aws_security_group" "airflow" {
-  name        = local.sg_name
+  name = local.sg_name
   # La descripción no se puede cambiar sin recrear el SG: se conserva la original.
   description = "Airflow VM: UI en 8080 solo desde allowed_cidrs"
   vpc_id      = local.vpc_id
