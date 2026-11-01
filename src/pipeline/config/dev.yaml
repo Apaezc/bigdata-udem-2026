@@ -1,0 +1,14 @@
+# Entorno dev: Glue `small` sobre 1 mes completo. {lake_bucket} = variable LAKE_BUCKET.
+# bronze es compartido (datos crudos, una sola copia); silver y gold van bajo dev/.
+entorno: dev
+rutas:
+  bronze: s3://{lake_bucket}/bronze
+  silver: s3://{lake_bucket}/dev/silver
+  gold: s3://{lake_bucket}/dev/gold
+muestra:
+  max_rows: null
+  # --step muestra: filas aproximadas de la muestra y dónde se escribe.
+  objetivo_filas: 100000
+  destino: s3://{lake_bucket}/muestra
+meses:
+  - "2024-01"

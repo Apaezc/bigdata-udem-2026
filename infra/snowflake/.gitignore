@@ -1,0 +1,3 @@
+# Local, no versionar: backend con bucket real, tfvars y llaves.
+backend.hcl
+*.p8

@@ -1,0 +1,15 @@
+# Copiar a terraform.tfvars (no versionar) y completar.
+# La llave privada NO va aquí: el Makefile la lee de KEY (por defecto ~/.snowflake/keys/terraform_svc_rsa_key.p8).
+
+organization_name = "<ORGANIZACION_SNOWFLAKE>"
+account_name      = "<CUENTA_SNOWFLAKE>"
+user              = "TERRAFORM_SVC"
+
+# Output snowflake_s3_role_arn de infra/aws (fase 1).
+s3_role_arn = "arn:aws:iam::<ACCOUNT_ID>:role/bigdata-snowflake-s3"
+
+# Output lake_bucket de infra/aws (fase 1).
+lake_bucket = "bigdata-lake-<ACCOUNT_ID>-us-east-2"
+
+# Usuarios de Snowflake que reciben BIGDATA_DEV. Ejemplo: ["NOMBRE_ESTUDIANTE"]
+dev_users = []

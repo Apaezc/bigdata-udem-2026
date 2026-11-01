@@ -1,0 +1,695 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: >
+  Bootstrap del curso Big Data UdeM. Crea el SageMaker Domain con Code Editor,
+  el rol de ejecucion, el OIDC para GitHub Actions, el bucket de state de Terraform,
+  un budget mensual con alertas y una Lambda que limpia el dominio al borrar el stack.
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: Repositorio GitHub (tu fork)
+        Parameters:
+          - GitHubOwner
+          - GitHubOwnerId
+          - GitHubRepo
+          - GitHubRepoId
+      - Label:
+          default: Red (VPC por defecto de la cuenta)
+        Parameters:
+          - VpcId
+          - SubnetIds
+      - Label:
+          default: Nombres y costos
+        Parameters:
+          - Prefix
+          - AlertEmail
+          - BudgetUsd
+      - Label:
+          default: Avanzado
+        Parameters:
+          - ExistingGitHubOidcProviderArn
+
+Parameters:
+  GitHubOwner:
+    Type: String
+    Description: Usuario u organizacion dueña del fork (ejemplo - tu usuario de GitHub).
+    AllowedPattern: '^[A-Za-z0-9][A-Za-z0-9-]{0,38}$'
+    ConstraintDescription: Usuario de GitHub valido.
+  GitHubOwnerId:
+    Type: String
+    Description: ID numerico del usuario u organizacion (ver docs/bootstrap.md).
+    AllowedPattern: '^[0-9]+$'
+    ConstraintDescription: Debe ser numerico.
+  GitHubRepo:
+    Type: String
+    Description: Nombre del repositorio (tu fork).
+    AllowedPattern: '^[A-Za-z0-9._-]{1,100}$'
+    ConstraintDescription: Nombre de repositorio valido.
+  GitHubRepoId:
+    Type: String
+    Description: ID numerico del repositorio (ver docs/bootstrap.md).
+    AllowedPattern: '^[0-9]+$'
+    ConstraintDescription: Debe ser numerico.
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+    Description: VPC por defecto de la cuenta en us-east-2.
+  SubnetIds:
+    Type: List<AWS::EC2::Subnet::Id>
+    Description: Subnets de la VPC por defecto (elige al menos dos zonas de disponibilidad).
+  Prefix:
+    Type: String
+    Default: bigdata
+    Description: Prefijo de todos los recursos del curso. Debe coincidir con la variable prefix de Terraform.
+    AllowedPattern: '^[a-z][a-z0-9]{2,15}$'
+    ConstraintDescription: 3 a 16 caracteres, minusculas y numeros, empieza con letra.
+  AlertEmail:
+    Type: String
+    Description: Correo para las alertas de presupuesto.
+    AllowedPattern: '^[^@\s]+@[^@\s]+\.[^@\s]+$'
+    ConstraintDescription: Correo electronico valido.
+  BudgetUsd:
+    Type: Number
+    Default: 50
+    MinValue: 1
+    Description: Presupuesto mensual en USD para las alertas 50, 80 y 100 %.
+  ExistingGitHubOidcProviderArn:
+    Type: String
+    Default: ""
+    Description: >
+      Opcional. ARN del proveedor OIDC de GitHub si la cuenta ya lo tiene
+      (arn:aws:iam::<cuenta>:oidc-provider/token.actions.githubusercontent.com).
+      Vacio = el stack crea el proveedor.
+    AllowedPattern: '^(arn:aws:iam::[0-9]{12}:oidc-provider/token\.actions\.githubusercontent\.com)?$'
+    ConstraintDescription: Vacio o el ARN del proveedor token.actions.githubusercontent.com.
+
+Conditions:
+  CreateGitHubOidcProvider: !Equals [!Ref ExistingGitHubOidcProviderArn, ""]
+
+Resources:
+  # ---------------------------------------------------------------------------
+  # Permissions boundary de TODOS los roles que crea Terraform (${Prefix}-*).
+  # Es el techo de permisos: aunque un rol reciba mas permisos, nunca supera esto.
+  # Terraform solo puede crear roles ${Prefix}-* que lleven este boundary (ver
+  # TerraformAccessPolicy), asi no puede crear roles con mas poder que el techo.
+  # ---------------------------------------------------------------------------
+  PermissionsBoundary:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: !Sub "${Prefix}-boundary"
+      Description: Techo de permisos de los roles creados por Terraform del curso.
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: S3SoloBucketsDelCurso
+            Effect: Allow
+            Action: s3:*
+            Resource:
+              - !Sub "arn:aws:s3:::${Prefix}-*"
+              - !Sub "arn:aws:s3:::${Prefix}-*/*"
+          - Sid: GlueJobsYLogsDeJobs
+            Effect: Allow
+            Action:
+              - glue:*
+              - logs:CreateLogGroup
+              - logs:CreateLogStream
+              - logs:PutLogEvents
+              - cloudwatch:PutMetricData
+            Resource: "*"
+          - Sid: LeerLogsDeGlue
+            Effect: Allow
+            Action:
+              - logs:GetLogEvents
+              - logs:FilterLogEvents
+              - logs:DescribeLogStreams
+            Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws-glue/jobs/*"
+          - Sid: SecretosDelCurso
+            Effect: Allow
+            Action: secretsmanager:GetSecretValue
+            Resource: !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${Prefix}/*"
+          - Sid: SsmManagedInstanceCore
+            Effect: Allow
+            Action:
+              - ssm:*
+              - ssmmessages:*
+              - ec2messages:*
+            Resource: "*"
+          - Sid: ApagadoProgramadoDeInstancias
+            Effect: Allow
+            Action: ec2:StopInstances
+            Resource: !Sub "arn:aws:ec2:${AWS::Region}:${AWS::AccountId}:instance/*"
+          - Sid: AccionDeBudgetsDetenerVm
+            Effect: Allow
+            Action:
+              - ec2:DescribeInstances
+              - ec2:DescribeInstanceStatus
+            Resource: "*"
+          - Sid: AccionDeBudgetsPasarSuRolASsm
+            Effect: Allow
+            Action: iam:PassRole
+            Resource: !Sub "arn:aws:iam::${AWS::AccountId}:role/${Prefix}-budgets-action"
+            Condition:
+              StringEquals:
+                "iam:PassedToService": ssm.amazonaws.com
+          - Sid: AccionDeBudgetsSoloPoliticaDeBloqueo
+            Effect: Allow
+            Action:
+              - iam:AttachRolePolicy
+              - iam:DetachRolePolicy
+            Resource: !Sub "arn:aws:iam::${AWS::AccountId}:role/${Prefix}-*"
+            Condition:
+              ArnEquals:
+                "iam:PolicyARN": !Sub "arn:aws:iam::${AWS::AccountId}:policy/${Prefix}-bloqueo-presupuesto"
+
+  # ---------------------------------------------------------------------------
+  # Permisos compartidos por el rol de SageMaker y por el rol de GitHub Actions.
+  # PowerUserAccess cubre S3, Glue, Athena, Secrets Manager, SSM, EC2, Budgets, etc.
+  # Lo que PowerUserAccess NO permite (IAM) se concede aca, acotado a ${Prefix}-*:
+  #   - Roles: solo con el boundary ${Prefix}-boundary (CreateRole, PutRolePolicy,
+  #     AttachRolePolicy, PutRolePermissionsBoundary exigen iam:PermissionsBoundary).
+  #   - Deny explicito: adjuntar AdministratorAccess/IAMFullAccess, quitar el boundary,
+  #     alterar las politicas ${Prefix}-boundary y ${Prefix}-terraform-access, y
+  #     modificar los roles creados por este stack (github-actions, sagemaker-exec).
+  # Los statements de S3/Glue/Athena/SSM/Secrets repiten lo que PowerUserAccess ya
+  # concede: documentan el alcance previsto y son el limite a conservar si mas
+  # adelante se reemplaza PowerUserAccess por una lista explicita de acciones.
+  # ---------------------------------------------------------------------------
+  TerraformAccessPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: !Sub "${Prefix}-terraform-access"
+      Description: Permisos para ejecutar Terraform del curso sobre recursos con prefijo.
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: IamRolesCreacionYPoliticasConBoundary
+            Effect: Allow
+            Action:
+              - iam:CreateRole
+              - iam:PutRolePolicy
+              - iam:AttachRolePolicy
+              - iam:PutRolePermissionsBoundary
+            Resource: !Sub "arn:aws:iam::${AWS::AccountId}:role/${Prefix}-*"
+            Condition:
+              StringEquals:
+                "iam:PermissionsBoundary": !Ref PermissionsBoundary
+          - Sid: IamRolesLecturaYBorrado
+            Effect: Allow
+            Action:
+              - iam:GetRole
+              - iam:GetRolePolicy
+              - iam:ListRolePolicies
+              - iam:ListAttachedRolePolicies
+              - iam:ListInstanceProfilesForRole
+              - iam:ListRoleTags
+              - iam:UpdateRole
+              - iam:UpdateRoleDescription
+              - iam:UpdateAssumeRolePolicy
+              - iam:DeleteRole
+              - iam:DeleteRolePolicy
+              - iam:DetachRolePolicy
+              - iam:TagRole
+              - iam:UntagRole
+            Resource: !Sub "arn:aws:iam::${AWS::AccountId}:role/${Prefix}-*"
+          - Sid: IamPassRoleSoloAServiciosDelCurso
+            Effect: Allow
+            Action: iam:PassRole
+            Resource: !Sub "arn:aws:iam::${AWS::AccountId}:role/${Prefix}-*"
+            Condition:
+              StringEquals:
+                "iam:PassedToService":
+                  - glue.amazonaws.com
+                  - ec2.amazonaws.com
+                  - scheduler.amazonaws.com
+                  - budgets.amazonaws.com
+          - Sid: IamPoliticasDelCurso
+            Effect: Allow
+            Action:
+              - iam:CreatePolicy
+              - iam:DeletePolicy
+              - iam:GetPolicy
+              - iam:GetPolicyVersion
+              - iam:ListPolicyVersions
+              - iam:CreatePolicyVersion
+              - iam:DeletePolicyVersion
+              - iam:SetDefaultPolicyVersion
+              - iam:TagPolicy
+              - iam:UntagPolicy
+              - iam:ListPolicyTags
+            Resource: !Sub "arn:aws:iam::${AWS::AccountId}:policy/${Prefix}-*"
+          - Sid: IamInstanceProfilesDelCurso
+            Effect: Allow
+            Action:
+              - iam:CreateInstanceProfile
+              - iam:DeleteInstanceProfile
+              - iam:GetInstanceProfile
+              - iam:AddRoleToInstanceProfile
+              - iam:RemoveRoleFromInstanceProfile
+              - iam:TagInstanceProfile
+              - iam:UntagInstanceProfile
+              - iam:ListInstanceProfileTags
+            Resource: !Sub "arn:aws:iam::${AWS::AccountId}:instance-profile/${Prefix}-*"
+          - Sid: DenegarPermisosAdministrativos
+            Effect: Deny
+            Action:
+              - iam:AttachRolePolicy
+              - iam:PutRolePolicy
+            Resource: "*"
+            Condition:
+              ArnEquals:
+                "iam:PolicyARN":
+                  - arn:aws:iam::aws:policy/AdministratorAccess
+                  - arn:aws:iam::aws:policy/IAMFullAccess
+                  - arn:aws:iam::aws:policy/PowerUserAccess
+          - Sid: DenegarQuitarOCambiarElBoundary
+            Effect: Deny
+            Action: iam:DeleteRolePermissionsBoundary
+            Resource: "*"
+          - Sid: DenegarAlterarPoliticasDeGobierno
+            Effect: Deny
+            Action:
+              - iam:CreatePolicyVersion
+              - iam:DeletePolicy
+              - iam:DeletePolicyVersion
+              - iam:SetDefaultPolicyVersion
+            Resource:
+              - !Ref PermissionsBoundary
+              - !Sub "arn:aws:iam::${AWS::AccountId}:policy/${Prefix}-terraform-access"
+          - Sid: DenegarModificarRolesDelBootstrap
+            Effect: Deny
+            Action:
+              - iam:AttachRolePolicy
+              - iam:DeleteRole
+              - iam:DeleteRolePolicy
+              - iam:DetachRolePolicy
+              - iam:PutRolePermissionsBoundary
+              - iam:PutRolePolicy
+              - iam:UpdateAssumeRolePolicy
+              - iam:UpdateRole
+            Resource:
+              - !Sub "arn:aws:iam::${AWS::AccountId}:role/${Prefix}-github-actions"
+              - !Sub "arn:aws:iam::${AWS::AccountId}:role/${Prefix}-sagemaker-exec"
+          - Sid: S3BucketsDelCurso
+            Effect: Allow
+            Action: s3:*
+            Resource:
+              - !Sub "arn:aws:s3:::${Prefix}-*"
+              - !Sub "arn:aws:s3:::${Prefix}-*/*"
+          - Sid: GlueJobsYCatalogo
+            Effect: Allow
+            Action: glue:*
+            Resource:
+              - !Sub "arn:aws:glue:${AWS::Region}:${AWS::AccountId}:job/${Prefix}-*"
+              - !Sub "arn:aws:glue:${AWS::Region}:${AWS::AccountId}:catalog"
+              - !Sub "arn:aws:glue:${AWS::Region}:${AWS::AccountId}:database/${Prefix}_lake"
+              - !Sub "arn:aws:glue:${AWS::Region}:${AWS::AccountId}:table/${Prefix}_lake/*"
+          - Sid: AthenaWorkgroupsDelCurso
+            Effect: Allow
+            Action: athena:*
+            Resource:
+              - !Sub "arn:aws:athena:${AWS::Region}:${AWS::AccountId}:workgroup/${Prefix}-*"
+              - !Sub "arn:aws:athena:${AWS::Region}:${AWS::AccountId}:datacatalog/AwsDataCatalog"
+          - Sid: SsmSesionSoloInstanciasConTagDelCurso
+            Effect: Allow
+            Action: ssm:StartSession
+            Resource: !Sub "arn:aws:ec2:${AWS::Region}:${AWS::AccountId}:instance/*"
+            Condition:
+              StringEquals:
+                "ssm:resourceTag/Project": !Ref Prefix
+          - Sid: SsmSesionDocumentos
+            Effect: Allow
+            Action: ssm:StartSession
+            Resource:
+              - !Sub "arn:aws:ssm:${AWS::Region}::document/AWS-StartPortForwardingSession"
+              - !Sub "arn:aws:ssm:${AWS::Region}::document/SSM-SessionManagerRunShell"
+          - Sid: SecretsDelCurso
+            Effect: Allow
+            Action: secretsmanager:*
+            Resource: !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${Prefix}/*"
+
+  # ---------------------------------------------------------------------------
+  # Rol de ejecucion: lo asume SageMaker (Domain, UserProfile y Space).
+  # Desde el Code Editor el alumno ejecuta Terraform con estas credenciales.
+  # ---------------------------------------------------------------------------
+  SageMakerExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "${Prefix}-sagemaker-exec"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: sagemaker.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/PowerUserAccess
+        - !Ref TerraformAccessPolicy
+
+  # ---------------------------------------------------------------------------
+  # OIDC GitHub Actions -> AWS. Si la cuenta ya tiene este provider, pasar su ARN en
+  # ExistingGitHubOidcProviderArn y el stack no lo crea (ver docs/bootstrap.md).
+  # ---------------------------------------------------------------------------
+  GitHubOIDCProvider:
+    Type: AWS::IAM::OIDCProvider
+    Condition: CreateGitHubOidcProvider
+    Properties:
+      Url: https://token.actions.githubusercontent.com
+      ClientIdList:
+        - sts.amazonaws.com
+
+  GitHubActionsRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "${Prefix}-github-actions"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Federated: !If [CreateGitHubOidcProvider, !Ref GitHubOIDCProvider, !Ref ExistingGitHubOidcProviderArn]
+            Action: sts:AssumeRoleWithWebIdentity
+            Condition:
+              StringEquals:
+                token.actions.githubusercontent.com:aud: sts.amazonaws.com
+              # Acepta el sub por nombre y el sub numerico (repos con IDs en el claim).
+              StringLike:
+                token.actions.githubusercontent.com:sub:
+                  - !Sub "repo:${GitHubOwner}/${GitHubRepo}:*"
+                  - !Sub "repo:${GitHubOwner}@${GitHubOwnerId}/${GitHubRepo}@${GitHubRepoId}:*"
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/PowerUserAccess
+        - !Ref TerraformAccessPolicy
+
+  # ---------------------------------------------------------------------------
+  # Estado de Terraform. DeletionPolicy Retain: sobrevive al borrado del stack.
+  # ---------------------------------------------------------------------------
+  TfStateBucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      BucketName: !Sub "${Prefix}-tfstate-${AWS::AccountId}-${AWS::Region}"
+      VersioningConfiguration:
+        Status: Enabled
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+
+  # ---------------------------------------------------------------------------
+  # Red de seguridad del total de la cuenta: alerta solo al 100 % del monto real.
+  # Las alertas graduales (40/60/80 %) y el bloqueo los gestiona Terraform (${Prefix}-mensual).
+  # ---------------------------------------------------------------------------
+  MonthlyBudget:
+    Type: AWS::Budgets::Budget
+    Properties:
+      Budget:
+        BudgetName: !Sub "${Prefix}-total"
+        BudgetType: COST
+        TimeUnit: MONTHLY
+        BudgetLimit:
+          Amount: !Ref BudgetUsd
+          Unit: USD
+        # Sin descontar créditos del free plan (si no, el gasto neto es ~0 y no alerta).
+        CostTypes:
+          IncludeCredit: false
+      NotificationsWithSubscribers:
+        - Notification:
+            NotificationType: ACTUAL
+            ComparisonOperator: GREATER_THAN
+            Threshold: 100
+            ThresholdType: PERCENTAGE
+          Subscribers:
+            - SubscriptionType: EMAIL
+              Address: !Ref AlertEmail
+
+  # ---------------------------------------------------------------------------
+  # SageMaker Domain, usuario y Space de Code Editor.
+  # ---------------------------------------------------------------------------
+  # Herramientas del curso que la imagen de Code Editor no trae (Java 17, Terraform, snow, zip, nginx, session-manager-plugin).
+  # Corre en cada arranque del space; lo que va al home persiste, asi que solo descarga la primera vez.
+  CodeEditorToolsLifecycleConfig:
+    Type: AWS::SageMaker::StudioLifecycleConfig
+    Properties:
+      # El contenido de un LCC es inmutable: si cambia el script, sube el sufijo del nombre.
+      StudioLifecycleConfigName: !Sub "${Prefix}-code-editor-tools-v4"
+      StudioLifecycleConfigAppType: CodeEditor
+      StudioLifecycleConfigContent:
+        Fn::Base64: |
+          #!/bin/bash
+          # Nunca debe impedir que arranque el Code Editor: cada paso registra su error y sigue.
+          set -uo pipefail
+          set -x
+          echo "== $(date -u +%FT%TZ) herramientas del curso (usuario: $(id -un))"
+          HOME_DIR=/home/sagemaker-user
+          TF_VERSION=1.17.0
+          OPT="$HOME_DIR/.local/opt"
+          BIN="$HOME_DIR/.local/bin"
+          SUDO=""; [[ "$(id -u)" != 0 ]] && SUDO="sudo"
+          # Como root, python3 de la imagen (conda) no esta en el PATH: se usa la ruta absoluta.
+          PY="$(command -v python3 || echo /opt/conda/bin/python3)"
+          mkdir -p "$OPT" "$BIN"
+          FALLOS=""
+
+          # zip/unzip y nginx (proxy del Airflow de dev): paquetes del sistema, se pierden al
+          # reiniciar el space, por eso se instalan en cada arranque.
+          if ! command -v zip >/dev/null || ! command -v unzip >/dev/null || ! command -v nginx >/dev/null; then
+            { $SUDO apt-get update -qq && $SUDO apt-get install -y -qq zip unzip nginx; } || FALLOS+=" zip/nginx"
+          fi
+
+          if [[ ! -x "$OPT/java17/bin/java" ]]; then
+            { curl -fsSL -o /tmp/corretto17.tar.gz \
+                https://corretto.aws/downloads/latest/amazon-corretto-17-x64-linux-jdk.tar.gz \
+              && tar -xzf /tmp/corretto17.tar.gz -C "$OPT" \
+              && ln -sfn "$(ls -d "$OPT"/amazon-corretto-17* | head -1)" "$OPT/java17"; } || FALLOS+=" java"
+            rm -f /tmp/corretto17.tar.gz
+          fi
+
+          if [[ "$("$BIN/terraform" version 2>/dev/null | head -1)" != "Terraform v$TF_VERSION" ]]; then
+            { curl -fsSL -o /tmp/tf.zip \
+                "https://releases.hashicorp.com/terraform/${TF_VERSION}/terraform_${TF_VERSION}_linux_amd64.zip" \
+              && "$PY" -c "import zipfile,sys; zipfile.ZipFile(sys.argv[1]).extract('terraform', sys.argv[2])" /tmp/tf.zip "$BIN" \
+              && chmod +x "$BIN/terraform"; } || FALLOS+=" terraform"
+            rm -f /tmp/tf.zip
+          fi
+
+          if [[ ! -x "$BIN/snow" ]]; then
+            if [[ "$(id -un)" == sagemaker-user ]]; then
+              "$PY" -m pip install --user --quiet snowflake-cli || FALLOS+=" snow"
+            else
+              sudo -u sagemaker-user -H "$PY" -m pip install --user --quiet snowflake-cli || FALLOS+=" snow"
+            fi
+          fi
+
+          # session-manager-plugin (tunel SSM a Airflow): se extrae el .deb en el home, sin instalarlo.
+          if [[ ! -x "$BIN/session-manager-plugin" ]]; then
+            { curl -fsSL -o /tmp/ssm.deb \
+                https://s3.amazonaws.com/session-manager-downloads/plugin/latest/ubuntu_64bit/session-manager-plugin.deb \
+              && dpkg-deb -x /tmp/ssm.deb "$OPT/ssm" \
+              && ln -sfn "$OPT/ssm/usr/local/sessionmanagerplugin/bin/session-manager-plugin" "$BIN/session-manager-plugin"; } \
+              || FALLOS+=" session-manager-plugin"
+            rm -f /tmp/ssm.deb
+          fi
+
+          PERFIL="$HOME_DIR/.bashrc"
+          if ! grep -q "herramientas del curso" "$PERFIL" 2>/dev/null; then
+            printf '%s\n' '# herramientas del curso (Lifecycle Config)' \
+              'export JAVA_HOME=/home/sagemaker-user/.local/opt/java17' \
+              'export PATH=/home/sagemaker-user/.local/bin:$JAVA_HOME/bin:$PATH' >> "$PERFIL"
+          fi
+          [[ "$(id -u)" == 0 ]] && chown -R sagemaker-user:users "$HOME_DIR/.local" "$PERFIL"
+          echo "== fin; fallos:${FALLOS:- ninguno}" | tee -a "$HOME_DIR/.herramientas-curso.log"
+          exit 0
+
+  SageMakerDomain:
+    Type: AWS::SageMaker::Domain
+    Properties:
+      DomainName: !Sub "${Prefix}-studio"
+      AuthMode: IAM
+      AppNetworkAccessType: PublicInternetOnly
+      VpcId: !Ref VpcId
+      SubnetIds: !Ref SubnetIds
+      DefaultUserSettings:
+        ExecutionRole: !GetAtt SageMakerExecutionRole.Arn
+        CodeEditorAppSettings:
+          LifecycleConfigArns:
+            - !GetAtt CodeEditorToolsLifecycleConfig.StudioLifecycleConfigArn
+          DefaultResourceSpec:
+            LifecycleConfigArn: !GetAtt CodeEditorToolsLifecycleConfig.StudioLifecycleConfigArn
+          AppLifecycleManagement:
+            IdleSettings:
+              LifecycleManagement: ENABLED
+              IdleTimeoutInMinutes: 60
+              MinIdleTimeoutInMinutes: 60
+              MaxIdleTimeoutInMinutes: 60
+      DefaultSpaceSettings:
+        ExecutionRole: !GetAtt SageMakerExecutionRole.Arn
+
+  StudentUserProfile:
+    Type: AWS::SageMaker::UserProfile
+    Properties:
+      DomainId: !GetAtt SageMakerDomain.DomainId
+      UserProfileName: estudiante
+      UserSettings:
+        ExecutionRole: !GetAtt SageMakerExecutionRole.Arn
+
+  CodeEditorSpace:
+    Type: AWS::SageMaker::Space
+    DependsOn: StudentUserProfile
+    Properties:
+      DomainId: !GetAtt SageMakerDomain.DomainId
+      SpaceName: dev
+      OwnershipSettings:
+        OwnerUserProfileName: estudiante
+      SpaceSharingSettings:
+        SharingType: Private
+      SpaceSettings:
+        AppType: CodeEditor
+        CodeEditorAppSettings:
+          DefaultResourceSpec:
+            InstanceType: ml.t3.large
+            LifecycleConfigArn: !GetAtt CodeEditorToolsLifecycleConfig.StudioLifecycleConfigArn
+        SpaceStorageSettings:
+          EbsStorageSettings:
+            EbsVolumeSizeInGb: 20
+
+  # ---------------------------------------------------------------------------
+  # Limpieza del dominio al borrar el stack. Esta custom resource depende de
+  # Space y UserProfile, asi CloudFormation la borra ANTES que ellos y que el Domain.
+  # ---------------------------------------------------------------------------
+  CleanupRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: sagemaker-domain-cleanup
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - sagemaker:DescribeDomain
+                  - sagemaker:ListApps
+                  - sagemaker:DeleteApp
+                  - sagemaker:ListSpaces
+                  - sagemaker:DeleteSpace
+                  - sagemaker:ListUserProfiles
+                  - sagemaker:DeleteUserProfile
+                Resource: "*"
+
+  CleanupFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Runtime: python3.12
+      Handler: index.handler
+      Role: !GetAtt CleanupRole.Arn
+      Timeout: 900
+      MemorySize: 256
+      Code:
+        ZipFile: |
+          import time
+          import boto3
+          import cfnresponse
+          from botocore.exceptions import ClientError
+
+          sm = boto3.client("sagemaker")
+          END = [0]
+          DONE = ("Deleted", "Failed")
+          SKIP = ("Deleting", "Deleted", "Failed")
+
+
+          def pages(fn, key, **kw):
+              tok = None
+              while True:
+                  r = fn(**kw, **({"NextToken": tok} if tok else {}))
+                  yield from r.get(key, [])
+                  tok = r.get("NextToken")
+                  if not tok:
+                      return
+
+
+          def wait(pending):
+              while pending():
+                  if time.time() > END[0]:
+                      raise RuntimeError("Timeout esperando el borrado de recursos de SageMaker")
+                  time.sleep(15)
+
+
+          def clean(d):
+              try:
+                  sm.describe_domain(DomainId=d)
+              except ClientError as e:
+                  if e.response["Error"]["Code"] in ("ResourceNotFound", "ValidationException"):
+                      return
+                  raise
+              apps = lambda: list(pages(sm.list_apps, "Apps", DomainIdEquals=d))
+              for a in apps():
+                  if a.get("Status") not in SKIP:
+                      who = {"SpaceName": a["SpaceName"]} if a.get("SpaceName") else {"UserProfileName": a["UserProfileName"]}
+                      sm.delete_app(DomainId=d, AppType=a["AppType"], AppName=a["AppName"], **who)
+              wait(lambda: any(a.get("Status") not in DONE for a in apps()))
+              spaces = lambda: list(pages(sm.list_spaces, "Spaces", DomainIdEquals=d))
+              for s in spaces():
+                  if s.get("Status") not in SKIP:
+                      sm.delete_space(DomainId=d, SpaceName=s["SpaceName"])
+              wait(lambda: any(s.get("Status") not in DONE for s in spaces()))
+              profiles = lambda: list(pages(sm.list_user_profiles, "UserProfiles", DomainIdEquals=d))
+              for u in profiles():
+                  if u.get("Status") not in SKIP:
+                      sm.delete_user_profile(DomainId=d, UserProfileName=u["UserProfileName"])
+              wait(lambda: any(u.get("Status") not in DONE for u in profiles()))
+
+
+          def handler(event, context):
+              physical = event.get("PhysicalResourceId", "domain-cleanup")
+              try:
+                  END[0] = time.time() + 800
+                  if event["RequestType"] == "Delete":
+                      clean(event["ResourceProperties"]["DomainId"])
+                  cfnresponse.send(event, context, cfnresponse.SUCCESS, {}, physical)
+              except Exception as e:
+                  print(str(e))
+                  cfnresponse.send(event, context, cfnresponse.FAILED, {}, physical, reason=str(e)[:500])
+
+  DomainCleanup:
+    Type: Custom::SageMakerDomainCleanup
+    DependsOn:
+      - CodeEditorSpace
+      - StudentUserProfile
+    Properties:
+      ServiceToken: !GetAtt CleanupFunction.Arn
+      DomainId: !GetAtt SageMakerDomain.DomainId
+
+Outputs:
+  GitHubActionsRoleArn:
+    Description: Valor del secret AWS_ROLE_ARN del fork.
+    Value: !GetAtt GitHubActionsRole.Arn
+  TfStateBucket:
+    Description: Valor del secret TF_STATE_BUCKET y del backend S3 de Terraform.
+    Value: !Ref TfStateBucket
+  PermissionsBoundaryArn:
+    Description: Permissions boundary que Terraform asigna a todos los roles (variable permissions_boundary_arn).
+    Value: !Ref PermissionsBoundary
+  SageMakerExecutionRoleArn:
+    Description: Rol de ejecucion de SageMaker (referencia).
+    Value: !GetAtt SageMakerExecutionRole.Arn
+  DomainId:
+    Description: ID del SageMaker Domain.
+    Value: !GetAtt SageMakerDomain.DomainId
+  StudioConsoleUrl:
+    Description: URL del SageMaker Domain (Studio). Abrir y elegir el Space dev.
+    Value: !GetAtt SageMakerDomain.Url

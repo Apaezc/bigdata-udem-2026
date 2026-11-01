@@ -42,3 +42,42 @@ terraform.rc
 # Optional: ignore plan files saved before destroying Terraform configuration
 # Uncomment the line below if you want to ignore planout files.
 # planout
+
+# --- Añadido para el template Fase 3 ---
+
+# Configuración local generada por `make setup` (contiene PREFIX y AWS_REGION)
+.env
+
+# Entorno virtual local y caché de Python/herramientas
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Artefactos de empaquetado (pipeline.zip)
+build/
+*.zip
+
+# Planes de Terraform guardados
+*.tfplan
+tfplan
+
+# Credenciales y claves privadas (Snowflake JWT, etc.)
+*.p8
+*.pem
+*.key
+keys/
+
+# Airflow local: logs, variables de entorno y base de datos
+airflow/logs/
+airflow/.env
+airflow/**/__pycache__/
+
+# Datos locales generados por el pipeline
+data/local/
+local_warehouse/
+
+# Backend local de Terraform (bucket de estado de la cuenta del alumno)
+infra/*/backend.hcl

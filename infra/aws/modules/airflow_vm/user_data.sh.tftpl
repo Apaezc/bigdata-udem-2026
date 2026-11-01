@@ -1,0 +1,144 @@
+#!/bin/bash
+# Bootstrap de la VM Airflow (Amazon Linux 2023). Corre como root al crear la instancia.
+# Sin "set -x": el log no debe imprimir la contraseña del secreto.
+set -euo pipefail
+exec > >(tee -a /var/log/airflow-user-data.log) 2>&1
+
+export AWS_DEFAULT_REGION="${region}"
+LAKE="${lake_bucket}"
+SECRET_NAME="${secret_name}"
+AIRFLOW_HOME=/opt/airflow
+
+# 1. Swap de 2 GB como colchón de memoria.
+if ! swapon --show | grep -q /swapfile; then
+  fallocate -l 2G /swapfile
+  chmod 600 /swapfile
+  mkswap /swapfile
+  swapon /swapfile
+  echo '/swapfile none swap sw 0 0' >> /etc/fstab
+fi
+
+# 2. Docker, compose plugin y cron.
+dnf install -y docker cronie
+if ! dnf install -y docker-compose-plugin; then
+  mkdir -p /usr/local/lib/docker/cli-plugins
+  curl -fsSL "https://github.com/docker/compose/releases/latest/download/docker-compose-linux-$(uname -m)" \
+    -o /usr/local/lib/docker/cli-plugins/docker-compose
+  chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
+fi
+# "docker compose up --build" exige buildx >= 0.17 y Amazon Linux 2023 no lo trae.
+if ! docker buildx version >/dev/null 2>&1 || ! docker buildx version | grep -Eq 'v0\.(1[7-9]|[2-9][0-9])'; then
+  mkdir -p /usr/local/lib/docker/cli-plugins
+  BX_ARCH=$(uname -m | sed 's/x86_64/amd64/; s/aarch64/arm64/')
+  curl -fsSL "https://github.com/docker/buildx/releases/download/v0.19.3/buildx-v0.19.3.linux-$BX_ARCH" \
+    -o /usr/local/lib/docker/cli-plugins/docker-buildx
+  chmod +x /usr/local/lib/docker/cli-plugins/docker-buildx
+fi
+systemctl enable --now docker crond
+
+# 3. Directorios de Airflow y script de refresco. El script descarga, desde el bucket del lake,
+#    docker-compose.yaml (code/airflow/), framework/ (code/airflow/framework/), los DAGs (dags/)
+#    y arma la conexion snowflake_default desde el secreto. Corre ahora y antes de cada arranque
+#    de airflow.service: la VM se apaga y enciende, y asi toma siempre el codigo mas reciente
+#    que dejo "make deploy".
+mkdir -p "$AIRFLOW_HOME/dags" "$AIRFLOW_HOME/logs" "$AIRFLOW_HOME/plugins" \
+         "$AIRFLOW_HOME/framework" "$AIRFLOW_HOME/secrets"
+
+cat > /usr/local/bin/airflow-refresh.sh <<'REFRESH'
+#!/bin/bash
+# Refresca compose, framework, DAGs y la conexion snowflake_default. No imprime secretos.
+set -uo pipefail
+export AWS_DEFAULT_REGION="${region}"
+LAKE="${lake_bucket}"
+SNOWFLAKE_SECRET="${snowflake_secret}"
+AIRFLOW_HOME=/opt/airflow
+
+aws s3 cp "s3://$LAKE/code/airflow/docker-compose.yaml" "$AIRFLOW_HOME/docker-compose.yaml" \
+  || echo "AVISO: no hay docker-compose.yaml en s3://$LAKE/code/airflow/ (ejecuta make deploy)"
+aws s3 sync "s3://$LAKE/code/airflow/framework/" "$AIRFLOW_HOME/framework/" --delete \
+  || echo "AVISO: no se pudo sincronizar framework/"
+aws s3 sync "s3://$LAKE/dags/" "$AIRFLOW_HOME/dags" --delete \
+  || echo "AVISO: no se pudieron sincronizar los DAGs"
+
+# Conexion snowflake_default: el secreto guarda el JSON de la conexion de Airflow.
+# Si esta vacio o no es valido, queda sin conexion (cargar_gold fallara hasta completarlo).
+SNOW_JSON=$(aws secretsmanager get-secret-value --secret-id "$SNOWFLAKE_SECRET" \
+  --query SecretString --output text 2>/dev/null || true)
+: > "$AIRFLOW_HOME/snowflake.env"
+if [ -n "$SNOW_JSON" ]; then
+  SNOW_JSON="$SNOW_JSON" python3 -c '
+import json, os, sys
+d = json.loads(os.environ["SNOW_JSON"])
+if not isinstance(d, dict) or "conn_type" not in d:
+    sys.exit(1)
+c = json.dumps(d, separators=(",", ":"))
+if "\x27" in c:
+    sys.exit(1)
+print("AIRFLOW_CONN_SNOWFLAKE_DEFAULT=\x27" + c + "\x27")
+' >> "$AIRFLOW_HOME/snowflake.env" \
+    || { : > "$AIRFLOW_HOME/snowflake.env"; echo "AVISO: el secreto de Snowflake no es un JSON de conexion valido"; }
+fi
+unset SNOW_JSON
+chmod 600 "$AIRFLOW_HOME/snowflake.env"
+chown 50000:0 "$AIRFLOW_HOME/snowflake.env"
+chown -R 50000:0 "$AIRFLOW_HOME/framework" "$AIRFLOW_HOME/dags" 2>/dev/null || true
+REFRESH
+chmod 755 /usr/local/bin/airflow-refresh.sh
+/usr/local/bin/airflow-refresh.sh
+
+# 4. Sincronizacion de DAGs y framework cada minuto.
+cat > /etc/cron.d/airflow-dags-sync <<EOF
+AWS_DEFAULT_REGION=${region}
+* * * * * root aws s3 sync s3://$LAKE/dags/ $AIRFLOW_HOME/dags --delete >> /var/log/airflow-dags-sync.log 2>&1
+* * * * * root aws s3 sync s3://$LAKE/code/airflow/framework/ $AIRFLOW_HOME/framework/ --delete >> /var/log/airflow-dags-sync.log 2>&1
+EOF
+chmod 644 /etc/cron.d/airflow-dags-sync
+
+# 5. Contraseña admin de la UI (desde Secrets Manager) y claves del .env (generadas una vez).
+SECRET_JSON=$(aws secretsmanager get-secret-value --secret-id "$SECRET_NAME" \
+  --query SecretString --output text)
+ADMIN_PASS=$(printf '%s' "$SECRET_JSON" | python3 -c 'import json,sys; print(json.load(sys.stdin)["password"])')
+printf '{"admin": "%s"}\n' "$ADMIN_PASS" > "$AIRFLOW_HOME/secrets/simple_auth_manager_passwords.json"
+unset SECRET_JSON ADMIN_PASS
+
+FERNET_KEY=$(python3 -c 'import base64,os; print(base64.urlsafe_b64encode(os.urandom(32)).decode())')
+JWT_SECRET=$(openssl rand -hex 32)
+PG_PASS=$(openssl rand -hex 16)
+cat > "$AIRFLOW_HOME/.env" <<EOF
+AIRFLOW_UID=50000
+AWS_REGION=${region}
+AIRFLOW_PREFIX=${prefix}
+POSTGRES_PASSWORD=$PG_PASS
+AIRFLOW_FERNET_KEY=$FERNET_KEY
+AIRFLOW_JWT_SECRET=$JWT_SECRET
+EOF
+
+# Permisos: contenedores corren como uid 50000.
+chown -R 50000:0 "$AIRFLOW_HOME/secrets" "$AIRFLOW_HOME/logs" "$AIRFLOW_HOME/plugins"
+chmod 600 "$AIRFLOW_HOME/secrets/simple_auth_manager_passwords.json" "$AIRFLOW_HOME/.env"
+chmod 755 "$AIRFLOW_HOME"
+
+# 6. Servicio systemd: refresca codigo/conexion y levanta el compose en cada arranque.
+cat > /etc/systemd/system/airflow.service <<'UNIT'
+[Unit]
+Description=Airflow (docker compose)
+Requires=docker.service
+After=docker.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+WorkingDirectory=/opt/airflow
+ExecStartPre=/usr/local/bin/airflow-refresh.sh
+ExecStart=/usr/bin/docker compose up -d --build --wait
+ExecStop=/usr/bin/docker compose stop
+TimeoutStartSec=0
+
+[Install]
+WantedBy=multi-user.target
+UNIT
+
+systemctl daemon-reload
+systemctl enable --now airflow.service
+echo "user-data airflow: completado"

@@ -1,0 +1,2 @@
+# Contiene el nombre del bucket de state (incluye el ID de cuenta).
+backend.hcl

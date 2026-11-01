@@ -1,0 +1,35 @@
+name: Airflow ON
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: airflow-power
+  cancel-in-progress: false
+
+env:
+  AWS_REGION: us-east-2
+  PREFIX: ${{ vars.PREFIX || 'bigdata' }}
+
+jobs:
+  start:
+    name: Encender instancia de Airflow
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - uses: aws-actions/configure-aws-credentials@v6.3.0
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Iniciar instancia
+        run: bash scripts/airflow-on.sh

@@ -1,0 +1,18 @@
+# Entorno local: Spark en el Code Editor sobre la MUESTRA (pocas filas, todos los meses).
+# La muestra se genera en la nube (--step muestra --env prod) en s3://<lake>/muestra y se copia
+# a ./lake/muestra la primera vez (necesita LAKE_BUCKET). Salida en ./lake (disco del Code Editor).
+entorno: local
+rutas:
+  bronze: ./lake/muestra
+  silver: ./lake/silver
+  gold: ./lake/gold
+muestra:
+  # Prefijo de la muestra dentro del bucket del lake (se descarga a rutas.bronze si falta).
+  sincronizar_desde: muestra
+  # Recorte adicional de filas de viajes (null = toda la muestra). --limite lo reemplaza.
+  max_rows: null
+limites:
+  # Guardia de Spark local (~2 GB de driver): por encima de esto, usar Glue.
+  max_mb_entrada: 500
+meses:
+  - "2024-01"

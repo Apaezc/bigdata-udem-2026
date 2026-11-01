@@ -1,0 +1,9 @@
+# Copiar a backend.hcl (no versionar) y completar.
+# bucket: output TfStateBucket de bootstrap/cloudformation (stack de bootstrap AWS).
+# Uso: terraform init -backend-config=backend.hcl   (o make init)
+
+bucket       = "<TF_STATE_BUCKET>"
+key          = "snowflake/terraform.tfstate"
+region       = "us-east-2"
+encrypt      = true
+use_lockfile = true

@@ -1,0 +1,173 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      encender_prod:
+        description: "true enciende la VM de Airflow de prod al terminar (si existe)"
+        type: boolean
+        default: false
+      apply:
+        description: "true ejecuta terraform apply; false solo plan (la sincronización de código se hace igual)"
+        type: boolean
+        default: true
+      confirmar_destruccion:
+        description: "true permite aplicar un plan que elimina o reemplaza recursos (sin esto, el deploy aborta)"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  AWS_REGION: us-east-2
+  TERRAFORM_VERSION: "1.17.0"
+  PREFIX: ${{ vars.PREFIX || 'bigdata' }}
+
+jobs:
+  deploy:
+    name: Terraform + sincronizar código a S3
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      TF_IN_AUTOMATION: "true"
+      TF_STATE_BUCKET: ${{ secrets.TF_STATE_BUCKET }}
+      # En push a main siempre se aplica; en dispatch depende del input.
+      APPLY: ${{ github.event_name == 'push' || inputs.apply }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+          fetch-depth: 0 # para comparar con el commit anterior (encender prod)
+
+      - name: Comprobar secrets de AWS
+        env:
+          ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
+        run: |
+          set -euo pipefail
+          faltan=""
+          if [ -z "$ROLE_ARN" ]; then faltan="AWS_ROLE_ARN"; fi
+          if [ -z "$TF_STATE_BUCKET" ]; then faltan="$faltan TF_STATE_BUCKET"; fi
+          if [ -n "$faltan" ]; then
+            echo "::error::Faltan los secrets:${faltan}. Créalos en Settings > Secrets and variables > Actions (outputs GitHubActionsRoleArn y TfStateBucket del bootstrap)."
+            exit 1
+          fi
+
+      - uses: hashicorp/setup-terraform@v4
+        with:
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
+          terraform_wrapper: false
+
+      - uses: aws-actions/configure-aws-credentials@v6.3.0
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Resolver bucket del lake
+        run: |
+          set -euo pipefail
+          ACCOUNT_ID="$(aws sts get-caller-identity --query Account --output text)"
+          echo "LAKE_BUCKET=${PREFIX}-lake-${ACCOUNT_ID}-${AWS_REGION}" >> "$GITHUB_ENV"
+          echo "::notice::Modo apply: ${APPLY}"
+
+      - name: Descargar configuración de infra/aws (S3)
+        run: |
+          set -euo pipefail
+          source "$GITHUB_WORKSPACE/scripts/lib.sh"
+          config_pull
+
+      - name: Terraform init (infra/aws)
+        working-directory: infra/aws
+        run: |
+          terraform init -input=false -no-color \
+            -backend-config="bucket=${TF_STATE_BUCKET}" \
+            -backend-config="key=aws/terraform.tfstate" \
+            -backend-config="region=${AWS_REGION}" \
+            -backend-config="use_lockfile=true"
+
+      - name: Terraform plan (infra/aws)
+        working-directory: infra/aws
+        run: terraform plan -input=false -no-color -lock-timeout=5m -var-file=config.auto.tfvars -out="${RUNNER_TEMP}/tfplan"
+
+      - name: Guardia de destrucción (infra/aws)
+        working-directory: infra/aws
+        env:
+          CONFIRMAR_DESTRUCCION: ${{ inputs.confirmar_destruccion }}
+        run: |
+          set -euo pipefail
+          source "$GITHUB_WORKSPACE/scripts/lib.sh"
+          guardia_destruccion "${RUNNER_TEMP}/tfplan"
+
+      - name: Terraform apply (infra/aws)
+        if: env.APPLY == 'true'
+        working-directory: infra/aws
+        run: terraform apply -input=false -no-color -lock-timeout=5m "${RUNNER_TEMP}/tfplan"
+
+      - name: Verificar bucket del lake
+        run: |
+          set -euo pipefail
+          if ! aws s3api head-bucket --bucket "$LAKE_BUCKET" 2>/dev/null; then
+            echo "::error::El bucket ${LAKE_BUCKET} no existe. Ejecuta el deploy con apply=true primero."
+            exit 1
+          fi
+
+      - name: Empaquetar src/pipeline
+        run: |
+          set -euo pipefail
+          mkdir -p build
+          rm -f build/pipeline.zip
+          (cd src && zip -r -q ../build/pipeline.zip pipeline -x '*/__pycache__/*' '*.pyc')
+
+      - name: Subir código, DAGs y framework a S3
+        run: |
+          set -euo pipefail
+          aws s3 cp build/pipeline.zip "s3://${LAKE_BUCKET}/code/pipeline.zip"
+          aws s3 cp src/pipeline/run_glue.py "s3://${LAKE_BUCKET}/code/run_glue.py"
+          aws s3 sync airflow/dags "s3://${LAKE_BUCKET}/dags/" --delete --exclude '*__pycache__*'
+          aws s3 sync airflow/framework "s3://${LAKE_BUCKET}/code/airflow/framework/" --delete --exclude '*__pycache__*'
+          aws s3 cp airflow/docker-compose.yaml "s3://${LAKE_BUCKET}/code/airflow/docker-compose.yaml"
+          echo "Código sincronizado en s3://${LAKE_BUCKET}/"
+
+      # Prod se enciende cuando llega a main un cambio del pipeline o de los DAGs (o a mano con
+      # encender_prod). Se apaga sola en la noche (Scheduler) o con make airflow-off.
+      - name: ¿Hay que encender el Airflow de prod?
+        id: prod
+        env:
+          ANTES: ${{ github.event.before }}
+          ENCENDER: ${{ inputs.encender_prod }}
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "encender=${ENCENDER:-false}" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if [ -z "$ANTES" ] || [ "$ANTES" = "0000000000000000000000000000000000000000" ]; then
+            cambios="$(git ls-files airflow src)"
+          else
+            cambios="$(git diff --name-only "$ANTES" "$GITHUB_SHA" -- airflow src)"
+          fi
+          if [ -n "$cambios" ]; then
+            echo "::notice::Cambios en airflow/ o src/: se enciende el Airflow de prod."
+            echo "encender=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "encender=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Encender Airflow de prod
+        if: steps.prod.outputs.encender == 'true'
+        run: |
+          set -euo pipefail
+          source "$GITHUB_WORKSPACE/scripts/lib.sh"
+          if [ -z "$(find_airflow_instance_id)" ]; then
+            echo "::notice::No hay VM de Airflow (enable_airflow = false): nada que encender."
+            exit 0
+          fi
+          bash "$GITHUB_WORKSPACE/scripts/airflow-on.sh"

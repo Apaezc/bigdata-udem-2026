@@ -1,0 +1,12 @@
+# Opcional. Este archivo NO se usa en 'make deploy' ni en GitHub Actions: no lo versiones.
+# La configuración del alumno (prefix, aws_region, alert_email, enable_glue, enable_airflow,
+# snowflake_iam_user_arn, snowflake_external_id) vive en s3://<TF_STATE_BUCKET>/config/aws.tfvars
+# (ver 'make config', 'make airflow-habilitar' y 'make snowflake'). No la dupliques aquí.
+# Solo ajustes que no estén en esa configuración, por ejemplo:
+budget_usd = 50
+
+# Airflow (el flag enable_airflow se cambia con 'make airflow-habilitar' / 'make airflow-deshabilitar')
+airflow_instance_type = "m7i-flex.large" # fallback: c7i-flex.large
+
+# Permissions boundary de los roles (por defecto arn:aws:iam::<cuenta>:policy/<prefix>-boundary, creada por bootstrap).
+# permissions_boundary_arn = null

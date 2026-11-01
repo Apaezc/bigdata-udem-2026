@@ -1,0 +1,18 @@
+# Perfiles de cómputo para los jobs Glue creados por Terraform (infra/aws, modules/glue).
+# Contrato: los jobs se llaman ${prefix}-<perfil>; ${prefix} se sustituye en tasks.py
+# por la Variable de Airflow `prefix` (default "bigdata").
+#   number_of_workers: se pasa como NumberOfWorkers al StartJobRun (tipo G.1X).
+#   timeout: minutos, se pasa como Timeout al StartJobRun.
+profiles:
+  small:
+    job: "${prefix}-small"
+    number_of_workers: 2
+    timeout: 10
+  medium:
+    job: "${prefix}-medium"
+    number_of_workers: 4
+    timeout: 20
+  large:
+    job: "${prefix}-large"
+    number_of_workers: 6
+    timeout: 30

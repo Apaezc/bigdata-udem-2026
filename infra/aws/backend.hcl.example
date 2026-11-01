@@ -1,0 +1,5 @@
+# Copiar a backend.hcl (ignorado por git) y completar.
+# bucket = output TfStateBucket del stack de bootstrap.
+bucket = "bigdata-tfstate-<ACCOUNT_ID>-us-east-2"
+key    = "aws/terraform.tfstate"
+region = "us-east-2"
