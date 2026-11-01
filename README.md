@@ -2,42 +2,48 @@
 
 Template del curso de Big Data de la UdeM: un pipeline de datos de punta a punta (SQL, PySpark, AWS y Snowflake) que cada estudiante despliega en su propia cuenta con Terraform y GitHub Actions.
 
-El pipeline procesa los viajes de taxi amarillo de NYC (NYC TLC), las zonas de taxi y el clima diario (Open-Meteo) en tres capas, y publica una tabla de métricas diarias por zona en Snowflake.
+El pipeline procesa los viajes de Uber/Lyft de NYC (NYC TLC FHVHV: ~20 M filas por mes, ~240 M por año), las zonas de taxi y el clima diario (Open-Meteo) en tres capas, y publica una tabla de métricas diarias por zona y empresa en Snowflake. Se desarrolla en tres entornos con el mismo código y distinta configuración.
 
 ## Arquitectura
 
 ```
-                       NYC TLC (Parquet)   taxi zones (CSV)   Open-Meteo (JSON)
-                                  \              |               /
-                                   v             v              v
-  GitHub (tu fork)           +-----------------------------------------+
-  push a main  -----------> |  AWS Glue 5.0 (PySpark 3.5)  jobs        |
-  GitHub Actions (OIDC)     |  bigdata-small | -medium | -large         |
-        |                   +--------------------+--------------------+
-        | terraform apply                        | lee / escribe
-        v                                        v
-  +---------------+        +----------------------------------------------+
-  | infra/aws     |        |  S3  bigdata-lake-<cuenta>-us-east-2         |
-  | (Terraform)   |------->|  bronze/  silver/  gold/  code/  dags/       |
-  +---------------+        +----------------+-----------------------------+
-        |                                   |                    ^
-        | crea                              | COPY INTO          | sync dags/framework
-        v                                   v                    |
-  +-----------------+              +------------------+   +-------------------------+
-  | Athena (1 GB    |              | Snowflake        |   | VM Airflow (EC2)        |
-  | por consulta)   |              | BIGDATA.GOLD     |<--| Docker: Airflow 3 +     |
-  +-----------------+              | DAILY_ZONE_      |   | Postgres, apagado 23:00 |
-                                   | METRICS          |   +-------------------------+
-  Code Editor (SageMaker) ---->    +------------------+     acceso: túnel SSM o IP
-  tu entorno de trabajo            infra/snowflake          permitida (workflow)
+                     NYC TLC FHVHV (Parquet)   taxi zones (CSV)   Open-Meteo (JSON)
+                                    \               |                 /
+                                     v              v                v
+ +--------------------------------------+    +------------------------------------------+
+ | Code Editor (SageMaker, 8 GB)        |    | S3  bigdata-lake-<cuenta>-us-east-2      |
+ |  - tu código, tests                  |    |  bronze/  (crudo, compartido dev y prod) |
+ |  - Airflow de dev (make airflow-local)|-->|  muestra/ (~100 k filas, para local)     |
+ |     entorno=local: Spark aquí,       |    |  dev/  silver/ gold/                     |
+ |       sobre la muestra (gratis)      |    |  prod/ silver/ gold/                     |
+ |     entorno=dev: Glue small, 1 mes   |    +----------+-------------------------------+
+ +------------------+-------------------+               | COPY INTO
+                    | PR -> merge a main                 v
+                    v                          +----------------------------+
+ GitHub Actions (OIDC): CI, Deploy             | Snowflake BIGDATA.DEV /    |
+   Terraform + código y DAGs a S3              |   BIGDATA.PROD             |
+   + enciende el Airflow de prod  ------+      |   DAILY_ZONE_METRICS       |
+                                        v      +----------------------------+
+                          +---------------------------+       ^
+                          | VM Airflow de prod (EC2)  |-------+
+                          | entorno=prod: Glue large, |  Glue 5.0 jobs
+                          | el año; apagado nocturno; |  bigdata-small|medium|large
+                          | acceso por túnel SSM      |
+                          +---------------------------+
 
-  Guardrails: Budget mensual + política Deny al 60 % + resource monitor de Snowflake
+  Guardrails: Budget (gasto bruto) con bloqueo al 60 % + resource monitor de Snowflake
 ```
 
+| Entorno | Airflow | Spark | Datos | Salida |
+|---|---|---|---|---|
+| **local** | Code Editor (`make airflow-local`) | En el Code Editor | Muestra (~100 k filas) | `./lake` |
+| **dev** | Code Editor | Glue `small` | 1 mes completo | `s3://<lake>/dev/`, `BIGDATA.DEV` |
+| **prod** | VM dedicada (se enciende con el Deploy) | Glue `medium`/`large` | 12 meses | `s3://<lake>/prod/`, `BIGDATA.PROD` |
+
 - **Bootstrap** (`bootstrap/`): una plantilla de CloudFormation que crea tu entorno de trabajo (SageMaker Code Editor), el acceso de GitHub Actions a AWS por OIDC (sin claves), el bucket de state de Terraform y un presupuesto con alertas; más un script SQL para Snowflake.
-- **Infraestructura** (`infra/aws`, `infra/snowflake`): Terraform. AWS: lake S3, catálogo Glue y Athena, jobs Glue, VM de Airflow opcional y guardrails de costo. Snowflake: warehouse XS, base `BIGDATA` (BRONZE, SILVER, GOLD), rol `BIGDATA_DEV` y stage externo sobre `gold/`.
-- **Pipeline** (`src/pipeline`): bronze (descarga sin transformar) -> silver (limpieza y enriquecimiento) -> gold (métricas diarias por zona). Corre en local, en Glue o con Snowpark Connect.
-- **Orquestación** (`airflow/`): DAG `pipeline_taxi` (Glue -> `COPY INTO` a Snowflake).
+- **Infraestructura** (`infra/aws`, `infra/snowflake`): Terraform. AWS: lake S3, catálogo Glue y Athena, jobs Glue, VM de Airflow opcional y guardrails de costo. Snowflake: warehouse XS, base `BIGDATA` (BRONZE/SILVER/GOLD para SQL; DEV/PROD para el pipeline), rol `BIGDATA_DEV` y stages externos sobre `gold/`, `dev/gold/` y `prod/gold/`.
+- **Pipeline** (`src/pipeline`): bronze (descarga sin transformar) -> silver (limpieza y enriquecimiento) -> gold (métricas diarias por zona y empresa), más el paso `muestra`. Corre con Spark local o en Glue; la configuración de cada entorno está en `src/pipeline/config/<entorno>.yaml`.
+- **Orquestación** (`airflow/`): DAG `pipeline_taxi` con un camino por entorno (local, dev, prod). Snowpark Connect se compara aparte, en el laboratorio de la sesión 7.
 - **Automatización**: `Makefile` + `scripts/` + `.github/workflows/`.
 
 Detalle de nombres e interfaces: [CONTRATO.md](CONTRATO.md). Más documentos: [docs/bootstrap.md](docs/bootstrap.md), [airflow/README.md](airflow/README.md), [infra/snowflake/README.md](infra/snowflake/README.md).
@@ -55,7 +61,7 @@ Haz los pasos en este orden.
    ```bash
    git clone https://github.com/<TU_USUARIO>/<TU_FORK>.git && cd <TU_FORK>
    ```
-7. **`make setup`.** Verifica herramientas (Python 3.11, Java 17, AWS CLI, Terraform, Snowflake CLI `snow`, jq, zip), crea `.venv`, valida que Snowflake esté en AWS, alinea `AWS_REGION` y, si todavía no existe, crea en S3 la configuración de Terraform (te pide el correo de alertas). Antes configura `snow` (`~/.snowflake/config.toml`) y comprueba con `make doctor`.
+7. **`make setup`.** Verifica herramientas (Python 3.11+, Java 17, AWS CLI, Terraform, Snowflake CLI `snow`, jq, zip), crea `.venv`, valida que Snowflake esté en AWS, alinea `AWS_REGION` y, si todavía no existe, crea en S3 la configuración de Terraform (te pide el correo de alertas). Antes configura `snow` (`~/.snowflake/connections.toml`, conexión `[default]`) y comprueba con `make doctor`. Las herramientas las instala el Lifecycle Config del Code Editor al arrancar.
 8. **Secrets del fork** (Settings > Secrets and variables > Actions):
 
    | Nombre | Tipo | Valor |
@@ -75,7 +81,9 @@ Haz los pasos en este orden.
 
     Detalle: [infra/snowflake/README.md](infra/snowflake/README.md).
 
-11. **Ejecuta el pipeline.** En local: `make run-local STEP=all MES=2024-01`. En la nube: `make airflow-habilitar` (una vez; crea la VM), `make airflow-on`, abre el túnel con `make airflow-tunel`, usuario `admin` y contraseña de `make airflow-password`, y lanza el DAG `pipeline_taxi`. Guarda antes la conexión de Snowflake en el secreto `bigdata/snowflake` ([airflow/README.md](airflow/README.md)).
+11. **Prepara los datos (una vez).** `make muestra`: Glue baja el año de FHVHV a `bronze/` (~5.4 GB) y genera la muestra en `muestra/` (~US$0.15).
+12. **Desarrolla en local y dev.** `make run-local` (o `LIMITE=100` para una prueba rapidísima) y `make airflow-local` para el Airflow de dev: abre `https://<id-del-space>.studio.us-east-2.sagemaker.aws/codeeditor/default/ports/8080/` y lanza `pipeline_taxi` con `entorno=local` (gratis) o `entorno=dev` (Glue small, centavos).
+13. **Pasa a prod con un PR.** Al hacer merge a `main`, el Deploy publica código y DAGs y enciende la VM de prod si cambiaron `airflow/` o `src/`. Desde el Code Editor: `make airflow-tunel`, la misma URL, usuario `admin` y contraseña de `make airflow-password`; lanza `pipeline_taxi` con `entorno=prod`. La conexión de Snowflake va en el secreto `bigdata/snowflake` ([airflow/README.md](airflow/README.md)).
 
 ## Configuración por estudiante
 
@@ -110,12 +118,14 @@ Ejecuta `make help` para ver la lista actualizada.
 | `make doctor` | Diagnóstico: versiones, AWS, Snowflake, Terraform, OIDC |
 | `make estado` | Estado de Airflow, últimos job runs de Glue, warehouse y costos |
 | `make test` | `ruff check`, `ruff format --check`, `pytest` (y tests de DAGs si Airflow está instalado) |
-| `make run-local` | Pipeline en local (`STEP=bronze\|silver\|gold\|all`, `MES=YYYY-MM`) |
+| `make muestra` | Glue: bronze del año de prod + muestra para local (una vez por curso) |
+| `make run-local` | Pipeline en local sobre la muestra (`STEP=silver\|gold\|all`, `MES=YYYY-MM`, `LIMITE=N`) |
+| `make airflow-local` / `-down` / `-estado` | Airflow de dev dentro del Code Editor (entornos local y dev) |
 | `make deploy` | `terraform apply` de `infra/aws` (con la guardia de destrucción) y sincronización de código, DAGs y framework a S3 |
 | `make snowflake` | `terraform apply` de `infra/snowflake`, guarda sus outputs en S3 y aplica la fase 2 de AWS (`SIN_DEPLOY=true` omite el deploy) |
 | `make airflow-habilitar` / `make airflow-deshabilitar` | `enable_airflow` = true / false en S3 y `make deploy` |
-| `make airflow-on` / `make airflow-off` | Enciende / apaga la VM de Airflow |
-| `make airflow-tunel` | Túnel SSM `localhost:8080` -> Airflow |
+| `make airflow-on` / `make airflow-off` | Enciende / apaga la VM de Airflow de prod |
+| `make airflow-tunel` | Túnel SSM al Airflow de prod desde el Code Editor |
 | `make airflow-password` | Usuario y contraseña de Airflow (Secrets Manager) |
 | `make desbloquear` | Revierte la acción de Budgets (quita el Deny), con confirmación |
 | `make snowflake-ampliar-cuota` | Sube la cuota del resource monitor (`CUOTA=N`) |
@@ -126,11 +136,11 @@ Ejecuta `make help` para ver la lista actualizada.
 Estimaciones aproximadas; verifica precios vigentes en la consola de AWS y de Snowflake.
 
 - **Presupuesto**: se mide el gasto bruto (sin descontar créditos del free plan). Terraform crea `bigdata-mensual` (50 USD por defecto) con alertas al 40 y 80 %; al 60 % AWS Budgets adjunta una política Deny (`bigdata-bloqueo-presupuesto`) que impide iniciar jobs Glue e instancias EC2 (CI, Code Editor y VM) y detiene la VM de Airflow. El bootstrap crea `bigdata-total`, que solo alerta al 100 % como red de seguridad. Budgets actualiza el gasto como mucho una vez al día, así que no es un tope en tiempo real. Para revertirlo: `make desbloquear`.
-- **Glue**: se paga por segundo de cómputo de los workers. Los jobs tienen máximo 2, 4 o 6 workers G.1X y tiempos límite de 10, 20 y 30 minutos, y como máximo 3 ejecuciones simultáneas.
+- **Glue**: se paga por segundo de cómputo de los workers. Los jobs tienen 2, 4 o 6 workers G.1X, tiempos límite de 10, 20 y 30 minutos y un job a la vez por perfil (los siguientes esperan en cola; el tiempo en cola no cuenta para el límite). Referencia medida: 1 mes de FHVHV en `small` ≈ US$0.02; el año en `large` ≈ US$0.12.
 - **Athena**: cada consulta se cancela al pasar de 1 GB escaneado.
-- **VM de Airflow** (opcional): `m7i-flex.large` elegible en el plan gratuito. Se apaga sola a las 23:00 (hora de Bogotá). Apágala con `make airflow-off` cuando termines. La IP elástica pública puede tener un costo pequeño por hora aunque la VM esté apagada.
-- **SageMaker Code Editor**: se apaga solo tras 60 minutos de inactividad.
-- **Snowflake**: warehouse XS con `auto_suspend` de 60 s; el resource monitor `BIGDATA_RM` limita a 60 créditos al mes y suspende el warehouse al llegar al 100 %. Para ampliarlo: `make snowflake-ampliar-cuota CUOTA=<n>`.
+- **VM de Airflow de prod**: `m7i-flex.large` elegible en el plan gratuito. La enciende el Deploy; se apaga sola a las 23:00 (hora de Bogotá) o con `make airflow-off`. Apagada solo paga el disco (~US$2.4/mes); no tiene IP fija.
+- **SageMaker Code Editor** (`ml.t3.large`, 8 GB, ~US$0.10/h): se apaga solo tras 60 minutos de inactividad; eso también detiene el Airflow de dev (`make airflow-local` para volver a levantarlo).
+- **Snowflake**: warehouse XS con `auto_suspend` de 60 s; el resource monitor `BIGDATA_RM` (60 créditos al mes) avisa al 50 y 75 % y suspende al 90 y 100 %, pero actúa con retraso: el freno inmediato es el `auto_suspend`. Para ampliarlo: `make snowflake-ampliar-cuota CUOTA=<n>`.
 - **Al terminar el curso**: `make destroy` (borra el lake, Snowflake y AWS y, si confirmas, el bootstrap y el bucket de state). Las cuentas de AWS y Snowflake siguen siendo tuyas.
 
 ## Troubleshooting
@@ -146,11 +156,15 @@ Estimaciones aproximadas; verifica precios vigentes en la consola de AWS y de Sn
 | `AccessDenied` al lanzar jobs Glue o encender la VM | Probablemente actuó el presupuesto: `make estado` y `make desbloquear` |
 | Terraform: `AccessDenied` al crear un rol IAM | El rol debe llevar la boundary `<prefix>-boundary` (`permissions_boundary_arn`) |
 | Un job Glue falla con `ModuleNotFoundError: pipeline` | Falta subir el código: `make deploy` (sube `pipeline.zip` con la carpeta `pipeline/`) |
-| `make airflow-tunel` no abre el túnel | Instala `session-manager-plugin`; la VM debe estar encendida (`make airflow-on`) |
-| No veo la UI de Airflow | Usa el túnel o autoriza tu IP con el workflow **Permitir IP** (máx. 3 IP; se elimina la más antigua) |
+| `make airflow-tunel` no abre el túnel | La VM debe estar encendida (`make airflow-on`); `session-manager-plugin` lo instala el Lifecycle Config |
+| La UI de Airflow sale en blanco o "Unsupported URL path" | Usa exactamente `.../codeeditor/default/ports/8080/` (no `/proxy/` ni `/ports/8080/` sin `/codeeditor/default`) |
+| "Invalid or Expired Auth Token" al abrir la UI | Venció la sesión de Studio: vuelve a abrir Studio desde la consola de AWS |
+| `make run-local`: "No hay muestra ... falta LAKE_BUCKET" | Corre `make muestra` primero (una vez) |
 | El DAG falla en `cargar_gold` | Falta la conexión: guarda el JSON en el secreto `bigdata/snowflake` y reinicia la VM ([airflow/README.md](airflow/README.md)) |
-| Terraform: `Error acquiring the state lock` | Otro apply está corriendo; espera o revisa que el apply anterior terminó |
-| `make test` o `make run-local` fallan por Java | Instala Java 17 (versión con la que se validó PySpark 3.5) y revisa `java -version` |
+| Terraform: `Error acquiring the state lock` | Otro apply está corriendo; si no (quedó de un apply interrumpido), `terraform force-unlock <ID>` en la carpeta de Terraform |
+| `make deploy` se queda colgado o pierde el lock | Córrelo en una terminal normal, no desde herramientas con tiempo límite |
+| `Falta la configuración en S3` aunque ya corriste `make setup` | Tu terminal tiene otro `AWS_REGION`: `export AWS_REGION=us-east-2` |
+| `make test` o `make run-local` fallan por Java | Instala Java 17 (versión con la que se validó PySpark 3.5) y revisa `java -version` / `JAVA_HOME` |
 
 ## Estructura
 
@@ -163,5 +177,5 @@ airflow/      docker-compose, framework y DAGs
 tests/        pruebas del pipeline (pytest + PySpark local)
 scripts/      implementación de los targets de make
 docs/         bootstrap e integración
-.github/workflows/  ci, deploy, airflow-on/off, permitir-ip, quitar-ips, debug-oidc
+.github/workflows/  ci, deploy (enciende prod), airflow-on/off, debug-oidc
 ```

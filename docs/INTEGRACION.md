@@ -1,5 +1,10 @@
 # Integración de la Fase 3
 
+> **Nota (2026-11-01):** registro histórico de la integración de la Fase 3. Partes reemplazadas por el rediseño de
+> entornos: dataset FHVHV en lugar de yellow, entornos local/dev/prod, DAG por entorno sin rama `snowpark_connect`,
+> VM de prod sin EIP ni workflows `permitir-ip`/`quitar-ips`, presupuestos sin créditos y alertas sin duplicar.
+> El estado vigente está en [README.md](../README.md) y [CONTRATO.md](../CONTRATO.md).
+
 Resultado de integrar los componentes del template (bootstrap, `infra/aws`, `infra/snowflake`, `airflow/`, `src/`, workflows, scripts y Makefile) escritos en paralelo según [CONTRATO.md](../CONTRATO.md). Todo se validó solo en local: no se hizo ninguna llamada a AWS ni a Snowflake (sin `terraform plan/apply`, sin `aws` contra la cuenta, sin `snow`).
 
 ## 1. Cambios hechos

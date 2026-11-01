@@ -62,21 +62,26 @@ Validación sin levantar nada: `docker compose -f airflow/docker-compose.yaml --
 ## Despliegue en la VM
 
 1. Terraform (`infra/aws/modules/airflow_vm`, con `enable_airflow = true`) crea la instancia (tag `Name=<prefix>-airflow`),
-   el SG `<prefix>-airflow-sg`, la EIP, los secretos y el apagado a las 23:00 (America/Bogota).
+   el SG `<prefix>-airflow-sg` (sin ingress), los secretos y el apagado a las 23:00 (America/Bogota). Sin IP fija.
 2. `make deploy` / `deploy.yml` suben a `s3://<lake>/`: `dags/` (DAGs), `code/airflow/framework/` y `code/airflow/docker-compose.yaml`.
 3. User-data instala `/usr/local/bin/airflow-refresh.sh`, que copia esos objetos a `/opt/airflow/` y arma `snowflake.env`.
    Corre al crear la VM y antes de cada arranque de `airflow.service` (que levanta el compose); por cron, cada minuto, se
    sincronizan `dags/` y `framework/`. El `docker-compose.yaml` nuevo se aplica en el siguiente arranque.
-4. La UI queda en `http://<EIP>:8080` solo desde las IP autorizadas (workflow `permitir-ip`) o por túnel SSM (`make airflow-tunel`).
+4. La UI se abre solo por túnel SSM desde el Code Editor: `make airflow-tunel` y la URL
+   `https://<id-del-space>.studio.<region>.sagemaker.aws/codeeditor/default/ports/8080/` (nginx `proxy-studio` vuelve a poner
+   el prefijo que quita el proxy de Studio). Esta VM es el Airflow de **prod** (`PIPELINE_ENTORNO=prod`); la enciende el Deploy.
 
 Los DAGs importan `framework` con `sys.path.insert(<carpeta padre de dags/>)` y `PYTHONPATH=/opt/airflow` en el compose;
 en la VM quedan `/opt/airflow/dags` y `/opt/airflow/framework`, y en el repo `airflow/dags` y `airflow/framework`.
 
-## Rama snowpark_connect (opcional)
+## Airflow de dev (Code Editor)
 
-`snowpark_connect_task` ejecuta `python -m pipeline.run` dentro del contenedor, que no incluye `src/` ni PySpark/Snowpark Connect.
-No funciona en la VM tal como viene: requiere extender la imagen (instalar el paquete y montar `src/`). Mientras tanto, usa la
-rama Glue, o ejecuta `make run-local`/Snowpark Connect desde el Code Editor.
+`make airflow-local` instala Airflow 3.3.2 con pip en `~/.airflow-local` (solo la primera vez), levanta nginx en 8080 y
+`airflow standalone` en 8081, con los DAGs del repo. Mismo DAG, misma URL; el entorno por defecto es `local`
+(Spark del `.venv` del repo sobre la muestra) y se puede elegir `dev` (Glue small). Se detiene con `make airflow-local-down`
+y se cae si el Code Editor se apaga por inactividad.
+
+Snowpark Connect ya no es parte del DAG: se compara contra Glue en el laboratorio de motores (sesión 7).
 
 ## Supuestos a verificar
 
