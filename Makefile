@@ -10,7 +10,7 @@ export PREFIX AWS_REGION
 export PATH := $(CURDIR)/.venv/bin:$(PATH)
 
 .PHONY: help setup config doctor estado test secrets publicar-bootstrap retirar-bootstrap muestra run-local deploy airflow-on airflow-off airflow-local airflow-local-down airflow-local-estado \
-	airflow-habilitar airflow-deshabilitar snowflake \
+	airflow-habilitar airflow-deshabilitar snowflake snowflake-secreto \
 	airflow-tunel airflow-password desbloquear snowflake-ampliar-cuota destroy
 
 help: ## Muestra los targets disponibles
@@ -63,6 +63,9 @@ airflow-deshabilitar: ## enable_airflow=false en S3 y deploy (destruye la VM; ex
 
 snowflake: ## Apply de infra/snowflake, guarda sus outputs en S3 y aplica la fase 2 de AWS (SIN_DEPLOY=true omite el deploy)
 	bash scripts/snowflake.sh
+
+snowflake-secreto: ## Guarda la conexión de AIRFLOW_SVC (llave privada) en el secreto <prefix>/snowflake
+	bash scripts/snowflake-secreto.sh
 
 airflow-local: ## Airflow de dev en el Code Editor (UI: /codeeditor/default/ports/8080/)
 	bash scripts/airflow-local.sh up
