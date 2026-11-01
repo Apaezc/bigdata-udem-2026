@@ -10,6 +10,8 @@ locals {
   snowflake_phase2    = var.snowflake_iam_user_arn != "" && var.snowflake_external_id != ""
   snowflake_principal = local.snowflake_phase2 ? var.snowflake_iam_user_arn : "arn:aws:iam::${local.account_id}:root"
   snowflake_ext_id    = local.snowflake_phase2 ? var.snowflake_external_id : "0000"
+  # gold/ (sesiones de SQL) y gold del pipeline por entorno.
+  prefijos_snowflake = ["gold/", "dev/gold/", "prod/gold/"]
 }
 
 # ---------------------------------------------------------------------------
@@ -154,7 +156,7 @@ data "aws_iam_policy_document" "snowflake_access" {
   statement {
     sid       = "GoldLecturaEscritura"
     actions   = ["s3:GetObject", "s3:GetObjectVersion", "s3:PutObject"]
-    resources = ["${aws_s3_bucket.lake.arn}/gold/*"]
+    resources = [for p in local.prefijos_snowflake : "${aws_s3_bucket.lake.arn}/${p}*"]
   }
 
   statement {
@@ -165,7 +167,7 @@ data "aws_iam_policy_document" "snowflake_access" {
     condition {
       test     = "StringLike"
       variable = "s3:prefix"
-      values   = ["gold/*"]
+      values   = [for p in local.prefijos_snowflake : "${p}*"]
     }
   }
 

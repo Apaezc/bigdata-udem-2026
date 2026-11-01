@@ -88,17 +88,6 @@ instance_state() {
     --query 'Reservations[0].Instances[0].State.Name' --output text
 }
 
-instance_public_ip() {
-  local ip
-  ip="$(aws ec2 describe-instances --instance-ids "$1" \
-    --query 'Reservations[0].Instances[0].PublicIpAddress' --output text 2>/dev/null || true)"
-  if [[ -z "$ip" || "$ip" == "None" ]]; then
-    echo ""
-  else
-    echo "$ip"
-  fi
-}
-
 # Configuración de infra/aws: fuente única de verdad en s3://<TF_STATE_BUCKET>/config/aws.tfvars
 # (HCL, bucket de state con versionado). 'make setup' la crea; deploy.sh y deploy.yml la descargan
 # con config_pull y la pasan con -var-file. Claves típicas: prefix, aws_region, alert_email,

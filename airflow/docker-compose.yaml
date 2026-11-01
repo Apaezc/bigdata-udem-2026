@@ -46,6 +46,8 @@ x-airflow-common: &airflow-common
     AWS_DEFAULT_REGION: ${AWS_REGION:-us-east-2}
     # Variable de Airflow `prefix` (los DAGs arman los nombres de jobs Glue ${prefix}-<perfil>).
     AIRFLOW_VAR_PREFIX: ${AIRFLOW_PREFIX:-bigdata}
+    # Esta VM es el Airflow de prod: el DAG abre con entorno=prod por defecto.
+    PIPELINE_ENTORNO: prod
     # Permite importar el paquete framework/ (tasks.py, profiles.yaml) desde los DAGs.
     PYTHONPATH: /opt/airflow
   volumes:

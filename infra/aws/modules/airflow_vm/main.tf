@@ -15,7 +15,7 @@ locals {
 
   role_name      = "${var.prefix}-airflow-vm" # rol e instance profile
   instance_name  = "${var.prefix}-airflow"    # tag Name: lo buscan scripts/ y workflows
-  sg_name        = "${var.prefix}-airflow-sg" # lo buscan permitir-ip.yml y quitar-ips.yml
+  sg_name        = "${var.prefix}-airflow-sg"
   secret_name    = "${var.prefix}/airflow-admin"
   snowflake_name = "${var.prefix}/snowflake"
 
@@ -109,6 +109,13 @@ data "aws_iam_policy_document" "airflow_vm_access" {
     actions   = ["secretsmanager:GetSecretValue"]
     resources = [local.secret_arn_pattern]
   }
+
+  # Lectura de los logs de los jobs Glue (verbose=True en glue_task los copia al log de Airflow).
+  statement {
+    sid       = "LeerLogsDeGlue"
+    actions   = ["logs:GetLogEvents", "logs:FilterLogEvents", "logs:DescribeLogStreams"]
+    resources = ["arn:aws:logs:${local.region}:${local.account_id}:log-group:/aws-glue/jobs/*"]
+  }
 }
 
 # ---------------------------------------------------------------------------
@@ -148,10 +155,11 @@ resource "aws_iam_instance_profile" "airflow" {
 }
 
 # ---------------------------------------------------------------------------
-# Red: SG sin ingress salvo 8080 desde allowed_cidrs.
+# Red: SG sin ingress. La UI se usa solo por túnel SSM (make airflow-tunel) desde el Code Editor.
 # ---------------------------------------------------------------------------
 resource "aws_security_group" "airflow" {
   name        = local.sg_name
+  # La descripción no se puede cambiar sin recrear el SG: se conserva la original.
   description = "Airflow VM: UI en 8080 solo desde allowed_cidrs"
   vpc_id      = local.vpc_id
 
@@ -159,18 +167,6 @@ resource "aws_security_group" "airflow" {
     Name    = local.instance_name
     Project = var.prefix
   }
-}
-
-resource "aws_vpc_security_group_ingress_rule" "airflow_ui" {
-  for_each = toset(var.allowed_cidrs)
-
-  security_group_id = aws_security_group.airflow.id
-  ip_protocol       = "tcp"
-  from_port         = 8080
-  to_port           = 8080
-  cidr_ipv4         = strcontains(each.value, ":") ? null : each.value
-  cidr_ipv6         = strcontains(each.value, ":") ? each.value : null
-  description       = "Airflow UI"
 }
 
 resource "aws_vpc_security_group_egress_rule" "all_out" {
@@ -184,11 +180,12 @@ resource "aws_vpc_security_group_egress_rule" "all_out" {
 # VM Airflow.
 # ---------------------------------------------------------------------------
 resource "aws_instance" "airflow" {
-  ami                         = data.aws_ssm_parameter.al2023.value
-  instance_type               = var.instance_type
-  subnet_id                   = local.subnet_id
-  vpc_security_group_ids      = [aws_security_group.airflow.id]
-  iam_instance_profile        = aws_iam_instance_profile.airflow.name
+  ami                    = data.aws_ssm_parameter.al2023.value
+  instance_type          = var.instance_type
+  subnet_id              = local.subnet_id
+  vpc_security_group_ids = [aws_security_group.airflow.id]
+  iam_instance_profile   = aws_iam_instance_profile.airflow.name
+  # IP pública automática (sin EIP) solo para salir a internet; se cobra solo mientras está encendida.
   associate_public_ip_address = true
 
   user_data = templatefile("${path.module}/user_data.sh.tftpl", {
@@ -219,20 +216,6 @@ resource "aws_instance" "airflow" {
   lifecycle {
     ignore_changes = [ami]
   }
-}
-
-resource "aws_eip" "airflow" {
-  domain = "vpc"
-
-  tags = {
-    Name    = local.instance_name
-    Project = var.prefix
-  }
-}
-
-resource "aws_eip_association" "airflow" {
-  instance_id   = aws_instance.airflow.id
-  allocation_id = aws_eip.airflow.id
 }
 
 # ---------------------------------------------------------------------------

@@ -14,22 +14,6 @@ variable "glue_job_arns" {
   type        = list(string)
 }
 
-variable "allowed_cidrs" {
-  description = "CIDRs (/32 IPv4 o /128 IPv6) autorizados a la UI de Airflow en 8080. Vacío = sin acceso."
-  type        = list(string)
-  default     = []
-
-  validation {
-    condition = alltrue([
-      for c in var.allowed_cidrs :
-      can(cidrhost(c, 0)) &&
-      (endswith(c, "/32") || endswith(c, "/128")) &&
-      !contains(["0.0.0.0/0", "::/0"], c)
-    ])
-    error_message = "allowed_cidrs solo acepta CIDRs de host (/32 IPv4 o /128 IPv6). Prohibido 0.0.0.0/0 y ::/0."
-  }
-}
-
 variable "instance_type" {
   description = "Tipo de instancia de la VM Airflow (solo tipos elegibles en free plan)."
   type        = string

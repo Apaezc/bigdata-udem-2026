@@ -27,12 +27,6 @@ variable "enable_airflow" {
   default     = false
 }
 
-variable "allowed_cidrs" {
-  description = "CIDR autorizados al puerto HTTP 8080 de Airflow. Vacio = ninguno."
-  type        = list(string)
-  default     = []
-}
-
 variable "airflow_instance_type" {
   description = "Tipo de instancia de la VM Airflow. Fallback: c7i-flex.large."
   type        = string

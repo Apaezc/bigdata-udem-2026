@@ -116,6 +116,13 @@ Resources:
               - logs:PutLogEvents
               - cloudwatch:PutMetricData
             Resource: "*"
+          - Sid: LeerLogsDeGlue
+            Effect: Allow
+            Action:
+              - logs:GetLogEvents
+              - logs:FilterLogEvents
+              - logs:DescribeLogStreams
+            Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws-glue/jobs/*"
           - Sid: SecretosDelCurso
             Effect: Allow
             Action: secretsmanager:GetSecretValue

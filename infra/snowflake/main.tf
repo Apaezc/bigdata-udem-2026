@@ -22,15 +22,20 @@ resource "snowflake_warehouse" "bigdata" {
 
 resource "snowflake_database" "bigdata" {
   name    = "BIGDATA"
-  comment = "Base del curso Big Data (capas BRONZE, SILVER, GOLD)"
+  comment = "Base del curso Big Data (BRONZE/SILVER/GOLD para SQL; DEV/PROD para el pipeline)"
+}
+
+# BRONZE/SILVER/GOLD: sesiones de SQL y P1. DEV/PROD: gold del pipeline por entorno (Airflow).
+locals {
+  entornos = { DEV = "dev", PROD = "prod" }
 }
 
 resource "snowflake_schema" "layer" {
-  for_each = toset(["BRONZE", "SILVER", "GOLD"])
+  for_each = toset(["BRONZE", "SILVER", "GOLD", "DEV", "PROD"])
 
   database = snowflake_database.bigdata.name
   name     = each.key
-  comment  = "Capa ${each.key}"
+  comment  = contains(keys(local.entornos), each.key) ? "Gold del pipeline, entorno ${local.entornos[each.key]}" : "Capa ${each.key}"
 }
 
 # ---------- Rol de desarrollo para estudiantes ----------
@@ -120,18 +125,34 @@ resource "snowflake_grant_privileges_to_account_role" "dev_stage" {
   }
 }
 
+resource "snowflake_grant_privileges_to_account_role" "dev_stage_entorno" {
+  for_each = local.entornos
+
+  account_role_name = snowflake_account_role.dev.name
+  privileges        = ["USAGE", "READ"]
+
+  on_schema_object {
+    object_type = "STAGE"
+    object_name = snowflake_stage_external_s3.lake_entorno[each.key].fully_qualified_name
+  }
+}
+
 # ---------- Integración con S3 y stage externo sobre gold/ ----------
 # Dos fases: aquí se crea la integración con el rol de infra/aws (trust placeholder).
 # Snowflake genera STORAGE_AWS_IAM_USER_ARN y STORAGE_AWS_EXTERNAL_ID (outputs de este stack);
 # se pegan en la trust policy del rol en infra/aws (fase 2).
 
 resource "snowflake_storage_integration_aws" "s3" {
-  name                      = "BIGDATA_S3_INT"
-  enabled                   = true
-  storage_provider          = "S3"
-  storage_aws_role_arn      = var.s3_role_arn
-  storage_allowed_locations = ["s3://${var.lake_bucket}/gold/"]
-  comment                   = "Acceso de Snowflake al prefijo gold/ del lake"
+  name                 = "BIGDATA_S3_INT"
+  enabled              = true
+  storage_provider     = "S3"
+  storage_aws_role_arn = var.s3_role_arn
+  storage_allowed_locations = [
+    "s3://${var.lake_bucket}/gold/",
+    "s3://${var.lake_bucket}/dev/gold/",
+    "s3://${var.lake_bucket}/prod/gold/",
+  ]
+  comment = "Acceso de Snowflake a gold/ (SQL) y a <entorno>/gold/ (pipeline) del lake"
 }
 
 resource "snowflake_file_format_parquet" "parquet" {
@@ -151,5 +172,32 @@ resource "snowflake_stage_external_s3" "lake_gold" {
 
   file_format {
     format_name = "${snowflake_database.bigdata.name}.${snowflake_schema.layer["GOLD"].name}.${snowflake_file_format_parquet.parquet.name}"
+  }
+}
+
+# ---------- Stages del pipeline por entorno: BIGDATA.<DEV|PROD>.LAKE_GOLD -> s3://<lake>/<env>/gold/ ----------
+# Los usa airflow/dags/sql/copy_gold.sql (cargar_dev / cargar_prod).
+
+resource "snowflake_file_format_parquet" "entorno" {
+  for_each = local.entornos
+
+  database = snowflake_database.bigdata.name
+  schema   = snowflake_schema.layer[each.key].name
+  name     = "PARQUET_FF"
+  comment  = "Formato Parquet para leer ${each.value}/gold/"
+}
+
+resource "snowflake_stage_external_s3" "lake_entorno" {
+  for_each = local.entornos
+
+  database            = snowflake_database.bigdata.name
+  schema              = snowflake_schema.layer[each.key].name
+  name                = "LAKE_GOLD"
+  url                 = "s3://${var.lake_bucket}/${each.value}/gold/"
+  storage_integration = snowflake_storage_integration_aws.s3.name
+  comment             = "Stage externo sobre s3://<lake>/${each.value}/gold/"
+
+  file_format {
+    format_name = snowflake_file_format_parquet.entorno[each.key].fully_qualified_name
   }
 }

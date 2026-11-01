@@ -7,7 +7,6 @@ budget_usd = 50
 
 # Airflow (el flag enable_airflow se cambia con 'make airflow-habilitar' / 'make airflow-deshabilitar')
 airflow_instance_type = "m7i-flex.large" # fallback: c7i-flex.large
-allowed_cidrs         = []               # p. ej. ["203.0.113.10/32"] para HTTP 8080 (mejor: workflow permitir-ip)
 
 # Permissions boundary de los roles (por defecto arn:aws:iam::<cuenta>:policy/<prefix>-boundary, creada por bootstrap).
 # permissions_boundary_arn = null

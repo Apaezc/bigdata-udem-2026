@@ -49,7 +49,6 @@ module "airflow_vm" {
   prefix                   = var.prefix
   lake_bucket              = module.lake.bucket_name
   glue_job_arns            = local.glue_job_arns
-  allowed_cidrs            = var.allowed_cidrs
   instance_type            = var.airflow_instance_type
   permissions_boundary_arn = local.permissions_boundary_arn
 }

@@ -16,10 +16,5 @@ else
   aws ec2 wait instance-running --instance-ids "$ID"
 fi
 
-IP="$(instance_public_ip "$ID")"
-if [[ -n "$IP" ]]; then
-  msg "Airflow encendido. URL: http://${IP}:8080"
-else
-  aviso "La instancia no tiene IP pública; revisa la Elastic IP."
-fi
-echo "Acceso: 'make airflow-tunel' (recomendado) o workflow 'permitir-ip' para tu IP."
+msg "Airflow de prod encendido (Airflow tarda ~2 min en responder)."
+echo "Acceso: 'make airflow-tunel' desde el Code Editor y la URL /codeeditor/default/ports/8080/."

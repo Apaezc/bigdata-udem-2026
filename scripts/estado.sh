@@ -11,13 +11,8 @@ if [[ -z "$ID" ]]; then
   echo "  Instancia ${PREFIX}-airflow: no encontrada (¿enable_airflow = true?)"
 else
   ESTADO="$(instance_state "$ID")"
-  IP="$(instance_public_ip "$ID")"
   printf "  %-14s %s\n" "Estado:" "$ESTADO"
-  if [[ -n "$IP" ]]; then
-    printf "  %-14s %s\n" "URL:" "http://${IP}:8080 (requiere permitir-ip o túnel)"
-  else
-    printf "  %-14s %s\n" "URL:" "sin IP pública (instancia apagada)"
-  fi
+  printf "  %-14s %s\n" "Acceso:" "make airflow-tunel (túnel SSM desde el Code Editor)"
 fi
 
 msg "Últimos 3 job runs de Glue"
