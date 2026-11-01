@@ -4,7 +4,8 @@ Snowpark Connect for Spark traduce el PySpark a SQL de Snowflake. Este script:
   1. carga una vez el mes de FHVHV (Parquet local) en la tabla BIGDATA.DEV.LAB_FHVHV_<MES>,
   2. ejecuta silver y gold con las funciones de src/pipeline (sin cambiar una línea),
   3. escribe BIGDATA.DEV.LAB_GOLD_SNOWPARK y mide los tiempos de cada fase.
-Compara contra el DAG con entorno=dev (Glue small, mismo mes) y llena la tabla del README.
+Compara contra el DAG del Airflow de dev con computo=glue_small (mismo mes)
+y llena la tabla del README.
 
 Uso (desde la raíz del repo, en el Code Editor):
   python laboratorios/motores/snowpark_connect.py --datos ~/fhvhv --mes 2024-01 [--recargar]

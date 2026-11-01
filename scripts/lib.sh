@@ -64,6 +64,21 @@ account_id() {
   aws sts get-caller-identity --query Account --output text
 }
 
+CUENTA_AWS=""
+exigir_cuenta() {
+  # Verifica la cuenta AWS real antes de cambiar infraestructura. Guarda el ID en CUENTA_AWS.
+  local real
+  real="$(account_id 2>/dev/null || true)"
+  if [[ -z "$real" || "$real" == "None" ]]; then
+    error "No hay credenciales AWS válidas (aws sts get-caller-identity falló). Define AWS_PROFILE con un perfil válido (en Code Editor no hace falta)."
+  fi
+  if [[ -n "${AWS_ACCOUNT_ID:-}" && "$AWS_ACCOUNT_ID" != "$real" ]]; then
+    error "AWS_ACCOUNT_ID=$AWS_ACCOUNT_ID no coincide con la cuenta real $real. Corrige el entorno (o .env) o usa AWS_PROFILE correcto."
+  fi
+  CUENTA_AWS="$real"
+  msg "Cuenta AWS: $real · región: $AWS_REGION · perfil: ${AWS_PROFILE:-por defecto}"
+}
+
 lake_bucket() {
   echo "${PREFIX}-lake-$(account_id)-${AWS_REGION}"
 }
@@ -200,6 +215,21 @@ config_set() {
   config_push "$tmp"
   rm -f "$tmp"
   msg "$clave actualizado en $origen"
+}
+
+conexion_snowflake_json() {
+  # Uso: conexion_snowflake_json <login> <account> <warehouse> <database> <role> <archivo-llave-privada>
+  # Imprime (en una línea) el JSON de conexión de Airflow para snowflake_default con key pair:
+  # el formato que leen airflow-local.sh y airflow-refresh.sh (user_data de la VM) y que
+  # apache-airflow-providers-snowflake 6.x entiende (login + extra.account/warehouse/database/role
+  # + extra.private_key_content con el PEM). La llave se lee del archivo, nunca de argumentos.
+  [[ $# -eq 6 ]] || error "conexion_snowflake_json: se esperan 6 argumentos."
+  [[ -s "$6" ]] || error "conexion_snowflake_json: no existe o está vacía la llave $6."
+  jq -cn --arg login "$1" --arg account "$2" --arg warehouse "$3" --arg database "$4" --arg role "$5" \
+    --rawfile key "$6" \
+    '{conn_type: "snowflake", login: $login,
+      extra: {account: $account, warehouse: $warehouse, database: $database, role: $role,
+              private_key_content: $key}}'
 }
 
 guardia_destruccion() {

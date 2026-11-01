@@ -10,6 +10,7 @@
 source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
 
 requerir aws terraform zip jq
+exigir_cuenta
 
 BUCKET_ESTADO="$(tfstate_bucket)"
 LAKE="$(lake_bucket)"
@@ -24,7 +25,7 @@ trap 'rm -f "$PLAN_FILE"' EXIT
 
 msg "Terraform init (infra/aws)"
 cd "$ROOT_DIR/infra/aws" || exit 1
-terraform init -input=false \
+terraform init -reconfigure -input=false \
   -backend-config="bucket=$BUCKET_ESTADO" \
   -backend-config="key=aws/terraform.tfstate" \
   -backend-config="region=$AWS_REGION" \

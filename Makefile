@@ -10,11 +10,11 @@ export PREFIX AWS_REGION
 export PATH := $(CURDIR)/.venv/bin:$(PATH)
 
 .PHONY: help setup config doctor estado test secrets publicar-bootstrap retirar-bootstrap muestra run-local deploy airflow-on airflow-off airflow-local airflow-local-down airflow-local-estado \
-	airflow-habilitar airflow-deshabilitar snowflake \
-	airflow-tunel airflow-password desbloquear snowflake-ampliar-cuota destroy
+	airflow-habilitar airflow-deshabilitar snowflake snowflake-secreto snowflake-conexion \
+	airflow-tunel airflow-password desbloquear snowflake-ampliar-cuota destroy limpieza-total
 
 help: ## Muestra los targets disponibles
-	@grep -E '^[a-zA-Z_-]+:.*## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*## "} {printf "  %-24s %s\n", $$1, $$2}'
+	@grep -hE '^[a-zA-Z_-]+:.*## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*## "} {printf "  %-24s %s\n", $$1, $$2}'
 
 setup: ## Verifica herramientas, alinea AWS_REGION y crea la configuración de AWS en S3 si no existe
 	bash scripts/setup.sh
@@ -64,6 +64,9 @@ airflow-deshabilitar: ## enable_airflow=false en S3 y deploy (destruye la VM; ex
 snowflake: ## Apply de infra/snowflake, guarda sus outputs en S3 y aplica la fase 2 de AWS (SIN_DEPLOY=true omite el deploy)
 	bash scripts/snowflake.sh
 
+snowflake-secreto: ## Guarda la conexión de AIRFLOW_SVC (llave privada) en el secreto <prefix>/snowflake
+	bash scripts/snowflake-secreto.sh
+
 airflow-local: ## Airflow de dev en el Code Editor (UI: /codeeditor/default/ports/8080/)
 	bash scripts/airflow-local.sh up
 
@@ -85,5 +88,11 @@ desbloquear: ## Revierte las acciones de Budgets (quita la política Deny), con 
 snowflake-ampliar-cuota: ## Amplía la cuota de créditos del resource monitor (CUOTA=N)
 	CUOTA=$(CUOTA) bash scripts/snowflake-ampliar-cuota.sh
 
+snowflake-conexion: ## Configura la conexión por defecto de snow (llave en ~/.snowflake/keys, connections.toml)
+	bash scripts/snowflake-conexion.sh
+
 destroy: ## Vacía el lake y destruye Snowflake y AWS; opcional: bootstrap y state (confirmación escrita)
 	bash scripts/destroy.sh
+
+limpieza-total: ## SOLO INSTRUCTOR: deja la cuenta como nueva tras make destroy (Snowflake, EFS, state, validación, secrets)
+	bash scripts/limpieza-total.sh

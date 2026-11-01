@@ -48,6 +48,8 @@ GRANT CREATE DATABASE    ON ACCOUNT TO ROLE IDENTIFIER($role_tf);
 GRANT CREATE INTEGRATION ON ACCOUNT TO ROLE IDENTIFIER($role_tf);
 GRANT CREATE ROLE        ON ACCOUNT TO ROLE IDENTIFIER($role_tf);
 GRANT MANAGE GRANTS      ON ACCOUNT TO ROLE IDENTIFIER($role_tf);
+-- Terraform crea el usuario de servicio AIRFLOW_SVC (conexión de Airflow; infra/snowflake).
+GRANT CREATE USER        ON ACCOUNT TO ROLE IDENTIFIER($role_tf);
 
 -- Terraform NO asigna BIGDATA_RM al warehouse (requiere ACCOUNTADMIN): ver el paso 5.
 

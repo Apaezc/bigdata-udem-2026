@@ -13,3 +13,6 @@ lake_bucket = "bigdata-lake-<ACCOUNT_ID>-us-east-2"
 
 # Usuarios de Snowflake que reciben BIGDATA_DEV. Ejemplo: ["NOMBRE_ESTUDIANTE"]
 dev_users = []
+
+# AIRFLOW_SVC (usuario de Airflow): no hay nada que completar. El Makefile genera su llave
+# (~/.snowflake/keys/airflow_svc_rsa_key.*) y pasa la pública como TF_VAR_airflow_public_key.

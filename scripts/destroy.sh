@@ -16,6 +16,7 @@
 source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
 
 requerir aws terraform jq
+exigir_cuenta
 BUCKET_ESTADO="$(tfstate_bucket)"
 LAKE="$(lake_bucket)"
 STACK="${BOOTSTRAP_STACK:-${PREFIX}-bootstrap}"
@@ -40,7 +41,7 @@ echo "  - bucket del lake s3://${LAKE} (se vacía: bronze, silver, gold, code, d
 echo "  - infra/snowflake (warehouse, base de datos, rol, integración de almacenamiento)"
 echo "  - infra/aws (Glue, Athena, VM de Airflow, roles, secretos, presupuesto)"
 echo "El stack de bootstrap y el bucket de state se tocan solo si lo confirmas después."
-confirmar "Se destruirán los recursos del prefijo ${PREFIX} (estado en $BUCKET_ESTADO)." "destruir ${PREFIX}"
+confirmar "Se destruirán los recursos del prefijo ${PREFIX} en la cuenta ${CUENTA_AWS} (estado en $BUCKET_ESTADO)." "destruir ${PREFIX} ${CUENTA_AWS}"
 
 # --- 1) Vaciar el lake (sin versionado; force_destroy de Terraform queda como respaldo) ---
 if aws s3api head-bucket --bucket "$LAKE" >/dev/null 2>&1; then
@@ -59,7 +60,7 @@ elif [[ ! -f "$KEY" ]]; then
 else
   msg "Terraform destroy: infra/snowflake"
   cd "$SF_DIR" || exit 1
-  terraform init -input=false -backend-config="bucket=$BUCKET_ESTADO" \
+  terraform init -reconfigure -input=false -backend-config="bucket=$BUCKET_ESTADO" \
     -backend-config="key=snowflake/terraform.tfstate" -backend-config="region=$AWS_REGION" \
     -backend-config="use_lockfile=true"
   TF_VAR_private_key="$(cat "$KEY")" terraform destroy -input=false -auto-approve \
@@ -71,7 +72,7 @@ fi
 export TF_VAR_alert_email="${ALERT_EMAIL:-destroy@example.com}"
 msg "Terraform destroy: infra/aws"
 cd "$ROOT_DIR/infra/aws" || exit 1
-terraform init -input=false -backend-config="bucket=$BUCKET_ESTADO" \
+terraform init -reconfigure -input=false -backend-config="bucket=$BUCKET_ESTADO" \
   -backend-config="key=aws/terraform.tfstate" -backend-config="region=$AWS_REGION" \
   -backend-config="use_lockfile=true"
 terraform destroy -input=false -auto-approve

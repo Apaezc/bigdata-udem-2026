@@ -40,7 +40,7 @@ La fase 2 de Snowflake la escribe `make snowflake` (`config_set` con los outputs
 `deploy.sh` y `deploy.yml` guardan el plan con `-out`, lo leen con `terraform show -json` y abortan si hay acciones `delete` (o reemplazos), listando los recursos. Se permite con `CONFIRMAR_DESTRUCCION=true` (script) o con el input `confirmar_destruccion` (workflow manual). `make destroy` no usa esta guardia.
 
 ### `scripts/destroy.sh`
-Vacía el lake -> `terraform destroy` de `infra/snowflake` (necesita `terraform.tfvars` y la llave; si faltan avisa y sigue) -> `terraform destroy` de `infra/aws` -> opcional (segunda confirmación escrita o `INCLUIR_BOOTSTRAP=si`) borra el stack de bootstrap y vacía (todas las versiones y marcadores) y borra el bucket de state. Confirmación escrita `destruir <prefix>`.
+Vacía el lake -> `terraform destroy` de `infra/snowflake` (necesita `terraform.tfvars` y la llave; si faltan avisa y sigue) -> `terraform destroy` de `infra/aws` -> opcional (segunda confirmación escrita o `INCLUIR_BOOTSTRAP=si`) borra el stack de bootstrap y vacía (todas las versiones y marcadores) y borra el bucket de state. Confirmación escrita `destruir <prefix> <cuenta>`.
 
 ### Snowflake
 - `FUTURE TABLES` y `FUTURE VIEWS` `SELECT` para `BIGDATA_DEV` en BRONZE, SILVER y GOLD (`dev_future_select`).
