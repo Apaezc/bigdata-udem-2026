@@ -10,6 +10,11 @@ ID="$(find_airflow_instance_id)"
 ESTADO="$(instance_state "$ID")"
 [[ "$ESTADO" == "running" ]] || error "La instancia está '$ESTADO'. Ejecuta 'make airflow-on' primero."
 
+# El Airflow de dev (make airflow-local) también usa el puerto 8080: no pueden convivir.
+if (exec 3<>/dev/tcp/127.0.0.1/8080) 2>/dev/null; then
+  error "El puerto 8080 está ocupado (¿Airflow de dev encendido?). Apágalo con: cd $ROOT_DIR && make airflow-local-down"
+fi
+
 msg "Túnel SSM hacia $ID (deja esta terminal abierta; Ctrl+C para cerrar)."
 echo "Abre en el navegador la URL de tu Code Editor cambiando lo que va después del dominio por:"
 echo "  /codeeditor/default/ports/8080/"

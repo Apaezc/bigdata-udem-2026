@@ -316,7 +316,13 @@ Haz los pasos en este orden.
     cd ~/bigdata
     make airflow-habilitar
     ```
-    Después, al hacer merge a `main`, el Deploy publica código y DAGs y enciende la VM de prod si cambiaron `airflow/` o `src/`. Desde el Code Editor: `make airflow-tunel`, la misma URL, usuario `admin` y contraseña de `make airflow-password`. En prod el entorno también es fijo (`prod`, en la VM) y solo hay `computo=glue_medium` o `glue_large`, sin límite de filas: lanza `pipeline_taxi` con esos valores. La conexión de Snowflake ya está en el secreto `bigdata/snowflake` (la escribe `make snowflake`; ver [airflow/README.md](airflow/README.md)).
+    Después, al hacer merge a `main`, el Deploy publica código y DAGs y enciende la VM de prod si cambiaron `airflow/` o `src/`. Desde el Code Editor, primero apaga el Airflow de dev (usan el mismo puerto 8080) y abre el túnel; deja esa terminal abierta:
+    ```bash
+    cd ~/bigdata
+    make airflow-local-down
+    make airflow-tunel
+    ```
+    Abre la misma URL que en dev, usuario `admin` y contraseña de `make airflow-password`. En prod el entorno también es fijo (`prod`, en la VM) y solo hay `computo=glue_medium` o `glue_large`, sin límite de filas: lanza `pipeline_taxi` con esos valores. La conexión de Snowflake ya está en el secreto `bigdata/snowflake` (la escribe `make snowflake`; ver [airflow/README.md](airflow/README.md)).
 
 ## Configuración por estudiante
 
