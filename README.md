@@ -54,6 +54,41 @@ Haz los pasos en este orden.
 
 1. **Snowflake: cuenta trial en AWS, región `us-east-2`.** Crea la cuenta de prueba en snowflake.com eligiendo la nube **AWS** y la región **US East (Ohio)**. Si queda en Azure/GCP o en otra región de AWS, `make setup` te lo avisará y tendrás que crear otra cuenta.
 2. **Cuenta AWS.** Crea tu cuenta de AWS (plan gratuito) y trabaja siempre en `us-east-2`. Entra con un usuario con permisos de administrador solo para lanzar el bootstrap.
+   **Cuotas de AWS: revísalas antes del paso 4 y pide las que falten.** En cuentas nuevas AWS suele dejar algunas cuotas en `0` aunque su valor por defecto sea mayor, y entonces el bootstrap o el Code Editor fallan. Revisa estas cuatro (región **us-east-2**):
+
+   | Servicio | Cuota (nombre exacto en Service Quotas) | Código | Mínimo necesario | Si está por debajo, falla… |
+   |---|---|---|---|---|
+   | Amazon SageMaker | Maximum number of Studio user profiles allowed per account | — | 1 | el bootstrap (`StudentUserProfile`: `ServiceLimitExceeded`) |
+   | Amazon SageMaker | Studio CodeEditor Apps running on ml.t3.large instances | `L-656A17FA` | 1 | el **Run space** del Code Editor |
+   | Amazon SageMaker | Maximum number of domains | — | 1 | el bootstrap (`SageMakerDomain`) |
+   | Amazon EC2 | Running On-Demand Standard (A, C, D, H, I, M, R, T, Z) instances | `L-1216C47A` | 2 (vCPU) | `make airflow-habilitar` (VM de prod) |
+
+   **Cómo revisarlas.** Opción rápida: en la consola de AWS abre **CloudShell** (icono `>_` arriba a la derecha, región us-east-2), pega esto y pulsa Enter:
+   ```bash
+   for q in "sagemaker:Studio user profiles" "sagemaker:CodeEditor Apps running on ml.t3.large" \
+            "sagemaker:number of domains" "ec2:Running On-Demand Standard"; do
+     aws service-quotas list-service-quotas --service-code "${q%%:*}" --region us-east-2 \
+       --query "Quotas[?contains(QuotaName,'${q#*:}')].[QuotaName,Value]" --output text
+   done
+   ```
+   Salida esperada (todas con valor **≥ el mínimo** de la tabla):
+   ```text
+   Maximum number of Studio user profiles allowed per account	2.0
+   Studio CodeEditor Apps running on ml.t3.large instances	6.0
+   Maximum number of domains	...
+   Running On-Demand Standard (A, C, D, H, I, M, R, T, Z) instances	...
+   ```
+   Opción manual: **Service Quotas > AWS services >** el servicio > busca el nombre de la cuota y mira la columna **Applied account-level quota value**.
+
+   **Cómo pedir una que esté por debajo:**
+   1. **Service Quotas > AWS services >** el servicio > clic en el nombre de la cuota > **Request increase at account-level**.
+   2. Escribe el valor. El formulario **no acepta menos que el valor por defecto** (por ejemplo, para Code Editor ml.t3.large exige `6` aunque solo uses 1): pon el valor por defecto. No cuesta nada: la cuota es un límite, AWS solo cobra lo que de verdad corre.
+   3. Envía. Sigue el estado en **Service Quotas > Quota request history**. Algunas se aprueban en minutos; otras se convierten en un caso de soporte (**Support > Your support cases**). Si es un caso, responde en él con tu caso de uso, por ejemplo:
+      > Use case: university Big Data course. I will run one SageMaker Studio Code Editor app on ml.t3.large in us-east-2 for development, stopped when not in use. Budgets and cost alerts are configured.
+   4. Cuando el valor aplicado sea ≥ el mínimo, sigue con el paso 4. Si el bootstrap ya había fallado por una cuota, antes de relanzarlo borra el stack `bigdata-bootstrap` (CloudFormation > **Delete**) y el bucket `bigdata-tfstate-<cuenta>-us-east-2` (S3 > **Empty** y **Delete**).
+
+   Si CloudShell responde *"Your account verification is in progress"*, AWS todavía está verificando tu cuenta nueva: hasta que termine (te llega un correo) no podrás usar CloudShell ni lanzar el bootstrap, y las cuotas pueden seguir en 0.
+
 3. **Fork y Actions.** Haz fork de este repositorio en tu GitHub. En el fork, pestaña **Actions**, habilita los workflows ("I understand my workflows, go ahead and enable them").
 4. **Launch Stack (bootstrap AWS).** En tu fork: **Actions > "Enlace de bootstrap" > Run workflow**. Abre el run y haz clic en el enlace **Launch Stack** del resumen: tus datos de GitHub ya vienen completados. Solo eliges la VPC *default*, todas sus subnets y tu correo, marcas la casilla de IAM y creas el stack. Espera `CREATE_COMPLETE` (~4 min). Detalle: [docs/bootstrap.md](docs/bootstrap.md).
 5. **Code Editor.** En la consola de AWS: **Amazon SageMaker AI > Domains** > tu dominio > pestaña **User profiles** > `estudiante` > **Launch > Studio**. En Studio: **Code Editor** > Space `dev` > **Run space** (la primera vez tarda 3-5 min) > **Open**. Abre una terminal: menú **Terminal > New Terminal**.
