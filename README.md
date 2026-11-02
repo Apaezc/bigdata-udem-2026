@@ -58,12 +58,13 @@ Haz los pasos en este orden.
 4. **Launch Stack (bootstrap AWS).** En tu fork: **Actions > "Enlace de bootstrap" > Run workflow**. Abre el run y haz clic en el enlace **Launch Stack** del resumen: tus datos de GitHub ya vienen completados. Solo eliges la VPC *default*, todas sus subnets y tu correo, marcas la casilla de IAM y creas el stack. Espera `CREATE_COMPLETE` (~4 min). Detalle: [docs/bootstrap.md](docs/bootstrap.md).
 5. **Code Editor.** En la consola de AWS: **Amazon SageMaker AI > Domains** > tu dominio > pestaña **User profiles** > `estudiante` > **Launch > Studio**. En Studio: **Code Editor** > Space `dev` > **Run space** (la primera vez tarda 3-5 min) > **Open**. Abre una terminal: menú **Terminal > New Terminal**.
    (No abras el enlace `StudioConsoleUrl` directamente: pide un token y da "Invalid or Expired Auth Token".)
-6. **Clona tu fork** en la terminal del Code Editor. Todos los comandos `make` de aquí en adelante se ejecutan **dentro de la carpeta del fork**:
+6. **Clona tu fork** en la terminal del Code Editor, siempre en la carpeta `~/bigdata` (así todos los comandos de esta guía se copian y pegan tal cual, sin cambiar nada). Solo aquí reemplazas `<TU_USUARIO>` y `<TU_FORK>` por los tuyos:
    ```bash
    cd ~
-   git clone https://github.com/<TU_USUARIO>/<TU_FORK>.git
-   cd ~/<TU_FORK>
+   git clone https://github.com/<TU_USUARIO>/<TU_FORK>.git ~/bigdata
+   cd ~/bigdata
    ```
+   Ejemplo: `git clone https://github.com/jperez/bigdata-udem-2026.git ~/bigdata`. Todos los comandos `make` de aquí en adelante se ejecutan **dentro de `~/bigdata`**: el prompt debe terminar en `~/bigdata$`.
 7. **Conexión de Snowflake.**
    1. **Averigua tus datos.** En Snowsight crea una hoja con el botón **+** (arriba a la izquierda) > **SQL Worksheet**, pega esto y pulsa **Run All** (flecha junto a ▶):
       ```sql
@@ -80,7 +81,7 @@ Haz los pasos en este orden.
       ```
    2. **Ejecuta el script** en la terminal del Code Editor:
       ```bash
-      cd ~/<TU_FORK>
+      cd ~/bigdata
       make snowflake-conexion
       ```
       Escribe los dos valores cuando te los pida:
@@ -103,7 +104,7 @@ Haz los pasos en este orden.
    5. **Vuelve a la terminal y pulsa Enter.** El script prueba la conexión. Si todo está bien, termina con `Conexión configurada. Siguiente paso: make setup`.
    6. **Comprueba** cuando quieras:
       ```bash
-      cd ~/<TU_FORK>
+      cd ~/bigdata
       snow connection test
       ```
       Salida exitosa (con tus valores): `Status` debe ser `OK` y `User` tu LOGIN. Que `Database` y `Warehouse` digan `not set` es normal en este punto: se crean en el paso 11.
@@ -126,16 +127,16 @@ Haz los pasos en este orden.
 
    | Mensaje | Causa | Cómo evitarlo / resolverlo |
    |---|---|---|
-   | `make: *** No rule to make target 'snowflake-conexion'` | Estás fuera de la carpeta del fork (el prompt muestra `~$`). | `cd ~/<TU_FORK>` y repite. El prompt debe terminar en `~/<TU_FORK>$`. |
-   | `JWT token is invalid` | Pulsaste Enter **antes** de ejecutar el `ALTER USER`, o escribiste en LOGIN el valor de USUARIO (en cuentas trial el login suele ser tu correo). | Usa los valores exactos de la consulta del paso 1. Ejecuta el `ALTER USER`, espera `Statement executed successfully.` y solo entonces pulsa Enter. Para reintentar: `cd ~/<TU_FORK> && make snowflake-conexion`. |
+   | `make: *** No rule to make target 'snowflake-conexion'` | Estás fuera de la carpeta del fork (el prompt muestra `~$`). | `cd ~/bigdata` y repite. El prompt debe terminar en `~/bigdata$`. |
+   | `JWT token is invalid` | Pulsaste Enter **antes** de ejecutar el `ALTER USER`, o escribiste en LOGIN el valor de USUARIO (en cuentas trial el login suele ser tu correo). | Usa los valores exactos de la consulta del paso 1. Ejecuta el `ALTER USER`, espera `Statement executed successfully.` y solo entonces pulsa Enter. Para reintentar: `cd ~/bigdata && make snowflake-conexion`. |
    | `User '...' does not exist` al ejecutar el `ALTER USER` | El nombre entre comillas distingue mayúsculas y no coincide con USUARIO. | Copia USUARIO tal cual lo muestra la consulta (mismas mayúsculas/minúsculas). |
    | `Insufficient privileges` al ejecutar el `ALTER USER` | Faltó `USE ROLE ACCOUNTADMIN;`. | Pega las dos líneas juntas y usa **Run All**. |
-   | `Could not use warehouse "BIGDATA_WH"` | Conexión creada con una versión vieja del script que fijaba un warehouse que aún no existe. | `cd ~/<TU_FORK> && git pull` y repite `make snowflake-conexion` (o borra la línea `warehouse = ...` de `~/.snowflake/connections.toml`). |
+   | `Could not use warehouse "BIGDATA_WH"` | Conexión creada con una versión vieja del script que fijaba un warehouse que aún no existe. | `cd ~/bigdata && git pull` y repite `make snowflake-conexion` (o borra la línea `warehouse = ...` de `~/.snowflake/connections.toml`). |
 
    No compartas ni subas la llave privada: queda en `~/.snowflake/keys/<usuario>_key.p8` y no sale del Code Editor. La sentencia `ALTER USER` solo lleva la llave pública.
 8. **`make setup`.**
    ```bash
-   cd ~/<TU_FORK>
+   cd ~/bigdata
    make setup
    make doctor
    ```
@@ -157,7 +158,7 @@ Haz los pasos en este orden.
    Verifica herramientas (Python 3.11+, Java 17, AWS CLI, Terraform, `snow`, jq, zip; las instala el Lifecycle Config al arrancar), crea `.venv`, valida que Snowflake esté en AWS, alinea `AWS_REGION` y crea en S3 la configuración de Terraform (te pide el correo de alertas).
 9. **Secrets del fork: automáticos.** `make setup` los carga (`AWS_ROLE_ARN` y `TF_STATE_BUCKET`). Si te dice que GitHub no está autenticado, hazlo una vez y repite:
    ```bash
-   cd ~/<TU_FORK>
+   cd ~/bigdata
    gh auth login --hostname github.com --git-protocol https --web
    make secrets
    ```
@@ -203,7 +204,7 @@ Haz los pasos en este orden.
 
 10. **`make deploy`.**
     ```bash
-    cd ~/<TU_FORK>
+    cd ~/bigdata
     make deploy
     ```
     Aplica `infra/aws` (lake, Glue, Athena, guardrails y, si lo activas, Airflow) y sube a S3 el código del pipeline (`pipeline.zip`, `run_glue.py`), los DAGs y el framework de Airflow. La VM de prod solo existe si activas Airflow con `make airflow-habilitar` (cambia `enable_airflow` y despliega); el Airflow de dev corre en el Code Editor y no lo necesita. También se ejecuta solo en cada push a `main`.
@@ -231,7 +232,7 @@ Haz los pasos en este orden.
 
 11. **Snowflake (después de AWS).** Un solo comando:
     ```bash
-    cd ~/<TU_FORK>
+    cd ~/bigdata
     make snowflake
     ```
     Usa tu conexión de `snow` (paso 7) y los outputs del paso 10, así que no hay que copiar valores ni editar archivos. Hace, en orden:
@@ -246,13 +247,13 @@ Haz los pasos en este orden.
 
 12. **Prepara los datos (una vez).**
     ```bash
-    cd ~/<TU_FORK>
+    cd ~/bigdata
     make muestra
     ```
     Glue baja el año de FHVHV a `bronze/` (~5.4 GB) y genera la muestra en `muestra/` (~US$0.15, ~5 min). Si termina en `TIMEOUT`, repítelo: retoma desde lo que ya descargó.
 13. **Desarrolla en local y dev.**
     ```bash
-    cd ~/<TU_FORK>
+    cd ~/bigdata
     make run-local        # o: make run-local LIMITE=100 (prueba rapidísima)
     make airflow-local    # Airflow de dev
     ```
