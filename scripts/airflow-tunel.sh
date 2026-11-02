@@ -16,9 +16,7 @@ if (exec 3<>/dev/tcp/127.0.0.1/8080) 2>/dev/null; then
 fi
 
 msg "Túnel SSM hacia $ID (deja esta terminal abierta; Ctrl+C para cerrar)."
-echo "Abre en el navegador la URL de tu Code Editor cambiando lo que va después del dominio por:"
-echo "  /codeeditor/default/ports/8080/"
-echo "  ej.: https://<id-del-space>.studio.${AWS_REGION}.sagemaker.aws/codeeditor/default/ports/8080/"
+echo "UI de Airflow (prod): $(url_airflow_studio)"
 
 aws ssm start-session \
   --target "$ID" \
