@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 520" font-family="Inter, 'Helvetica Neue', Arial, sans-serif" font-size="22" fill="#15171C">
+  <defs>
+    <marker id="arr" viewBox="0 0 14 14" refX="14" refY="7" markerWidth="14" markerHeight="14" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0,0 L14,7 L0,14 Z" fill="#15171C"/>
+    </marker>
+    <marker id="arr-g" viewBox="0 0 14 14" refX="14" refY="7" markerWidth="14" markerHeight="14" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0,0 L14,7 L0,14 Z" fill="#5F6672"/>
+    </marker>
+  </defs>
+
+  <!-- Capa bronze -->
+  <rect x="24" y="96" width="340" height="346" rx="6" fill="#B4622F" fill-opacity="0.12" stroke="#B4622F" stroke-width="3"/>
+  <text x="44" y="128" font-size="26" font-weight="700">Bronze</text>
+  <text x="44" y="158" font-weight="700">Contrato</text>
+  <text x="44" y="180">Inmutable y</text>
+  <text x="44" y="203">reproducible: el archivo</text>
+  <text x="44" y="226">tal como llegó</text>
+  <text x="44" y="281" font-weight="700">Transformaciones</text>
+  <text x="44" y="303">Ninguna</text>
+  <text x="44" y="358" font-weight="700">Ruta</text>
+  <text x="44" y="380" font-size="20" font-family="Menlo, Consolas, monospace">bronze/fhvhv/mes=YYYY-MM/</text>
+  <text x="44" y="403">(Parquet) · zonas sin</text>
+  <text x="44" y="426">partición · clima por mes</text>
+
+  <!-- Capa silver -->
+  <rect x="430" y="96" width="340" height="346" rx="6" fill="#6E7F94" fill-opacity="0.12" stroke="#6E7F94" stroke-width="3"/>
+  <text x="450" y="128" font-size="26" font-weight="700">Silver</text>
+  <text x="450" y="158" font-weight="700">Contrato</text>
+  <text x="450" y="180">Limpio, tipado y</text>
+  <text x="450" y="203">enriquecido; 16 columnas;</text>
+  <text x="450" y="226">sin duplicados si la</text>
+  <text x="450" y="249">fuente trae clave</text>
+  <text x="450" y="281" font-weight="700">Transformaciones</text>
+  <text x="450" y="303">Tipos, filtros, unión</text>
+  <text x="450" y="326">con zona y clima</text>
+  <text x="450" y="358" font-weight="700">Ruta</text>
+  <text x="450" y="380" font-size="20" font-family="Menlo, Consolas, monospace">silver/fhvhv_trips/</text>
+  <text x="450" y="403" font-size="20" font-family="Menlo, Consolas, monospace">pickup_date=…</text>
+
+  <!-- Capa gold -->
+  <rect x="836" y="96" width="340" height="346" rx="6" fill="#B07F0E" fill-opacity="0.12" stroke="#B07F0E" stroke-width="3"/>
+  <text x="856" y="128" font-size="26" font-weight="700">Gold</text>
+  <text x="856" y="158" font-weight="700">Contrato</text>
+  <text x="856" y="180">Agregado para un consumo;</text>
+  <text x="856" y="203">8 columnas; clave única</text>
+  <text x="856" y="281" font-weight="700">Transformaciones</text>
+  <text x="856" y="303">Agrupar por fecha ×</text>
+  <text x="856" y="326">zona × empresa</text>
+  <text x="856" y="358" font-weight="700">Ruta</text>
+  <text x="856" y="380" font-size="20" font-family="Menlo, Consolas, monospace">gold/daily_zone_metrics/</text>
+  <text x="856" y="403" font-size="20" font-family="Menlo, Consolas, monospace">mes=YYYY-MM/</text>
+
+  <!-- Flechas entre capas: bronze → silver → gold -->
+  <line x1="368" y1="150" x2="428" y2="150" stroke="#15171C" stroke-width="3" marker-end="url(#arr)"/>
+  <text x="398" y="84" text-anchor="middle">limpia y une</text>
+  <line x1="774" y1="150" x2="834" y2="150" stroke="#15171C" stroke-width="3" marker-end="url(#arr)"/>
+  <text x="804" y="84" text-anchor="middle">agrega</text>
+
+  <!-- Regla nueva: gold → bronze -->
+  <path d="M1006,448 C1006,492 194,492 194,448" fill="none" stroke="#5F6672" stroke-width="3" marker-end="url(#arr-g)"/>
+  <text x="600" y="512" text-anchor="middle" fill="#5F6672">una regla nueva se aplica desde bronze</text>
+</svg>

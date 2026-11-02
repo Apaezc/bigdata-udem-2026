@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 520" font-family="Inter, 'Helvetica Neue', Arial, sans-serif">
+  <title>Fuentes del caso: viajes, zonas y clima</title>
+  <desc>Tres cajas: viajes en Parquet, zonas en CSV y clima en JSON anidado, unidas por zona (PULocationID) y por fecha. Ninguna responde sola.</desc>
+
+  <clipPath id="d1-band"><rect x="24" y="16" width="1152" height="64" rx="6"/></clipPath>
+  <rect x="24" y="16" width="1152" height="64" rx="6" fill="#F0EEE7"/>
+  <rect x="24" y="16" width="6" height="64" fill="#2340D8" clip-path="url(#d1-band)"/>
+  <text x="48" y="56" font-size="22" fill="#15171C">Tres fuentes, tres formatos, tres granos: ninguna responde sola.</text>
+
+  <!-- Cajas de fuente (neutras) -->
+  <g fill="#F0EEE7" stroke="#5F6672" stroke-width="2">
+    <rect x="24" y="100" width="360" height="250" rx="6"/>
+    <rect x="420" y="100" width="360" height="250" rx="6"/>
+    <rect x="816" y="100" width="360" height="250" rx="6"/>
+  </g>
+
+  <g font-size="22" fill="#15171C">
+    <text x="44" y="144" font-size="26" font-weight="700">Viajes TLC (FHVHV)</text>
+    <text x="44" y="184">Formato: Parquet</text>
+    <text x="44" y="214">Grano: un viaje</text>
+    <text x="44" y="244">239.5 M filas en 2024</text>
+    <text x="44" y="274">Llega: un archivo al mes</text>
+
+    <text x="440" y="144" font-size="26" font-weight="700">Zonas de taxi</text>
+    <text x="440" y="184">Formato: CSV</text>
+    <text x="440" y="214">Grano: una zona</text>
+    <text x="440" y="244">LocationID, Borough,</text>
+    <text x="440" y="274">Zone, service_zone</text>
+    <text x="440" y="304">Llega: archivo estático</text>
+
+    <text x="836" y="144" font-size="26" font-weight="700">Clima Open-Meteo</text>
+    <text x="836" y="184">Formato: JSON anidado (daily)</text>
+    <text x="836" y="214">Grano: un día, toda la ciudad</text>
+    <text x="836" y="244">precipitation_sum,</text>
+    <text x="836" y="274">temperature_2m_mean</text>
+    <text x="836" y="304">Llega: API diaria</text>
+  </g>
+
+  <!-- Uniones (acento) -->
+  <g stroke="#2340D8" stroke-width="4" fill="none">
+    <line x1="204" y1="350" x2="204" y2="455"/>
+    <line x1="600" y1="350" x2="600" y2="385"/>
+    <line x1="996" y1="350" x2="996" y2="455"/>
+    <line x1="204" y1="385" x2="600" y2="385"/>
+    <line x1="204" y1="455" x2="996" y2="455"/>
+  </g>
+  <g fill="#2340D8">
+    <circle cx="204" cy="385" r="7"/>
+    <circle cx="600" cy="385" r="7"/>
+    <circle cx="204" cy="455" r="7"/>
+    <circle cx="996" cy="455" r="7"/>
+  </g>
+
+  <g font-size="22" fill="#15171C">
+    <text x="226" y="418">unión por zona: PULocationID = LocationID</text>
+    <text x="600" y="492" text-anchor="middle">unión por fecha: fecha del viaje = fecha del clima</text>
+  </g>
+</svg>

@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 520" font-family="Inter, 'Helvetica Neue', Arial, sans-serif">
+  <title>Mapa del curso al cierre: requisitos vistos y clases</title>
+  <desc>Variante de cierre del mapa del curso: cada uno de los cinco requisitos lleva una marca de concepto visto hoy y su pieza y clase; la clase indicada lo construye.</desc>
+
+  <!-- Pregunta (acento) -->
+  <rect x="24" y="150" width="230" height="220" rx="6" fill="#2340D8"/>
+  <g font-size="26" font-weight="700" fill="#FFFFFF" text-anchor="middle">
+    <text x="139" y="236">¿La lluvia</text>
+    <text x="139" y="270">cambia los</text>
+    <text x="139" y="304">viajes?</text>
+  </g>
+
+  <!-- Conectores -->
+  <g stroke="#5F6672" stroke-width="2" fill="none">
+    <line x1="254" y1="260" x2="296" y2="60"/>
+    <line x1="254" y1="260" x2="296" y2="148"/>
+    <line x1="254" y1="260" x2="296" y2="236"/>
+    <line x1="254" y1="260" x2="296" y2="324"/>
+    <line x1="254" y1="260" x2="296" y2="412"/>
+  </g>
+
+  <!-- Filas: marca | requisito | pieza | clase -->
+  <g fill="#F0EEE7" stroke="#5F6672" stroke-width="2">
+    <rect x="296" y="24" width="880" height="72" rx="6"/>
+    <rect x="296" y="112" width="880" height="72" rx="6"/>
+    <rect x="296" y="200" width="880" height="72" rx="6"/>
+    <rect x="296" y="288" width="880" height="72" rx="6"/>
+    <rect x="296" y="376" width="880" height="72" rx="6"/>
+  </g>
+
+  <!-- Marcas de concepto visto hoy -->
+  <g stroke="#15171C" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <polyline points="320,60 325,66 335,54"/>
+    <polyline points="320,148 325,154 335,142"/>
+    <polyline points="320,236 325,242 335,230"/>
+    <polyline points="320,324 325,330 335,318"/>
+    <polyline points="320,412 325,418 335,406"/>
+  </g>
+
+  <g font-size="22" fill="#15171C">
+    <text x="352" y="68" font-weight="700">Traer 3 fuentes</text>
+    <text x="600" y="68">Descarga a bronze (S3)</text>
+    <text x="352" y="156" font-weight="700">Guardar el crudo</text>
+    <text x="600" y="156">Data lake en S3</text>
+    <text x="352" y="244" font-weight="700">Limpiar y unir</text>
+    <text x="600" y="244">Spark en Glue</text>
+    <text x="352" y="332" font-weight="700">Repetir sin duplicar</text>
+    <text x="600" y="332">Airflow (DAG)</text>
+    <text x="352" y="420" font-weight="700">Responder rápido</text>
+    <text x="600" y="420">Snowflake y SQL</text>
+  </g>
+
+  <!-- Pastillas de clase (acento con trazo blanco) -->
+  <g fill="#2340D8" stroke="#FFFFFF" stroke-width="2">
+    <rect x="1002" y="44" width="150" height="32" rx="16"/>
+    <rect x="1002" y="132" width="150" height="32" rx="16"/>
+    <rect x="1002" y="220" width="150" height="32" rx="16"/>
+    <rect x="1002" y="308" width="150" height="32" rx="16"/>
+    <rect x="1002" y="396" width="150" height="32" rx="16"/>
+  </g>
+  <g font-size="22" font-weight="700" fill="#FFFFFF" text-anchor="middle">
+    <text x="1077" y="68">Clase 4</text>
+    <text x="1077" y="156">Clase 4</text>
+    <text x="1077" y="244">Clase 5</text>
+    <text x="1077" y="332">Clase 6</text>
+    <text x="1077" y="420">Clases 2-3</text>
+  </g>
+
+  <!-- Pie con leyenda de la marca -->
+  <polyline points="298,478 303,484 313,472" stroke="#15171C" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="322" y="486" font-size="22" fill="#5F6672">= concepto visto hoy; la clase indicada lo construye</text>
+</svg>

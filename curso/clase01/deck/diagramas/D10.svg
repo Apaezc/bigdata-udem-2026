@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 520">
+  <defs>
+    <marker id="ah" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="14" viewBox="0 0 14 14" refX="14" refY="7" orient="auto">
+      <path d="M0,0 L14,7 L0,14 Z" fill="#15171C"/>
+    </marker>
+    <marker id="ahA" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="14" viewBox="0 0 14 14" refX="14" refY="7" orient="auto">
+      <path d="M0,0 L14,7 L0,14 Z" fill="#2340D8"/>
+    </marker>
+    <clipPath id="cbBot"><rect x="24" y="440" width="1152" height="64" rx="6"/></clipPath>
+  </defs>
+
+  <g font-family="Inter, 'Helvetica Neue', Arial, sans-serif" font-size="22" fill="#15171C">
+
+    <!-- Entradas (columna izquierda) -->
+    <rect x="24" y="40" width="316" height="80" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+    <text x="182" y="72" text-anchor="middle">Viaje: 2024-01-24</text>
+    <text x="182" y="98" text-anchor="middle">07:04:00 · 132 · 16.2</text>
+
+    <rect x="24" y="180" width="316" height="80" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+    <text x="182" y="212" text-anchor="middle">trip_miles = "n/d"</text>
+    <text x="182" y="238" text-anchor="middle">(ejemplo)</text>
+
+    <rect x="24" y="300" width="316" height="100" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+    <text x="182" y="330" text-anchor="middle">JSON del clima:</text>
+    <text x="182" y="356" text-anchor="middle">daily.time[ ] y</text>
+    <text x="182" y="382" text-anchor="middle">precipitation_sum[ ]</text>
+
+    <!-- Trayectorias. Toda entrada llega a la compuerta; de ella sale hacia la tabla -->
+    <!-- Viaje válido: entra a la compuerta por la izquierda y sale por la derecha -->
+    <path d="M340,80 H498" fill="none" stroke="#2340D8" stroke-width="4" marker-end="url(#ahA)"/>
+    <path d="M742,80 H820" fill="none" stroke="#2340D8" stroke-width="4" marker-end="url(#ahA)"/>
+
+    <!-- trip_miles inválido: se detiene antes de la compuerta con ✕ -->
+    <path d="M340,220 H461" fill="none" stroke="#15171C" stroke-width="3"/>
+    <path d="M461,211 L479,229 M479,211 L461,229" fill="none" stroke="#15171C" stroke-width="3" stroke-linecap="round"/>
+    <text x="420" y="206" text-anchor="middle">rechazado</text>
+
+    <!-- JSON anidado: se detiene antes de la compuerta con ✕ -->
+    <path d="M340,340 H461" fill="none" stroke="#15171C" stroke-width="3"/>
+    <path d="M461,331 L479,349 M479,331 L461,349" fill="none" stroke="#15171C" stroke-width="3" stroke-linecap="round"/>
+    <text x="420" y="296" text-anchor="middle">no es</text>
+    <text x="420" y="322" text-anchor="middle">una fila</text>
+
+    <!-- JSON → Aplanar: rodea la compuerta por debajo -->
+    <path d="M194,400 V424 H988 V400" fill="none" stroke="#2340D8" stroke-width="4" marker-end="url(#ahA)"/>
+
+    <!-- Aplanar entra a la compuerta por la derecha -->
+    <path d="M820,360 H742" fill="none" stroke="#2340D8" stroke-width="4" marker-end="url(#ahA)"/>
+
+    <!-- Salida hacia la tabla clima -->
+    <path d="M742,220 H820" fill="none" stroke="#2340D8" stroke-width="4" marker-end="url(#ahA)"/>
+
+    <!-- Compuerta: esquema (se dibuja después de las flechas) -->
+    <rect x="500" y="40" width="240" height="360" rx="6" fill="#F0EEE7" stroke="#2340D8" stroke-width="4"/>
+    <text x="620" y="172" font-weight="700" text-anchor="middle">Esquema:</text>
+    <text x="620" y="206" text-anchor="middle">pickup_datetime</text>
+    <text x="620" y="232" text-anchor="middle">TIMESTAMP ·</text>
+    <text x="620" y="258" text-anchor="middle">PULocationID INT ·</text>
+    <text x="620" y="284" text-anchor="middle">trip_miles DOUBLE</text>
+
+    <!-- Salidas (columna derecha) -->
+    <rect x="820" y="40" width="356" height="80" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+    <text x="998" y="88" text-anchor="middle">Tabla viajes</text>
+    <path d="M1120,80 L1129,89 L1146,70" fill="none" stroke="#2340D8" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+
+    <rect x="820" y="180" width="356" height="80" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+    <text x="998" y="212" text-anchor="middle">Tabla clima</text>
+    <text x="998" y="238" text-anchor="middle">(fecha, lluvia_mm)</text>
+
+    <rect x="820" y="320" width="356" height="80" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+    <text x="998" y="368" text-anchor="middle">Aplanar: una fila por día</text>
+
+    <!-- Banda inferior (límite) -->
+    <rect x="24" y="440" width="1152" height="64" rx="6" fill="#F0EEE7"/>
+    <rect x="24" y="440" width="6" height="64" fill="#5F6672" clip-path="url(#cbBot)"/>
+    <text x="54" y="466">Límite: si TLC agrega una columna, en un warehouse clásico hay que alterar la tabla</text>
+    <text x="54" y="492">(ALTER TABLE ADD COLUMN); las filas viejas quedan en NULL.</text>
+  </g>
+</svg>

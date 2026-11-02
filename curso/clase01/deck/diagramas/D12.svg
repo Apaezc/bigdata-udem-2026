@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 520">
+  <defs>
+    <clipPath id="cbBot"><rect x="24" y="440" width="1152" height="64" rx="6"/></clipPath>
+  </defs>
+
+  <g font-family="Inter, 'Helvetica Neue', Arial, sans-serif" font-size="22" fill="#15171C">
+
+    <!-- Dimensiones: arriba a la izquierda, arriba a la derecha, abajo a la izquierda -->
+    <rect x="24" y="40" width="220" height="150" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+    <text x="38" y="72" font-weight="700">dim_zona:</text>
+    <text x="38" y="98">LocationID,</text>
+    <text x="38" y="124">Borough, Zone</text>
+
+    <rect x="956" y="40" width="220" height="150" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+    <text x="970" y="72" font-weight="700">dim_fecha:</text>
+    <text x="970" y="98">fecha, día de la</text>
+    <text x="970" y="124">semana, lluvia_mm,</text>
+    <text x="970" y="150">temp_media_c</text>
+
+    <rect x="24" y="250" width="220" height="150" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+    <text x="38" y="282" font-weight="700">dim_empresa:</text>
+    <text x="38" y="308">licencia HV0003,</text>
+    <text x="38" y="334">nombre Uber</text>
+
+    <!-- Nota en gris: cuarta esquina -->
+    <text x="970" y="282" fill="#5F6672">Clima diario: atributo</text>
+    <text x="970" y="308" fill="#5F6672">de dim_fecha, un valor</text>
+    <text x="970" y="334" fill="#5F6672">por día para toda la</text>
+    <text x="970" y="360" fill="#5F6672">ciudad</text>
+
+    <!-- Tabla de hechos: fact_viaje (caja resaltada) -->
+    <rect x="400" y="40" width="400" height="360" rx="6" fill="#F0EEE7" stroke="#2340D8" stroke-width="4"/>
+    <text x="600" y="76" font-size="24" font-weight="700" text-anchor="middle">fact_viaje · grano: un viaje</text>
+    <line x1="424" y1="90" x2="776" y2="90" stroke="#D9D6CC" stroke-width="2"/>
+
+    <!-- Claves a la izquierda: pu_location_id y licencia -->
+    <text x="424" y="128" font-weight="700">pu_location_id</text>
+    <text x="424" y="154" fill="#5F6672">(FK)</text>
+    <text x="424" y="280" font-weight="700">licencia</text>
+    <text x="424" y="306" fill="#5F6672">(FK)</text>
+
+    <!-- Clave a la derecha: fecha; luego las medidas -->
+    <text x="600" y="128" font-weight="700">fecha</text>
+    <text x="600" y="154" fill="#5F6672">(FK)</text>
+    <text x="600" y="200" fill="#5F6672">Medidas</text>
+    <text x="600" y="230">distancia_mi</text>
+    <text x="600" y="256">duracion_min</text>
+    <text x="600" y="282">tarifa_base</text>
+    <text x="600" y="308">propina</text>
+    <text x="600" y="334">total_pagado</text>
+    <text x="600" y="360" fill="#5F6672">(derivada)</text>
+
+    <!-- Relaciones FK: líneas de 3 px con rótulo de la clave -->
+    <path d="M400,122 H244" fill="none" stroke="#15171C" stroke-width="3"/>
+    <text x="322" y="112" text-anchor="middle">pu_location_id</text>
+    <path d="M800,122 H956" fill="none" stroke="#15171C" stroke-width="3"/>
+    <text x="878" y="112" text-anchor="middle">fecha</text>
+    <path d="M400,274 H244" fill="none" stroke="#15171C" stroke-width="3"/>
+    <text x="322" y="264" text-anchor="middle">licencia</text>
+
+    <!-- Banda inferior (ejemplo/límite) -->
+    <rect x="24" y="440" width="1152" height="64" rx="6" fill="#F0EEE7"/>
+    <rect x="24" y="440" width="6" height="64" fill="#5F6672" clip-path="url(#cbBot)"/>
+    <text x="54" y="480">En el curso, silver desnormaliza: borough, zona y lluvia_mm ya vienen unidos al viaje.</text>
+  </g>
+</svg>

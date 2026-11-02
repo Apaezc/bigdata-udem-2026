@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 520" font-family="Inter, 'Helvetica Neue', Arial, sans-serif">
+  <title>Un bucket con tres objetos, cada uno con clave, bytes y metadatos.</title>
+  <desc>Almacenamiento de objetos: un bucket s3://lake/ con tres rutas reales del lake (viajes, zonas y clima). A la derecha, la anatomía de un objeto: clave, bytes y metadatos. Debajo, ventajas y límites.</desc>
+
+  <defs>
+    <marker id="d15-ah" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="14" markerHeight="14" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#15171C"/>
+    </marker>
+    <clipPath id="d15-top"><rect x="24" y="16" width="1152" height="64" rx="6"/></clipPath>
+    <clipPath id="d15-bot"><rect x="24" y="440" width="1152" height="64" rx="6"/></clipPath>
+  </defs>
+
+  <!-- Banda superior -->
+  <rect x="24" y="16" width="1152" height="64" rx="6" fill="#F0EEE7"/>
+  <rect x="24" y="16" width="6" height="64" fill="#2340D8" clip-path="url(#d15-top)"/>
+  <g font-size="22" fill="#15171C">
+    <text x="50" y="40">Almacenamiento de objetos: espacio plano de pares clave → bytes,</text>
+    <text x="50" y="68">accesible por API (PUT, GET, LIST, DELETE).</text>
+  </g>
+
+  <!-- Bucket con tres objetos -->
+  <rect x="24" y="100" width="840" height="206" rx="6" fill="#FFFFFF" stroke="#2340D8" stroke-width="4"/>
+  <text x="48" y="132" font-size="26" font-weight="700" fill="#15171C">s3://lake/</text>
+  <text x="60" y="160" font-size="22" fill="#5F6672">clave</text>
+
+  <g fill="#F0EEE7">
+    <rect x="48" y="168" width="792" height="36" rx="6"/>
+    <rect x="48" y="212" width="792" height="36" rx="6"/>
+    <rect x="48" y="256" width="792" height="36" rx="6"/>
+  </g>
+  <g font-family="Menlo, Consolas, monospace" font-size="22" fill="#15171C">
+    <text x="84" y="194">bronze/fhvhv/mes=2024-01/fhvhv_tripdata_2024-01.parquet</text>
+    <text x="84" y="238">bronze/taxi_zones/taxi_zone_lookup.csv</text>
+    <text x="84" y="282">bronze/clima/mes=2024-01/open_meteo_2024-01.json</text>
+  </g>
+
+  <!-- Anatomía de un objeto -->
+  <rect x="888" y="100" width="288" height="328" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+  <g stroke="#5F6672" stroke-width="2">
+    <line x1="888" y1="209" x2="1176" y2="209"/>
+    <line x1="888" y1="318" x2="1176" y2="318"/>
+  </g>
+  <g font-size="22" fill="#15171C" text-anchor="middle">
+    <text x="1032" y="163">clave (ruta completa)</text>
+    <text x="1032" y="272">bytes</text>
+    <text x="1032" y="381">metadatos</text>
+  </g>
+
+  <!-- Ventajas y límites -->
+  <rect x="24" y="326" width="412" height="102" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+  <text x="40" y="356" font-size="22" fill="#15171C"><tspan font-weight="700">Ventajas:</tspan> capacidad elástica,</text>
+  <text x="40" y="382" font-size="22" fill="#15171C">bajo costo por GB, independiente</text>
+  <text x="40" y="408" font-size="22" fill="#15171C">del cómputo</text>
+
+  <rect x="452" y="326" width="412" height="102" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+  <text x="468" y="356" font-size="22" fill="#15171C"><tspan font-weight="700">Límites:</tspan> sin transacciones</text>
+  <text x="468" y="382" font-size="22" fill="#15171C">ni índices; listar millones de</text>
+  <text x="468" y="408" font-size="22" fill="#15171C">objetos es lento</text>
+
+  <!-- Banda inferior -->
+  <rect x="24" y="440" width="1152" height="64" rx="6" fill="#F0EEE7"/>
+  <rect x="24" y="440" width="6" height="64" fill="#5F6672" clip-path="url(#d15-bot)"/>
+  <text x="50" y="480" font-size="22" fill="#15171C">Las carpetas son parte del nombre de la clave: mes=2024-01/ no es un directorio real.</text>
+</svg>

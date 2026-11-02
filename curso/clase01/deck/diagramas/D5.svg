@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 520" font-family="Inter, 'Helvetica Neue', Arial, sans-serif">
+  <title>ETL transforma antes de cargar; ELT carga el crudo en bronze y lo transforma después con Spark, y el curso usa ELT sobre el lake.</title>
+  <defs>
+    <marker id="ar" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="14" refX="14" refY="7" orient="auto">
+      <path d="M0,0 L14,7 L0,14 Z" fill="#15171C"/>
+    </marker>
+    <marker id="arA" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="14" refX="14" refY="7" orient="auto">
+      <path d="M0,0 L14,7 L0,14 Z" fill="#2340D8"/>
+    </marker>
+    <clipPath id="c3">
+      <rect x="636" y="314" width="240" height="100" rx="6"/>
+    </clipPath>
+  </defs>
+
+  <!-- Carril ETL -->
+  <text x="44" y="74" font-size="26" font-weight="700" fill="#15171C">ETL</text>
+  <rect x="44" y="88" width="240" height="90" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+  <text x="62" y="122" font-size="22" font-weight="700" fill="#15171C">Extraer</text>
+  <text x="62" y="150" font-size="22" fill="#15171C">TLC, zonas, clima</text>
+  <rect x="340" y="88" width="240" height="90" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+  <text x="358" y="122" font-size="22" font-weight="700" fill="#15171C">Transformar</text>
+  <text x="358" y="150" font-size="22" fill="#15171C">servidor intermedio</text>
+  <rect x="636" y="88" width="240" height="90" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+  <text x="654" y="122" font-size="22" font-weight="700" fill="#15171C">Cargar</text>
+  <text x="654" y="150" font-size="22" fill="#15171C">warehouse</text>
+  <line x1="284" y1="133" x2="340" y2="133" stroke="#15171C" stroke-width="3" marker-end="url(#ar)"/>
+  <line x1="580" y1="133" x2="636" y2="133" stroke="#15171C" stroke-width="3" marker-end="url(#ar)"/>
+  <text x="44" y="216" font-size="22" fill="#5F6672">El warehouse solo recibe lo ya transformado.</text>
+
+  <!-- Carril ELT (resaltado) -->
+  <rect x="24" y="262" width="1152" height="166" rx="6" fill="none" stroke="#2340D8" stroke-width="4"/>
+  <rect x="996" y="246" width="160" height="32" rx="16" fill="#2340D8"/>
+  <text x="1076" y="270" text-anchor="middle" font-size="22" font-weight="700" fill="#FFFFFF">Este curso</text>
+  <text x="44" y="300" font-size="26" font-weight="700" fill="#15171C">ELT</text>
+
+  <rect x="44" y="314" width="240" height="100" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+  <text x="62" y="356" font-size="22" font-weight="700" fill="#15171C">Extraer</text>
+  <text x="62" y="382" font-size="22" fill="#15171C">TLC, zonas, clima</text>
+
+  <rect x="340" y="314" width="240" height="100" rx="6" fill="#B4622F" fill-opacity="0.12" stroke="#B4622F" stroke-width="3"/>
+  <text x="358" y="356" font-size="22" font-weight="700" fill="#15171C">Cargar</text>
+  <text x="358" y="382" font-size="22" fill="#15171C">bronze en S3 (crudo)</text>
+
+  <rect x="636" y="314" width="240" height="100" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+  <text x="654" y="344" font-size="22" font-weight="700" fill="#15171C">Transformar</text>
+  <text x="654" y="370" font-size="22" fill="#15171C">Spark en Glue</text>
+  <text x="654" y="396" font-size="22" fill="#15171C">→ silver, gold</text>
+  <g clip-path="url(#c3)">
+    <rect x="636" y="406" width="120" height="8" fill="#6E7F94"/>
+    <rect x="756" y="406" width="120" height="8" fill="#B07F0E"/>
+  </g>
+
+  <line x1="284" y1="364" x2="340" y2="364" stroke="#15171C" stroke-width="3" marker-end="url(#ar)"/>
+  <line x1="580" y1="364" x2="636" y2="364" stroke="#15171C" stroke-width="3" marker-end="url(#ar)"/>
+  <line x1="876" y1="364" x2="1020" y2="364" stroke="#2340D8" stroke-width="4" marker-end="url(#arA)"/>
+  <text x="948" y="352" text-anchor="middle" font-size="22" font-weight="700" fill="#2340D8">COPY INTO</text>
+
+  <rect x="1020" y="314" width="136" height="100" rx="6" fill="#B07F0E" fill-opacity="0.12" stroke="#B07F0E" stroke-width="3"/>
+  <text x="1088" y="356" text-anchor="middle" font-size="22" font-weight="700" fill="#15171C">Snowflake</text>
+  <text x="1088" y="382" text-anchor="middle" font-size="22" fill="#15171C">(gold)</text>
+
+  <!-- Banda inferior -->
+  <rect x="24" y="440" width="1152" height="64" fill="#F0EEE7"/>
+  <rect x="24" y="440" width="6" height="64" fill="#5F6672"/>
+  <text x="46" y="466" font-size="22" fill="#15171C">Trade-off: ELT guarda el crudo (5.4 GB al año) y puede reprocesar;</text>
+  <text x="46" y="492" font-size="22" fill="#15171C">ETL descarta lo que no pasa por la T.</text>
+</svg>

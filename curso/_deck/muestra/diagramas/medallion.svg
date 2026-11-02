@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 440" width="1120" height="440" font-family="Helvetica Neue, Arial, sans-serif">
+<defs><marker id="a" markerWidth="12" markerHeight="12" refX="9" refY="6" orient="auto"><path d="M1 1 L10 6 L1 11" fill="none" stroke="#15171C" stroke-width="2"/></marker></defs>
+<rect x="0" y="90" width="236" height="150" fill="#5F6672"/>
+<text x="118" y="177.0" text-anchor="middle" font-size="40" font-weight="700" fill="#fff">Fuentes</text>
+<text x="118" y="286" text-anchor="middle" font-size="24" fill="#15171C">CSV, API, logs</text>
+<line x1="246" y1="165.0" x2="285" y2="165.0" stroke="#15171C" stroke-width="2.5" marker-end="url(#a)"/>
+<rect x="295" y="90" width="236" height="150" fill="#B4622F"/>
+<text x="413" y="177.0" text-anchor="middle" font-size="40" font-weight="700" fill="#fff">Bronze</text>
+<text x="413" y="286" text-anchor="middle" font-size="24" fill="#15171C">Crudo, tal cual llegó</text>
+<line x1="541" y1="165.0" x2="579" y2="165.0" stroke="#15171C" stroke-width="2.5" marker-end="url(#a)"/>
+<rect x="589" y="90" width="236" height="150" fill="#6E7F94"/>
+<text x="707" y="177.0" text-anchor="middle" font-size="40" font-weight="700" fill="#fff">Silver</text>
+<text x="707" y="286" text-anchor="middle" font-size="24" fill="#15171C">Limpio y tipado</text>
+<line x1="835" y1="165.0" x2="874" y2="165.0" stroke="#15171C" stroke-width="2.5" marker-end="url(#a)"/>
+<rect x="884" y="90" width="236" height="150" fill="#B07F0E"/>
+<text x="1002" y="177.0" text-anchor="middle" font-size="40" font-weight="700" fill="#fff">Gold</text>
+<text x="1002" y="286" text-anchor="middle" font-size="24" fill="#15171C">Listo para decidir</text>
+<text x="0" y="50" font-size="24" font-weight="700" fill="#5F6672">ORIGEN</text>
+<text x="1120" y="50" text-anchor="end" font-size="24" font-weight="700" fill="#2340D8">CONSUMO: dashboards y modelos</text>
+</svg>

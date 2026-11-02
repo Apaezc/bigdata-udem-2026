@@ -1,0 +1,121 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 520" font-family="Inter, 'Helvetica Neue', Arial, sans-serif">
+  <title>Una consulta por día abre una carpeta de 31; gold se particiona por mes.</title>
+  <desc>Izquierda: silver/fhvhv_trips/ con 31 carpetas por día; la consulta de WHERE pickup_date = '2024-01-24' lee solo la carpeta 24. Derecha: gold/daily_zone_metrics/ con 12 carpetas por mes; reprocesar un mes no toca los demás.</desc>
+
+  <defs>
+    <marker id="d16-ah-acc" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="14" markerHeight="14" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#2340D8"/>
+    </marker>
+    <clipPath id="d16-band"><rect x="24" y="440" width="1152" height="64" rx="6"/></clipPath>
+  </defs>
+
+  <!-- Consulta: caja y flecha acento hacia la carpeta 24 -->
+  <rect x="24" y="32" width="480" height="72" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+  <text x="44" y="60" font-family="Menlo, Consolas, monospace" font-size="22" fill="#15171C">WHERE pickup_date = '2024-01-24'</text>
+  <text x="44" y="88" font-size="22" font-weight="700" fill="#15171C">lee 1 de 31 carpetas</text>
+  <path d="M504,68 H556 V300 H526" fill="none" stroke="#2340D8" stroke-width="4" marker-end="url(#d16-ah-acc)"/>
+
+  <!-- Silver: una carpeta por día (01 a 31; el 24 resaltado) -->
+  <text x="24" y="134" font-family="Menlo, Consolas, monospace" font-size="22" fill="#15171C">silver/fhvhv_trips/</text>
+  <rect x="24" y="146" width="52" height="52" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2" opacity="0.35"/>
+  <text x="50" y="179" text-anchor="middle" font-size="22" fill="#15171C">01</text>
+  <rect x="88" y="146" width="52" height="52" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2" opacity="0.35"/>
+  <text x="114" y="179" text-anchor="middle" font-size="22" fill="#15171C">02</text>
+  <rect x="152" y="146" width="52" height="52" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2" opacity="0.35"/>
+  <text x="178" y="179" text-anchor="middle" font-size="22" fill="#15171C">03</text>
+  <rect x="216" y="146" width="52" height="52" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2" opacity="0.35"/>
+  <text x="242" y="179" text-anchor="middle" font-size="22" fill="#15171C">04</text>
+  <rect x="280" y="146" width="52" height="52" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2" opacity="0.35"/>
+  <text x="306" y="179" text-anchor="middle" font-size="22" fill="#15171C">05</text>
+  <rect x="344" y="146" width="52" height="52" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2" opacity="0.35"/>
+  <text x="370" y="179" text-anchor="middle" font-size="22" fill="#15171C">06</text>
+  <rect x="408" y="146" width="52" height="52" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2" opacity="0.35"/>
+  <text x="434" y="179" text-anchor="middle" font-size="22" fill="#15171C">07</text>
+  <rect x="472" y="146" width="52" height="52" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2" opacity="0.35"/>
+  <text x="498" y="179" text-anchor="middle" font-size="22" fill="#15171C">08</text>
+  <rect x="24" y="210" width="52" height="52" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2" opacity="0.35"/>
+  <text x="50" y="243" text-anchor="middle" font-size="22" fill="#15171C">09</text>
+  <rect x="88" y="210" width="52" height="52" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2" opacity="0.35"/>
+  <text x="114" y="243" text-anchor="middle" font-size="22" fill="#15171C">10</text>
+  <rect x="152" y="210" width="52" height="52" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2" opacity="0.35"/>
+  <text x="178" y="243" text-anchor="middle" font-size="22" fill="#15171C">11</text>
+  <rect x="216" y="210" width="52" height="52" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2" opacity="0.35"/>
+  <text x="242" y="243" text-anchor="middle" font-size="22" fill="#15171C">12</text>
+  <rect x="280" y="210" width="52" height="52" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2" opacity="0.35"/>
+  <text x="306" y="243" text-anchor="middle" font-size="22" fill="#15171C">13</text>
+  <rect x="344" y="210" width="52" height="52" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2" opacity="0.35"/>
+  <text x="370" y="243" text-anchor="middle" font-size="22" fill="#15171C">14</text>
+  <rect x="408" y="210" width="52" height="52" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2" opacity="0.35"/>
+  <text x="434" y="243" text-anchor="middle" font-size="22" fill="#15171C">15</text>
+  <rect x="472" y="210" width="52" height="52" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2" opacity="0.35"/>
+  <text x="498" y="243" text-anchor="middle" font-size="22" fill="#15171C">16</text>
+  <rect x="24" y="274" width="52" height="52" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2" opacity="0.35"/>
+  <text x="50" y="307" text-anchor="middle" font-size="22" fill="#15171C">17</text>
+  <rect x="88" y="274" width="52" height="52" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2" opacity="0.35"/>
+  <text x="114" y="307" text-anchor="middle" font-size="22" fill="#15171C">18</text>
+  <rect x="152" y="274" width="52" height="52" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2" opacity="0.35"/>
+  <text x="178" y="307" text-anchor="middle" font-size="22" fill="#15171C">19</text>
+  <rect x="216" y="274" width="52" height="52" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2" opacity="0.35"/>
+  <text x="242" y="307" text-anchor="middle" font-size="22" fill="#15171C">20</text>
+  <rect x="280" y="274" width="52" height="52" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2" opacity="0.35"/>
+  <text x="306" y="307" text-anchor="middle" font-size="22" fill="#15171C">21</text>
+  <rect x="344" y="274" width="52" height="52" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2" opacity="0.35"/>
+  <text x="370" y="307" text-anchor="middle" font-size="22" fill="#15171C">22</text>
+  <rect x="408" y="274" width="52" height="52" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2" opacity="0.35"/>
+  <text x="434" y="307" text-anchor="middle" font-size="22" fill="#15171C">23</text>
+  <rect x="472" y="274" width="52" height="52" rx="6" fill="#2340D8"/>
+  <text x="498" y="307" text-anchor="middle" font-size="22" font-weight="700" fill="#FFFFFF">24</text>
+  <rect x="24" y="338" width="52" height="52" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2" opacity="0.35"/>
+  <text x="50" y="371" text-anchor="middle" font-size="22" fill="#15171C">25</text>
+  <rect x="88" y="338" width="52" height="52" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2" opacity="0.35"/>
+  <text x="114" y="371" text-anchor="middle" font-size="22" fill="#15171C">26</text>
+  <rect x="152" y="338" width="52" height="52" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2" opacity="0.35"/>
+  <text x="178" y="371" text-anchor="middle" font-size="22" fill="#15171C">27</text>
+  <rect x="216" y="338" width="52" height="52" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2" opacity="0.35"/>
+  <text x="242" y="371" text-anchor="middle" font-size="22" fill="#15171C">28</text>
+  <rect x="280" y="338" width="52" height="52" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2" opacity="0.35"/>
+  <text x="306" y="371" text-anchor="middle" font-size="22" fill="#15171C">29</text>
+  <rect x="344" y="338" width="52" height="52" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2" opacity="0.35"/>
+  <text x="370" y="371" text-anchor="middle" font-size="22" fill="#15171C">30</text>
+  <rect x="408" y="338" width="52" height="52" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2" opacity="0.35"/>
+  <text x="434" y="371" text-anchor="middle" font-size="22" fill="#15171C">31</text>
+
+  <!-- Gold: una carpeta por mes -->
+  <text x="600" y="134" font-family="Menlo, Consolas, monospace" font-size="22" fill="#15171C">gold/daily_zone_metrics/</text>
+  <rect x="600" y="146" width="176" height="52" rx="6" fill="#FFFFFF" stroke="#2340D8" stroke-width="4"/>
+  <text x="688" y="179" text-anchor="middle" font-family="Menlo, Consolas, monospace" font-size="22" fill="#15171C">mes=2024-01</text>
+  <rect x="792" y="146" width="176" height="52" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+  <text x="880" y="179" text-anchor="middle" font-family="Menlo, Consolas, monospace" font-size="22" fill="#15171C">mes=2024-02</text>
+  <rect x="984" y="146" width="176" height="52" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+  <text x="1072" y="179" text-anchor="middle" font-family="Menlo, Consolas, monospace" font-size="22" fill="#15171C">mes=2024-03</text>
+  <rect x="600" y="210" width="176" height="52" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+  <text x="688" y="243" text-anchor="middle" font-family="Menlo, Consolas, monospace" font-size="22" fill="#15171C">mes=2024-04</text>
+  <rect x="792" y="210" width="176" height="52" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+  <text x="880" y="243" text-anchor="middle" font-family="Menlo, Consolas, monospace" font-size="22" fill="#15171C">mes=2024-05</text>
+  <rect x="984" y="210" width="176" height="52" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+  <text x="1072" y="243" text-anchor="middle" font-family="Menlo, Consolas, monospace" font-size="22" fill="#15171C">mes=2024-06</text>
+  <rect x="600" y="274" width="176" height="52" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+  <text x="688" y="307" text-anchor="middle" font-family="Menlo, Consolas, monospace" font-size="22" fill="#15171C">mes=2024-07</text>
+  <rect x="792" y="274" width="176" height="52" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+  <text x="880" y="307" text-anchor="middle" font-family="Menlo, Consolas, monospace" font-size="22" fill="#15171C">mes=2024-08</text>
+  <rect x="984" y="274" width="176" height="52" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+  <text x="1072" y="307" text-anchor="middle" font-family="Menlo, Consolas, monospace" font-size="22" fill="#15171C">mes=2024-09</text>
+  <rect x="600" y="338" width="176" height="52" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+  <text x="688" y="371" text-anchor="middle" font-family="Menlo, Consolas, monospace" font-size="22" fill="#15171C">mes=2024-10</text>
+  <rect x="792" y="338" width="176" height="52" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+  <text x="880" y="371" text-anchor="middle" font-family="Menlo, Consolas, monospace" font-size="22" fill="#15171C">mes=2024-11</text>
+  <rect x="984" y="338" width="176" height="52" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+  <text x="1072" y="371" text-anchor="middle" font-family="Menlo, Consolas, monospace" font-size="22" fill="#15171C">mes=2024-12</text>
+
+  <!-- Datos y rótulo de reproceso -->
+  <text x="600" y="68" font-size="22" fill="#15171C">Silver: 366 particiones en 2024; gold: 12.</text>
+  <text x="600" y="420" font-size="22" font-weight="700" fill="#15171C">reproceso: un mes, sin tocar los demás</text>
+
+  <!-- Banda inferior -->
+  <rect x="24" y="440" width="1152" height="64" rx="6" fill="#F0EEE7"/>
+  <rect x="24" y="440" width="6" height="64" fill="#2340D8" clip-path="url(#d16-band)"/>
+  <g font-size="22" fill="#15171C">
+    <text font-size="22" x="50" y="465">Elige una columna que se filtre siempre y tenga pocos valores: por hora</text>
+    <text font-size="22" x="50" y="491">serían miles de archivos pequeños.</text>
+  </g>
+</svg>

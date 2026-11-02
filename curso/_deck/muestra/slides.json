@@ -1,0 +1,25 @@
+{
+  "clase": 1,
+  "titulo": "Muestra del sistema visual",
+  "slides": [
+    {"tipo": "portada", "titulo": "De archivos sueltos a decisiones con datos", "subtitulo": "Ingesta, limpieza y modelado en la nube con arquitectura medallion", "meta": "Clase 1 · Big Data · UDEM · 2026", "min": 2, "notas": "Dar la bienvenida. Mencionar que el curso completo sigue un solo caso de datos."},
+    {"tipo": "seccion", "numero": 1, "etiqueta": "Ingesta", "pregunta": "¿Qué pasa con los datos antes de que alguien los use para decidir?", "aqui": "bronze", "min": 1, "notas": "Dejar que el grupo conteste antes de avanzar."},
+    {"tipo": "titulo_visual", "titulo": "Cada capa agrega confianza: de datos crudos a datos listos para decidir", "diagrama": "diagramas/medallion.svg", "alt": "Flujo de fuentes a bronze, silver y gold", "pie": "Los datos solo avanzan: nunca se corrigen a mano en bronze.", "aqui": "silver", "min": 4, "notas": "Recorrer el diagrama de izquierda a derecha. Insistir en que bronze es evidencia."},
+    {"tipo": "dato_grande", "cifra": "80 %", "contexto": "del tiempo de un proyecto de datos se va en limpiar y preparar, no en analizar.", "fuente": "Fuente: cifra ilustrativa de la plantilla; sustituir por una referencia real.", "min": 2, "notas": "Preguntar quién ha limpiado datos en Excel."},
+    {"tipo": "comparacion", "titulo": "Bronze guarda, silver depura y gold responde preguntas de negocio", "columnas": [
+      {"titulo": "Bronze", "capa": "bronze", "items": ["Copia fiel del origen", "Nunca se edita"]},
+      {"titulo": "Silver", "capa": "silver", "items": ["Tipos correctos", "Sin duplicados"]},
+      {"titulo": "Gold", "capa": "gold", "items": ["Métricas del negocio", "Lo que ve el dashboard"]}],
+     "min": 3, "notas": "Los colores se mantienen en todo el curso."},
+    {"tipo": "fila", "titulo": "Una fila de bronze trae el desorden tal cual llegó del origen", "tabla": "bronze.pedidos · 1 fila", "columnas": [
+      {"nombre": "pedido_id", "valor": "A-10482"},
+      {"nombre": "cliente", "valor": "  ana RUIZ ", "capa": "silver", "nota": "Quitar espacios y capitalizar"},
+      {"nombre": "monto", "valor": "\"1,299.50\"", "capa": "silver", "nota": "Texto a número"},
+      {"nombre": "fecha", "valor": "03/11/26", "capa": "silver", "nota": "Formato ISO 2026-11-03"},
+      {"nombre": "_ingesta_ts", "valor": "2026-11-03 08:15", "capa": "bronze", "nota": "La agrega la ingesta"}],
+     "aqui": "bronze", "min": 3, "notas": "Señalar cada columna resaltada y qué haría silver con ella."},
+    {"tipo": "codigo", "titulo": "Silver se construye con una consulta SQL que limpia y convierte tipos", "sql": "CREATE OR REPLACE TABLE silver.pedidos AS\nSELECT pedido_id,\n       INITCAP(TRIM(cliente)) AS cliente,\n       TRY_TO_DECIMAL(REPLACE(monto, ',', ''), 10, 2) AS monto,\n       TO_DATE(fecha, 'DD/MM/YY') AS fecha\nFROM bronze.pedidos\nWHERE pedido_id IS NOT NULL; -- descarta filas rotas", "resaltar": [3, 4, 5], "explicacion": "Las tres líneas resaltadas convierten texto sucio en tipos confiables.", "aqui": "silver", "min": 4, "notas": "Leer la consulta línea por línea."},
+    {"tipo": "pasos", "titulo": "Carga el archivo a bronze con estos pasos en Snowsight", "ventana": "Snowsight", "pasos": ["Abre **Data > Add Data**", "Elige **Load files into a Table**", "Arrastra `pedidos.csv` al recuadro", "Crea la tabla `bronze.pedidos`", "Pulsa **Load** y revisa el conteo de filas"], "aqui": "bronze", "min": 6, "notas": "Hacerlo en vivo mientras el grupo sigue en su laptop."},
+    {"tipo": "pregunta", "pregunta": "Si el dato crudo ya está guardado, ¿para qué crear una segunda copia limpia?", "pista": "Discútanlo dos minutos con su vecino.", "min": 3, "notas": "Respuesta esperada: reproducibilidad, auditoría y poder corregir reglas sin perder el original."}
+  ]
+}

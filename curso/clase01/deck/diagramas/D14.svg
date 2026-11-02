@@ -1,0 +1,86 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 520" font-family="Inter, 'Helvetica Neue', Arial, sans-serif">
+  <title>En un clúster clásico cada nodo suma CPU y disco; en el diseño separado cada recurso escala solo.</title>
+  <desc>Dos paneles. Izquierda: clúster clásico de tres nodos con CPU y disco; al crecer en datos se añade un nodo más. Derecha: cómputo separado del almacenamiento; el almacenamiento crece solo con los datos y el cómputo solo con las consultas.</desc>
+
+  <defs>
+    <marker id="d14-ah-acc" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="14" markerHeight="14" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#2340D8"/>
+    </marker>
+    <clipPath id="d14-band"><rect x="24" y="440" width="1152" height="64" rx="6"/></clipPath>
+  </defs>
+
+  <!-- Panel izquierdo: clúster clásico -->
+  <rect x="24" y="24" width="564" height="396" rx="6" fill="none" stroke="#5F6672" stroke-width="2"/>
+  <text x="48" y="64" font-size="26" font-weight="700" fill="#15171C">Clúster clásico</text>
+
+  <g fill="#F0EEE7" stroke="#5F6672" stroke-width="2">
+    <rect x="48"  y="160" width="110" height="120" rx="6"/>
+    <rect x="182" y="160" width="110" height="120" rx="6"/>
+    <rect x="316" y="160" width="110" height="120" rx="6"/>
+  </g>
+  <g stroke="#5F6672" stroke-width="2">
+    <line x1="48"  y1="220" x2="158" y2="220"/>
+    <line x1="182" y1="220" x2="292" y2="220"/>
+    <line x1="316" y1="220" x2="426" y2="220"/>
+  </g>
+  <!-- Cuarto nodo añadido: borde discontinuo -->
+  <rect x="450" y="160" width="110" height="120" rx="6" fill="none" stroke="#5F6672" stroke-width="2" stroke-dasharray="8 6"/>
+  <line x1="450" y1="220" x2="560" y2="220" stroke="#5F6672" stroke-width="2" stroke-dasharray="8 6"/>
+
+  <g font-size="22" fill="#15171C" text-anchor="middle">
+    <text x="103" y="198">CPU</text>
+    <text x="103" y="258">disco</text>
+    <text x="237" y="198">CPU</text>
+    <text x="237" y="258">disco</text>
+    <text x="371" y="198">CPU</text>
+    <text x="371" y="258">disco</text>
+    <text x="505" y="198">CPU</text>
+    <text x="505" y="258">disco</text>
+  </g>
+
+  <line x1="505" y1="338" x2="505" y2="284" stroke="#2340D8" stroke-width="4" marker-end="url(#d14-ah-acc)"/>
+  <text x="490" y="332" font-size="22" font-weight="700" fill="#15171C" text-anchor="end">+ datos → + nodos (y CPU)</text>
+
+  <!-- Panel derecho: cómputo separado (resaltado) -->
+  <rect x="612" y="24" width="564" height="396" rx="6" fill="none" stroke="#2340D8" stroke-width="4"/>
+  <text x="636" y="64" font-size="26" font-weight="700" fill="#15171C">Separados</text>
+
+  <!-- Conexiones (bajo el cilindro) -->
+  <g stroke="#5F6672" stroke-width="2" fill="none">
+    <line x1="718.5" y1="216" x2="718.5" y2="274"/>
+    <line x1="893.5" y1="216" x2="893.5" y2="272"/>
+    <line x1="1068.5" y1="216" x2="1010" y2="277" stroke-dasharray="8 6"/>
+  </g>
+
+  <!-- Cómputos A, B (sólidos) y C (discontinuo) -->
+  <g fill="#F0EEE7" stroke="#5F6672" stroke-width="2">
+    <rect x="636" y="150" width="165" height="66" rx="6"/>
+    <rect x="811" y="150" width="165" height="66" rx="6"/>
+  </g>
+  <rect x="986" y="150" width="165" height="66" rx="6" fill="none" stroke="#5F6672" stroke-width="2" stroke-dasharray="8 6"/>
+  <g font-size="26" font-weight="700" fill="#15171C" text-anchor="middle">
+    <text x="718.5" y="191">Cómputo A</text>
+    <text x="893.5" y="191">Cómputo B</text>
+    <text x="1068.5" y="191">Cómputo C</text>
+  </g>
+
+  <!-- Almacenamiento: cilindro -->
+  <path d="M636,284 A200,14 0 0 1 1036,284 L1036,346 A200,14 0 0 1 636,346 Z" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+  <ellipse cx="836" cy="284" rx="200" ry="14" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+  <text x="836" y="323" font-size="26" font-weight="700" fill="#15171C" text-anchor="middle">Almacenamiento (S3)</text>
+
+  <!-- Flechas de acento -->
+  <line x1="1068.5" y1="76" x2="1068.5" y2="146" stroke="#2340D8" stroke-width="4" marker-end="url(#d14-ah-acc)"/>
+  <text x="1152" y="64" font-size="22" font-weight="700" fill="#15171C" text-anchor="end">+ consultas → solo cómputo</text>
+
+  <line x1="700" y1="398" x2="700" y2="360" stroke="#2340D8" stroke-width="4" marker-end="url(#d14-ah-acc)"/>
+  <text x="716" y="394" font-size="22" font-weight="700" fill="#15171C">+ datos → solo almacenamiento</text>
+
+  <!-- Banda inferior -->
+  <rect x="24" y="440" width="1152" height="64" rx="6" fill="#F0EEE7"/>
+  <rect x="24" y="440" width="6" height="64" fill="#5F6672" clip-path="url(#d14-band)"/>
+  <g font-size="22" fill="#15171C">
+    <text x="50" y="465">Bronze crece 5.4 GB al año; la consulta de la demo dura segundos:</text>
+    <text x="50" y="491">almacenamiento y cómputo crecen distinto.</text>
+  </g>
+</svg>

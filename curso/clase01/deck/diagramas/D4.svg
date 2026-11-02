@@ -1,0 +1,112 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 520" font-family="Inter, 'Helvetica Neue', Arial, sans-serif">
+  <title>Pipeline del curso: cuatro pasos con validaciones</title>
+  <desc>Cuatro pasos encadenados, bronze, silver, gold y carga a Snowflake, con una validación entre cada par; si una validación falla, el pipeline se detiene y no publica.</desc>
+
+  <marker id="d4-arr" viewBox="0 0 14 14" refX="14" refY="7" markerWidth="14" markerHeight="14" markerUnits="userSpaceOnUse" orient="auto">
+    <path d="M0,0 L14,7 L0,14 z" fill="#15171C"/>
+  </marker>
+  <clipPath id="d4-band-top"><rect x="24" y="16" width="1152" height="64" rx="6"/></clipPath>
+  <clipPath id="d4-band-bot"><rect x="24" y="440" width="1152" height="64" rx="6"/></clipPath>
+
+  <!-- Banda superior -->
+  <rect x="24" y="16" width="1152" height="64" rx="6" fill="#F0EEE7"/>
+  <rect x="24" y="16" width="6" height="64" fill="#2340D8" clip-path="url(#d4-band-top)"/>
+  <g font-size="22" fill="#15171C">
+    <text x="48" y="41">Pipeline: secuencia de pasos donde la salida de uno es la entrada del siguiente;</text>
+    <text x="48" y="66">cada paso es verificable y repetible.</text>
+  </g>
+
+  <!-- Flechas entre cajas (por debajo de las compuertas) -->
+  <g stroke="#15171C" stroke-width="3" fill="none" marker-end="url(#d4-arr)">
+    <line x1="234" y1="236" x2="326" y2="236"/>
+    <line x1="538" y1="236" x2="630" y2="236"/>
+    <line x1="842" y1="236" x2="934" y2="236"/>
+  </g>
+
+  <!-- Cajas: bronze, silver, gold (tinte al 12 %) y carga (neutra) -->
+  <g stroke-width="3">
+    <rect x="24" y="100" width="208" height="272" rx="6" fill="#B4622F" fill-opacity="0.12" stroke="#B4622F"/>
+    <rect x="328" y="100" width="208" height="272" rx="6" fill="#6E7F94" fill-opacity="0.12" stroke="#6E7F94"/>
+    <rect x="632" y="100" width="208" height="272" rx="6" fill="#B07F0E" fill-opacity="0.12" stroke="#B07F0E"/>
+  </g>
+  <rect x="936" y="100" width="240" height="272" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+
+  <!-- Títulos de caja: nombre de la capa y, debajo, su función -->
+  <g font-size="24" font-weight="700" fill="#15171C">
+    <text x="38" y="128">bronze</text>
+    <text x="342" y="128">silver</text>
+    <text x="646" y="128">gold</text>
+    <text x="950" y="128">carga</text>
+  </g>
+  <g font-size="22" fill="#15171C">
+    <text x="38" y="152">descarga</text>
+    <text x="342" y="152">limpia y une</text>
+    <text x="646" y="152">agrega</text>
+    <text x="950" y="152">Snowflake</text>
+  </g>
+
+  <!-- Etiquetas Entrada y Salida -->
+  <g font-size="20" fill="#5F6672">
+    <text x="38" y="184">Entrada</text>
+    <text x="38" y="290">Salida</text>
+    <text x="342" y="184">Entrada</text>
+    <text x="342" y="290">Salida</text>
+    <text x="646" y="184">Entrada</text>
+    <text x="646" y="290">Salida</text>
+    <text x="950" y="184">Entrada</text>
+    <text x="950" y="290">Salida</text>
+  </g>
+  <g font-size="20" fill="#15171C">
+    <text x="38" y="208">URLs de TLC,</text>
+    <text x="38" y="231">zonas y</text>
+    <text x="38" y="254">Open-Meteo</text>
+    <text x="38" y="313">archivos originales</text>
+    <text x="38" y="336">en S3</text>
+
+    <text x="342" y="208">bronze</text>
+    <text x="342" y="313">16 columnas,</text>
+    <text x="342" y="336">un viaje por fila,</text>
+    <text x="342" y="359">particionado por día</text>
+
+    <text x="646" y="208">silver</text>
+    <text x="646" y="313">8 columnas,</text>
+    <text x="646" y="336">15 909 filas</text>
+    <text x="646" y="359">en enero</text>
+
+    <text x="950" y="208">gold (Parquet)</text>
+    <text x="950" y="313">tabla</text>
+  </g>
+  <text x="950" y="336" font-family="Menlo, Consolas, monospace" font-size="18" fill="#15171C">DAILY_ZONE_METRICS</text>
+
+  <!-- Compuertas de validación sobre cada flecha -->
+  <g fill="#FFFFFF" stroke="#2340D8" stroke-width="3">
+    <polygon points="280,214 302,236 280,258 258,236"/>
+    <polygon points="584,214 606,236 584,258 562,236"/>
+    <polygon points="888,214 910,236 888,258 866,236"/>
+  </g>
+  <g stroke="#2340D8" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <polyline points="271,236 278,243 291,228"/>
+    <polyline points="575,236 582,243 595,228"/>
+    <polyline points="879,236 886,243 899,228"/>
+  </g>
+
+  <!-- Conectores de cada compuerta a su rótulo -->
+  <g stroke="#5F6672" stroke-width="2">
+    <line x1="280" y1="258" x2="280" y2="382"/>
+    <line x1="584" y1="258" x2="584" y2="382"/>
+    <line x1="888" y1="258" x2="888" y2="382"/>
+  </g>
+
+  <!-- Rótulos de validación, centrados bajo su compuerta -->
+  <g font-size="20" fill="#15171C" text-anchor="middle">
+    <text x="280" y="402">filtro: descarta y sigue</text>
+    <text x="584" y="402">validación: detiene el pipeline</text>
+    <text x="888" y="402">clave única</text>
+    <text x="888" y="426">falla = no se publica</text>
+  </g>
+
+  <!-- Banda inferior -->
+  <rect x="24" y="440" width="1152" height="64" rx="6" fill="#F0EEE7"/>
+  <rect x="24" y="440" width="6" height="64" fill="#5F6672" clip-path="url(#d4-band-bot)"/>
+  <text x="48" y="479" font-size="22" fill="#15171C">bronze = tal como llegó · silver = limpio y unido · gold = agregado para responder.</text>
+</svg>
