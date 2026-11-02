@@ -290,10 +290,10 @@ Haz los pasos en este orden.
     INFO Paso=gold env=local engine=local meses=2024-01
     INFO Calidad OK [gold]: 79 filas
     ```
-    Luego abre `https://<id-del-space>.studio.us-east-2.sagemaker.aws/codeeditor/default/ports/8080/` y lanza `pipeline_taxi`.
+    `make airflow-local` imprime al final la URL de tu Airflow, lista para abrir (`UI: https://...studio.us-east-2.sagemaker.aws/codeeditor/default/ports/8080/`). Ábrela y lanza `pipeline_taxi`.
     - Entra con usuario `admin` y la contraseña que imprime `make airflow-local`. Los DAGs nuevos aparecen **pausados** (la página Home dice `Active Dags 0`): en **Dags** activa el interruptor de `pipeline_taxi`, entra al DAG y pulsa **Trigger**.
     - Run exitoso con `glue_small` (10-15 min): `preparar_entorno`, `elegir_computo`, `bronze`, `silver`, `gold` y `cargar_gold` en verde (`success`); `silver_spark_local` y `gold_spark_local` en rosa (`skipped`), porque son la rama de `spark_local`.
-    - `<id-del-space>` es el subdominio de la URL del Code Editor que tienes abierta en el navegador: `https://<id-del-space>.studio.us-east-2.sagemaker.aws/codeeditor/default/...`. Copia esa parte y deja el final `/codeeditor/default/ports/8080/`.
+    - Si en vez de la URL ves `<id-del-space>`, reemplázalo por el subdominio de la URL del Code Editor que tienes abierta en el navegador (`https://<id-del-space>.studio.us-east-2.sagemaker.aws/...`).
     - El Airflow del Code Editor es siempre el entorno **dev** (no se elige al lanzar). Lo que eliges es el parámetro `computo`, que decide con qué recursos se calcula:
       - `spark_local`: Spark en el Code Editor sobre la muestra (gratis). Como mucho 10 000 filas por fuente. El resultado queda en `./lake` y no se carga en Snowflake.
       - `glue_small`, `glue_medium` o `glue_large`: Glue con 2, 4 o 6 workers. Escribe en `s3://<lake>/dev/` y carga en `BIGDATA.DEV` (`glue_small` cuesta centavos).
@@ -322,7 +322,7 @@ Haz los pasos en este orden.
     make airflow-local-down
     make airflow-tunel
     ```
-    Abre la misma URL que en dev, usuario `admin` y contraseña de `make airflow-password`. En prod el entorno también es fijo (`prod`, en la VM) y solo hay `computo=glue_medium` o `glue_large`, sin límite de filas: lanza `pipeline_taxi` con esos valores. La conexión de Snowflake ya está en el secreto `bigdata/snowflake` (la escribe `make snowflake`; ver [airflow/README.md](airflow/README.md)).
+    Abre la URL que imprime `make airflow-tunel` (la misma que en dev), usuario `admin` y contraseña de `make airflow-password`. En prod el entorno también es fijo (`prod`, en la VM) y solo hay `computo=glue_medium` o `glue_large`, sin límite de filas: lanza `pipeline_taxi` con esos valores. La conexión de Snowflake ya está en el secreto `bigdata/snowflake` (la escribe `make snowflake`; ver [airflow/README.md](airflow/README.md)).
 
 ## Configuración por estudiante
 
