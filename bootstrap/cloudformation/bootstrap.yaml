@@ -700,5 +700,5 @@ Outputs:
     Description: ID del SageMaker Domain.
     Value: !GetAtt SageMakerDomain.DomainId
   StudioConsoleUrl:
-    Description: URL del SageMaker Domain (Studio). Abrir y elegir el Space dev.
-    Value: !GetAtt SageMakerDomain.Url
+    Description: Página del perfil estudiante en la consola de SageMaker. Abrir y pulsar Launch > Studio.
+    Value: !Sub "https://${AWS::Region}.console.aws.amazon.com/sagemaker/home?region=${AWS::Region}#/domains/${SageMakerDomain}/user-profiles/estudiante"

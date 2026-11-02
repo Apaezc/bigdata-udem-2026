@@ -27,7 +27,7 @@ fi
 aws cloudformation validate-template --template-body "file://$PLANTILLA" >/dev/null \
   || error "La plantilla no es válida."
 
-if ! aws s3api head-bucket --bucket "$BUCKET" 2>/dev/null; then
+if ! aws s3api head-bucket --bucket "$BUCKET" >/dev/null 2>&1; then
   msg "Creando bucket $BUCKET"
   aws s3api create-bucket --bucket "$BUCKET" --region "$AWS_REGION" \
     --create-bucket-configuration "LocationConstraint=$AWS_REGION" >/dev/null

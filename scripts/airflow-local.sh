@@ -128,7 +128,7 @@ up() {
   estado
   local pw="$AIRFLOW_HOME/simple_auth_manager_passwords.json.generated"
   [[ -f "$pw" ]] && echo "Usuario: admin  Contraseña: $(jq -r '.admin' "$pw")"
-  echo "UI: https://<id-del-space>.studio.${AWS_REGION}.sagemaker.aws${PREFIJO}"
+  echo "UI: $(url_airflow_studio)"
 }
 
 down() {

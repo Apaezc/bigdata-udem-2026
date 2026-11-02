@@ -266,3 +266,19 @@ studio_console_url() {
   aws cloudformation describe-stacks --stack-name "$stack" \
     --query "Stacks[0].Outputs[?OutputKey=='StudioConsoleUrl'].OutputValue" --output text 2>/dev/null || true
 }
+
+url_airflow_studio() {
+  # Imprime la URL del Airflow (puerto 8080) a través del proxy del Code Editor. Lee el dominio y el
+  # Space de los metadatos de SageMaker y pide su URL con DescribeSpace; si no se puede (fuera del
+  # Code Editor o sin permiso), imprime la plantilla con <id-del-space>.
+  local meta=/opt/ml/metadata/resource-metadata.json base="" dominio espacio
+  if [[ -f "$meta" ]] && command -v jq >/dev/null 2>&1; then
+    dominio="$(jq -r '.DomainId // empty' "$meta")"
+    espacio="$(jq -r '.SpaceName // empty' "$meta")"
+    if [[ -n "$dominio" && -n "$espacio" ]]; then
+      base="$(aws sagemaker describe-space --domain-id "$dominio" --space-name "$espacio" \
+        --query Url --output text 2>/dev/null | grep -oE '^https://[^/]+' || true)"
+    fi
+  fi
+  echo "${base:-https://<id-del-space>.studio.${AWS_REGION}.sagemaker.aws}/codeeditor/default/ports/8080/"
+}

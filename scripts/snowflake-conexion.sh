@@ -11,13 +11,13 @@ source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
 SF_DIR="$HOME/.snowflake"
 SF_CONEXIONES="$SF_DIR/connections.toml"
 SF_LLAVES="$SF_DIR/keys"
-WAREHOUSE="$(echo "${PREFIX}_WH" | tr '[:lower:]' '[:upper:]')"
 RE_CUENTA='^[A-Za-z0-9._-]+$'
 RE_USUARIO='^[A-Za-z0-9._@-]+$'
 
 bloque_default() {
-  # Uso: bloque_default <cuenta> <usuario> <ruta-llave> <warehouse>. Imprime la sección [default].
-  local cuenta="$1" usuario="$2" llave="$3" wh="$4"
+  # Uso: bloque_default <cuenta> <login> <ruta-llave>. Imprime la sección [default].
+  # Sin warehouse: BIGDATA_WH no existe hasta 'make snowflake' y snow fallaría al conectar.
+  local cuenta="$1" usuario="$2" llave="$3"
   llave="${llave//\\/\\\\}"
   llave="${llave//\"/\\\"}"
   cat <<EOF
@@ -27,7 +27,6 @@ user = "$usuario"
 authenticator = "SNOWFLAKE_JWT"
 private_key_file = "$llave"
 role = "ACCOUNTADMIN"
-warehouse = "$wh"
 EOF
 }
 
@@ -51,7 +50,7 @@ escribir_conexion() {
   # Uso: escribir_conexion <cuenta> <usuario> <ruta-llave>. Escribe [default] en connections.toml.
   # Si ya hay una [default] distinta, pregunta antes de reemplazarla (con copia de seguridad).
   local cuenta="$1" usuario="$2" llave="$3" bloque actual tmp respuesta respaldo
-  bloque="$(bloque_default "$cuenta" "$usuario" "$llave" "$WAREHOUSE")"
+  bloque="$(bloque_default "$cuenta" "$usuario" "$llave")"
   mkdir -p "$SF_DIR"
   tmp="$(mktemp "$SF_DIR/connections.XXXXXX")"
 
@@ -132,11 +131,20 @@ main() {
   [[ -t 0 ]] || error "Ejecuta 'make snowflake-conexion' desde una terminal interactiva."
 
   echo
-  echo "Account identifier: en Snowsight abre el menú de tu cuenta (abajo a la izquierda) >"
-  echo "Account > View account details > Account identifier. Tiene el formato ORGNAME-ACCOUNTNAME."
-  local cuenta usuario llave pub
+  echo "Para saber tus datos, en Snowsight abre una hoja (+ > SQL Worksheet), pega esto y pulsa Run All:"
+  echo
+  echo "  USE ROLE ACCOUNTADMIN;"
+  echo "  SHOW USERS;"
+  echo "  SELECT CURRENT_ORGANIZATION_NAME() || '-' || CURRENT_ACCOUNT_NAME() AS account_identifier,"
+  echo "         \"name\" AS usuario, \"login_name\" AS login"
+  echo "  FROM TABLE(RESULT_SCAN(LAST_QUERY_ID())) WHERE \"name\" = CURRENT_USER();"
+  echo
+  echo "Ejemplo: ACCOUNT_IDENTIFIER = ABCDEFG-XY12345 | USUARIO = jperez | LOGIN = JPEREZ@GMAIL.COM"
+  echo "(USUARIO y LOGIN pueden ser distintos: se piden los dos.)"
+  local cuenta usuario login llave pub
   cuenta="$(pedir "Account identifier (ORGNAME-ACCOUNTNAME): " "$RE_CUENTA")"
-  usuario="$(pedir "Usuario de Snowflake (login name, el de Snowsight): " "$RE_USUARIO")"
+  usuario="$(pedir "USUARIO (columna USUARIO): " "$RE_USUARIO")"
+  login="$(pedir "LOGIN (columna LOGIN): " "$RE_USUARIO")"
   llave="$SF_LLAVES/${usuario}_key.p8"
 
   if [[ -e "$llave" ]]; then
@@ -146,14 +154,17 @@ main() {
     generar_llave "$llave"
   fi
 
-  escribir_conexion "$cuenta" "$usuario" "$llave"
+  # La conexión (JWT) usa el login; el ALTER USER, el nombre del usuario.
+  escribir_conexion "$cuenta" "$login" "$llave"
 
   pub="$(clave_publica_linea "$llave")" && [[ -n "$pub" ]] \
     || error "No se pudo leer la clave pública de $llave (¿llave cifrada o dañada?)."
 
   echo
-  echo "Último paso: en Snowsight, con el rol ACCOUNTADMIN, ejecuta esta sentencia:"
+  echo "Último paso: en Snowsight, en una hoja (+ > SQL Worksheet), pega estas dos líneas juntas y"
+  echo "ejecútalas con 'Run All' (flecha junto a ▶):"
   echo
+  echo "USE ROLE ACCOUNTADMIN;"
   echo "ALTER USER \"$usuario\" SET RSA_PUBLIC_KEY='$pub';"
   echo
   read -r -p "Cuando la hayas ejecutado, pulsa Enter para probar la conexión... " _pausa

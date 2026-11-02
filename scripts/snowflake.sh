@@ -13,6 +13,9 @@ exigir_cuenta
 SF_DIR="$ROOT_DIR/infra/snowflake"
 
 # Init con backend S3 (mismas flags que destroy.sh); -reconfigure evita el prompt si la caché local apunta a otro backend.
+# Llave de TERRAFORM_SVC, 01_admin.sql, terraform.tfvars y backend.hcl (idempotente).
+bash "$ROOT_DIR/scripts/snowflake-preparar.sh"
+
 msg "Terraform init: infra/snowflake"
 terraform -chdir="$SF_DIR" init -reconfigure -input=false -backend-config="bucket=$(tfstate_bucket)" \
   -backend-config="key=snowflake/terraform.tfstate" -backend-config="region=$AWS_REGION" \
