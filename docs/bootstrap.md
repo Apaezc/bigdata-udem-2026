@@ -29,7 +29,7 @@ Nota: este paso no crea Snowflake ni los recursos de `infra/aws/` (eso lo hace T
    - **AlertEmail**: tu correo (confirma la suscripción que te llega).
 3. Marca *I acknowledge that AWS CloudFormation might create IAM resources with custom names* y pulsa
    **Create stack** (el nombre del stack viene puesto: `bigdata-bootstrap`; el prefijo de los recursos es
-   `bigdata` por defecto, parámetro `Prefix`: no lo cambies). Espera `CREATE_COMPLETE` (~4 min).
+   `bigdata` por defecto, parámetro `Prefix`: no lo cambies). Espera `CREATE_COMPLETE` (~3-4 min).
 
 Si la cuenta ya tiene el proveedor OIDC de GitHub, el stack falla con `EntityAlreadyExists`: bórralo y
 relánzalo con `ExistingGitHubOidcProviderArn` (ver "Problemas frecuentes").
@@ -51,7 +51,7 @@ inscripción: `make retirar-bootstrap` (borra todas las versiones; los enlaces d
 ## 5. Abrir Code Editor
 
 1. Abre `StudioConsoleUrl`, o ve a SageMaker > Domains > `${prefix}-studio`.
-2. Abre el perfil `estudiante` (**Open Studio**).
+2. Pestaña **User profiles** > `estudiante` > **Launch > Studio**.
 3. En Studio, abre el Space `dev` y ejecútalo como **Code Editor**.
 4. En la terminal del Space puedes comprobar la identidad con `aws sts get-caller-identity`. Debe mostrar el rol `${prefix}-sagemaker-exec`.
 
