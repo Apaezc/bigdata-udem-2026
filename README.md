@@ -438,7 +438,24 @@ Lo que cuesta mientras está encendido es el **Code Editor** (~US$0.10/h) y la *
    cd ~/bigdata
    make estado
    ```
-   En la sección `Airflow` la instancia debe aparecer `stopped`, y en `Últimos 3 job runs de Glue` ninguno en `RUNNING`.
+   Salida esperada con todo apagado (fechas, montos y créditos serán los tuyos):
+   ```text
+   ==> Airflow
+     Estado:        stopped                       <- debe decir stopped
+     Acceso:        make airflow-tunel (túnel SSM desde el Code Editor)
+   ==> Últimos 3 job runs de Glue
+     bigdata-medium     SUCCEEDED    2026-11-02T05:52:53+00:00   <- ninguno en RUNNING
+     bigdata-medium     SUCCEEDED    2026-11-02T05:51:04+00:00
+     bigdata-small      SUCCEEDED    2026-11-02T05:50:11+00:00
+   ==> Warehouse de Snowflake
+     BIGDATA_WH: estado=SUSPENDED tamaño=X-Small auto_suspend=60s   <- SUSPENDED
+   ==> Costos y créditos
+     Plan: FREE (ACTIVE)  créditos restantes: 196.58 USD
+     Budget                       Límite    Unidad     Gasto real   Previsto
+     bigdata-mensual              50.0       USD        0.812        None
+     bigdata-total                50.0       USD        0.812        None
+   ```
+   Si el warehouse dice `STARTED`, espera un minuto: se suspende solo a los 60 s sin consultas.
 4. **Code Editor (lo último, porque cierra tu terminal).** En la pestaña de **SageMaker Studio** (no la del Code Editor): menú izquierdo **Code Editor** > en la lista de Spaces, fila `dev` > **Stop**. El estado pasa a `Stopping` y luego a `Stopped` (~1 min). Si lo olvidas, se apaga solo tras 60 minutos de inactividad.
 
    Tus archivos (`~/bigdata`, `~/.snowflake`, `.env`) se conservan: viven en el disco del Space, no en la instancia.
