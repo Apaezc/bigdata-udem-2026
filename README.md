@@ -375,6 +375,72 @@ Ejecuta `make help` para ver la lista actualizada.
 
 Solo instructor: `make publicar-bootstrap`, `make retirar-bootstrap` y `make limpieza-total`.
 
+## Apagar y encender (día a día)
+
+Lo que cuesta mientras está encendido es el **Code Editor** (~US$0.10/h) y la **VM de Airflow de prod**. Glue y Snowflake solo cobran mientras corren un job o una consulta y se detienen solos. Al terminar cada sesión apaga en este orden:
+
+### Apagar
+
+1. **Airflow de prod (VM).** Si tienes el túnel abierto, ciérralo con **Ctrl+C** en esa terminal. Luego:
+   ```bash
+   cd ~/bigdata
+   make airflow-off
+   ```
+   Salida exitosa:
+   ```text
+   ==> Apagando instancia i-0123456789abcdef0 (estado actual: running)
+   ==> Instancia apagada.
+   ```
+   (Si ya estaba apagada: `==> La instancia ... ya está apagada.`) Aunque lo olvides, se apaga sola a las 23:00 (hora de Bogotá).
+2. **Airflow de dev.**
+   ```bash
+   cd ~/bigdata
+   make airflow-local-down
+   ```
+   Salida exitosa: `==> Airflow local y nginx detenidos.`
+3. **Comprueba** que no quede nada corriendo:
+   ```bash
+   cd ~/bigdata
+   make estado
+   ```
+   En la sección `Airflow` la instancia debe aparecer `stopped`, y en `Últimos 3 job runs de Glue` ninguno en `RUNNING`.
+4. **Code Editor (lo último, porque cierra tu terminal).** En la pestaña de **SageMaker Studio** (no la del Code Editor): menú izquierdo **Code Editor** > en la lista de Spaces, fila `dev` > **Stop**. El estado pasa a `Stopping` y luego a `Stopped` (~1 min). Si lo olvidas, se apaga solo tras 60 minutos de inactividad.
+
+   Tus archivos (`~/bigdata`, `~/.snowflake`, `.env`) se conservan: viven en el disco del Space, no en la instancia.
+
+### Encender
+
+1. **Code Editor.** Consola de AWS > **Amazon SageMaker AI > Domains** > tu dominio > **User profiles** > `estudiante` > **Launch > Studio**. En Studio: **Code Editor** > Space `dev` > **Run space** (~2 min) > **Open**. Abre una terminal: **Terminal > New Terminal**.
+2. **Trae los últimos cambios del repo:**
+   ```bash
+   cd ~/bigdata
+   git pull
+   ```
+3. **Airflow de dev** (cuando lo necesites):
+   ```bash
+   cd ~/bigdata
+   make airflow-local
+   ```
+   Al final imprime `UI: https://...studio.us-east-2.sagemaker.aws/codeeditor/default/ports/8080/`, usuario `admin` y la contraseña. Tarda ~1 min (la instalación solo ocurre la primera vez).
+4. **Airflow de prod** (cuando lo necesites; no puede estar encendido a la vez que el de dev, usan el puerto 8080):
+   ```bash
+   cd ~/bigdata
+   make airflow-local-down
+   make airflow-on
+   make airflow-password
+   make airflow-tunel
+   ```
+   `make airflow-on` termina con `==> Airflow de prod encendido (Airflow tarda ~2 min en responder).` Espera esos 2 minutos antes de abrir la URL que imprime `make airflow-tunel`, y deja esa terminal abierta. Si la página da error, recárgala al minuto.
+
+   Un merge a `main` que cambie `airflow/` o `src/` también enciende la VM de prod (Deploy).
+
+| Mensaje | Causa | Qué hacer |
+|---|---|---|
+| `El puerto 8080 está ocupado (¿Airflow de dev encendido?)` | El Airflow de dev sigue arriba. | `cd ~/bigdata && make airflow-local-down` y repite `make airflow-tunel`. |
+| `La instancia está 'stopped'. Ejecuta 'make airflow-on' primero.` | La VM de prod está apagada. | `cd ~/bigdata && make airflow-on`, espera 2 min y repite `make airflow-tunel`. |
+| `No existe la instancia bigdata-airflow` | Nunca habilitaste prod. | `cd ~/bigdata && make airflow-habilitar` (paso 14). |
+| `AccessDenied` al encender la VM o lanzar Glue | Actuó el presupuesto (60 %). | `cd ~/bigdata && make estado` y, si corresponde, `make desbloquear`. |
+
 ## Costos y apagado
 
 Estimaciones aproximadas; verifica precios vigentes en la consola de AWS y de Snowflake.
