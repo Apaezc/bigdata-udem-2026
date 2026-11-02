@@ -15,7 +15,7 @@ env:
   STACK: bigdata-bootstrap
   # Plantilla publicada por el instructor (scripts/publicar-bootstrap.sh). Se puede cambiar con la
   # variable del repo BOOTSTRAP_TEMPLATE_URL.
-  TEMPLATE_URL: ${{ vars.BOOTSTRAP_TEMPLATE_URL || 'https://bigdata-udem-2026-publico.s3.us-east-2.amazonaws.com/bootstrap/bootstrap.yaml?versionId=7d83b3pab90yx72yHBoeLaEjo7GbvcMX' }}
+  TEMPLATE_URL: ${{ vars.BOOTSTRAP_TEMPLATE_URL || 'https://bigdata-udem-2026-publico.s3.us-east-2.amazonaws.com/bootstrap/bootstrap.yaml?versionId=9kknlc27Pr4PDTir_WYBi1gdcZrih4sM' }}
 
 jobs:
   enlace:
