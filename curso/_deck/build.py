@@ -5,13 +5,36 @@ Lee <carpeta_deck>/slides.json y genera index.html, slides.pdf, png/slide-NN.png
 y slides.pptx. Una sola descripción de layout (primitivas rect/oval/texto/imagen)
 alimenta HTML y PPTX, por eso coinciden.
 """
-import html, json, math, os, re, shutil, subprocess, sys, tempfile
+
+import html
+import json
+import math
+import re
+import shutil
+import subprocess
+import sys
+import tempfile
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from tema import (COLORES, CAPAS, FUENTES, W, H, ML, CW, LIMITE_PALABRAS,
-                  TAM_PIE, TAM_MARCA, TAM_CUERPO_MIN, TAM_COLUMNA_MAX, TAM_TABLA_MAX,
-                  tinte, color, css_root)
+from tema import (
+    CAPAS,
+    COLORES,
+    CW,
+    FUENTES,
+    LIMITE_PALABRAS,
+    ML,
+    TAM_COLUMNA_MAX,
+    TAM_CUERPO_MIN,
+    TAM_MARCA,
+    TAM_PIE,
+    TAM_TABLA_MAX,
+    H,
+    W,
+    color,
+    css_root,
+    tinte,
+)
 
 CHROME = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
 AVISOS = []
@@ -45,9 +68,26 @@ def inline(s):
     return runs or [("", {})]
 
 
-def T(x, y, w, h, paras, size=24, col="ink", bold=False, align="l", anchor="t",
-      lh=1.3, mono=False, after=0, nowrap=False, upper=False, cuenta=True,
-      code=False, celda=False):
+def T(
+    x,
+    y,
+    w,
+    h,
+    paras,
+    size=24,
+    col="ink",
+    bold=False,
+    align="l",
+    anchor="t",
+    lh=1.3,
+    mono=False,
+    after=0,
+    nowrap=False,
+    upper=False,
+    cuenta=True,
+    code=False,
+    celda=False,
+):
     if isinstance(paras, str):
         paras = [paras]
     norm = []
@@ -55,9 +95,26 @@ def T(x, y, w, h, paras, size=24, col="ink", bold=False, align="l", anchor="t",
         if isinstance(p, str):
             p = inline(p.upper() if upper else p)
         norm.append(p)
-    return dict(k="text", x=x, y=y, w=w, h=h, paras=norm, size=size, col=color(col),
-                bold=bold, align=align, anchor=anchor, lh=lh, mono=mono, after=after,
-                nowrap=nowrap, cuenta=cuenta, code=code, celda=celda)
+    return dict(
+        k="text",
+        x=x,
+        y=y,
+        w=w,
+        h=h,
+        paras=norm,
+        size=size,
+        col=color(col),
+        bold=bold,
+        align=align,
+        anchor=anchor,
+        lh=lh,
+        mono=mono,
+        after=after,
+        nowrap=nowrap,
+        cuenta=cuenta,
+        code=code,
+        celda=celda,
+    )
 
 
 def texto_plano(p):
@@ -74,7 +131,7 @@ def titulo(s, y=54):
 
 def pie_comun(n, clase, claro=False):
     c = COLORES["acento_txt"] if claro else "gris"
-    reg = tinte("acento", .4) if claro else "regla"
+    reg = tinte("acento", 0.4) if claro else "regla"
     return [
         R(ML, 668, CW, 1, fill=reg),
         T(ML, 676, 500, 22, f"Big Data · Clase {clase}", size=TAM_PIE, col=c, lh=1.2, cuenta=False),
@@ -87,20 +144,62 @@ def marca_aqui(capa):
     if capa not in CAPAS:
         return []
     out = []
-    cw, ch, gap, y = 100, 32, 8, 22          # pastillas: 32 px de alto (antes 26)
+    cw, ch, gap, y = 100, 32, 8, 22  # pastillas: 32 px de alto (antes 26)
     x0 = W - ML - 3 * cw - 2 * gap
-    out.append(T(x0 - 136, y, 128, ch, "ESTÁS AQUÍ", size=TAM_MARCA, col="gris", bold=True,
-                 align="r", anchor="m", lh=1.2, cuenta=False))
+    out.append(
+        T(
+            x0 - 136,
+            y,
+            128,
+            ch,
+            "ESTÁS AQUÍ",
+            size=TAM_MARCA,
+            col="gris",
+            bold=True,
+            align="r",
+            anchor="m",
+            lh=1.2,
+            cuenta=False,
+        )
+    )
     for i, c in enumerate(CAPAS):
         x = x0 + i * (cw + gap)
         if c == capa:
             out.append(R(x, y, cw, ch, fill=c))
-            out.append(T(x, y, cw, ch, c.upper(), size=TAM_MARCA, col="blanco", bold=True,
-                         align="c", anchor="m", lh=1.2, cuenta=False))
+            out.append(
+                T(
+                    x,
+                    y,
+                    cw,
+                    ch,
+                    c.upper(),
+                    size=TAM_MARCA,
+                    col="blanco",
+                    bold=True,
+                    align="c",
+                    anchor="m",
+                    lh=1.2,
+                    cuenta=False,
+                )
+            )
         else:
             out.append(R(x, y, cw, ch, line=color("regla"), lw=1.5))
-            out.append(T(x, y, cw, ch, c.upper(), size=TAM_MARCA, col="gris", bold=True,
-                         align="c", anchor="m", lh=1.2, cuenta=False))
+            out.append(
+                T(
+                    x,
+                    y,
+                    cw,
+                    ch,
+                    c.upper(),
+                    size=TAM_MARCA,
+                    col="gris",
+                    bold=True,
+                    align="c",
+                    anchor="m",
+                    lh=1.2,
+                    cuenta=False,
+                )
+            )
     return out
 
 
@@ -117,9 +216,9 @@ def svg_tam(ruta):
 
 
 # ------------------------------------------------------- relleno (alto útil)
-ZONA_TOP, ZONA_BOT = 164, 656       # alto útil: bajo el título/marca, sobre la regla del pie (668)
-ZONA_H = ZONA_BOT - ZONA_TOP        # 492 px
-OCUP_MIN, OCUP_OBJ, OCUP_TOPE = .60, .75, .85
+ZONA_TOP, ZONA_BOT = 164, 656  # alto útil: bajo el título/marca, sobre la regla del pie (668)
+ZONA_H = ZONA_BOT - ZONA_TOP  # 492 px
+OCUP_MIN, OCUP_OBJ, OCUP_TOPE = 0.60, 0.75, 0.85
 PASO_RELLENO = 2
 
 
@@ -128,9 +227,9 @@ def lineas_de(texto, ancho, size, bold=False, mono=False):
     f = 0.62 if mono else (0.58 if bold else 0.54)
     por_linea = max(1, int(ancho // (size * f)))
     n, cur = 1, 0
-    for palabra in (texto.split() or [""]):
+    for palabra in texto.split() or [""]:
         L = len(palabra)
-        if L > por_linea:                       # palabra que no cabe: se parte a la fuerza
+        if L > por_linea:  # palabra que no cabe: se parte a la fuerza
             if cur:
                 n += 1
             n += (L - 1) // por_linea
@@ -173,23 +272,56 @@ def L_portada(s, n, ctx):
         R(ML + 20, 590, 110, 10, fill="bronze"),
         R(ML + 20 + 110, 590, 110, 10, fill="silver"),
         R(ML + 20 + 220, 590, 110, 10, fill="gold"),
-        T(ML + 20, 620, 1000, 30, s.get("meta", f"Clase {ctx['clase']}"), size=20, col="gris", lh=1.2, cuenta=False),
+        T(
+            ML + 20,
+            620,
+            1000,
+            30,
+            s.get("meta", f"Clase {ctx['clase']}"),
+            size=20,
+            col="gris",
+            lh=1.2,
+            cuenta=False,
+        ),
     ]
 
 
 def L_seccion(s, n, ctx):
-    _n = str(s.get("numero", "")); num = _n.zfill(2) if _n.isdigit() else _n
+    _n = str(s.get("numero", ""))
+    num = _n.zfill(2) if _n.isdigit() else _n
     return COLORES["bg"], marca_aqui(s.get("aqui")) + [
-        T(ML, 110, 520, 400, num, size=300, col="acento", bold=True, lh=1.0, anchor="m", cuenta=False),
+        T(
+            ML,
+            110,
+            520,
+            400,
+            num,
+            size=300,
+            col="acento",
+            bold=True,
+            lh=1.0,
+            anchor="m",
+            cuenta=False,
+        ),
         R(620, 170, 3, 380, fill="regla"),
-        T(660, 170, 540, 30, s.get("etiqueta", "Sección").upper(), size=20, col="acento", bold=True, lh=1.2),
+        T(
+            660,
+            170,
+            540,
+            30,
+            s.get("etiqueta", "Sección").upper(),
+            size=20,
+            col="acento",
+            bold=True,
+            lh=1.2,
+        ),
         T(660, 215, 540, 340, s["pregunta"], size=44, bold=True, lh=1.15),
     ] + pie_comun(n, ctx["clase"])
 
 
-PIE_VIS_TAM, PIE_VIS_LH = 22, 1.2     # texto de pie bajo el diagrama
-PIE_VIS_BASE = 652                    # borde inferior del texto de pie (regla del pie en 668)
-GAP_DIAG_PIE = 16                     # separación mínima diagrama - pie
+PIE_VIS_TAM, PIE_VIS_LH = 22, 1.2  # texto de pie bajo el diagrama
+PIE_VIS_BASE = 652  # borde inferior del texto de pie (regla del pie en 668)
+GAP_DIAG_PIE = 16  # separación mínima diagrama - pie
 
 
 def L_titulo_visual(s, n, ctx):
@@ -204,13 +336,25 @@ def L_titulo_visual(s, n, ctx):
     else:
         sw, sh = svg_tam(p)
         bx, by = ML, 164
-        bw, bh = CW, (pie_y - GAP_DIAG_PIE) - by      # máximo alto disponible sobre el pie
-        k = min(bw / sw, bh / sh)                      # máximo ancho/alto manteniendo proporción
+        bw, bh = CW, (pie_y - GAP_DIAG_PIE) - by  # máximo alto disponible sobre el pie
+        k = min(bw / sw, bh / sh)  # máximo ancho/alto manteniendo proporción
         w, h = sw * k, sh * k
-        prims.append(dict(k="img", x=bx + (bw - w) / 2, y=by + (bh - h) / 2, w=w, h=h,
-                          src=s["diagrama"], ruta=str(p), alt=s.get("alt", "")))
+        prims.append(
+            dict(
+                k="img",
+                x=bx + (bw - w) / 2,
+                y=by + (bh - h) / 2,
+                w=w,
+                h=h,
+                src=s["diagrama"],
+                ruta=str(p),
+                alt=s.get("alt", ""),
+            )
+        )
     if texto_pie:
-        prims.append(T(ML, pie_y, CW, pie_h, texto_pie, size=PIE_VIS_TAM, col="gris", lh=PIE_VIS_LH))
+        prims.append(
+            T(ML, pie_y, CW, pie_h, texto_pie, size=PIE_VIS_TAM, col="gris", lh=PIE_VIS_LH)
+        )
     return COLORES["bg"], prims + pie_comun(n, ctx["clase"])
 
 
@@ -219,7 +363,19 @@ def L_dato_grande(s, n, ctx):
     size = max(110, min(250, int(CW / (len(cifra) * 0.64))))
     c = s.get("capa", "acento")
     return COLORES["bg"], marca_aqui(s.get("aqui")) + [
-        T(ML - 6, 70, CW, 300, cifra, size=size, col=c, bold=True, lh=1.0, anchor="b", cuenta=False),
+        T(
+            ML - 6,
+            70,
+            CW,
+            300,
+            cifra,
+            size=size,
+            col=c,
+            bold=True,
+            lh=1.0,
+            anchor="b",
+            cuenta=False,
+        ),
         R(ML, 396, 120, 6, fill=c),
         T(ML, 424, 980, 140, s["contexto"], size=32, lh=1.25),
         T(ML, 612, CW, 28, s.get("fuente", ""), size=18, col="gris", lh=1.2),
@@ -227,8 +383,8 @@ def L_dato_grande(s, n, ctx):
 
 
 # ------------------------------------------------------------ tablas (ancho)
-ANCHO_MIN_COL = 100     # px mínimo por columna
-PAD_CELDA = 20          # la caja de texto deja 10 px a cada lado
+ANCHO_MIN_COL = 100  # px mínimo por columna
+PAD_CELDA = 20  # la caja de texto deja 10 px a cada lado
 TAB_TAM, TAB_TAM_MIN, TAB_PASO = 22, TAM_CUERPO_MIN, 2
 
 
@@ -257,7 +413,7 @@ def partir_snake(texto):
     if not pos:
         return [texto]
     i = min(pos, key=lambda i: max(i + 1, len(texto) - i - 1))
-    return [texto[:i + 1], texto[i + 1:]]
+    return [texto[: i + 1], texto[i + 1 :]]
 
 
 def lineas_cab(texto, partir):
@@ -273,7 +429,7 @@ def unidades(texto, partir=False):
 
 def cabe(celdas, anchos, size, partir):
     """celdas[i] = [(texto, mono, es_encabezado), ...]: ¿cabe la unidad más ancha de cada celda?"""
-    for col, w in zip(celdas, anchos):
+    for col, w in zip(celdas, anchos, strict=False):
         for texto, mono, cab in col:
             for u in unidades(texto, partir and cab):
                 if round(ancho_texto(u, size, mono), 1) > w - PAD_CELDA:
@@ -295,8 +451,10 @@ def ajustar_tabla(celdas, pesos, tam=TAB_TAM):
 
 def alto_cabecera_tabla(enc, ws, sz, partir):
     """Alto de la fila de encabezados (mín. 48 px; crece si un encabezado ocupa varias líneas)."""
-    lineas = max(sum(lineas_de(t, w - 20, sz, bold=True) for t in lineas_cab(e, partir))
-                 for e, w in zip(enc, ws))
+    lineas = max(
+        sum(lineas_de(t, w - 20, sz, bold=True) for t in lineas_cab(e, partir))
+        for e, w in zip(enc, ws, strict=False)
+    )
     return max(48, lineas * sz * 1.15 + 8)
 
 
@@ -307,8 +465,10 @@ def L_comparacion(s, n, ctx):
         nc = len(enc)
         if len(filas) > 8:
             aviso(n, "comparacion", "tabla con más de 8 filas")
-        celdas = [[(enc[i], False, True)] + [(str(f[i]), False, False) for f in filas if i < len(f)]
-                  for i in range(nc)]
+        celdas = [
+            [(enc[i], False, True)] + [(str(f[i]), False, False) for f in filas if i < len(f)]
+            for i in range(nc)
+        ]
         pesos = [max(len(c[0]) for c in col) for col in celdas]
         ws, size, partir, ok = ajustar_tabla(celdas, pesos)
         rh0 = min(64, int(400 / max(1, len(filas))))
@@ -324,8 +484,17 @@ def L_comparacion(s, n, ctx):
             p_ = partir_en(sz)
             if p_ is None:
                 return None
-            rh = max(rh0, max((lineas_de(str(c), w - 20, sz, bold=(i == 0)) * sz * 1.15 + 20
-                               for fila in filas for i, (c, w) in enumerate(zip(fila, ws))), default=0))
+            rh = max(
+                rh0,
+                max(
+                    (
+                        lineas_de(str(c), w - 20, sz, bold=(i == 0)) * sz * 1.15 + 20
+                        for fila in filas
+                        for i, (c, w) in enumerate(zip(fila, ws, strict=False))
+                    ),
+                    default=0,
+                ),
+            )
             hh = alto_cabecera_tabla(enc, ws, sz, p_)
             return (y - ZONA_TOP) + hh + 4 + len(filas) * rh
 
@@ -339,16 +508,50 @@ def L_comparacion(s, n, ctx):
         hh = alto_cabecera_tabla(enc, ws, size, partir)
         lh_cab = 1.1 if partir else 1.15
         for i, e in enumerate(enc):
-            prims.append(T(xs[i] + 10, y, ws[i] - 20, hh, lineas_cab(e, partir), size=size, bold=True,
-                           col="gris", anchor="m", lh=lh_cab, celda=True))
+            prims.append(
+                T(
+                    xs[i] + 10,
+                    y,
+                    ws[i] - 20,
+                    hh,
+                    lineas_cab(e, partir),
+                    size=size,
+                    bold=True,
+                    col="gris",
+                    anchor="m",
+                    lh=lh_cab,
+                    celda=True,
+                )
+            )
         prims.append(R(ML, y + hh + 2, CW, 2, fill="ink"))
-        rh = max(rh0, max((lineas_de(str(c), w - 20, size, bold=(i == 0)) * size * 1.15 + 20
-                           for fila in filas for i, (c, w) in enumerate(zip(fila, ws))), default=0))
+        rh = max(
+            rh0,
+            max(
+                (
+                    lineas_de(str(c), w - 20, size, bold=(i == 0)) * size * 1.15 + 20
+                    for fila in filas
+                    for i, (c, w) in enumerate(zip(fila, ws, strict=False))
+                ),
+                default=0,
+            ),
+        )
         for r_i, fila in enumerate(filas):
             yy = y + hh + 4 + r_i * rh
             for i, c in enumerate(fila):
-                prims.append(T(xs[i] + 10, yy, ws[i] - 20, rh, str(c), size=size, bold=(i == 0),
-                               anchor="m", lh=1.15, celda=True))
+                prims.append(
+                    T(
+                        xs[i] + 10,
+                        yy,
+                        ws[i] - 20,
+                        rh,
+                        str(c),
+                        size=size,
+                        bold=(i == 0),
+                        anchor="m",
+                        lh=1.15,
+                        celda=True,
+                    )
+                )
             prims.append(R(ML, yy + rh - 1, CW, 1, fill="regla"))
         return COLORES["bg"], prims + pie_comun(n, ctx["clase"])
     cols = s["columnas"]
@@ -358,8 +561,10 @@ def L_comparacion(s, n, ctx):
     gap = 36
     cw = (CW - gap * (nc - 1)) / nc
     base = 26 if nc <= 3 else 22
+
     # título de columna: por encima del cuerpo, nunca mayor que el título de la slide (34)
-    cab = lambda sz: max(28, min(sz + 4, 32))
+    def cab(sz):
+        return max(28, min(sz + 4, 32))
 
     def alto_columnas(sz):
         hc = cab(sz)
@@ -379,21 +584,43 @@ def L_comparacion(s, n, ctx):
         ht = lineas_de(c["titulo"], cw, hc, bold=True) * hc * 1.15
         prims += [
             R(x, 176, cw, 6, fill=cc),
-            T(x, 196, cw, ht, c["titulo"], size=hc, bold=True, col=cc if c.get("capa") else "ink", lh=1.15),
-            T(x, 196 + ht + 18, cw, ZONA_BOT - (196 + ht + 18), ["– " + it for it in c["items"]],
-              size=size, lh=1.3, after=18),
+            T(
+                x,
+                196,
+                cw,
+                ht,
+                c["titulo"],
+                size=hc,
+                bold=True,
+                col=cc if c.get("capa") else "ink",
+                lh=1.15,
+            ),
+            T(
+                x,
+                196 + ht + 18,
+                cw,
+                ZONA_BOT - (196 + ht + 18),
+                ["– " + it for it in c["items"]],
+                size=size,
+                lh=1.3,
+                after=18,
+            ),
         ]
     return COLORES["bg"], prims + pie_comun(n, ctx["clase"])
 
 
-SQL_KW = set("""select from where group by order having join left right inner outer full cross on as
+SQL_KW = set(
+    """select from where group by order having join left right inner outer full cross on as
 create or replace table view insert into values update set delete and not null is in case when then
-else end limit distinct union all with using over partition desc asc between like exists""".split())
+else end limit distinct union all with using over partition desc asc between like exists""".split()
+)
 
 
 def sql_runs(linea):
     runs = []
-    for m in re.finditer(r"(--[^\n]*)|('(?:[^']|'')*')|(\b\d+(?:\.\d+)?\b)|([A-Za-z_][A-Za-z_0-9]*)|(\s+)|(.)", linea):
+    for m in re.finditer(
+        r"(--[^\n]*)|('(?:[^']|'')*')|(\b\d+(?:\.\d+)?\b)|([A-Za-z_][A-Za-z_0-9]*)|(\s+)|(.)", linea
+    ):
         txt = m.group(0)
         if m.group(1):
             runs.append((txt, {"color": COLORES["sql_com"], "italic": True}))
@@ -418,11 +645,26 @@ def L_codigo(s, n, ctx):
     prims = titulo(s) + marca_aqui(s.get("aqui"))
     prims += [R(ML, 164, CW, ph, fill="panel"), R(ML, 164, 6, ph, fill="acento")]
     for i in s.get("resaltar", []):
-        prims.append(R(ML + 6, 164 + 18 + (i - 1) * lpx, CW - 6, lpx, fill=tinte("acento", .16)))
-    prims.append(T(ML + 34, 164 + 18, CW - 60, ph - 18, [sql_runs(l) for l in lineas], size=size,
-                   lh=lh, mono=True, nowrap=True, cuenta=False, code=True))
+        prims.append(R(ML + 6, 164 + 18 + (i - 1) * lpx, CW - 6, lpx, fill=tinte("acento", 0.16)))
+    prims.append(
+        T(
+            ML + 34,
+            164 + 18,
+            CW - 60,
+            ph - 18,
+            [sql_runs(l) for l in lineas],
+            size=size,
+            lh=lh,
+            mono=True,
+            nowrap=True,
+            cuenta=False,
+            code=True,
+        )
+    )
     ey = 164 + ph + 16
-    prims.append(T(ML, ey, CW, max(30, 662 - ey), s.get("explicacion", ""), size=24, lh=1.25, anchor="t"))
+    prims.append(
+        T(ML, ey, CW, max(30, 662 - ey), s.get("explicacion", ""), size=24, lh=1.25, anchor="t")
+    )
     return COLORES["bg"], prims + pie_comun(n, ctx["clase"])
 
 
@@ -433,7 +675,9 @@ def L_fila(s, n, ctx):
         aviso(n, "fila", f"{nc} columnas (máx. 7)")
     prims = titulo(s) + marca_aqui(s.get("aqui"))
     if s.get("tabla"):
-        prims.append(T(ML, 164, CW, 28, s["tabla"], size=20, col="gris", mono=True, lh=1.2, cuenta=False))
+        prims.append(
+            T(ML, 164, CW, 28, s["tabla"], size=20, col="gris", mono=True, lh=1.2, cuenta=False)
+        )
     celdas = []
     for c in cols:
         col = [(c["nombre"], True, True), (str(c["valor"]), True, False)]
@@ -443,7 +687,7 @@ def L_fila(s, n, ctx):
     pesos = [max(len(c["nombre"]), len(str(c["valor"]))) for c in cols]
     anchos, size, partir, ok = ajustar_tabla(celdas, pesos)
     hy = 204
-    notas = [(c, w) for c, w in zip(cols, anchos) if c.get("nota")]
+    notas = [(c, w) for c, w in zip(cols, anchos, strict=False) if c.get("nota")]
 
     def partir_en(sz):
         """Encabezados enteros si caben; si no, partidos en «_» (None: no cabe ni así)."""
@@ -453,10 +697,29 @@ def L_fila(s, n, ctx):
 
     def geometria(sz, p_):
         """Altura del encabezado, de la celda de valor y del bloque de notas a `sz` px."""
-        hh = max(56, max(sum(lineas_de(t, w - 20, sz, bold=True, mono=True) for t in lineas_cab(c["nombre"], p_))
-                         for c, w in zip(cols, anchos)) * sz * 1.15 + 16)
-        vh = max(132, max(lineas_de(str(c["valor"]), w - 20, sz, mono=True)
-                          for c, w in zip(cols, anchos)) * sz * 1.25 + 24)
+        hh = max(
+            56,
+            max(
+                sum(
+                    lineas_de(t, w - 20, sz, bold=True, mono=True)
+                    for t in lineas_cab(c["nombre"], p_)
+                )
+                for c, w in zip(cols, anchos, strict=False)
+            )
+            * sz
+            * 1.15
+            + 16,
+        )
+        vh = max(
+            132,
+            max(
+                lineas_de(str(c["valor"]), w - 20, sz, mono=True)
+                for c, w in zip(cols, anchos, strict=False)
+            )
+            * sz
+            * 1.25
+            + 24,
+        )
         nh = 0
         if notas:
             nh = 38 + max(lineas_de(c["nota"], w - 12, sz, bold=True) for c, w in notas) * sz * 1.25
@@ -477,29 +740,63 @@ def L_fila(s, n, ctx):
         aviso(n, "fila", f"encabezados partidos en 2 líneas en «_» (fila a {size} px)")
     hh, vh, nh = geometria(size, partir)
     x = ML
-    for c, cw in zip(cols, anchos):
+    for c, cw in zip(cols, anchos, strict=False):
         cc = c.get("capa")
         if cc:
-            prims += [R(x, hy, cw, hh, fill=cc), R(x, hy + hh, cw, vh, fill=tinte(cc, .16))]
+            prims += [R(x, hy, cw, hh, fill=cc), R(x, hy + hh, cw, vh, fill=tinte(cc, 0.16))]
         else:
             prims += [R(x, hy, cw, hh, fill="panel"), R(x, hy + hh, cw, vh, fill=None)]
         prims += [
-            T(x + 10, hy, cw - 20, hh, lineas_cab(c["nombre"], partir), size=size, bold=True, mono=True,
-              col="blanco" if cc else "ink", anchor="m", lh=1.15, cuenta=False, celda=True),
-            T(x + 10, hy + hh + 6, cw - 20, vh - 12, str(c["valor"]), size=size, mono=True, anchor="m",
-              lh=1.25, cuenta=False, celda=True),
+            T(
+                x + 10,
+                hy,
+                cw - 20,
+                hh,
+                lineas_cab(c["nombre"], partir),
+                size=size,
+                bold=True,
+                mono=True,
+                col="blanco" if cc else "ink",
+                anchor="m",
+                lh=1.15,
+                cuenta=False,
+                celda=True,
+            ),
+            T(
+                x + 10,
+                hy + hh + 6,
+                cw - 20,
+                vh - 12,
+                str(c["valor"]),
+                size=size,
+                mono=True,
+                anchor="m",
+                lh=1.25,
+                cuenta=False,
+                celda=True,
+            ),
         ]
         x += cw
     # bordes de la tabla
     prims += [R(ML, hy + hh + vh - 1, CW, 2, fill="ink"), R(ML, hy, CW, 2, fill="ink")]
     x = ML
-    for c, cw in zip(cols, anchos):
+    for c, cw in zip(cols, anchos, strict=False):
         if c.get("nota"):
             cc = c.get("capa", "acento")
             prims += [
                 R(x + 14, hy + hh + vh, 3, 30, fill=cc),
-                T(x + 6, hy + hh + vh + 38, cw - 12, nh - 38, c["nota"], size=size, lh=1.25,
-                  col="ink", bold=True, celda=True),
+                T(
+                    x + 6,
+                    hy + hh + vh + 38,
+                    cw - 12,
+                    nh - 38,
+                    c["nota"],
+                    size=size,
+                    lh=1.25,
+                    col="ink",
+                    bold=True,
+                    celda=True,
+                ),
             ]
         x += cw
     return COLORES["bg"], prims + pie_comun(n, ctx["clase"])
@@ -508,7 +805,17 @@ def L_fila(s, n, ctx):
 def L_pregunta(s, n, ctx):
     fondo = COLORES["acento"]
     return fondo, [
-        T(ML, 110, 600, 30, s.get("etiqueta", "Pregunta").upper(), size=20, col="acento_txt", bold=True, cuenta=False),
+        T(
+            ML,
+            110,
+            600,
+            30,
+            s.get("etiqueta", "Pregunta").upper(),
+            size=20,
+            col="acento_txt",
+            bold=True,
+            cuenta=False,
+        ),
         T(ML, 160, 1060, 360, s["pregunta"], size=60, col="blanco", bold=True, lh=1.12),
         T(ML, 560, 1060, 50, s.get("pista", ""), size=26, col="acento_txt", lh=1.2),
     ] + pie_comun(n, ctx["clase"], claro=True)
@@ -543,16 +850,36 @@ def L_pasos(s, n, ctx):
     for i, p in enumerate(pasos):
         y = top + i * rh
         prims += [
-            T(ML, y, 56, rh, str(i + 1), size=34, col="acento", bold=True, anchor="m", lh=1.0, cuenta=False),
+            T(
+                ML,
+                y,
+                56,
+                rh,
+                str(i + 1),
+                size=34,
+                col="acento",
+                bold=True,
+                anchor="m",
+                lh=1.0,
+                cuenta=False,
+            ),
             T(ML + 70, y, CW - 70, rh, p, size=size, anchor="m", lh=1.2),
             R(ML, y + rh - 1, CW, 1, fill="regla"),
         ]
     return COLORES["bg"], prims + pie_comun(n, ctx["clase"])
 
 
-TIPOS = {"portada": L_portada, "seccion": L_seccion, "titulo_visual": L_titulo_visual,
-         "dato_grande": L_dato_grande, "comparacion": L_comparacion, "codigo": L_codigo,
-         "fila": L_fila, "pregunta": L_pregunta, "pasos": L_pasos}
+TIPOS = {
+    "portada": L_portada,
+    "seccion": L_seccion,
+    "titulo_visual": L_titulo_visual,
+    "dato_grande": L_dato_grande,
+    "comparacion": L_comparacion,
+    "codigo": L_codigo,
+    "fila": L_fila,
+    "pregunta": L_pregunta,
+    "pasos": L_pasos,
+}
 
 
 # --------------------------------------------------------------- validaciones
@@ -577,7 +904,11 @@ def validar(prims, n, tipo):
                 for u in unidades(t):
                     ancho = ancho_texto(u, p["size"], p["mono"])
                     if round(ancho, 1) > p["w"]:
-                        aviso(n, tipo, f"desborde horizontal: «{u}» ({ancho:.0f} px) no cabe en {p['w']:.0f} px")
+                        aviso(
+                            n,
+                            tipo,
+                            f"desborde horizontal: «{u}» ({ancho:.0f} px) no cabe en {p['w']:.0f} px",
+                        )
         if alto > p["h"] * 1.04 + 2:
             aviso(n, tipo, f"posible desborde vertical ({lineas} líneas): «{plano[0][:40]}…»")
     lim = LIMITE_PALABRAS.get(tipo, 40)
@@ -661,12 +992,16 @@ def html_prim(p):
             st += "border-radius:50%;"
         return f'<div class="e" style="{st}"></div>'
     if p["k"] == "img":
-        return (f'<img src="{html.escape(p["src"])}" alt="{html.escape(p["alt"])}" '
-                f'style="{estilo(p)}">')
+        return (
+            f'<img src="{html.escape(p["src"])}" alt="{html.escape(p["alt"])}" style="{estilo(p)}">'
+        )
     just = {"t": "flex-start", "m": "center", "b": "flex-end"}[p["anchor"]]
     lpx = p["size"] * p["lh"]
-    st = (estilo(p) + f"font-size:{p['size']}px;line-height:{lpx:.1f}px;--lh:{lpx:.1f}px;color:{p['col']};"
-          f"text-align:{ {'l':'left','c':'center','r':'right'}[p['align']] };justify-content:{just};")
+    st = (
+        estilo(p)
+        + f"font-size:{p['size']}px;line-height:{lpx:.1f}px;--lh:{lpx:.1f}px;color:{p['col']};"
+        f"text-align:{ {'l': 'left', 'c': 'center', 'r': 'right'}[p['align']] };justify-content:{just};"
+    )
     if p["bold"]:
         st += "font-weight:700;"
     cls = "t" + (" m" if p["mono"] else "") + (" nw" if p["nowrap"] else "")
@@ -694,8 +1029,10 @@ def pagina_html(slides, titulo_doc):
         cuerpo = "\n".join(html_prim(p) for p in s["prims"])
         notas = html.escape(s.get("notas", ""))
         mn = s.get("min", "")
-        secs.append(f'<section class="slide" id="s{n}" data-tipo="{s["tipo"]}" data-min="{mn}" '
-                    f'style="background:{s["fondo"]}">\n{cuerpo}\n<div class="notas">{notas}</div></section>')
+        secs.append(
+            f'<section class="slide" id="s{n}" data-tipo="{s["tipo"]}" data-min="{mn}" '
+            f'style="background:{s["fondo"]}">\n{cuerpo}\n<div class="notas">{notas}</div></section>'
+        )
     return f"""<!doctype html>
 <html lang="es"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -717,9 +1054,20 @@ def pagina_html(slides, titulo_doc):
 def chrome(args, timeout=90):
     ud = tempfile.mkdtemp(prefix="chrome-ud-")
     try:
-        r = subprocess.run([CHROME, "--headless", "--disable-gpu", "--hide-scrollbars",
-                            "--no-first-run", f"--user-data-dir={ud}", *args],
-                           capture_output=True, text=True, timeout=timeout)
+        r = subprocess.run(
+            [
+                CHROME,
+                "--headless",
+                "--disable-gpu",
+                "--hide-scrollbars",
+                "--no-first-run",
+                f"--user-data-dir={ud}",
+                *args,
+            ],
+            capture_output=True,
+            text=True,
+            timeout=timeout,
+        )
         return r
     finally:
         shutil.rmtree(ud, ignore_errors=True)
@@ -737,8 +1085,14 @@ def hacer_pngs(index, carpeta, n):
         f.unlink()
     for k in range(1, n + 1):
         out = carpeta / f"slide-{k:02d}.png"
-        chrome([f"--screenshot={out}", "--window-size=1280,720", "--virtual-time-budget=1500",
-                index.as_uri() + f"?solo={k}"])
+        chrome(
+            [
+                f"--screenshot={out}",
+                "--window-size=1280,720",
+                "--virtual-time-budget=1500",
+                index.as_uri() + f"?solo={k}",
+            ]
+        )
         if not out.exists():
             raise RuntimeError(f"Chrome no generó {out}")
 
@@ -746,11 +1100,20 @@ def hacer_pngs(index, carpeta, n):
 def rasterizar_svg(ruta, destino):
     w, h = svg_tam(ruta)
     wrap = Path(tempfile.mkdtemp(prefix="svg-")) / "w.html"
-    wrap.write_text(f'<html><body style="margin:0;background:{COLORES["bg"]}">'
-                    f'<img src="{Path(ruta).resolve().as_uri()}" style="width:{w}px;height:{h}px;display:block">'
-                    f'</body></html>')
-    chrome([f"--screenshot={destino}", f"--window-size={int(w)},{int(h)}",
-            "--force-device-scale-factor=2", "--virtual-time-budget=1500", wrap.as_uri()])
+    wrap.write_text(
+        f'<html><body style="margin:0;background:{COLORES["bg"]}">'
+        f'<img src="{Path(ruta).resolve().as_uri()}" style="width:{w}px;height:{h}px;display:block">'
+        f"</body></html>"
+    )
+    chrome(
+        [
+            f"--screenshot={destino}",
+            f"--window-size={int(w)},{int(h)}",
+            "--force-device-scale-factor=2",
+            "--virtual-time-budget=1500",
+            wrap.as_uri(),
+        ]
+    )
     shutil.rmtree(wrap.parent, ignore_errors=True)
     if not Path(destino).exists():
         raise RuntimeError(f"no se pudo rasterizar {ruta}")
@@ -759,32 +1122,36 @@ def rasterizar_svg(ruta, destino):
 # ------------------------------------------------------------------ PPTX
 def hex_rgb(h):
     from pptx.dml.color import RGBColor
+
     h = color(h).lstrip("#")
     return RGBColor(int(h[0:2], 16), int(h[2:4], 16), int(h[4:6], 16))
 
 
 def hacer_pptx(slides, destino, tmpdir):
     from pptx import Presentation
-    from pptx.util import Emu, Pt
     from pptx.enum.shapes import MSO_SHAPE
-    from pptx.enum.text import PP_ALIGN, MSO_ANCHOR, MSO_AUTO_SIZE
+    from pptx.enum.text import MSO_ANCHOR, MSO_AUTO_SIZE, PP_ALIGN
+    from pptx.util import Emu, Pt
 
     E = 9525  # EMU por px (1280 px = 13.333 in)
     prs = Presentation()
     prs.slide_width, prs.slide_height = Emu(W * E), Emu(H * E)
     blank = prs.slide_layouts[6]
-    for n, s in enumerate(slides, 1):
+    for _n, s in enumerate(slides, 1):
         sl = prs.slides.add_slide(blank)
         sl.background.fill.solid()
         sl.background.fill.fore_color.rgb = hex_rgb(s["fondo"])
         for p in s["prims"]:
             x, y, w, h = (Emu(int(p[k] * E)) for k in "xywh")
             if p["k"] == "rect":
-                forma = MSO_SHAPE.OVAL if p["oval"] else (
-                    MSO_SHAPE.ROUNDED_RECTANGLE if p["r"] else MSO_SHAPE.RECTANGLE)
+                forma = (
+                    MSO_SHAPE.OVAL
+                    if p["oval"]
+                    else (MSO_SHAPE.ROUNDED_RECTANGLE if p["r"] else MSO_SHAPE.RECTANGLE)
+                )
                 sh = sl.shapes.add_shape(forma, x, y, w, h)
                 if p["r"] and not p["oval"]:
-                    sh.adjustments[0] = min(.5, p["r"] / min(p["w"], p["h"]))
+                    sh.adjustments[0] = min(0.5, p["r"] / min(p["w"], p["h"]))
                 if p["fill"]:
                     sh.fill.solid()
                     sh.fill.fore_color.rgb = hex_rgb(p["fill"])
@@ -792,7 +1159,7 @@ def hacer_pptx(slides, destino, tmpdir):
                     sh.fill.background()
                 if p["line"]:
                     sh.line.color.rgb = hex_rgb(p["line"])
-                    sh.line.width = Pt(p["lw"] * .75)
+                    sh.line.width = Pt(p["lw"] * 0.75)
                 else:
                     sh.line.fill.background()
                 sh.shadow.inherit = False
@@ -807,19 +1174,27 @@ def hacer_pptx(slides, destino, tmpdir):
                 tf.word_wrap = not p["nowrap"]
                 tf.auto_size = MSO_AUTO_SIZE.NONE
                 tf.margin_left = tf.margin_right = tf.margin_top = tf.margin_bottom = 0
-                tf.vertical_anchor = {"t": MSO_ANCHOR.TOP, "m": MSO_ANCHOR.MIDDLE, "b": MSO_ANCHOR.BOTTOM}[p["anchor"]]
+                tf.vertical_anchor = {
+                    "t": MSO_ANCHOR.TOP,
+                    "m": MSO_ANCHOR.MIDDLE,
+                    "b": MSO_ANCHOR.BOTTOM,
+                }[p["anchor"]]
                 for k, par in enumerate(p["paras"]):
                     pa = tf.paragraphs[0] if k == 0 else tf.add_paragraph()
-                    pa.alignment = {"l": PP_ALIGN.LEFT, "c": PP_ALIGN.CENTER, "r": PP_ALIGN.RIGHT}[p["align"]]
-                    pa.line_spacing = Pt(p["size"] * p["lh"] * .75)
+                    pa.alignment = {"l": PP_ALIGN.LEFT, "c": PP_ALIGN.CENTER, "r": PP_ALIGN.RIGHT}[
+                        p["align"]
+                    ]
+                    pa.line_spacing = Pt(p["size"] * p["lh"] * 0.75)
                     if p["after"] and k < len(p["paras"]) - 1:
-                        pa.space_after = Pt(p["after"] * .75)
+                        pa.space_after = Pt(p["after"] * 0.75)
                     for t, f in par:
                         r = pa.add_run()
                         r.text = t
                         mono = p["mono"] or f.get("mono")
                         r.font.name = FUENTES["mono_pptx"] if mono else FUENTES["sans_pptx"]
-                        r.font.size = Pt(p["size"] * (.92 if f.get("mono") and not p["mono"] else 1) * .75)
+                        r.font.size = Pt(
+                            p["size"] * (0.92 if f.get("mono") and not p["mono"] else 1) * 0.75
+                        )
                         r.font.bold = bool(p["bold"] or f.get("bold"))
                         r.font.italic = bool(f.get("italic"))
                         r.font.color.rgb = hex_rgb(f.get("color", p["col"]))
