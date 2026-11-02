@@ -92,7 +92,7 @@ Haz los pasos en este orden.
 3. **Fork y Actions.** Haz fork de este repositorio en tu GitHub. En el fork, pestaña **Actions**, habilita los workflows ("I understand my workflows, go ahead and enable them").
 4. **Launch Stack (bootstrap AWS).** En tu fork: **Actions > "Enlace de bootstrap" > Run workflow**. Abre el run y haz clic en el enlace **Launch Stack** del resumen: tus datos de GitHub ya vienen completados. Solo eliges la VPC *default*, todas sus subnets y tu correo, marcas la casilla de IAM y creas el stack. Espera `CREATE_COMPLETE` (~4 min). Detalle: [docs/bootstrap.md](docs/bootstrap.md).
 5. **Code Editor.** En la consola de AWS: **Amazon SageMaker AI > Domains** > tu dominio > pestaña **User profiles** > `estudiante` > **Launch > Studio**. En Studio: **Code Editor** > Space `dev` > **Run space** (la primera vez tarda 3-5 min) > **Open**. Abre una terminal: menú **Terminal > New Terminal**.
-   (No abras el enlace `StudioConsoleUrl` directamente: pide un token y da "Invalid or Expired Auth Token".)
+   Atajo: el output `StudioConsoleUrl` del stack (CloudFormation > `bigdata-bootstrap` > **Outputs**) abre directo la página del perfil `estudiante`; ahí pulsa **Launch > Studio**.
 6. **Clona tu fork** en la terminal del Code Editor, siempre en la carpeta `~/bigdata` (así todos los comandos de esta guía se copian y pegan tal cual, sin cambiar nada). Solo aquí reemplazas `<TU_USUARIO>` y `<TU_FORK>` por los tuyos:
    ```bash
    cd ~
