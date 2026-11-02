@@ -463,6 +463,7 @@ Lo que cuesta mientras está encendido es el **Code Editor** (~US$0.10/h) y la *
 ### Encender
 
 1. **Code Editor.** Consola de AWS > **Amazon SageMaker AI > Domains** > tu dominio > **User profiles** > `estudiante` > **Launch > Studio**. En Studio: **Code Editor** > Space `dev` > **Run space** (~2 min) > **Open**. Abre una terminal: **Terminal > New Terminal**.
+   Si el explorador de la izquierda dice *No folder opened*, tus archivos siguen ahí: solo falta abrir la carpeta. Menú ☰ > **File > Open Folder…** > `/home/sagemaker-user/bigdata/` > **OK**. Para comprobarlo en la terminal: `cd ~/bigdata && ls` (debe listar `Makefile`, `README.md`, `src`…).
 2. **Trae los últimos cambios del repo:**
    ```bash
    cd ~/bigdata
