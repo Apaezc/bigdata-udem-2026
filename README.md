@@ -241,6 +241,21 @@ Haz los pasos en este orden.
     3. Aplica `infra/snowflake` (warehouse `BIGDATA_WH`, base `BIGDATA`, roles, stages y el usuario `AIRFLOW_SVC`). **Te pide confirmar el plan: escribe `yes`.**
     4. Aplica la fase 2 de AWS (trust policy de Snowflake) y guarda la conexión de Airflow en el secreto `bigdata/snowflake`.
 
+    Salida exitosa (fragmentos; es larga y la mayoría es Terraform). Busca estas líneas, en este orden:
+    ```text
+    ==> Ejecutando bootstrap/snowflake/01_admin.sql (resource monitor, TERRAFORM_ROLE, TERRAFORM_SVC)
+    ==> Snowflake listo para Terraform:
+    ...
+    Do you want to perform these actions?  Enter a value: yes      <- escribe yes
+    Apply complete! Resources: 39 added, 0 changed, 0 destroyed.  <- Snowflake creado
+    ==> Fase 2 de AWS: deploy.sh con la trust policy de Snowflake
+    Plan: 0 to add, 1 to change, 0 to destroy.                   <- solo cambia el rol bigdata-snowflake-s3
+    Apply complete! Resources: 0 added, 1 changed, 0 destroyed.
+    ==> Deploy completado
+    ==> Conexión de AIRFLOW_SVC guardada en el secreto bigdata/snowflake.
+    ```
+    Si la última línea aparece, el paso terminó bien. El plan de la fase 2 **no debe** eliminar recursos (`0 to destroy`); si lo hiciera, el script se detiene solo.
+
     **Conexión de Airflow a Snowflake: no hay nada que hacer a mano.** `make snowflake` crea el usuario `AIRFLOW_SVC` en Snowflake (genera su llave en `~/.snowflake/keys/airflow_svc_rsa_key.p8`), aplica la fase 2 de AWS y guarda la conexión en el secreto `bigdata/snowflake`, que usan el Airflow de dev y el de prod. Si Airflow ya estaba encendido, reinícialo: `make airflow-local-down && make airflow-local` (dev) y `make airflow-off && make airflow-on` (prod). Para repetir solo ese paso: `make snowflake-secreto`.
 
     Detalle: [infra/snowflake/README.md](infra/snowflake/README.md).

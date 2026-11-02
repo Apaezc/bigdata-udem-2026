@@ -12,8 +12,7 @@ El stack de AWS y el de Snowflake dependen uno del otro. El orden es obligatorio
 
 1. **AWS fase 1** (`infra/aws`): crea el bucket del lake y el rol IAM `bigdata-snowflake-s3` con una trust policy placeholder. Anotar los outputs `lake_bucket` y `snowflake_s3_role_arn`.
 2. **Snowflake** (esta carpeta):
-   - `bootstrap/snowflake/gen_key.sh` genera el par de llaves.
-   - `bootstrap/snowflake/01_admin.sql` se ejecuta en Snowsight como ACCOUNTADMIN, con la clave pública pegada.
+   - `make snowflake` llama primero a `scripts/snowflake-preparar.sh`: genera la llave de `TERRAFORM_SVC` (`gen_key.sh`), ejecuta `bootstrap/snowflake/01_admin.sql` con la conexión `snow` (ACCOUNTADMIN) y la clave ya puesta, fija la clave con `ALTER USER` aunque el usuario existiera, y escribe `terraform.tfvars` y `backend.hcl` si faltan.
    - Terraform crea también el usuario de servicio `AIRFLOW_SVC` (con el rol `BIGDATA_DEV`). Su llave la genera el Makefile la primera vez (`make airflow-key`, que llama a `gen_key.sh AIRFLOW_SVC`): privada en `~/.snowflake/keys/airflow_svc_rsa_key.p8` y pública en `airflow_svc_rsa_key.pub`. La pública se pasa a Terraform como `TF_VAR_airflow_public_key`. No hay que crear el usuario a mano.
    - `make init`, `make plan`, `make apply`, si trabajas solo en esta carpeta. Anotar los outputs `storage_aws_iam_user_arn` y `storage_aws_external_id`. Desde la raíz, `make snowflake` ya hace el `init` y el `apply`.
 3. **AWS fase 2** (`infra/aws`): desde la raíz del repo, `make snowflake`. Hace `terraform init` (con `-reconfigure`), aplica este stack (`make -C infra/snowflake apply`), lee los dos outputs, los guarda en la configuración de AWS en S3 (`snowflake_iam_user_arn` y `snowflake_external_id`, con `config_set`) y ejecuta `make deploy` para actualizar la trust policy del rol (`Principal` y `sts:ExternalId`). Al final escribe la conexión de Airflow en el secreto `<prefix>/snowflake` (`scripts/snowflake-secreto.sh`). No hay que copiar valores a `.env` ni a variables del fork. Con `SIN_DEPLOY=true make snowflake` solo se actualiza la configuración y el secreto (si el secreto aún no existe, corre `make deploy` y después `make snowflake-secreto`).
@@ -29,18 +28,23 @@ Snowflake necesita que el rol exista antes de crear la integración, y la trust 
 
 ### 0. Llaves y bootstrap (una vez)
 
+Automático con `make snowflake` (ver arriba). Solo si el script falla, a mano:
+
 ```bash
+cd ~/bigdata
 bootstrap/snowflake/gen_key.sh          # crea ~/.snowflake/keys/terraform_svc_rsa_key.p8 y .pub
 ```
 
-El script imprime la clave pública en una línea. Pegarla entre las comillas de `RSA_PUBLIC_KEY` dentro de `bootstrap/snowflake/01_admin.sql` y ejecutar el script completo en Snowsight como ACCOUNTADMIN (con **Run All**). Si el usuario `TERRAFORM_SVC` ya existe con otra llave, `01_admin.sql` no cambia su clave (usa `CREATE USER IF NOT EXISTS`): ejecuta el `ALTER USER` que imprime `gen_key.sh` con la clave pública nueva. Sin eso, `make snowflake` falla con `JWT token is invalid`. Comprueba con `DESC USER TERRAFORM_SVC` que `RSA_PUBLIC_KEY_FP` coincide con el fingerprint que imprime `gen_key.sh`.
+El script imprime la clave pública en una línea. Pégala en `RSA_PUBLIC_KEY` de una copia de `bootstrap/snowflake/01_admin.sql` y ejecútala completa en Snowsight como ACCOUNTADMIN (**Run All**). Si `TERRAFORM_SVC` ya existía, ejecuta además el `ALTER USER` que imprime `gen_key.sh`; sin eso, `make snowflake` falla con `JWT token is invalid`. Comprueba con `DESC USER TERRAFORM_SVC` que `RSA_PUBLIC_KEY_FP` coincide con el fingerprint de `gen_key.sh`.
 
 La llave de `AIRFLOW_SVC` no va aquí: `make airflow-key` (o `make snowflake`) la genera sola.
 
 ### 1. Terraform
 
+`make snowflake` escribe `terraform.tfvars` y `backend.hcl` si faltan. A mano:
+
 ```bash
-cd infra/snowflake
+cd ~/bigdata/infra/snowflake
 cp backend.hcl.example backend.hcl                  # bucket = output TfStateBucket del bootstrap AWS
 cp terraform.tfvars.example terraform.tfvars        # organization_name, account_name, s3_role_arn, lake_bucket
 make init
