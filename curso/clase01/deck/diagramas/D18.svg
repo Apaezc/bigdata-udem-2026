@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 520" font-family="Inter, 'Helvetica Neue', Arial, sans-serif" font-size="22" fill="#15171C">
+
+  <!-- Panel superior: sin catálogo ni gobierno -->
+  <rect x="24" y="24" width="1152" height="186" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+  <text x="48" y="60" font-size="26" font-weight="700">Sin catálogo ni gobierno</text>
+
+  <g font-family="Menlo, Consolas, monospace">
+    <text x="72" y="112" transform="rotate(-3 72 112)">datos_final.csv</text>
+    <text x="330" y="138" transform="rotate(4 330 138)">datos_final_v2.csv</text>
+    <text x="72" y="186" transform="rotate(-2 72 186)">viajes (copia).parquet</text>
+    <text x="430" y="108" transform="rotate(3 430 108)">clima_nuevo.json</text>
+  </g>
+
+  <text x="780" y="108" fill="#5F6672">¿qué esquema?</text>
+  <text x="780" y="146" fill="#5F6672">¿quién lo creó?</text>
+  <text x="780" y="184" fill="#5F6672">¿se puede borrar?</text>
+
+  <!-- Panel inferior: con catálogo y gobierno -->
+  <rect x="24" y="230" width="1152" height="200" rx="6" fill="#F0EEE7" stroke="#2340D8" stroke-width="4"/>
+  <text x="48" y="268" font-size="26" font-weight="700">Con catálogo y gobierno</text>
+
+  <!-- Encabezado y filas de la tabla -->
+  <text x="48" y="306" font-weight="700">Tabla</text>
+  <text x="310" y="306" font-weight="700">Esquema</text>
+  <text x="490" y="306" font-weight="700">Ubicación</text>
+  <text x="780" y="306" font-weight="700">Partición</text>
+  <text x="960" y="306" font-weight="700">Dueño</text>
+  <line x1="48" y1="318" x2="1152" y2="318" stroke="#D9D6CC" stroke-width="2"/>
+
+  <g font-family="Menlo, Consolas, monospace">
+    <text x="48" y="346">fhvhv_trips</text>
+    <text x="490" y="346">silver/fhvhv_trips/</text>
+    <text x="780" y="346">pickup_date</text>
+    <text x="48" y="384">daily_zone_metrics</text>
+    <text x="490" y="384">gold/…</text>
+    <text x="780" y="384">mes</text>
+  </g>
+  <text x="310" y="346">16 columnas</text>
+  <text x="960" y="346">equipo de datos</text>
+  <text x="310" y="384">8 columnas</text>
+  <text x="960" y="384">equipo de datos</text>
+  <line x1="48" y1="358" x2="1152" y2="358" stroke="#D9D6CC" stroke-width="2"/>
+
+  <text x="48" y="414" fill="#5F6672">Permisos por prefijo · linaje · calidad</text>
+
+  <!-- Banda inferior -->
+  <rect x="24" y="444" width="1152" height="64" fill="#F0EEE7"/>
+  <rect x="24" y="444" width="6" height="64" fill="#5F6672"/>
+  <text x="50" y="470">En el curso: base bigdata_lake en Glue Data Catalog, que registra esquema,</text>
+  <text x="50" y="496">ubicación y dueño de cada tabla.</text>
+</svg>

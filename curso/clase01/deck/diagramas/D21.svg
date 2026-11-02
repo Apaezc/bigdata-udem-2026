@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 520" font-family="Inter, 'Helvetica Neue', Arial, sans-serif" fill="#15171C">
+  <title>D21 · Reprocesamiento</title>
+  <desc>Al cambiar una regla, silver, gold y Snowflake se reescriben para el mes; bronze no se toca.</desc>
+  <defs>
+    <marker id="ta" viewBox="0 0 14 14" refX="14" refY="7" markerWidth="14" markerHeight="14" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0,0 L14,7 L0,14 Z" fill="#2340D8"/>
+    </marker>
+  </defs>
+
+  <!-- Regla nueva (ejemplo) -->
+  <rect x="24" y="24" width="1152" height="56" rx="6" fill="#2340D8" fill-opacity="0.15" stroke="#2340D8" stroke-width="4"/>
+  <text x="600" y="61" text-anchor="middle" font-size="26" font-weight="700">Regla nueva (ejemplo): duración máxima 180 → 240 min</text>
+
+  <!-- 1 · bronze intacto -->
+  <rect x="24" y="124" width="240" height="200" rx="6" fill="#B4622F" fill-opacity="0.12" stroke="#B4622F" stroke-width="3"/>
+  <text x="144" y="164" text-anchor="middle" font-size="22" font-weight="700">bronze · intacto</text>
+  <path d="M132,226 V210 a12,12 0 0 1 24,0 V226" fill="none" stroke="#15171C" stroke-width="4"/>
+  <rect x="126" y="224" width="36" height="28" rx="4" fill="#15171C"/>
+  <text x="144" y="292" text-anchor="middle" font-size="22">solo lectura</text>
+
+  <!-- 2 · silver reescribe -->
+  <rect x="304" y="124" width="312" height="200" rx="6" fill="#6E7F94" fill-opacity="0.12" stroke="#6E7F94" stroke-width="3"/>
+  <text x="460" y="164" text-anchor="middle" font-size="22" font-weight="700">silver · reescribe</text>
+  <text x="460" y="216" text-anchor="middle" font-size="22">borra</text>
+  <text x="460" y="248" text-anchor="middle" font-family="Menlo, Consolas, monospace" font-size="22">pickup_date=2024-01-*</text>
+  <text x="460" y="280" text-anchor="middle" font-size="22">y escribe de nuevo</text>
+
+  <!-- 3 · gold reescribe -->
+  <rect x="656" y="124" width="232" height="200" rx="6" fill="#B07F0E" fill-opacity="0.12" stroke="#B07F0E" stroke-width="3"/>
+  <text x="772" y="164" text-anchor="middle" font-size="22" font-weight="700">gold · reescribe</text>
+  <text x="772" y="216" text-anchor="middle" font-size="22">borra</text>
+  <text x="772" y="248" text-anchor="middle" font-family="Menlo, Consolas, monospace" font-size="22">mes=2024-01</text>
+  <text x="772" y="280" text-anchor="middle" font-size="22">y escribe de nuevo</text>
+
+  <!-- 4 · Snowflake recarga (neutra) -->
+  <rect x="928" y="124" width="248" height="200" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+  <text x="1052" y="164" text-anchor="middle" font-size="22" font-weight="700">Snowflake · recarga</text>
+  <text x="1052" y="216" text-anchor="middle" font-size="22">DELETE del mes +</text>
+  <text x="1052" y="248" text-anchor="middle" font-size="22">COPY INTO</text>
+  <text x="1052" y="280" text-anchor="middle" font-size="22">FORCE = TRUE</text>
+
+  <!-- Flechas acento entre cajas -->
+  <line x1="266" y1="224" x2="302" y2="224" stroke="#2340D8" stroke-width="4" marker-end="url(#ta)"/>
+  <line x1="618" y1="224" x2="654" y2="224" stroke="#2340D8" stroke-width="4" marker-end="url(#ta)"/>
+  <line x1="890" y1="224" x2="926" y2="224" stroke="#2340D8" stroke-width="4" marker-end="url(#ta)"/>
+
+  <!-- Marcador bajo la caja 1 -->
+  <rect x="24" y="344" width="240" height="34" rx="6" fill="#2340D8"/>
+  <text x="144" y="368" text-anchor="middle" font-size="22" font-weight="700" fill="#FFFFFF">Descargas nuevas: 0</text>
+
+  <!-- Banda original (gris) -->
+  <rect x="24" y="420" width="1152" height="64" rx="6" fill="#F0EEE7"/>
+  <rect x="24" y="420" width="6" height="64" rx="3" fill="#5F6672"/>
+  <text x="46" y="450" font-size="22">Sin bronze inmutable, la regla nueva no se puede aplicar al dato original:</text>
+  <text x="46" y="476" font-size="22">habría que volver a descargar</text>
+</svg>

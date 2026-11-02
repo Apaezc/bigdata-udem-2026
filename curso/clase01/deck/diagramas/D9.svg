@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 520">
+  <defs>
+    <marker id="ah" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="14" viewBox="0 0 14 14" refX="14" refY="7" orient="auto">
+      <path d="M0,0 L14,7 L0,14 Z" fill="#15171C"/>
+    </marker>
+    <clipPath id="cbTop"><rect x="24" y="16" width="1152" height="64" rx="6"/></clipPath>
+    <clipPath id="cbBot"><rect x="24" y="440" width="1152" height="64" rx="6"/></clipPath>
+  </defs>
+
+  <g font-family="Inter, 'Helvetica Neue', Arial, sans-serif" font-size="22" fill="#15171C">
+    <!-- Banda superior (definición) -->
+    <rect x="24" y="16" width="1152" height="64" rx="6" fill="#F0EEE7"/>
+    <rect x="24" y="16" width="6" height="64" fill="#2340D8" clip-path="url(#cbTop)"/>
+    <text x="54" y="40">Data warehouse: base analítica que integra datos de varios sistemas,</text>
+    <text x="54" y="66">con historia, sin modificar lo ya cargado.</text>
+
+    <!-- Fuentes de origen -->
+    <rect x="24" y="96" width="280" height="80" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+    <text x="164" y="142" text-anchor="middle">App de Uber (OLTP)</text>
+    <rect x="24" y="190" width="280" height="80" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+    <text x="164" y="236" text-anchor="middle">Zonas (CSV)</text>
+    <rect x="24" y="284" width="280" height="80" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+    <text x="164" y="330" text-anchor="middle">Clima (JSON)</text>
+
+    <!-- Tres flechas de origen convergen en una sola, rotulada ETL -->
+    <g stroke="#15171C" stroke-width="3" fill="none">
+      <path d="M304,136 L344,230"/>
+      <path d="M304,230 L344,230"/>
+      <path d="M304,324 L344,230"/>
+      <path d="M344,230 H398" marker-end="url(#ah)"/>
+    </g>
+    <text x="371" y="206" text-anchor="middle">ETL</text>
+
+    <!-- Data warehouse (caja resaltada) -->
+    <rect x="400" y="110" width="400" height="240" rx="6" fill="#F0EEE7" stroke="#2340D8" stroke-width="4"/>
+    <text x="600" y="150" font-size="26" font-weight="700" text-anchor="middle">Data warehouse</text>
+    <!-- Icono de tabla, cuadrícula 4 x 3 (fila superior en gris claro) -->
+    <g stroke="#5F6672" stroke-width="2">
+      <rect x="528" y="168" width="36" height="26" fill="#D9D6CC"/>
+      <rect x="564" y="168" width="36" height="26" fill="#D9D6CC"/>
+      <rect x="600" y="168" width="36" height="26" fill="#D9D6CC"/>
+      <rect x="636" y="168" width="36" height="26" fill="#D9D6CC"/>
+      <rect x="528" y="194" width="36" height="26" fill="#FFFFFF"/>
+      <rect x="564" y="194" width="36" height="26" fill="#FFFFFF"/>
+      <rect x="600" y="194" width="36" height="26" fill="#FFFFFF"/>
+      <rect x="636" y="194" width="36" height="26" fill="#FFFFFF"/>
+      <rect x="528" y="220" width="36" height="26" fill="#FFFFFF"/>
+      <rect x="564" y="220" width="36" height="26" fill="#FFFFFF"/>
+      <rect x="600" y="220" width="36" height="26" fill="#FFFFFF"/>
+      <rect x="636" y="220" width="36" height="26" fill="#FFFFFF"/>
+    </g>
+    <text x="600" y="282" text-anchor="middle">tablas con esquema fijo</text>
+    <text x="600" y="312" text-anchor="middle">historia: 2024</text>
+
+    <!-- Salida del warehouse hacia el analista -->
+    <path d="M800,230 H924" fill="none" stroke="#15171C" stroke-width="3" marker-end="url(#ah)"/>
+
+    <!-- Analista -->
+    <rect x="926" y="170" width="250" height="120" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+    <text x="1051" y="212" font-weight="700" text-anchor="middle">Analista ·</text>
+    <text x="1051" y="250" font-family="Menlo, Consolas, monospace" text-anchor="middle">SELECT … GROUP BY</text>
+
+    <!-- Propiedades (Inmon) -->
+    <text x="600" y="390" text-anchor="middle">orientado a temas · integrado · no volátil (lo cargado no se edita) ·</text>
+    <text x="600" y="420" text-anchor="middle">variante en el tiempo (cada registro lleva su fecha)</text>
+
+    <!-- Banda inferior (ejemplo/límite) -->
+    <rect x="24" y="440" width="1152" height="64" rx="6" fill="#F0EEE7"/>
+    <rect x="24" y="440" width="6" height="64" fill="#5F6672" clip-path="url(#cbBot)"/>
+    <text x="54" y="466">Separar el warehouse de los sistemas de origen evita que una consulta</text>
+    <text x="54" y="492">de meses degrade la app.</text>
+  </g>
+</svg>

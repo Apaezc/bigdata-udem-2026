@@ -1,0 +1,97 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 520" font-family="Inter, 'Helvetica Neue', Arial, sans-serif">
+  <title>Batch procesa doce archivos mensuales por lotes; streaming procesa eventos continuos con latencia de segundos. Este caso es batch.</title>
+  <defs>
+    <marker id="ar" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="14" refX="14" refY="7" orient="auto">
+      <path d="M0,0 L14,7 L0,14 Z" fill="#15171C"/>
+    </marker>
+  </defs>
+
+  <!-- Panel Batch (resaltado) -->
+  <rect x="24" y="56" width="564" height="344" rx="6" fill="#F0EEE7" stroke="#2340D8" stroke-width="4"/>
+  <text x="48" y="98" font-size="26" font-weight="700" fill="#15171C">Batch</text>
+  <rect x="432" y="72" width="140" height="32" rx="16" fill="#2340D8"/>
+  <text x="502" y="96" text-anchor="middle" font-size="22" font-weight="700" fill="#FFFFFF">Este caso</text>
+
+  <line x1="48" y1="180" x2="524" y2="180" stroke="#5F6672" stroke-width="2"/>
+  <g font-size="22" fill="#15171C" text-anchor="middle">
+    <rect x="48" y="162" width="36" height="36" rx="6" fill="#FFFFFF" stroke="#5F6672" stroke-width="2"/>
+    <text x="66" y="188">E</text>
+    <rect x="88" y="162" width="36" height="36" rx="6" fill="#FFFFFF" stroke="#5F6672" stroke-width="2"/>
+    <text x="106" y="188">F</text>
+    <rect x="128" y="162" width="36" height="36" rx="6" fill="#FFFFFF" stroke="#5F6672" stroke-width="2"/>
+    <text x="146" y="188">M</text>
+    <rect x="168" y="162" width="36" height="36" rx="6" fill="#FFFFFF" stroke="#5F6672" stroke-width="2"/>
+    <text x="186" y="188">A</text>
+    <rect x="208" y="162" width="36" height="36" rx="6" fill="#FFFFFF" stroke="#5F6672" stroke-width="2"/>
+    <text x="226" y="188">M</text>
+    <rect x="248" y="162" width="36" height="36" rx="6" fill="#FFFFFF" stroke="#5F6672" stroke-width="2"/>
+    <text x="266" y="188">J</text>
+    <rect x="288" y="162" width="36" height="36" rx="6" fill="#FFFFFF" stroke="#5F6672" stroke-width="2"/>
+    <text x="306" y="188">J</text>
+    <rect x="328" y="162" width="36" height="36" rx="6" fill="#FFFFFF" stroke="#5F6672" stroke-width="2"/>
+    <text x="346" y="188">A</text>
+    <rect x="368" y="162" width="36" height="36" rx="6" fill="#FFFFFF" stroke="#5F6672" stroke-width="2"/>
+    <text x="386" y="188">S</text>
+    <rect x="408" y="162" width="36" height="36" rx="6" fill="#FFFFFF" stroke="#5F6672" stroke-width="2"/>
+    <text x="426" y="188">O</text>
+    <rect x="448" y="162" width="36" height="36" rx="6" fill="#FFFFFF" stroke="#5F6672" stroke-width="2"/>
+    <text x="466" y="188">N</text>
+    <rect x="488" y="162" width="36" height="36" rx="6" fill="#FFFFFF" stroke="#5F6672" stroke-width="2"/>
+    <text x="506" y="188">D</text>
+  </g>
+
+  <line x1="146" y1="200" x2="146" y2="246" stroke="#15171C" stroke-width="2" marker-end="url(#ar)"/>
+  <path d="M66,262 V334 A80,12 0 0 0 226,334 V262 Z" fill="#FFFFFF" stroke="#5F6672" stroke-width="2"/>
+  <ellipse cx="146" cy="262" rx="80" ry="12" fill="#FFFFFF" stroke="#5F6672" stroke-width="2"/>
+  <text x="250" y="300" font-size="22" fill="#15171C">Glue: una corrida por lote</text>
+  <text x="250" y="336" font-size="22" font-weight="700" fill="#15171C">Latencia: horas o días</text>
+
+  <!-- Panel Streaming -->
+  <rect x="612" y="56" width="564" height="344" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+  <text x="636" y="98" font-size="26" font-weight="700" fill="#15171C">Streaming</text>
+  <line x1="636" y1="180" x2="1152" y2="180" stroke="#5F6672" stroke-width="2"/>
+  <!-- Quince eventos, separados entre 32 y 38 px -->
+  <g fill="#15171C">
+    <circle cx="656" cy="180" r="6"/>
+    <circle cx="688" cy="180" r="6"/>
+    <circle cx="724" cy="180" r="6"/>
+    <circle cx="758" cy="180" r="6"/>
+    <circle cx="792" cy="180" r="6"/>
+    <circle cx="824" cy="180" r="6"/>
+    <circle cx="862" cy="180" r="6"/>
+    <circle cx="894" cy="180" r="6"/>
+    <circle cx="930" cy="180" r="6"/>
+    <circle cx="964" cy="180" r="6"/>
+    <circle cx="1000" cy="180" r="6"/>
+    <circle cx="1032" cy="180" r="6"/>
+    <circle cx="1066" cy="180" r="6"/>
+    <circle cx="1100" cy="180" r="6"/>
+    <circle cx="1134" cy="180" r="6"/>
+  </g>
+  <g stroke="#15171C" stroke-width="2" marker-end="url(#ar)">
+    <line x1="656" y1="192" x2="656" y2="240"/>
+    <line x1="688" y1="192" x2="688" y2="240"/>
+    <line x1="724" y1="192" x2="724" y2="240"/>
+    <line x1="758" y1="192" x2="758" y2="240"/>
+    <line x1="792" y1="192" x2="792" y2="240"/>
+    <line x1="824" y1="192" x2="824" y2="240"/>
+    <line x1="862" y1="192" x2="862" y2="240"/>
+    <line x1="894" y1="192" x2="894" y2="240"/>
+    <line x1="930" y1="192" x2="930" y2="240"/>
+    <line x1="964" y1="192" x2="964" y2="240"/>
+    <line x1="1000" y1="192" x2="1000" y2="240"/>
+    <line x1="1032" y1="192" x2="1032" y2="240"/>
+    <line x1="1066" y1="192" x2="1066" y2="240"/>
+    <line x1="1100" y1="192" x2="1100" y2="240"/>
+    <line x1="1134" y1="192" x2="1134" y2="240"/>
+  </g>
+  <rect x="644" y="240" width="500" height="50" rx="6" fill="#FFFFFF" stroke="#5F6672" stroke-width="2"/>
+  <text x="894" y="271" text-anchor="middle" font-size="22" fill="#15171C">Procesador continuo con estado</text>
+  <text x="636" y="336" font-size="22" font-weight="700" fill="#15171C">Latencia: segundos</text>
+  <text x="636" y="370" font-size="22" fill="#15171C">Maneja: orden, eventos tardíos, estado</text>
+
+  <!-- Banda inferior -->
+  <rect x="24" y="440" width="1152" height="64" fill="#F0EEE7"/>
+  <rect x="24" y="440" width="6" height="64" fill="#5F6672"/>
+  <text x="46" y="480" font-size="22" fill="#15171C">Streaming se justificaría para despacho o tarifa dinámica; no para comparar 2024 consigo mismo.</text>
+</svg>

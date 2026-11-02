@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 520" font-family="Inter, 'Helvetica Neue', Arial, sans-serif" font-size="22" fill="#15171C">
+  <defs>
+    <marker id="arr" viewBox="0 0 14 14" refX="14" refY="7" markerWidth="14" markerHeight="14" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0,0 L14,7 L0,14 Z" fill="#15171C"/>
+    </marker>
+  </defs>
+
+  <!-- Carril superior: Al escribir (warehouse) -->
+  <text x="24" y="58" font-size="26" font-weight="700">Al escribir</text>
+  <text x="24" y="86" fill="#5F6672">(warehouse)</text>
+
+  <rect x="290" y="24" width="230" height="80" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+  <text x="405" y="72" text-anchor="middle">Dato</text>
+  <line x1="520" y1="64" x2="616" y2="64" stroke="#15171C" stroke-width="3" marker-end="url(#arr)"/>
+
+  <rect x="618" y="24" width="230" height="80" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+  <text x="733" y="72" text-anchor="middle">Validar esquema</text>
+  <line x1="848" y1="64" x2="944" y2="64" stroke="#15171C" stroke-width="3" marker-end="url(#arr)"/>
+
+  <rect x="946" y="24" width="230" height="80" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+  <text x="1061" y="72" text-anchor="middle">Guardar</text>
+
+  <!-- Carril inferior: Al leer (lake) -->
+  <text x="24" y="184" font-size="26" font-weight="700">Al leer</text>
+  <text x="24" y="212" fill="#5F6672">(lake)</text>
+
+  <rect x="290" y="150" width="230" height="80" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+  <text x="405" y="198" text-anchor="middle">Dato</text>
+  <line x1="520" y1="190" x2="616" y2="190" stroke="#15171C" stroke-width="3" marker-end="url(#arr)"/>
+
+  <rect x="618" y="150" width="230" height="80" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+  <text x="733" y="198" text-anchor="middle">Guardar tal cual</text>
+  <line x1="848" y1="190" x2="944" y2="190" stroke="#15171C" stroke-width="3" marker-end="url(#arr)"/>
+
+  <rect x="946" y="150" width="230" height="80" rx="6" fill="#F0EEE7" stroke="#2340D8" stroke-width="4"/>
+  <text x="1061" y="198" text-anchor="middle" font-weight="700">Validar al leer</text>
+
+  <!-- Archivo guardado y bifurcación hacia los dos lectores -->
+  <rect x="553" y="254" width="360" height="40" rx="6" fill="#FFFFFF" stroke="#5F6672" stroke-width="2"/>
+  <text x="733" y="282" text-anchor="middle" font-family="Menlo, Consolas, monospace">open_meteo_2024-01.json</text>
+
+  <line x1="733" y1="294" x2="733" y2="312" stroke="#15171C" stroke-width="3"/>
+  <line x1="304" y1="312" x2="896" y2="312" stroke="#15171C" stroke-width="3"/>
+  <line x1="304" y1="312" x2="304" y2="340" stroke="#15171C" stroke-width="3" marker-end="url(#arr)"/>
+  <line x1="896" y1="312" x2="896" y2="340" stroke="#15171C" stroke-width="3" marker-end="url(#arr)"/>
+
+  <!-- Lector 1 -->
+  <rect x="24" y="340" width="560" height="68" rx="6" fill="#F0EEE7" stroke="#2340D8" stroke-width="4"/>
+  <text x="44" y="370">Silver: lee <tspan font-family="Menlo, Consolas, monospace">daily.time</tspan> y</text>
+  <text x="44" y="398"><tspan font-family="Menlo, Consolas, monospace">precipitation_sum</tspan> → fecha, lluvia_mm</text>
+
+  <!-- Lector 2 -->
+  <rect x="616" y="340" width="560" height="68" rx="6" fill="#F0EEE7" stroke="#2340D8" stroke-width="4"/>
+  <text x="636" y="370">Otro análisis: lee <tspan font-family="Menlo, Consolas, monospace">temperature_2m_mean</tspan></text>
+  <text x="636" y="398">→ temp_media_c</text>
+
+  <!-- Banda inferior -->
+  <rect x="24" y="440" width="1152" height="64" fill="#F0EEE7"/>
+  <rect x="24" y="440" width="6" height="64" fill="#5F6672"/>
+  <text x="50" y="478">Un dato mal formado se descubre al leer, no al guardar.</text>
+</svg>

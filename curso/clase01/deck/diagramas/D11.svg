@@ -1,0 +1,85 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 520">
+  <defs>
+    <clipPath id="cbTop"><rect x="24" y="16" width="1152" height="64" rx="6"/></clipPath>
+    <clipPath id="cbBot"><rect x="24" y="440" width="1152" height="64" rx="6"/></clipPath>
+  </defs>
+
+  <!-- Banda superior: la consulta -->
+  <rect x="24" y="16" width="1152" height="64" rx="6" fill="#F0EEE7"/>
+  <rect x="24" y="16" width="6" height="64" fill="#2340D8" clip-path="url(#cbTop)"/>
+  <text x="54" y="40" font-family="Menlo, Consolas, monospace" font-size="22" fill="#15171C">SELECT PULocationID, AVG(tips) FROM viajes GROUP BY PULocationID</text>
+  <text x="54" y="66" font-family="Inter, 'Helvetica Neue', Arial, sans-serif" font-size="22" fill="#15171C">— usa 2 de las 24 columnas.</text>
+
+  <!-- Panel izquierdo: por filas -->
+  <rect x="24" y="96" width="564" height="330" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+  <g font-family="Inter, 'Helvetica Neue', Arial, sans-serif" font-size="22" fill="#15171C">
+    <text x="48" y="130" font-size="26" font-weight="700">Por filas</text>
+    <text x="110" y="162" text-anchor="middle" font-weight="700">PU</text>
+    <text x="166" y="162" text-anchor="middle">DO</text>
+    <text x="222" y="162" text-anchor="middle">mi</text>
+    <text x="278" y="162" text-anchor="middle" font-weight="700">tips</text>
+    <text x="334" y="162" text-anchor="middle" fill="#5F6672">…</text>
+    <text x="390" y="162" text-anchor="middle" fill="#5F6672">…</text>
+    <text x="446" y="162" text-anchor="middle" fill="#5F6672">…</text>
+    <text x="502" y="162" text-anchor="middle" fill="#5F6672">…</text>
+  </g>
+  <!-- Celdas: todas gris al 35 % (8 columnas x 6 filas) -->
+  <g fill="#5F6672" fill-opacity="0.35">
+    <rect x="86" y="174" width="48" height="20"/><rect x="142" y="174" width="48" height="20"/><rect x="198" y="174" width="48" height="20"/><rect x="254" y="174" width="48" height="20"/><rect x="310" y="174" width="48" height="20"/><rect x="366" y="174" width="48" height="20"/><rect x="422" y="174" width="48" height="20"/><rect x="478" y="174" width="48" height="20"/>
+    <rect x="86" y="202" width="48" height="20"/><rect x="142" y="202" width="48" height="20"/><rect x="198" y="202" width="48" height="20"/><rect x="254" y="202" width="48" height="20"/><rect x="310" y="202" width="48" height="20"/><rect x="366" y="202" width="48" height="20"/><rect x="422" y="202" width="48" height="20"/><rect x="478" y="202" width="48" height="20"/>
+    <rect x="86" y="230" width="48" height="20"/><rect x="142" y="230" width="48" height="20"/><rect x="198" y="230" width="48" height="20"/><rect x="254" y="230" width="48" height="20"/><rect x="310" y="230" width="48" height="20"/><rect x="366" y="230" width="48" height="20"/><rect x="422" y="230" width="48" height="20"/><rect x="478" y="230" width="48" height="20"/>
+    <rect x="86" y="258" width="48" height="20"/><rect x="142" y="258" width="48" height="20"/><rect x="198" y="258" width="48" height="20"/><rect x="254" y="258" width="48" height="20"/><rect x="310" y="258" width="48" height="20"/><rect x="366" y="258" width="48" height="20"/><rect x="422" y="258" width="48" height="20"/><rect x="478" y="258" width="48" height="20"/>
+    <rect x="86" y="286" width="48" height="20"/><rect x="142" y="286" width="48" height="20"/><rect x="198" y="286" width="48" height="20"/><rect x="254" y="286" width="48" height="20"/><rect x="310" y="286" width="48" height="20"/><rect x="366" y="286" width="48" height="20"/><rect x="422" y="286" width="48" height="20"/><rect x="478" y="286" width="48" height="20"/>
+    <rect x="86" y="314" width="48" height="20"/><rect x="142" y="314" width="48" height="20"/><rect x="198" y="314" width="48" height="20"/><rect x="254" y="314" width="48" height="20"/><rect x="310" y="314" width="48" height="20"/><rect x="366" y="314" width="48" height="20"/><rect x="422" y="314" width="48" height="20"/><rect x="478" y="314" width="48" height="20"/>
+  </g>
+  <!-- Borde acento alrededor de cada fila completa -->
+  <g fill="none" stroke="#2340D8" stroke-width="3">
+    <rect x="80" y="170" width="452" height="28"/>
+    <rect x="80" y="198" width="452" height="28"/>
+    <rect x="80" y="226" width="452" height="28"/>
+    <rect x="80" y="254" width="452" height="28"/>
+    <rect x="80" y="282" width="452" height="28"/>
+    <rect x="80" y="310" width="452" height="28"/>
+  </g>
+  <text x="48" y="368" font-family="Inter, 'Helvetica Neue', Arial, sans-serif" font-size="22" fill="#15171C">Lee 24 de 24 columnas por cada viaje</text>
+
+  <!-- Panel derecho: por columnas (resaltado) -->
+  <rect x="612" y="96" width="564" height="330" rx="6" fill="#F0EEE7" stroke="#2340D8" stroke-width="4"/>
+  <g font-family="Inter, 'Helvetica Neue', Arial, sans-serif" font-size="22" fill="#15171C">
+    <text x="636" y="130" font-size="26" font-weight="700">Por columnas</text>
+    <text x="698" y="162" text-anchor="middle" font-weight="700">PU</text>
+    <text x="754" y="162" text-anchor="middle">DO</text>
+    <text x="810" y="162" text-anchor="middle">mi</text>
+    <text x="866" y="162" text-anchor="middle" font-weight="700">tips</text>
+    <text x="922" y="162" text-anchor="middle" fill="#5F6672">…</text>
+    <text x="978" y="162" text-anchor="middle" fill="#5F6672">…</text>
+    <text x="1034" y="162" text-anchor="middle" fill="#5F6672">…</text>
+    <text x="1090" y="162" text-anchor="middle" fill="#5F6672">…</text>
+  </g>
+  <!-- Columnas PU y tips en acento al 35 %; las demás atenuadas (gris al 35 %) -->
+  <g fill="#5F6672" fill-opacity="0.35">
+    <rect x="730" y="174" width="48" height="20"/><rect x="786" y="174" width="48" height="20"/><rect x="898" y="174" width="48" height="20"/><rect x="954" y="174" width="48" height="20"/><rect x="1010" y="174" width="48" height="20"/><rect x="1066" y="174" width="48" height="20"/>
+    <rect x="730" y="202" width="48" height="20"/><rect x="786" y="202" width="48" height="20"/><rect x="898" y="202" width="48" height="20"/><rect x="954" y="202" width="48" height="20"/><rect x="1010" y="202" width="48" height="20"/><rect x="1066" y="202" width="48" height="20"/>
+    <rect x="730" y="230" width="48" height="20"/><rect x="786" y="230" width="48" height="20"/><rect x="898" y="230" width="48" height="20"/><rect x="954" y="230" width="48" height="20"/><rect x="1010" y="230" width="48" height="20"/><rect x="1066" y="230" width="48" height="20"/>
+    <rect x="730" y="258" width="48" height="20"/><rect x="786" y="258" width="48" height="20"/><rect x="898" y="258" width="48" height="20"/><rect x="954" y="258" width="48" height="20"/><rect x="1010" y="258" width="48" height="20"/><rect x="1066" y="258" width="48" height="20"/>
+    <rect x="730" y="286" width="48" height="20"/><rect x="786" y="286" width="48" height="20"/><rect x="898" y="286" width="48" height="20"/><rect x="954" y="286" width="48" height="20"/><rect x="1010" y="286" width="48" height="20"/><rect x="1066" y="286" width="48" height="20"/>
+    <rect x="730" y="314" width="48" height="20"/><rect x="786" y="314" width="48" height="20"/><rect x="898" y="314" width="48" height="20"/><rect x="954" y="314" width="48" height="20"/><rect x="1010" y="314" width="48" height="20"/><rect x="1066" y="314" width="48" height="20"/>
+  </g>
+  <g fill="#2340D8" fill-opacity="0.35">
+    <rect x="674" y="174" width="48" height="20"/><rect x="842" y="174" width="48" height="20"/>
+    <rect x="674" y="202" width="48" height="20"/><rect x="842" y="202" width="48" height="20"/>
+    <rect x="674" y="230" width="48" height="20"/><rect x="842" y="230" width="48" height="20"/>
+    <rect x="674" y="258" width="48" height="20"/><rect x="842" y="258" width="48" height="20"/>
+    <rect x="674" y="286" width="48" height="20"/><rect x="842" y="286" width="48" height="20"/>
+    <rect x="674" y="314" width="48" height="20"/><rect x="842" y="314" width="48" height="20"/>
+  </g>
+  <g font-family="Inter, 'Helvetica Neue', Arial, sans-serif" font-size="22" fill="#15171C">
+    <text x="636" y="368">Lee 2 de 24 columnas</text>
+    <text x="636" y="398" fill="#15171C">Mismo tipo contiguo: mejor compresión.</text>
+  </g>
+
+  <!-- Banda inferior (límite) -->
+  <rect x="24" y="440" width="1152" height="64" rx="6" fill="#F0EEE7"/>
+  <rect x="24" y="440" width="6" height="64" fill="#5F6672" clip-path="url(#cbBot)"/>
+  <text x="54" y="480" font-family="Inter, 'Helvetica Neue', Arial, sans-serif" font-size="22" fill="#15171C">Límite: reconstruir o actualizar un viaje completo toca las 24 columnas.</text>
+</svg>

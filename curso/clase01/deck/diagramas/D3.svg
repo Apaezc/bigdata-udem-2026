@@ -1,0 +1,117 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 520" font-family="Inter, 'Helvetica Neue', Arial, sans-serif">
+  <title>Ciclo de vida del dato</title>
+  <desc>Cinco etapas, de generación a servicio, con un ejemplo del caso en cada una; la transformación está resaltada.</desc>
+
+  <marker id="d3-arr" viewBox="0 0 14 14" refX="14" refY="7" markerWidth="14" markerHeight="14" markerUnits="userSpaceOnUse" orient="auto">
+    <path d="M0,0 L14,7 L0,14 z" fill="#15171C"/>
+  </marker>
+  <clipPath id="d3-band"><rect x="24" y="16" width="1152" height="64" rx="6"/></clipPath>
+
+  <!-- Banda superior -->
+  <rect x="24" y="16" width="1152" height="64" rx="6" fill="#F0EEE7"/>
+  <rect x="24" y="16" width="6" height="64" fill="#2340D8" clip-path="url(#d3-band)"/>
+  <g font-size="22" fill="#15171C">
+    <text x="48" y="41">Ciclo de vida: las cinco etapas por las que pasa un dato, desde que se genera</text>
+    <text x="48" y="66">hasta que alguien lo usa.</text>
+  </g>
+
+  <!-- Etapas: tarjetas de 208 x 396 -->
+  <g fill="#F0EEE7" stroke="#5F6672" stroke-width="2">
+    <rect x="24" y="100" width="208" height="396" rx="6"/>
+    <rect x="260" y="100" width="208" height="396" rx="6"/>
+    <rect x="496" y="100" width="208" height="396" rx="6"/>
+    <rect x="968" y="100" width="208" height="396" rx="6"/>
+  </g>
+  <!-- Etapa 4 resaltada (acento) -->
+  <rect x="732" y="100" width="208" height="396" rx="6" fill="#F0EEE7" stroke="#2340D8" stroke-width="4"/>
+
+  <!-- Flechas entre etapas -->
+  <g stroke="#15171C" stroke-width="3" fill="none" marker-end="url(#d3-arr)">
+    <line x1="235" y1="146" x2="257" y2="146"/>
+    <line x1="471" y1="146" x2="493" y2="146"/>
+    <line x1="707" y1="146" x2="729" y2="146"/>
+    <line x1="943" y1="146" x2="965" y2="146"/>
+  </g>
+
+  <!-- Número y nombre de cada etapa -->
+  <g font-size="18" fill="#5F6672">
+    <text x="38" y="128">1</text>
+    <text x="274" y="128">2</text>
+    <text x="510" y="128">3</text>
+    <text x="746" y="128">4</text>
+    <text x="982" y="128">5</text>
+  </g>
+  <g font-size="22" font-weight="700" fill="#15171C">
+    <text x="38" y="164">Generación</text>
+    <text x="274" y="164">Ingesta</text>
+    <text x="510" y="164">Almacenamiento</text>
+    <text x="746" y="164">Transformación</text>
+    <text x="982" y="164">Servicio</text>
+  </g>
+  <g stroke="#5F6672" stroke-width="1">
+    <line x1="38" y1="186" x2="222" y2="186"/>
+    <line x1="274" y1="186" x2="458" y2="186"/>
+    <line x1="510" y1="186" x2="694" y2="186"/>
+    <line x1="746" y1="186" x2="930" y2="186"/>
+    <line x1="982" y1="186" x2="1166" y2="186"/>
+  </g>
+
+  <!-- Definiciones -->
+  <g font-size="20" fill="#15171C">
+    <text x="38" y="218">Sistema de origen</text>
+    <text x="38" y="248">que produce el dato</text>
+
+    <text x="274" y="218">Mover el dato del</text>
+    <text x="274" y="248">origen a un</text>
+    <text x="274" y="278">destino propio</text>
+
+    <text x="510" y="218">Guardar con</text>
+    <text x="510" y="248">formato, durabilidad</text>
+    <text x="510" y="278">y costo</text>
+
+    <text x="746" y="218">Limpiar, unir y</text>
+    <text x="746" y="248">agregar para un</text>
+    <text x="746" y="278">uso</text>
+
+    <text x="982" y="218">Entregar el dato a</text>
+    <text x="982" y="248">analítica, ML o apps</text>
+  </g>
+
+  <!-- Separadores -->
+  <g stroke="#5F6672" stroke-width="1">
+    <line x1="38" y1="318" x2="222" y2="318"/>
+    <line x1="274" y1="318" x2="458" y2="318"/>
+    <line x1="510" y1="318" x2="694" y2="318"/>
+    <line x1="746" y1="318" x2="930" y2="318"/>
+    <line x1="982" y1="318" x2="1166" y2="318"/>
+  </g>
+
+  <!-- Ejemplos del caso -->
+  <g font-size="20" fill="#5F6672">
+    <text x="38" y="350">En el caso:</text>
+    <text x="274" y="350">En el caso:</text>
+    <text x="510" y="350">En el caso:</text>
+    <text x="746" y="350">En el caso:</text>
+    <text x="982" y="350">En el caso:</text>
+  </g>
+  <g font-size="20" fill="#15171C">
+    <text x="38" y="380">Uber registra el</text>
+    <text x="38" y="410">viaje; Open-Meteo</text>
+    <text x="38" y="440">mide la lluvia.</text>
+
+    <text x="274" y="380">Descarga mensual</text>
+    <text x="274" y="410">de Parquet, CSV y</text>
+    <text x="274" y="440">JSON.</text>
+
+    <text x="510" y="380">S3: bronze, silver</text>
+    <text x="510" y="410">y gold.</text>
+
+    <text x="746" y="380">Spark en Glue:</text>
+    <text x="746" y="410">filtra, une zona y</text>
+    <text x="746" y="440">clima, agrega.</text>
+
+    <text x="982" y="380">Snowflake: la</text>
+    <text x="982" y="410">consulta del</text>
+    <text x="982" y="440">analista.</text>
+  </g>
+</svg>

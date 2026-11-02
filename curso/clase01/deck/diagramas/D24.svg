@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 520" font-family="Inter, 'Helvetica Neue', Arial, sans-serif" fill="#15171C">
+  <title>D24 · Resultado de la demo</title>
+  <desc>Entre semana la lluvia sube los viajes un 9.7 %; en fin de semana los baja un 9.9 %.</desc>
+
+  <!-- Ejes (800 000 = 300 px; 0 en y = 360) -->
+  <text transform="translate(36,210) rotate(-90)" text-anchor="middle" font-size="22" fill="#5F6672">viajes por día</text>
+  <line x1="148" y1="60" x2="148" y2="360" stroke="#5F6672" stroke-width="2"/>
+  <line x1="148" y1="360" x2="1176" y2="360" stroke="#15171C" stroke-width="2"/>
+
+  <line x1="140" y1="360" x2="148" y2="360" stroke="#5F6672" stroke-width="2"/>
+  <text x="132" y="367" text-anchor="end" font-size="22" fill="#5F6672">0</text>
+  <line x1="140" y1="285" x2="148" y2="285" stroke="#5F6672" stroke-width="2"/>
+  <text x="132" y="292" text-anchor="end" font-size="22" fill="#5F6672">200 000</text>
+  <line x1="140" y1="210" x2="148" y2="210" stroke="#5F6672" stroke-width="2"/>
+  <text x="132" y="217" text-anchor="end" font-size="22" fill="#5F6672">400 000</text>
+  <line x1="140" y1="135" x2="148" y2="135" stroke="#5F6672" stroke-width="2"/>
+  <text x="132" y="142" text-anchor="end" font-size="22" fill="#5F6672">600 000</text>
+  <line x1="140" y1="60" x2="148" y2="60" stroke="#5F6672" stroke-width="2"/>
+  <text x="132" y="67" text-anchor="end" font-size="22" fill="#5F6672">800 000</text>
+
+  <!-- Entre semana: seco 580 351 · lluvia 636 586 -->
+  <rect x="255" y="142.37" width="130" height="217.63" rx="6" fill="#5F6672"/>
+  <rect x="425" y="121.28" width="130" height="238.72" rx="6" fill="#2340D8"/>
+  <text x="320" y="130" text-anchor="middle" font-size="22" font-weight="700">580 351</text>
+  <text x="490" y="109" text-anchor="middle" font-size="22" font-weight="700">636 586</text>
+  <text x="405" y="32" text-anchor="middle" font-size="26" font-weight="700" fill="#2340D8">+9.7 %</text>
+  <text x="320" y="384" text-anchor="middle" font-size="22">seco</text>
+  <text x="490" y="384" text-anchor="middle" font-size="22">lluvia ≥ 1 mm</text>
+  <text x="405" y="412" text-anchor="middle" font-size="22" font-weight="700">entre semana</text>
+
+  <!-- Fin de semana: seco 751 335 · lluvia 676 625 -->
+  <rect x="769" y="78.25" width="130" height="281.75" rx="6" fill="#5F6672"/>
+  <rect x="939" y="106.27" width="130" height="253.73" rx="6" fill="#2340D8"/>
+  <text x="834" y="66" text-anchor="middle" font-size="22" font-weight="700">751 335</text>
+  <text x="1004" y="94" text-anchor="middle" font-size="22" font-weight="700">676 625</text>
+  <text x="919" y="32" text-anchor="middle" font-size="26" font-weight="700" fill="#2340D8">−9.9 %</text>
+  <text x="834" y="384" text-anchor="middle" font-size="22">seco</text>
+  <text x="1004" y="384" text-anchor="middle" font-size="22">lluvia ≥ 1 mm</text>
+  <text x="919" y="412" text-anchor="middle" font-size="22" font-weight="700">fin de semana</text>
+
+  <!-- Tamaños de muestra -->
+  <text x="662" y="438" text-anchor="middle" font-size="22" fill="#5F6672">n = 10 / 10 / 3 / 4 días</text>
+
+  <!-- Banda inferior (gris) -->
+  <rect x="24" y="452" width="1152" height="60" rx="6" fill="#F0EEE7"/>
+  <rect x="24" y="452" width="6" height="60" rx="3" fill="#5F6672"/>
+  <text x="46" y="476" font-size="22">Un valor de lluvia por día para toda la ciudad: no se puede ver el efecto por zona.</text>
+  <text x="46" y="500" font-size="22">4 días de llovizna (0–1 mm) excluidos.</text>
+</svg>

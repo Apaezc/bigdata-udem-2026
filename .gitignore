@@ -81,3 +81,10 @@ local_warehouse/
 
 # Backend local de Terraform (bucket de estado de la cuenta del alumno)
 infra/*/backend.hcl
+
+# Material del curso: capturas de QA y borradores del deck
+curso/*/deck/png/
+curso/*/deck/partes/
+curso/_deck/muestra/png/
+__pycache__/
+.DS_Store

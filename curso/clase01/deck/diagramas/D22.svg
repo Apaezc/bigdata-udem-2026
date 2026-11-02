@@ -1,0 +1,87 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 520" font-family="Inter, 'Helvetica Neue', Arial, sans-serif" fill="#15171C">
+  <title>D22 · Arquitectura del curso</title>
+  <desc>Fuentes a un lake en S3 con tres capas procesadas por Glue y Spark, copia de gold a Snowflake, Airflow arriba y Terraform abajo.</desc>
+  <defs>
+    <marker id="tk" viewBox="0 0 14 14" refX="14" refY="7" markerWidth="14" markerHeight="14" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0,0 L14,7 L0,14 Z" fill="#15171C"/>
+    </marker>
+    <marker id="ta" viewBox="0 0 14 14" refX="14" refY="7" markerWidth="14" markerHeight="14" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0,0 L14,7 L0,14 Z" fill="#2340D8"/>
+    </marker>
+  </defs>
+
+  <!-- Barra superior: Airflow -->
+  <rect x="24" y="24" width="1152" height="56" rx="6" fill="#F0EEE7" stroke="#2340D8" stroke-width="4"/>
+  <text x="44" y="59" font-size="22" font-weight="600">Airflow · DAG pipeline_taxi: bronze → silver → gold → cargar_gold</text>
+  <rect x="1040" y="36" width="120" height="32" rx="16" fill="#2340D8"/>
+  <text x="1100" y="59" text-anchor="middle" font-size="22" font-weight="700" fill="#FFFFFF">Clase 6</text>
+
+  <!-- Fuentes -->
+  <rect x="24" y="130" width="150" height="60" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+  <text x="99" y="156" text-anchor="middle" font-size="22" font-weight="700">TLC</text>
+  <text x="99" y="180" text-anchor="middle" font-size="22">Parquet</text>
+
+  <rect x="24" y="230" width="150" height="60" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+  <text x="99" y="256" text-anchor="middle" font-size="22" font-weight="700">Zonas</text>
+  <text x="99" y="280" text-anchor="middle" font-size="22">CSV</text>
+
+  <rect x="24" y="330" width="150" height="60" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+  <text x="99" y="356" text-anchor="middle" font-size="22" font-weight="700">Open-Meteo</text>
+  <text x="99" y="380" text-anchor="middle" font-size="22">JSON</text>
+
+  <!-- Flechas de fuente a bronze -->
+  <line x1="174" y1="160" x2="234" y2="290" stroke="#15171C" stroke-width="3" marker-end="url(#tk)"/>
+  <line x1="174" y1="260" x2="234" y2="322" stroke="#15171C" stroke-width="3" marker-end="url(#tk)"/>
+  <line x1="174" y1="360" x2="234" y2="354" stroke="#15171C" stroke-width="3" marker-end="url(#tk)"/>
+
+  <!-- Contenedor data lake -->
+  <rect x="220" y="110" width="500" height="290" rx="6" fill="none" stroke="#5F6672" stroke-width="2"/>
+  <text x="236" y="142" font-size="22" font-weight="700">Data lake · S3</text>
+  <rect x="580" y="118" width="120" height="32" rx="16" fill="#2340D8"/>
+  <text x="640" y="141" text-anchor="middle" font-size="22" font-weight="700" fill="#FFFFFF">Clase 4</text>
+
+  <text x="471" y="200" text-anchor="middle" font-size="22" font-weight="700">Glue + Spark</text>
+  <rect x="411" y="212" width="120" height="32" rx="16" fill="#2340D8"/>
+  <text x="471" y="235" text-anchor="middle" font-size="22" font-weight="700" fill="#FFFFFF">Clase 5</text>
+
+  <!-- Capas medallion -->
+  <rect x="236" y="262" width="130" height="120" rx="6" fill="#B4622F" fill-opacity="0.12" stroke="#B4622F" stroke-width="3"/>
+  <text x="301" y="300" text-anchor="middle" font-size="26" font-weight="700">bronze</text>
+  <text x="301" y="334" text-anchor="middle" font-size="22">crudo</text>
+
+  <rect x="406" y="262" width="130" height="120" rx="6" fill="#6E7F94" fill-opacity="0.12" stroke="#6E7F94" stroke-width="3"/>
+  <text x="471" y="300" text-anchor="middle" font-size="26" font-weight="700">silver</text>
+  <text x="471" y="334" text-anchor="middle" font-size="22">limpio</text>
+
+  <rect x="576" y="262" width="130" height="120" rx="6" fill="#B07F0E" fill-opacity="0.12" stroke="#B07F0E" stroke-width="3"/>
+  <text x="641" y="300" text-anchor="middle" font-size="26" font-weight="700">gold</text>
+  <text x="641" y="334" text-anchor="middle" font-size="22">agregado</text>
+
+  <!-- Flechas entre capas -->
+  <line x1="366" y1="322" x2="404" y2="322" stroke="#15171C" stroke-width="3" marker-end="url(#tk)"/>
+  <line x1="536" y1="322" x2="574" y2="322" stroke="#15171C" stroke-width="3" marker-end="url(#tk)"/>
+
+  <!-- Copia de gold a Snowflake -->
+  <text x="803" y="314" text-anchor="middle" font-size="22" font-weight="700" fill="#2340D8">COPY INTO</text>
+  <line x1="706" y1="322" x2="898" y2="322" stroke="#2340D8" stroke-width="4" marker-end="url(#ta)"/>
+
+  <!-- Snowflake -->
+  <rect x="900" y="262" width="276" height="120" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+  <text x="1038" y="298" text-anchor="middle" font-size="26" font-weight="700">Snowflake</text>
+  <text x="1038" y="328" text-anchor="middle" font-family="Menlo, Consolas, monospace" font-size="22">BIGDATA.PROD.</text>
+  <text x="1038" y="356" text-anchor="middle" font-family="Menlo, Consolas, monospace" font-size="22">DAILY_ZONE_METRICS</text>
+  <rect x="958" y="220" width="160" height="32" rx="16" fill="#2340D8"/>
+  <text x="1038" y="243" text-anchor="middle" font-size="22" font-weight="700" fill="#FFFFFF">Clases 2-3</text>
+
+  <!-- Analista -->
+  <line x1="1038" y1="382" x2="1038" y2="398" stroke="#5F6672" stroke-width="3" marker-end="url(#tk)"/>
+  <text x="1038" y="422" text-anchor="middle" font-size="22">Analista · SELECT</text>
+
+  <!-- Barra inferior: Terraform -->
+  <rect x="24" y="440" width="1152" height="64" rx="6" fill="#F0EEE7"/>
+  <rect x="24" y="440" width="6" height="64" rx="3" fill="#5F6672"/>
+  <text x="46" y="466" font-size="22">GitHub Actions + Terraform · despliegan S3, Glue, VM de Airflow,</text>
+  <text x="46" y="492" font-size="22">Snowflake y el código</text>
+  <rect x="984" y="456" width="176" height="32" rx="16" fill="#2340D8"/>
+  <text x="1072" y="479" text-anchor="middle" font-size="22" font-weight="700" fill="#FFFFFF">Clase 7: prod</text>
+</svg>

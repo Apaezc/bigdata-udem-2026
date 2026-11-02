@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 520" font-family="Inter, 'Helvetica Neue', Arial, sans-serif" font-size="22" fill="#15171C">
+  <defs>
+    <marker id="arr" viewBox="0 0 14 14" refX="14" refY="7" markerWidth="14" markerHeight="14" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0,0 L14,7 L0,14 Z" fill="#15171C"/>
+    </marker>
+  </defs>
+
+  <!-- Banda superior: definición -->
+  <rect x="24" y="16" width="1152" height="72" fill="#F0EEE7"/>
+  <rect x="24" y="16" width="6" height="72" fill="#2340D8"/>
+  <text x="50" y="44">Lakehouse: lake con una capa de metadatos transaccional que da propiedades</text>
+  <text x="50" y="72">de tabla de warehouse.</text>
+
+  <!-- Pila de tres capas -->
+  <rect x="24" y="110" width="440" height="90" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+  <text x="44" y="150">Tabla: ACID · time travel ·</text>
+  <text x="44" y="178">evolución de esquema</text>
+
+  <rect x="24" y="210" width="440" height="90" rx="6" fill="#F0EEE7" stroke="#2340D8" stroke-width="4"/>
+  <text x="44" y="250">Metadatos: snapshots, manifiestos,</text>
+  <text x="44" y="278">registro de transacciones</text>
+
+  <rect x="24" y="310" width="440" height="90" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+  <text x="44" y="362">Archivos Parquet en S3</text>
+
+  <!-- Conector: la capa de metadatos gobierna los formatos -->
+  <line x1="464" y1="255" x2="536" y2="255" stroke="#15171C" stroke-width="3" marker-end="url(#arr)"/>
+  <rect x="540" y="200" width="160" height="110" rx="6" fill="#FFFFFF" stroke="#5F6672" stroke-width="2"/>
+  <text x="620" y="233" text-anchor="middle">Iceberg</text>
+  <text x="620" y="263" text-anchor="middle">Delta Lake</text>
+  <text x="620" y="293" text-anchor="middle">Hudi</text>
+
+  <!-- Definición y ejemplos -->
+  <text x="740" y="146"><tspan font-weight="700">ACID:</tspan> una escritura se completa</text>
+  <text x="740" y="174">entera o no ocurre, y ningún</text>
+  <text x="740" y="202">lector ve estados intermedios.</text>
+
+  <text x="740" y="262">•</text>
+  <text x="762" y="262">Dos escritores sobre enero: se ve</text>
+  <text x="762" y="290">el snapshot 12 o el 13, nunca</text>
+  <text x="762" y="318">archivos a medias</text>
+
+  <text x="740" y="366">•</text>
+  <text x="762" y="366">Time travel: leer gold como</text>
+  <text x="762" y="394">estaba ayer</text>
+
+  <!-- Banda inferior -->
+  <rect x="24" y="440" width="1152" height="64" fill="#F0EEE7"/>
+  <rect x="24" y="440" width="6" height="64" fill="#5F6672"/>
+  <text x="50" y="470">Por qué surge: el lake plano no escribe de forma atómica y copiar al warehouse</text>
+  <text x="50" y="496">duplicaba el dato.</text>
+</svg>

@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 520" font-family="Inter, 'Helvetica Neue', Arial, sans-serif">
+  <title>DAG pipeline_taxi: preparar entorno, elegir cómputo, bronze, silver, gold y carga a Snowflake; silver no inicia si bronze falla.</title>
+  <defs>
+    <marker id="ar" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="14" refX="14" refY="7" orient="auto">
+      <path d="M0,0 L14,7 L0,14 Z" fill="#15171C"/>
+    </marker>
+    <marker id="arA" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="14" refX="14" refY="7" orient="auto">
+      <path d="M0,0 L14,7 L0,14 Z" fill="#2340D8"/>
+    </marker>
+  </defs>
+
+  <!-- Banda superior -->
+  <rect x="24" y="16" width="1152" height="64" fill="#F0EEE7"/>
+  <rect x="24" y="16" width="6" height="64" fill="#2340D8"/>
+  <text x="46" y="41" font-size="22" fill="#15171C">DAG: grafo dirigido sin ciclos de tareas; el orquestador respeta las dependencias,</text>
+  <text x="46" y="67" font-size="22" fill="#15171C">registra el estado y permite reejecutar.</text>
+
+  <!-- Parámetros y anotación de reintentos -->
+  <rect x="800" y="96" width="376" height="64" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+  <text x="818" y="122" font-size="22" fill="#15171C">params: mes = 2024-01</text>
+  <text x="818" y="148" font-size="22" fill="#15171C">computo = glue_large</text>
+  <text x="780" y="122" text-anchor="end" font-size="22" fill="#5F6672">retries: configurable por tarea</text>
+  <text x="780" y="148" text-anchor="end" font-size="22" fill="#5F6672">(aquí 0: el fallo queda visible)</text>
+  <text x="1176" y="196" text-anchor="end" font-size="22" fill="#5F6672">DELETE del mes + COPY INTO</text>
+
+  <!-- Fila principal -->
+  <rect x="24" y="210" width="172" height="70" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+  <text x="110" y="253" text-anchor="middle" font-size="20" fill="#15171C">preparar_entorno</text>
+
+  <rect x="220" y="210" width="172" height="70" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+  <text x="306" y="253" text-anchor="middle" font-size="20" fill="#15171C">elegir_computo</text>
+
+  <rect x="416" y="210" width="172" height="70" rx="6" fill="#B4622F" fill-opacity="0.12" stroke="#B4622F" stroke-width="3"/>
+  <text x="502" y="253" text-anchor="middle" font-size="20" fill="#15171C">bronze</text>
+
+  <rect x="612" y="210" width="172" height="70" rx="6" fill="#6E7F94" fill-opacity="0.12" stroke="#6E7F94" stroke-width="3"/>
+  <text x="698" y="253" text-anchor="middle" font-size="20" fill="#15171C">silver</text>
+
+  <rect x="808" y="210" width="172" height="70" rx="6" fill="#B07F0E" fill-opacity="0.12" stroke="#B07F0E" stroke-width="3"/>
+  <text x="894" y="253" text-anchor="middle" font-size="20" fill="#15171C">gold</text>
+
+  <rect x="1004" y="210" width="172" height="70" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+  <text x="1090" y="253" text-anchor="middle" font-size="20" fill="#15171C">cargar_gold</text>
+
+  <line x1="196" y1="245" x2="220" y2="245" stroke="#15171C" stroke-width="3" marker-end="url(#ar)"/>
+  <line x1="392" y1="245" x2="416" y2="245" stroke="#15171C" stroke-width="3" marker-end="url(#ar)"/>
+  <line x1="588" y1="245" x2="612" y2="245" stroke="#2340D8" stroke-width="4" marker-end="url(#arA)"/>
+  <line x1="784" y1="245" x2="808" y2="245" stroke="#2340D8" stroke-width="4" marker-end="url(#arA)"/>
+  <line x1="980" y1="245" x2="1004" y2="245" stroke="#2340D8" stroke-width="4" marker-end="url(#arA)"/>
+
+  <!-- Anotación de la dependencia bronze -> silver -->
+  <text x="600" y="300" text-anchor="middle" font-size="22" font-weight="700" fill="#2340D8">dependencia: silver no inicia</text>
+  <text x="600" y="326" text-anchor="middle" font-size="22" font-weight="700" fill="#2340D8">si bronze falla</text>
+
+  <!-- Nota de desarrollo (una sola) -->
+  <text x="24" y="392" font-size="22" fill="#5F6672">En dev, el mismo DAG corre en local sobre una muestra.</text>
+
+  <!-- Banda inferior -->
+  <rect x="24" y="440" width="1152" height="64" fill="#F0EEE7"/>
+  <rect x="24" y="440" width="6" height="64" fill="#5F6672"/>
+  <text x="46" y="480" font-size="22" fill="#15171C">Reproceso de enero: lanzar el DAG con mes = 2024-01; los demás meses no se tocan.</text>
+</svg>

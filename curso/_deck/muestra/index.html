@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Muestra del sistema visual</title>
+<style>
+:root {
+  --bg: #FBFAF6;
+  --ink: #15171C;
+  --gris: #5F6672;
+  --regla: #D9D6CC;
+  --panel: #F0EEE7;
+  --acento: #2340D8;
+  --bronze: #B4622F;
+  --silver: #6E7F94;
+  --gold: #B07F0E;
+  --blanco: #FFFFFF;
+  --sint-str: #2E7D5B;
+  --bronze-tinte: #F2E6DC;
+  --silver-tinte: #E9EAE9;
+  --gold-tinte: #F1EAD8;
+  --acento-tinte: #DFE2F2;
+  --sans: "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --mono: "JetBrains Mono", "SF Mono", Menlo, Consolas, "Courier New", monospace;
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:#0E0F12;overflow:hidden;font-family:var(--sans);color:var(--ink)}
+#stage{position:absolute;left:50%;top:0;width:1280px;height:720px;margin-left:-640px;transform-origin:top center}
+.slide{display:none;position:relative;width:1280px;height:720px;overflow:hidden;background:var(--bg)}
+.slide.on{display:block}
+.slide .e{position:absolute}
+.slide .t{position:absolute;overflow:hidden;display:flex;flex-direction:column;font-family:var(--sans)}
+.slide .t p{min-height:var(--lh);margin:0}
+.slide .t.m p{font-family:var(--mono)}
+.slide .t.nw p{white-space:pre}
+.slide .t span.mono{font-family:var(--mono);font-size:.92em}
+.slide .t span.b{font-weight:700}
+.slide img{position:absolute}
+.slide .notas{display:none}
+#panel{display:none;position:fixed;left:0;right:0;bottom:0;height:var(--ph);background:#17191F;color:#E7E5DE;
+  padding:14px 24px;font:20px/1.45 var(--sans);overflow:auto;border-top:3px solid var(--acento)}
+#panel b{color:#fff}#panel .meta{color:#9AA0AB;font-size:15px;margin-bottom:6px}
+body.pres #panel{display:block}
+#ayuda{position:fixed;right:10px;top:8px;font:12px var(--sans);color:#8a8f99}
+body.solo #stage{position:absolute;left:0;top:0;margin:0;transform:none!important}
+body.solo #panel,body.solo #ayuda{display:none!important}
+@page{size:1280px 720px;margin:0}
+@media print{
+ html,body{background:none;height:auto;overflow:visible}
+ #stage{position:static;margin:0;width:auto;height:auto;transform:none!important}
+ .slide{display:block!important;break-after:page;page-break-after:always}
+ .slide:last-child{break-after:auto;page-break-after:auto}
+ #panel,#ayuda{display:none!important}
+}
+</style></head>
+<body>
+<div id="stage">
+<section class="slide" id="s1" data-tipo="portada" data-min="2" style="background:#FBFAF6">
+<div class="e" style="left:0.0px;top:0.0px;width:24.0px;height:720.0px;background:#2340D8;"></div>
+<div class="t" style="left:100.0px;top:120.0px;width:900.0px;height:30.0px;font-size:20px;line-height:26.0px;--lh:26.0px;color:#2340D8;text-align:left;justify-content:flex-start;font-weight:700;"><p style=""><span class="" style="">BIG DATA · UDEM</span></p></div>
+<div class="t" style="left:100.0px;top:190.0px;width:1000.0px;height:240.0px;font-size:64px;line-height:69.1px;--lh:69.1px;color:#15171C;text-align:left;justify-content:center;font-weight:700;"><p style=""><span class="" style="">De archivos sueltos a decisiones con datos</span></p></div>
+<div class="t" style="left:100.0px;top:450.0px;width:900.0px;height:90.0px;font-size:28px;line-height:36.4px;--lh:36.4px;color:#5F6672;text-align:left;justify-content:flex-start;"><p style=""><span class="" style="">Ingesta, limpieza y modelado en la nube con arquitectura medallion</span></p></div>
+<div class="e" style="left:100.0px;top:590.0px;width:110.0px;height:10.0px;background:#B4622F;"></div>
+<div class="e" style="left:210.0px;top:590.0px;width:110.0px;height:10.0px;background:#6E7F94;"></div>
+<div class="e" style="left:320.0px;top:590.0px;width:110.0px;height:10.0px;background:#B07F0E;"></div>
+<div class="t" style="left:100.0px;top:620.0px;width:1000.0px;height:30.0px;font-size:20px;line-height:24.0px;--lh:24.0px;color:#5F6672;text-align:left;justify-content:flex-start;"><p style=""><span class="" style="">Clase 1 · Big Data · UDEM · 2026</span></p></div>
+<div class="notas">Dar la bienvenida. Mencionar que el curso completo sigue un solo caso de datos.</div></section>
+<section class="slide" id="s2" data-tipo="seccion" data-min="1" style="background:#FBFAF6">
+<div class="t" style="left:808.0px;top:26.0px;width:120.0px;height:26.0px;font-size:13px;line-height:15.6px;--lh:15.6px;color:#5F6672;text-align:right;justify-content:center;font-weight:700;"><p style=""><span class="" style="">ESTÁS AQUÍ</span></p></div>
+<div class="e" style="left:936.0px;top:26.0px;width:84.0px;height:26.0px;background:#B4622F;"></div>
+<div class="t" style="left:936.0px;top:26.0px;width:84.0px;height:26.0px;font-size:13px;line-height:15.6px;--lh:15.6px;color:#FFFFFF;text-align:center;justify-content:center;font-weight:700;"><p style=""><span class="" style="">BRONZE</span></p></div>
+<div class="e" style="left:1026.0px;top:26.0px;width:84.0px;height:26.0px;border:1.5px solid #D9D6CC;"></div>
+<div class="t" style="left:1026.0px;top:26.0px;width:84.0px;height:26.0px;font-size:13px;line-height:15.6px;--lh:15.6px;color:#5F6672;text-align:center;justify-content:center;font-weight:700;"><p style=""><span class="" style="">SILVER</span></p></div>
+<div class="e" style="left:1116.0px;top:26.0px;width:84.0px;height:26.0px;border:1.5px solid #D9D6CC;"></div>
+<div class="t" style="left:1116.0px;top:26.0px;width:84.0px;height:26.0px;font-size:13px;line-height:15.6px;--lh:15.6px;color:#5F6672;text-align:center;justify-content:center;font-weight:700;"><p style=""><span class="" style="">GOLD</span></p></div>
+<div class="t" style="left:80.0px;top:110.0px;width:520.0px;height:400.0px;font-size:300px;line-height:300.0px;--lh:300.0px;color:#2340D8;text-align:left;justify-content:center;font-weight:700;"><p style=""><span class="" style="">01</span></p></div>
+<div class="e" style="left:620.0px;top:170.0px;width:3.0px;height:380.0px;background:#D9D6CC;"></div>
+<div class="t" style="left:660.0px;top:170.0px;width:540.0px;height:30.0px;font-size:20px;line-height:24.0px;--lh:24.0px;color:#2340D8;text-align:left;justify-content:flex-start;font-weight:700;"><p style=""><span class="" style="">INGESTA</span></p></div>
+<div class="t" style="left:660.0px;top:215.0px;width:540.0px;height:340.0px;font-size:44px;line-height:50.6px;--lh:50.6px;color:#15171C;text-align:left;justify-content:flex-start;font-weight:700;"><p style=""><span class="" style="">¿Qué pasa con los datos antes de que alguien los use para decidir?</span></p></div>
+<div class="e" style="left:80.0px;top:668.0px;width:1120.0px;height:1.0px;background:#D9D6CC;"></div>
+<div class="t" style="left:80.0px;top:676.0px;width:500.0px;height:22.0px;font-size:14px;line-height:16.8px;--lh:16.8px;color:#5F6672;text-align:left;justify-content:flex-start;"><p style=""><span class="" style="">Big Data · Clase 1</span></p></div>
+<div class="t" style="left:1100.0px;top:676.0px;width:100.0px;height:22.0px;font-size:14px;line-height:16.8px;--lh:16.8px;color:#5F6672;text-align:right;justify-content:flex-start;"><p style=""><span class="" style="">2</span></p></div>
+<div class="notas">Dejar que el grupo conteste antes de avanzar.</div></section>
+<section class="slide" id="s3" data-tipo="titulo_visual" data-min="4" style="background:#FBFAF6">
+<div class="e" style="left:80.0px;top:36.0px;width:56.0px;height:5.0px;background:#2340D8;"></div>
+<div class="t" style="left:80.0px;top:54.0px;width:1120.0px;height:96.0px;font-size:34px;line-height:40.1px;--lh:40.1px;color:#15171C;text-align:left;justify-content:flex-start;font-weight:700;"><p style=""><span class="" style="">Cada capa agrega confianza: de datos crudos a datos listos para decidir</span></p></div>
+<div class="t" style="left:808.0px;top:26.0px;width:120.0px;height:26.0px;font-size:13px;line-height:15.6px;--lh:15.6px;color:#5F6672;text-align:right;justify-content:center;font-weight:700;"><p style=""><span class="" style="">ESTÁS AQUÍ</span></p></div>
+<div class="e" style="left:936.0px;top:26.0px;width:84.0px;height:26.0px;border:1.5px solid #D9D6CC;"></div>
+<div class="t" style="left:936.0px;top:26.0px;width:84.0px;height:26.0px;font-size:13px;line-height:15.6px;--lh:15.6px;color:#5F6672;text-align:center;justify-content:center;font-weight:700;"><p style=""><span class="" style="">BRONZE</span></p></div>
+<div class="e" style="left:1026.0px;top:26.0px;width:84.0px;height:26.0px;background:#6E7F94;"></div>
+<div class="t" style="left:1026.0px;top:26.0px;width:84.0px;height:26.0px;font-size:13px;line-height:15.6px;--lh:15.6px;color:#FFFFFF;text-align:center;justify-content:center;font-weight:700;"><p style=""><span class="" style="">SILVER</span></p></div>
+<div class="e" style="left:1116.0px;top:26.0px;width:84.0px;height:26.0px;border:1.5px solid #D9D6CC;"></div>
+<div class="t" style="left:1116.0px;top:26.0px;width:84.0px;height:26.0px;font-size:13px;line-height:15.6px;--lh:15.6px;color:#5F6672;text-align:center;justify-content:center;font-weight:700;"><p style=""><span class="" style="">GOLD</span></p></div>
+<img src="diagramas/medallion.svg" alt="Flujo de fuentes a bronze, silver y gold" style="left:80.0px;top:169.0px;width:1120.0px;height:440.0px;">
+<div class="t" style="left:80.0px;top:622.0px;width:1120.0px;height:36.0px;font-size:22px;line-height:26.4px;--lh:26.4px;color:#5F6672;text-align:left;justify-content:flex-start;"><p style=""><span class="" style="">Los datos solo avanzan: nunca se corrigen a mano en bronze.</span></p></div>
+<div class="e" style="left:80.0px;top:668.0px;width:1120.0px;height:1.0px;background:#D9D6CC;"></div>
+<div class="t" style="left:80.0px;top:676.0px;width:500.0px;height:22.0px;font-size:14px;line-height:16.8px;--lh:16.8px;color:#5F6672;text-align:left;justify-content:flex-start;"><p style=""><span class="" style="">Big Data · Clase 1</span></p></div>
+<div class="t" style="left:1100.0px;top:676.0px;width:100.0px;height:22.0px;font-size:14px;line-height:16.8px;--lh:16.8px;color:#5F6672;text-align:right;justify-content:flex-start;"><p style=""><span class="" style="">3</span></p></div>
+<div class="notas">Recorrer el diagrama de izquierda a derecha. Insistir en que bronze es evidencia.</div></section>
+<section class="slide" id="s4" data-tipo="dato_grande" data-min="2" style="background:#FBFAF6">
+<div class="t" style="left:74.0px;top:70.0px;width:1120.0px;height:300.0px;font-size:250px;line-height:250.0px;--lh:250.0px;color:#2340D8;text-align:left;justify-content:flex-end;font-weight:700;"><p style=""><span class="" style="">80 %</span></p></div>
+<div class="e" style="left:80.0px;top:396.0px;width:120.0px;height:6.0px;background:#2340D8;"></div>
+<div class="t" style="left:80.0px;top:424.0px;width:980.0px;height:140.0px;font-size:32px;line-height:40.0px;--lh:40.0px;color:#15171C;text-align:left;justify-content:flex-start;"><p style=""><span class="" style="">del tiempo de un proyecto de datos se va en limpiar y preparar, no en analizar.</span></p></div>
+<div class="t" style="left:80.0px;top:612.0px;width:1120.0px;height:28.0px;font-size:18px;line-height:21.6px;--lh:21.6px;color:#5F6672;text-align:left;justify-content:flex-start;"><p style=""><span class="" style="">Fuente: cifra ilustrativa de la plantilla; sustituir por una referencia real.</span></p></div>
+<div class="e" style="left:80.0px;top:668.0px;width:1120.0px;height:1.0px;background:#D9D6CC;"></div>
+<div class="t" style="left:80.0px;top:676.0px;width:500.0px;height:22.0px;font-size:14px;line-height:16.8px;--lh:16.8px;color:#5F6672;text-align:left;justify-content:flex-start;"><p style=""><span class="" style="">Big Data · Clase 1</span></p></div>
+<div class="t" style="left:1100.0px;top:676.0px;width:100.0px;height:22.0px;font-size:14px;line-height:16.8px;--lh:16.8px;color:#5F6672;text-align:right;justify-content:flex-start;"><p style=""><span class="" style="">4</span></p></div>
+<div class="notas">Preguntar quién ha limpiado datos en Excel.</div></section>
+<section class="slide" id="s5" data-tipo="comparacion" data-min="3" style="background:#FBFAF6">
+<div class="e" style="left:80.0px;top:36.0px;width:56.0px;height:5.0px;background:#2340D8;"></div>
+<div class="t" style="left:80.0px;top:54.0px;width:1120.0px;height:96.0px;font-size:34px;line-height:40.1px;--lh:40.1px;color:#15171C;text-align:left;justify-content:flex-start;font-weight:700;"><p style=""><span class="" style="">Bronze guarda, silver depura y gold responde preguntas de negocio</span></p></div>
+<div class="e" style="left:80.0px;top:176.0px;width:349.3px;height:6.0px;background:#B4622F;"></div>
+<div class="t" style="left:80.0px;top:196.0px;width:349.3px;height:40.0px;font-size:28px;line-height:32.2px;--lh:32.2px;color:#B4622F;text-align:left;justify-content:flex-start;font-weight:700;"><p style=""><span class="" style="">Bronze</span></p></div>
+<div class="t" style="left:80.0px;top:254.0px;width:349.3px;height:370.0px;font-size:26px;line-height:33.8px;--lh:33.8px;color:#15171C;text-align:left;justify-content:flex-start;"><p style="margin-bottom:18px;"><span class="" style="">– Copia fiel del origen</span></p><p style=""><span class="" style="">– Nunca se edita</span></p></div>
+<div class="e" style="left:465.3px;top:176.0px;width:349.3px;height:6.0px;background:#6E7F94;"></div>
+<div class="t" style="left:465.3px;top:196.0px;width:349.3px;height:40.0px;font-size:28px;line-height:32.2px;--lh:32.2px;color:#6E7F94;text-align:left;justify-content:flex-start;font-weight:700;"><p style=""><span class="" style="">Silver</span></p></div>
+<div class="t" style="left:465.3px;top:254.0px;width:349.3px;height:370.0px;font-size:26px;line-height:33.8px;--lh:33.8px;color:#15171C;text-align:left;justify-content:flex-start;"><p style="margin-bottom:18px;"><span class="" style="">– Tipos correctos</span></p><p style=""><span class="" style="">– Sin duplicados</span></p></div>
+<div class="e" style="left:850.7px;top:176.0px;width:349.3px;height:6.0px;background:#B07F0E;"></div>
+<div class="t" style="left:850.7px;top:196.0px;width:349.3px;height:40.0px;font-size:28px;line-height:32.2px;--lh:32.2px;color:#B07F0E;text-align:left;justify-content:flex-start;font-weight:700;"><p style=""><span class="" style="">Gold</span></p></div>
+<div class="t" style="left:850.7px;top:254.0px;width:349.3px;height:370.0px;font-size:26px;line-height:33.8px;--lh:33.8px;color:#15171C;text-align:left;justify-content:flex-start;"><p style="margin-bottom:18px;"><span class="" style="">– Métricas del negocio</span></p><p style=""><span class="" style="">– Lo que ve el dashboard</span></p></div>
+<div class="e" style="left:80.0px;top:668.0px;width:1120.0px;height:1.0px;background:#D9D6CC;"></div>
+<div class="t" style="left:80.0px;top:676.0px;width:500.0px;height:22.0px;font-size:14px;line-height:16.8px;--lh:16.8px;color:#5F6672;text-align:left;justify-content:flex-start;"><p style=""><span class="" style="">Big Data · Clase 1</span></p></div>
+<div class="t" style="left:1100.0px;top:676.0px;width:100.0px;height:22.0px;font-size:14px;line-height:16.8px;--lh:16.8px;color:#5F6672;text-align:right;justify-content:flex-start;"><p style=""><span class="" style="">5</span></p></div>
+<div class="notas">Los colores se mantienen en todo el curso.</div></section>
+<section class="slide" id="s6" data-tipo="fila" data-min="3" style="background:#FBFAF6">
+<div class="e" style="left:80.0px;top:36.0px;width:56.0px;height:5.0px;background:#2340D8;"></div>
+<div class="t" style="left:80.0px;top:54.0px;width:1120.0px;height:96.0px;font-size:34px;line-height:40.1px;--lh:40.1px;color:#15171C;text-align:left;justify-content:flex-start;font-weight:700;"><p style=""><span class="" style="">Una fila de bronze trae el desorden tal cual llegó del origen</span></p></div>
+<div class="t" style="left:808.0px;top:26.0px;width:120.0px;height:26.0px;font-size:13px;line-height:15.6px;--lh:15.6px;color:#5F6672;text-align:right;justify-content:center;font-weight:700;"><p style=""><span class="" style="">ESTÁS AQUÍ</span></p></div>
+<div class="e" style="left:936.0px;top:26.0px;width:84.0px;height:26.0px;background:#B4622F;"></div>
+<div class="t" style="left:936.0px;top:26.0px;width:84.0px;height:26.0px;font-size:13px;line-height:15.6px;--lh:15.6px;color:#FFFFFF;text-align:center;justify-content:center;font-weight:700;"><p style=""><span class="" style="">BRONZE</span></p></div>
+<div class="e" style="left:1026.0px;top:26.0px;width:84.0px;height:26.0px;border:1.5px solid #D9D6CC;"></div>
+<div class="t" style="left:1026.0px;top:26.0px;width:84.0px;height:26.0px;font-size:13px;line-height:15.6px;--lh:15.6px;color:#5F6672;text-align:center;justify-content:center;font-weight:700;"><p style=""><span class="" style="">SILVER</span></p></div>
+<div class="e" style="left:1116.0px;top:26.0px;width:84.0px;height:26.0px;border:1.5px solid #D9D6CC;"></div>
+<div class="t" style="left:1116.0px;top:26.0px;width:84.0px;height:26.0px;font-size:13px;line-height:15.6px;--lh:15.6px;color:#5F6672;text-align:center;justify-content:center;font-weight:700;"><p style=""><span class="" style="">GOLD</span></p></div>
+<div class="t m" style="left:80.0px;top:164.0px;width:1120.0px;height:28.0px;font-size:20px;line-height:24.0px;--lh:24.0px;color:#5F6672;text-align:left;justify-content:flex-start;"><p style=""><span class="" style="">bronze.pedidos · 1 fila</span></p></div>
+<div class="e" style="left:80.0px;top:204.0px;width:186.7px;height:56.0px;background:#F0EEE7;"></div>
+<div class="e" style="left:80.0px;top:260.0px;width:186.7px;height:132.0px;"></div>
+<div class="t m" style="left:90.0px;top:204.0px;width:166.7px;height:56.0px;font-size:22px;line-height:25.3px;--lh:25.3px;color:#15171C;text-align:left;justify-content:center;font-weight:700;"><p style=""><span class="" style="">pedido_id</span></p></div>
+<div class="t m" style="left:90.0px;top:266.0px;width:166.7px;height:120.0px;font-size:22px;line-height:27.5px;--lh:27.5px;color:#15171C;text-align:left;justify-content:center;"><p style=""><span class="" style="">A-10482</span></p></div>
+<div class="e" style="left:266.7px;top:204.0px;width:228.1px;height:56.0px;background:#6E7F94;"></div>
+<div class="e" style="left:266.7px;top:260.0px;width:228.1px;height:132.0px;background:#E4E6E6;"></div>
+<div class="t m" style="left:276.7px;top:204.0px;width:208.1px;height:56.0px;font-size:22px;line-height:25.3px;--lh:25.3px;color:#FFFFFF;text-align:left;justify-content:center;font-weight:700;"><p style=""><span class="" style="">cliente</span></p></div>
+<div class="t m" style="left:276.7px;top:266.0px;width:208.1px;height:120.0px;font-size:22px;line-height:27.5px;--lh:27.5px;color:#15171C;text-align:left;justify-content:center;"><p style=""><span class="" style="">  ana RUIZ </span></p></div>
+<div class="e" style="left:494.8px;top:204.0px;width:207.4px;height:56.0px;background:#6E7F94;"></div>
+<div class="e" style="left:494.8px;top:260.0px;width:207.4px;height:132.0px;background:#E4E6E6;"></div>
+<div class="t m" style="left:504.8px;top:204.0px;width:187.4px;height:56.0px;font-size:22px;line-height:25.3px;--lh:25.3px;color:#FFFFFF;text-align:left;justify-content:center;font-weight:700;"><p style=""><span class="" style="">monto</span></p></div>
+<div class="t m" style="left:504.8px;top:266.0px;width:187.4px;height:120.0px;font-size:22px;line-height:27.5px;--lh:27.5px;color:#15171C;text-align:left;justify-content:center;"><p style=""><span class="" style="">&quot;1,299.50&quot;</span></p></div>
+<div class="e" style="left:702.2px;top:204.0px;width:165.9px;height:56.0px;background:#6E7F94;"></div>
+<div class="e" style="left:702.2px;top:260.0px;width:165.9px;height:132.0px;background:#E4E6E6;"></div>
+<div class="t m" style="left:712.2px;top:204.0px;width:145.9px;height:56.0px;font-size:22px;line-height:25.3px;--lh:25.3px;color:#FFFFFF;text-align:left;justify-content:center;font-weight:700;"><p style=""><span class="" style="">fecha</span></p></div>
+<div class="t m" style="left:712.2px;top:266.0px;width:145.9px;height:120.0px;font-size:22px;line-height:27.5px;--lh:27.5px;color:#15171C;text-align:left;justify-content:center;"><p style=""><span class="" style="">03/11/26</span></p></div>
+<div class="e" style="left:868.1px;top:204.0px;width:331.9px;height:56.0px;background:#B4622F;"></div>
+<div class="e" style="left:868.1px;top:260.0px;width:331.9px;height:132.0px;background:#F0E2D6;"></div>
+<div class="t m" style="left:878.1px;top:204.0px;width:311.9px;height:56.0px;font-size:22px;line-height:25.3px;--lh:25.3px;color:#FFFFFF;text-align:left;justify-content:center;font-weight:700;"><p style=""><span class="" style="">_ingesta_ts</span></p></div>
+<div class="t m" style="left:878.1px;top:266.0px;width:311.9px;height:120.0px;font-size:22px;line-height:27.5px;--lh:27.5px;color:#15171C;text-align:left;justify-content:center;"><p style=""><span class="" style="">2026-11-03 08:15</span></p></div>
+<div class="e" style="left:80.0px;top:391.0px;width:1120.0px;height:2.0px;background:#15171C;"></div>
+<div class="e" style="left:80.0px;top:204.0px;width:1120.0px;height:2.0px;background:#15171C;"></div>
+<div class="e" style="left:280.7px;top:392.0px;width:3.0px;height:30.0px;background:#6E7F94;"></div>
+<div class="t" style="left:272.7px;top:430.0px;width:216.1px;height:170.0px;font-size:22px;line-height:27.5px;--lh:27.5px;color:#15171C;text-align:left;justify-content:flex-start;font-weight:700;"><p style=""><span class="" style="">Quitar espacios y capitalizar</span></p></div>
+<div class="e" style="left:508.8px;top:392.0px;width:3.0px;height:30.0px;background:#6E7F94;"></div>
+<div class="t" style="left:500.8px;top:430.0px;width:195.4px;height:170.0px;font-size:22px;line-height:27.5px;--lh:27.5px;color:#15171C;text-align:left;justify-content:flex-start;font-weight:700;"><p style=""><span class="" style="">Texto a número</span></p></div>
+<div class="e" style="left:716.2px;top:392.0px;width:3.0px;height:30.0px;background:#6E7F94;"></div>
+<div class="t" style="left:708.2px;top:430.0px;width:153.9px;height:170.0px;font-size:22px;line-height:27.5px;--lh:27.5px;color:#15171C;text-align:left;justify-content:flex-start;font-weight:700;"><p style=""><span class="" style="">Formato ISO 2026-11-03</span></p></div>
+<div class="e" style="left:882.1px;top:392.0px;width:3.0px;height:30.0px;background:#B4622F;"></div>
+<div class="t" style="left:874.1px;top:430.0px;width:319.9px;height:170.0px;font-size:22px;line-height:27.5px;--lh:27.5px;color:#15171C;text-align:left;justify-content:flex-start;font-weight:700;"><p style=""><span class="" style="">La agrega la ingesta</span></p></div>
+<div class="e" style="left:80.0px;top:668.0px;width:1120.0px;height:1.0px;background:#D9D6CC;"></div>
+<div class="t" style="left:80.0px;top:676.0px;width:500.0px;height:22.0px;font-size:14px;line-height:16.8px;--lh:16.8px;color:#5F6672;text-align:left;justify-content:flex-start;"><p style=""><span class="" style="">Big Data · Clase 1</span></p></div>
+<div class="t" style="left:1100.0px;top:676.0px;width:100.0px;height:22.0px;font-size:14px;line-height:16.8px;--lh:16.8px;color:#5F6672;text-align:right;justify-content:flex-start;"><p style=""><span class="" style="">6</span></p></div>
+<div class="notas">Señalar cada columna resaltada y qué haría silver con ella.</div></section>
+<section class="slide" id="s7" data-tipo="codigo" data-min="4" style="background:#FBFAF6">
+<div class="e" style="left:80.0px;top:36.0px;width:56.0px;height:5.0px;background:#2340D8;"></div>
+<div class="t" style="left:80.0px;top:54.0px;width:1120.0px;height:96.0px;font-size:34px;line-height:40.1px;--lh:40.1px;color:#15171C;text-align:left;justify-content:flex-start;font-weight:700;"><p style=""><span class="" style="">Silver se construye con una consulta SQL que limpia y convierte tipos</span></p></div>
+<div class="t" style="left:808.0px;top:26.0px;width:120.0px;height:26.0px;font-size:13px;line-height:15.6px;--lh:15.6px;color:#5F6672;text-align:right;justify-content:center;font-weight:700;"><p style=""><span class="" style="">ESTÁS AQUÍ</span></p></div>
+<div class="e" style="left:936.0px;top:26.0px;width:84.0px;height:26.0px;border:1.5px solid #D9D6CC;"></div>
+<div class="t" style="left:936.0px;top:26.0px;width:84.0px;height:26.0px;font-size:13px;line-height:15.6px;--lh:15.6px;color:#5F6672;text-align:center;justify-content:center;font-weight:700;"><p style=""><span class="" style="">BRONZE</span></p></div>
+<div class="e" style="left:1026.0px;top:26.0px;width:84.0px;height:26.0px;background:#6E7F94;"></div>
+<div class="t" style="left:1026.0px;top:26.0px;width:84.0px;height:26.0px;font-size:13px;line-height:15.6px;--lh:15.6px;color:#FFFFFF;text-align:center;justify-content:center;font-weight:700;"><p style=""><span class="" style="">SILVER</span></p></div>
+<div class="e" style="left:1116.0px;top:26.0px;width:84.0px;height:26.0px;border:1.5px solid #D9D6CC;"></div>
+<div class="t" style="left:1116.0px;top:26.0px;width:84.0px;height:26.0px;font-size:13px;line-height:15.6px;--lh:15.6px;color:#5F6672;text-align:center;justify-content:center;font-weight:700;"><p style=""><span class="" style="">GOLD</span></p></div>
+<div class="e" style="left:80.0px;top:164.0px;width:1120.0px;height:267.0px;background:#F0EEE7;"></div>
+<div class="e" style="left:80.0px;top:164.0px;width:6.0px;height:267.0px;background:#2340D8;"></div>
+<div class="e" style="left:86.0px;top:248.0px;width:1114.0px;height:33.0px;background:#D8DCF1;"></div>
+<div class="e" style="left:86.0px;top:281.0px;width:1114.0px;height:33.0px;background:#D8DCF1;"></div>
+<div class="e" style="left:86.0px;top:314.0px;width:1114.0px;height:33.0px;background:#D8DCF1;"></div>
+<div class="t m nw" style="left:114.0px;top:182.0px;width:1060.0px;height:249.0px;font-size:22px;line-height:33.0px;--lh:33.0px;color:#15171C;text-align:left;justify-content:flex-start;"><p style=""><span class="b" style="color:#2340D8;font-weight:700">CREATE</span><span class="" style=""> </span><span class="b" style="color:#2340D8;font-weight:700">OR</span><span class="" style=""> </span><span class="b" style="color:#2340D8;font-weight:700">REPLACE</span><span class="" style=""> </span><span class="b" style="color:#2340D8;font-weight:700">TABLE</span><span class="" style=""> </span><span class="" style="">silver</span><span class="" style="">.</span><span class="" style="">pedidos</span><span class="" style=""> </span><span class="b" style="color:#2340D8;font-weight:700">AS</span></p><p style=""><span class="b" style="color:#2340D8;font-weight:700">SELECT</span><span class="" style=""> </span><span class="" style="">pedido_id</span><span class="" style="">,</span></p><p style=""><span class="" style="">       </span><span class="" style="">INITCAP</span><span class="" style="">(</span><span class="" style="">TRIM</span><span class="" style="">(</span><span class="" style="">cliente</span><span class="" style="">)</span><span class="" style="">)</span><span class="" style=""> </span><span class="b" style="color:#2340D8;font-weight:700">AS</span><span class="" style=""> </span><span class="" style="">cliente</span><span class="" style="">,</span></p><p style=""><span class="" style="">       </span><span class="" style="">TRY_TO_DECIMAL</span><span class="" style="">(</span><span class="b" style="color:#2340D8;font-weight:700">REPLACE</span><span class="" style="">(</span><span class="" style="">monto</span><span class="" style="">,</span><span class="" style=""> </span><span class="" style="color:#2E7D5B">&#x27;,&#x27;</span><span class="" style="">,</span><span class="" style=""> </span><span class="" style="color:#2E7D5B">&#x27;&#x27;</span><span class="" style="">)</span><span class="" style="">,</span><span class="" style=""> </span><span class="" style="">10</span><span class="" style="">,</span><span class="" style=""> </span><span class="" style="">2</span><span class="" style="">)</span><span class="" style=""> </span><span class="b" style="color:#2340D8;font-weight:700">AS</span><span class="" style=""> </span><span class="" style="">monto</span><span class="" style="">,</span></p><p style=""><span class="" style="">       </span><span class="" style="">TO_DATE</span><span class="" style="">(</span><span class="" style="">fecha</span><span class="" style="">,</span><span class="" style=""> </span><span class="" style="color:#2E7D5B">&#x27;DD/MM/YY&#x27;</span><span class="" style="">)</span><span class="" style=""> </span><span class="b" style="color:#2340D8;font-weight:700">AS</span><span class="" style=""> </span><span class="" style="">fecha</span></p><p style=""><span class="b" style="color:#2340D8;font-weight:700">FROM</span><span class="" style=""> </span><span class="" style="">bronze</span><span class="" style="">.</span><span class="" style="">pedidos</span></p><p style=""><span class="b" style="color:#2340D8;font-weight:700">WHERE</span><span class="" style=""> </span><span class="" style="">pedido_id</span><span class="" style=""> </span><span class="b" style="color:#2340D8;font-weight:700">IS</span><span class="" style=""> </span><span class="b" style="color:#2340D8;font-weight:700">NOT</span><span class="" style=""> </span><span class="b" style="color:#2340D8;font-weight:700">NULL</span><span class="" style="">;</span><span class="" style=""> </span><span class="" style="color:#5F6672;font-style:italic">-- descarta filas rotas</span></p></div>
+<div class="t" style="left:80.0px;top:447.0px;width:1120.0px;height:215.0px;font-size:24px;line-height:30.0px;--lh:30.0px;color:#15171C;text-align:left;justify-content:flex-start;"><p style=""><span class="" style="">Las tres líneas resaltadas convierten texto sucio en tipos confiables.</span></p></div>
+<div class="e" style="left:80.0px;top:668.0px;width:1120.0px;height:1.0px;background:#D9D6CC;"></div>
+<div class="t" style="left:80.0px;top:676.0px;width:500.0px;height:22.0px;font-size:14px;line-height:16.8px;--lh:16.8px;color:#5F6672;text-align:left;justify-content:flex-start;"><p style=""><span class="" style="">Big Data · Clase 1</span></p></div>
+<div class="t" style="left:1100.0px;top:676.0px;width:100.0px;height:22.0px;font-size:14px;line-height:16.8px;--lh:16.8px;color:#5F6672;text-align:right;justify-content:flex-start;"><p style=""><span class="" style="">7</span></p></div>
+<div class="notas">Leer la consulta línea por línea.</div></section>
+<section class="slide" id="s8" data-tipo="pasos" data-min="6" style="background:#FBFAF6">
+<div class="e" style="left:80.0px;top:36.0px;width:56.0px;height:5.0px;background:#2340D8;"></div>
+<div class="t" style="left:80.0px;top:54.0px;width:1120.0px;height:96.0px;font-size:34px;line-height:40.1px;--lh:40.1px;color:#15171C;text-align:left;justify-content:flex-start;font-weight:700;"><p style=""><span class="" style="">Carga el archivo a bronze con estos pasos en Snowsight</span></p></div>
+<div class="t" style="left:808.0px;top:26.0px;width:120.0px;height:26.0px;font-size:13px;line-height:15.6px;--lh:15.6px;color:#5F6672;text-align:right;justify-content:center;font-weight:700;"><p style=""><span class="" style="">ESTÁS AQUÍ</span></p></div>
+<div class="e" style="left:936.0px;top:26.0px;width:84.0px;height:26.0px;background:#B4622F;"></div>
+<div class="t" style="left:936.0px;top:26.0px;width:84.0px;height:26.0px;font-size:13px;line-height:15.6px;--lh:15.6px;color:#FFFFFF;text-align:center;justify-content:center;font-weight:700;"><p style=""><span class="" style="">BRONZE</span></p></div>
+<div class="e" style="left:1026.0px;top:26.0px;width:84.0px;height:26.0px;border:1.5px solid #D9D6CC;"></div>
+<div class="t" style="left:1026.0px;top:26.0px;width:84.0px;height:26.0px;font-size:13px;line-height:15.6px;--lh:15.6px;color:#5F6672;text-align:center;justify-content:center;font-weight:700;"><p style=""><span class="" style="">SILVER</span></p></div>
+<div class="e" style="left:1116.0px;top:26.0px;width:84.0px;height:26.0px;border:1.5px solid #D9D6CC;"></div>
+<div class="t" style="left:1116.0px;top:26.0px;width:84.0px;height:26.0px;font-size:13px;line-height:15.6px;--lh:15.6px;color:#5F6672;text-align:center;justify-content:center;font-weight:700;"><p style=""><span class="" style="">GOLD</span></p></div>
+<div class="e" style="left:80.0px;top:164.0px;width:229.0px;height:38.0px;border:2px solid #15171C;border-radius:6px;"></div>
+<div class="e" style="left:94.0px;top:178.0px;width:10.0px;height:10.0px;background:#5F6672;border-radius:50%;"></div>
+<div class="e" style="left:110.0px;top:178.0px;width:10.0px;height:10.0px;background:#5F6672;border-radius:50%;"></div>
+<div class="e" style="left:126.0px;top:178.0px;width:10.0px;height:10.0px;background:#5F6672;border-radius:50%;"></div>
+<div class="t" style="left:152.0px;top:164.0px;width:149.0px;height:38.0px;font-size:22px;line-height:24.2px;--lh:24.2px;color:#15171C;text-align:left;justify-content:center;font-weight:700;"><p style=""><span class="" style="">Snowsight</span></p></div>
+<div class="t" style="left:80.0px;top:226.0px;width:56.0px;height:70.0px;font-size:34px;line-height:34.0px;--lh:34.0px;color:#2340D8;text-align:left;justify-content:center;font-weight:700;"><p style=""><span class="" style="">1</span></p></div>
+<div class="t" style="left:150.0px;top:226.0px;width:1050.0px;height:70.0px;font-size:24px;line-height:28.8px;--lh:28.8px;color:#15171C;text-align:left;justify-content:center;"><p style=""><span class="" style="">Abre </span><span class="b" style="font-weight:700">Data &gt; Add Data</span></p></div>
+<div class="e" style="left:80.0px;top:295.0px;width:1120.0px;height:1.0px;background:#D9D6CC;"></div>
+<div class="t" style="left:80.0px;top:296.0px;width:56.0px;height:70.0px;font-size:34px;line-height:34.0px;--lh:34.0px;color:#2340D8;text-align:left;justify-content:center;font-weight:700;"><p style=""><span class="" style="">2</span></p></div>
+<div class="t" style="left:150.0px;top:296.0px;width:1050.0px;height:70.0px;font-size:24px;line-height:28.8px;--lh:28.8px;color:#15171C;text-align:left;justify-content:center;"><p style=""><span class="" style="">Elige </span><span class="b" style="font-weight:700">Load files into a Table</span></p></div>
+<div class="e" style="left:80.0px;top:365.0px;width:1120.0px;height:1.0px;background:#D9D6CC;"></div>
+<div class="t" style="left:80.0px;top:366.0px;width:56.0px;height:70.0px;font-size:34px;line-height:34.0px;--lh:34.0px;color:#2340D8;text-align:left;justify-content:center;font-weight:700;"><p style=""><span class="" style="">3</span></p></div>
+<div class="t" style="left:150.0px;top:366.0px;width:1050.0px;height:70.0px;font-size:24px;line-height:28.8px;--lh:28.8px;color:#15171C;text-align:left;justify-content:center;"><p style=""><span class="" style="">Arrastra </span><span class="mono" style="">pedidos.csv</span><span class="" style=""> al recuadro</span></p></div>
+<div class="e" style="left:80.0px;top:435.0px;width:1120.0px;height:1.0px;background:#D9D6CC;"></div>
+<div class="t" style="left:80.0px;top:436.0px;width:56.0px;height:70.0px;font-size:34px;line-height:34.0px;--lh:34.0px;color:#2340D8;text-align:left;justify-content:center;font-weight:700;"><p style=""><span class="" style="">4</span></p></div>
+<div class="t" style="left:150.0px;top:436.0px;width:1050.0px;height:70.0px;font-size:24px;line-height:28.8px;--lh:28.8px;color:#15171C;text-align:left;justify-content:center;"><p style=""><span class="" style="">Crea la tabla </span><span class="mono" style="">bronze.pedidos</span></p></div>
+<div class="e" style="left:80.0px;top:505.0px;width:1120.0px;height:1.0px;background:#D9D6CC;"></div>
+<div class="t" style="left:80.0px;top:506.0px;width:56.0px;height:70.0px;font-size:34px;line-height:34.0px;--lh:34.0px;color:#2340D8;text-align:left;justify-content:center;font-weight:700;"><p style=""><span class="" style="">5</span></p></div>
+<div class="t" style="left:150.0px;top:506.0px;width:1050.0px;height:70.0px;font-size:24px;line-height:28.8px;--lh:28.8px;color:#15171C;text-align:left;justify-content:center;"><p style=""><span class="" style="">Pulsa </span><span class="b" style="font-weight:700">Load</span><span class="" style=""> y revisa el conteo de filas</span></p></div>
+<div class="e" style="left:80.0px;top:575.0px;width:1120.0px;height:1.0px;background:#D9D6CC;"></div>
+<div class="e" style="left:80.0px;top:668.0px;width:1120.0px;height:1.0px;background:#D9D6CC;"></div>
+<div class="t" style="left:80.0px;top:676.0px;width:500.0px;height:22.0px;font-size:14px;line-height:16.8px;--lh:16.8px;color:#5F6672;text-align:left;justify-content:flex-start;"><p style=""><span class="" style="">Big Data · Clase 1</span></p></div>
+<div class="t" style="left:1100.0px;top:676.0px;width:100.0px;height:22.0px;font-size:14px;line-height:16.8px;--lh:16.8px;color:#5F6672;text-align:right;justify-content:flex-start;"><p style=""><span class="" style="">8</span></p></div>
+<div class="notas">Hacerlo en vivo mientras el grupo sigue en su laptop.</div></section>
+<section class="slide" id="s9" data-tipo="pregunta" data-min="3" style="background:#2340D8">
+<div class="t" style="left:80.0px;top:110.0px;width:600.0px;height:30.0px;font-size:20px;line-height:26.0px;--lh:26.0px;color:#AFB9EC;text-align:left;justify-content:flex-start;font-weight:700;"><p style=""><span class="" style="">PREGUNTA</span></p></div>
+<div class="t" style="left:80.0px;top:160.0px;width:1060.0px;height:360.0px;font-size:60px;line-height:67.2px;--lh:67.2px;color:#FFFFFF;text-align:left;justify-content:flex-start;font-weight:700;"><p style=""><span class="" style="">Si el dato crudo ya está guardado, ¿para qué crear una segunda copia limpia?</span></p></div>
+<div class="t" style="left:80.0px;top:560.0px;width:1060.0px;height:50.0px;font-size:26px;line-height:31.2px;--lh:31.2px;color:#BAC2ED;text-align:left;justify-content:flex-start;"><p style=""><span class="" style="">Discútanlo dos minutos con su vecino.</span></p></div>
+<div class="e" style="left:80.0px;top:668.0px;width:1120.0px;height:1.0px;background:#A5B0EA;"></div>
+<div class="t" style="left:80.0px;top:676.0px;width:500.0px;height:22.0px;font-size:14px;line-height:16.8px;--lh:16.8px;color:#AFB9EC;text-align:left;justify-content:flex-start;"><p style=""><span class="" style="">Big Data · Clase 1</span></p></div>
+<div class="t" style="left:1100.0px;top:676.0px;width:100.0px;height:22.0px;font-size:14px;line-height:16.8px;--lh:16.8px;color:#AFB9EC;text-align:right;justify-content:flex-start;"><p style=""><span class="" style="">9</span></p></div>
+<div class="notas">Respuesta esperada: reproducibilidad, auditoría y poder corregir reglas sin perder el original.</div></section>
+</div>
+<div id="panel"></div>
+<div id="ayuda">← → navegar · p notas · f pantalla completa</div>
+<script>
+const slides=[...document.querySelectorAll('.slide')],stage=document.getElementById('stage'),
+panel=document.getElementById('panel');let i=0;
+const q=new URLSearchParams(location.search),solo=parseInt(q.get('solo'));
+function show(n){i=Math.max(0,Math.min(slides.length-1,n));slides.forEach((s,k)=>s.classList.toggle('on',k===i));
+ const s=slides[i],nt=s.querySelector('.notas').textContent.trim();
+ panel.innerHTML='<div class="meta">Slide '+(i+1)+' / '+slides.length+' · '+(s.dataset.min?s.dataset.min+' min · ':'')+
+ 'p: ocultar notas</div>'+(nt?nt.replace(/\n/g,'<br>'):'<i>(sin notas)</i>');
+ if(!isNaN(solo))return;history.replaceState(null,'','#'+(i+1));}
+function fit(){if(!isNaN(solo))return;const ph=document.body.classList.contains('pres')?Math.round(innerHeight*.26):0;
+ document.documentElement.style.setProperty('--ph',ph+'px');
+ const k=Math.min(innerWidth/1280,(innerHeight-ph)/720);
+ stage.style.transform='scale('+k+')';stage.style.top=Math.max(0,(innerHeight-ph-720*k)/2)+'px';}
+if(!isNaN(solo)){document.body.classList.add('solo');show(solo-1);}
+else{show((parseInt(location.hash.slice(1))||1)-1);fit();
+ addEventListener('resize',fit);
+ addEventListener('keydown',e=>{const k=e.key;
+  if(['ArrowRight','ArrowDown','PageDown',' ','Enter'].includes(k)){show(i+1);e.preventDefault()}
+  else if(['ArrowLeft','ArrowUp','PageUp','Backspace'].includes(k)){show(i-1);e.preventDefault()}
+  else if(k==='Home')show(0);else if(k==='End')show(slides.length-1);
+  else if(k==='p'||k==='P'){document.body.classList.toggle('pres');fit()}
+  else if(k==='f'||k==='F'){document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen()}});
+ stage.addEventListener('click',e=>show(e.clientX>innerWidth/2?i+1:i-1));}
+</script>
+</body></html>

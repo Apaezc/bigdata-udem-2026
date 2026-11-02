@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 520" font-family="Inter, 'Helvetica Neue', Arial, sans-serif">
+  <title>Con append, dos corridas duplican los viajes de enero (39 300 046 frente a 19 650 023); con reemplazo por partición, el resultado no cambia.</title>
+
+  <!-- Eje y escala (0 a 40 M; 40 M = 250 px; línea base en y = 280) -->
+  <line x1="120" y1="24" x2="120" y2="280" stroke="#5F6672" stroke-width="2"/>
+  <line x1="120" y1="280" x2="670" y2="280" stroke="#5F6672" stroke-width="2"/>
+  <text x="106" y="30" text-anchor="end" font-size="22" fill="#5F6672">40 M</text>
+  <text x="106" y="155" text-anchor="end" font-size="22" fill="#5F6672">20 M</text>
+  <text x="106" y="286" text-anchor="end" font-size="22" fill="#5F6672">0</text>
+  <text transform="translate(44 152) rotate(-90)" text-anchor="middle" font-size="22" fill="#5F6672">viajes en gold (enero)</text>
+
+  <!-- Grupo append (no idempotente) -->
+  <rect x="150" y="157.2" width="110" height="122.8" fill="#5F6672"/>
+  <rect x="280" y="34.4" width="110" height="245.6" fill="#5F6672"/>
+  <text x="205" y="147" text-anchor="middle" font-size="22" font-weight="700" fill="#15171C">19 650 023</text>
+  <text x="335" y="26" text-anchor="middle" font-size="22" font-weight="700" fill="#15171C">39 300 046</text>
+  <line x1="316" y1="91" x2="354" y2="129" stroke="#FFFFFF" stroke-width="4"/>
+  <line x1="354" y1="91" x2="316" y2="129" stroke="#FFFFFF" stroke-width="4"/>
+  <text x="335" y="172" text-anchor="middle" font-size="18" font-weight="700" fill="#FFFFFF">duplicado</text>
+  <text x="205" y="304" text-anchor="middle" font-size="22" fill="#15171C">1 corrida</text>
+  <text x="335" y="304" text-anchor="middle" font-size="22" fill="#15171C">2 corridas</text>
+  <text x="270" y="328" text-anchor="middle" font-size="22" font-weight="700" fill="#15171C">Append</text>
+  <text x="270" y="350" text-anchor="middle" font-size="22" fill="#15171C">(no idempotente)</text>
+
+  <!-- Grupo reemplazo por partición (idempotente) -->
+  <rect x="430" y="157.2" width="110" height="122.8" fill="#2340D8"/>
+  <rect x="560" y="157.2" width="110" height="122.8" fill="#2340D8"/>
+  <text x="485" y="147" text-anchor="middle" font-size="22" font-weight="700" fill="#15171C">19 650 023</text>
+  <text x="615" y="147" text-anchor="middle" font-size="22" font-weight="700" fill="#15171C">19 650 023</text>
+  <text x="485" y="304" text-anchor="middle" font-size="22" fill="#15171C">1 corrida</text>
+  <text x="615" y="304" text-anchor="middle" font-size="22" fill="#15171C">2 corridas</text>
+  <text x="550" y="328" text-anchor="middle" font-size="22" font-weight="700" fill="#2340D8">Reemplazo por partición</text>
+  <text x="550" y="350" text-anchor="middle" font-size="22" fill="#2340D8">(idempotente)</text>
+
+  <!-- Mecanismo: tres bloques separados -->
+  <rect x="700" y="30" width="476" height="250" rx="6" fill="#F0EEE7"/>
+  <text x="724" y="74" font-size="22" fill="#15171C">silver: borra pickup_date=2024-01-*</text>
+  <text x="724" y="102" font-size="22" fill="#15171C">y reescribe</text>
+  <text x="724" y="160" font-size="22" fill="#15171C">gold: borra mes=2024-01 y reescribe</text>
+  <text x="724" y="220" font-size="22" fill="#15171C">Snowflake: DELETE del mes</text>
+  <text x="724" y="248" font-size="22" fill="#15171C">+ COPY INTO (FORCE = TRUE)</text>
+
+  <!-- Banda de idempotencia (en S3) -->
+  <rect x="24" y="368" width="1152" height="60" fill="#F0EEE7"/>
+  <rect x="24" y="368" width="6" height="60" fill="#5F6672"/>
+  <text x="46" y="392" font-size="22" fill="#15171C">Idempotente no es atómico, en S3: entre el borrado y la escritura el mes queda vacío;</text>
+  <text x="46" y="416" font-size="22" fill="#15171C">si la escritura falla, sigue vacío hasta relanzar. Lo resuelve un formato de tabla (Iceberg, Delta).</text>
+
+  <!-- Banda de dato derivado -->
+  <rect x="24" y="444" width="1152" height="60" fill="#F0EEE7"/>
+  <rect x="24" y="444" width="6" height="60" fill="#5F6672"/>
+  <text x="46" y="480" font-size="22" fill="#15171C">Dato derivado: 39 300 046 = 2 × 19 650 023 (suma real de viajes de enero).</text>
+</svg>
