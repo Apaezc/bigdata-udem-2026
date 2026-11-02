@@ -322,7 +322,7 @@ Haz los pasos en este orden.
     make airflow-local-down
     make airflow-tunel
     ```
-    Abre la URL que imprime `make airflow-tunel` (la misma que en dev), usuario `admin` y contraseña de `make airflow-password`. En prod el entorno también es fijo (`prod`, en la VM) y solo hay `computo=glue_medium` o `glue_large`, sin límite de filas: lanza `pipeline_taxi` con esos valores. La conexión de Snowflake ya está en el secreto `bigdata/snowflake` (la escribe `make snowflake`; ver [airflow/README.md](airflow/README.md)).
+    Abre la URL que imprime `make airflow-tunel` (la misma que en dev), usuario `admin` y contraseña de `make airflow-password`. En prod el entorno también es fijo (`prod`, en la VM) y solo hay `computo=glue_medium` o `glue_large`, sin límite de filas: lanza `pipeline_taxi` con esos valores. En prod el DAG no tiene rama local: un run exitoso muestra solo seis tareas, todas en `success` (`preparar_entorno`, `elegir_computo`, `bronze`, `silver`, `gold`, `cargar_gold`); con `glue_medium` y `mes=2024-01` tarda ~5 min. La conexión de Snowflake ya está en el secreto `bigdata/snowflake` (la escribe `make snowflake`; ver [airflow/README.md](airflow/README.md)).
 
 ## Configuración por estudiante
 
