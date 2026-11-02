@@ -56,35 +56,207 @@ Haz los pasos en este orden.
 2. **Cuenta AWS.** Crea tu cuenta de AWS (plan gratuito) y trabaja siempre en `us-east-2`. Entra con un usuario con permisos de administrador solo para lanzar el bootstrap.
 3. **Fork y Actions.** Haz fork de este repositorio en tu GitHub. En el fork, pestaña **Actions**, habilita los workflows ("I understand my workflows, go ahead and enable them").
 4. **Launch Stack (bootstrap AWS).** En tu fork: **Actions > "Enlace de bootstrap" > Run workflow**. Abre el run y haz clic en el enlace **Launch Stack** del resumen: tus datos de GitHub ya vienen completados. Solo eliges la VPC *default*, todas sus subnets y tu correo, marcas la casilla de IAM y creas el stack. Espera `CREATE_COMPLETE` (~4 min). Detalle: [docs/bootstrap.md](docs/bootstrap.md).
-5. **Code Editor.** Abre `StudioConsoleUrl` -> perfil `estudiante` -> Space `dev` -> **Code Editor**.
-6. **Clona tu fork** en la terminal del Code Editor:
+5. **Code Editor.** En la consola de AWS: **Amazon SageMaker AI > Domains** > tu dominio > pestaña **User profiles** > `estudiante` > **Launch > Studio**. En Studio: **Code Editor** > Space `dev` > **Run space** (la primera vez tarda 3-5 min) > **Open**. Abre una terminal: menú **Terminal > New Terminal**.
+   (No abras el enlace `StudioConsoleUrl` directamente: pide un token y da "Invalid or Expired Auth Token".)
+6. **Clona tu fork** en la terminal del Code Editor. Todos los comandos `make` de aquí en adelante se ejecutan **dentro de la carpeta del fork**:
    ```bash
-   git clone https://github.com/<TU_USUARIO>/<TU_FORK>.git && cd <TU_FORK>
+   cd ~
+   git clone https://github.com/<TU_USUARIO>/<TU_FORK>.git
+   cd ~/<TU_FORK>
    ```
-7. **Conexión de Snowflake (`make snowflake-conexion`).** Si `make setup` dice que no hay conexión de `snow`, ejecuta este comando en la terminal del Code Editor. Te pedirá el *account identifier* (Snowsight: menú de tu cuenta > Account > View account details > Account identifier, formato `ORGNAME-ACCOUNTNAME`) y tu usuario (login name). Genera una llave privada en `~/.snowflake/keys/<usuario>_key.p8` (no se muestra ni se sube a ningún sitio), escribe la conexión `[default]` en `~/.snowflake/connections.toml` e imprime una sentencia `ALTER USER ... SET RSA_PUBLIC_KEY='...'`: pégala en una hoja de Snowsight con el rol ACCOUNTADMIN, ejecútala, pulsa Enter y el script prueba la conexión.
-8. **`make setup`.** Verifica herramientas (Python 3.11+, Java 17, AWS CLI, Terraform, Snowflake CLI `snow`, jq, zip), crea `.venv`, valida que Snowflake esté en AWS, alinea `AWS_REGION` y, si todavía no existe, crea en S3 la configuración de Terraform (te pide el correo de alertas). Si no hay conexión de `snow`, te ofrece configurarla en ese momento (o hazlo con el paso 7). Después comprueba con `make doctor`. Las herramientas las instala el Lifecycle Config del Code Editor al arrancar.
-9. **Secrets del fork: automáticos.** `make setup` los carga solo (`AWS_ROLE_ARN` y `TF_STATE_BUCKET`, leídos del bootstrap). La primera vez autentica GitHub en el Code Editor con `gh auth login --hostname github.com --git-protocol https --web` (abre el enlace, pega el código) y corre `make secrets`. No hay que copiar valores a mano.
+7. **Conexión de Snowflake.**
+   1. **Averigua tus datos.** En Snowsight crea una hoja con el botón **+** (arriba a la izquierda) > **SQL Worksheet**, pega esto y pulsa **Run All** (flecha junto a ▶):
+      ```sql
+      USE ROLE ACCOUNTADMIN;
+      SHOW USERS;
+      SELECT CURRENT_ORGANIZATION_NAME() || '-' || CURRENT_ACCOUNT_NAME() AS account_identifier,
+             "name" AS usuario, "login_name" AS login
+      FROM TABLE(RESULT_SCAN(LAST_QUERY_ID())) WHERE "name" = CURRENT_USER();
+      ```
+      Verás algo así (tus valores serán otros). `USUARIO` y `LOGIN` pueden ser distintos (por ejemplo, el login es tu correo): el script pide los dos.
+      ```text
+      ACCOUNT_IDENTIFIER | USUARIO | LOGIN
+      ABCDEFG-XY12345    | jperez  | JPEREZ@GMAIL.COM
+      ```
+   2. **Ejecuta el script** en la terminal del Code Editor:
+      ```bash
+      cd ~/<TU_FORK>
+      make snowflake-conexion
+      ```
+      Escribe los dos valores cuando te los pida:
+      ```text
+      Account identifier (ORGNAME-ACCOUNTNAME): ABCDEFG-XY12345
+      USUARIO (columna USUARIO): jperez
+      LOGIN (columna LOGIN): JPEREZ@GMAIL.COM
+      ```
+   3. **Copia las dos líneas** que imprime el script (`USE ROLE` y `ALTER USER`). Se ve así (la clave es mucho más larga):
+      ```text
+      Último paso: en Snowsight, en una hoja (+ > SQL Worksheet), pega estas dos líneas juntas y
+      ejecútalas con 'Run All' (flecha junto a ▶):
 
-10. **`make deploy`.** Aplica `infra/aws` (lake, Glue, Athena, guardrails y, si lo activas, Airflow) y sube a S3 el código del pipeline (`pipeline.zip`, `run_glue.py`), los DAGs y el framework de Airflow. La VM de prod solo existe si activas Airflow con `make airflow-habilitar` (cambia `enable_airflow` y despliega); el Airflow de dev corre en el Code Editor y no lo necesita. También se ejecuta solo en cada push a `main`.
+      USE ROLE ACCOUNTADMIN;
+      ALTER USER "jperez" SET RSA_PUBLIC_KEY='MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA...';
 
-11. **Snowflake (después de AWS).** El orden importa porque AWS y Snowflake se necesitan mutuamente:
-    1. `bootstrap/snowflake/gen_key.sh` genera la llave de `TERRAFORM_SVC` y muestra la clave pública en una línea. Pégala entre las comillas de `RSA_PUBLIC_KEY` en `bootstrap/snowflake/01_admin.sql`. Abre una hoja de trabajo en Snowsight con el rol `ACCOUNTADMIN`, pega el script completo y pulsa **Run All**: crea el resource monitor y el usuario `TERRAFORM_SVC`. (Si no quieres modificar el archivo del repo, pega el script en Snowsight ya con la clave puesta.)
-       Si `TERRAFORM_SVC` ya existe con otra llave, el script no la cambia (usa `CREATE USER IF NOT EXISTS`). En ese caso ejecuta el `ALTER USER TERRAFORM_SVC SET RSA_PUBLIC_KEY='...'` que imprime `gen_key.sh`, con la clave pública nueva. Si no, `make snowflake` falla con `JWT token is invalid`.
-    2. En `infra/snowflake`: `cp terraform.tfvars.example terraform.tfvars` y `cp backend.hcl.example backend.hcl`, y completa los valores:
-       - `organization_name` y `account_name`: las dos partes del account identifier (`ORGNAME-ACCOUNTNAME`).
-       - `s3_role_arn` y `lake_bucket`: outputs de AWS fase 1, que se leen con `terraform -chdir=infra/aws output snowflake_s3_role_arn` y `terraform -chdir=infra/aws output lake_bucket`.
-       - `dev_users`: tu usuario de Snowflake, para que reciba el rol `BIGDATA_DEV`.
-       - `bucket` de `backend.hcl`: el output `TfStateBucket` del stack `bigdata-bootstrap` (pestaña **Outputs** en CloudFormation), con la forma `bigdata-tfstate-<cuenta>-us-east-2`.
+      Cuando la hayas ejecutado, pulsa Enter para probar la conexión...
+      ```
+   4. **Ejecútalas en Snowsight.** En la misma hoja borra lo que había, pega las dos líneas y pulsa **Run All** (flecha junto a ▶). Debe responder `Statement executed successfully.`
+   5. **Vuelve a la terminal y pulsa Enter.** El script prueba la conexión. Si todo está bien, termina con `Conexión configurada. Siguiente paso: make setup`.
+   6. **Comprueba** cuando quieras:
+      ```bash
+      cd ~/<TU_FORK>
+      snow connection test
+      ```
+      Salida exitosa (con tus valores): `Status` debe ser `OK` y `User` tu LOGIN. Que `Database` y `Warehouse` digan `not set` es normal en este punto: se crean en el paso 11.
+      ```text
+      +----------------------------------------------------------+
+      | key             | value                                  |
+      |-----------------+----------------------------------------|
+      | Connection name | default                                |
+      | Status          | OK                                     |
+      | Host            | abcdefg-xy12345.snowflakecomputing.com |
+      | Account         | abcdefg-xy12345                        |
+      | User            | JPEREZ@GMAIL.COM                       |
+      | Role            | ACCOUNTADMIN                           |
+      | Database        | not set                                |
+      | Warehouse       | not set                                |
+      +----------------------------------------------------------+
+      ```
 
-       La llave privada no va en estos archivos: queda en `~/.snowflake/keys/`.
-    3. Desde la raíz, `make snowflake`. Hace `terraform init` solo, aplica `infra/snowflake` (warehouse, base, rol y el usuario de servicio `AIRFLOW_SVC`), guarda `storage_aws_iam_user_arn` y `storage_aws_external_id` en la configuración de S3 y aplica la fase 2 de AWS (trust policy del rol). No hay que copiar valores a mano.
+   **Errores comunes del paso 7 (y cómo evitarlos):**
+
+   | Mensaje | Causa | Cómo evitarlo / resolverlo |
+   |---|---|---|
+   | `make: *** No rule to make target 'snowflake-conexion'` | Estás fuera de la carpeta del fork (el prompt muestra `~$`). | `cd ~/<TU_FORK>` y repite. El prompt debe terminar en `~/<TU_FORK>$`. |
+   | `JWT token is invalid` | Pulsaste Enter **antes** de ejecutar el `ALTER USER`, o escribiste en LOGIN el valor de USUARIO (en cuentas trial el login suele ser tu correo). | Usa los valores exactos de la consulta del paso 1. Ejecuta el `ALTER USER`, espera `Statement executed successfully.` y solo entonces pulsa Enter. Para reintentar: `cd ~/<TU_FORK> && make snowflake-conexion`. |
+   | `User '...' does not exist` al ejecutar el `ALTER USER` | El nombre entre comillas distingue mayúsculas y no coincide con USUARIO. | Copia USUARIO tal cual lo muestra la consulta (mismas mayúsculas/minúsculas). |
+   | `Insufficient privileges` al ejecutar el `ALTER USER` | Faltó `USE ROLE ACCOUNTADMIN;`. | Pega las dos líneas juntas y usa **Run All**. |
+   | `Could not use warehouse "BIGDATA_WH"` | Conexión creada con una versión vieja del script que fijaba un warehouse que aún no existe. | `cd ~/<TU_FORK> && git pull` y repite `make snowflake-conexion` (o borra la línea `warehouse = ...` de `~/.snowflake/connections.toml`). |
+
+   No compartas ni subas la llave privada: queda en `~/.snowflake/keys/<usuario>_key.p8` y no sale del Code Editor. La sentencia `ALTER USER` solo lleva la llave pública.
+8. **`make setup`.**
+   ```bash
+   cd ~/<TU_FORK>
+   make setup
+   make doctor
+   ```
+   Te pide un correo para las alertas de presupuesto. Salida exitosa de `make setup` (la primera vez; tu cuenta y correo serán otros):
+   ```text
+   ==> Verificando herramientas
+   ==> Entorno virtual y dependencias de desarrollo
+   ==> Validando región de Snowflake (snow sql)
+   ==> Región de Snowflake: AWS_US_EAST_2 -> us-east-2
+   ==> Configuración guardada en .env (PREFIX=bigdata, AWS_REGION=us-east-2)
+   ==> Configuración de AWS en S3 (s3://bigdata-tfstate-123456789012-us-east-2/config/aws.tfvars)
+   Correo para las alertas de presupuesto (alert_email): jperez@gmail.com
+   ==> Configuración creada en S3 (enable_glue=true, enable_airflow=false).
+   AVISO: Falta autenticar gh para cargar los secrets del fork: 'gh auth login --web' y luego 'make secrets'.
+   ==> Setup completado. Siguiente paso: make doctor
+   ```
+   El `AVISO` de `gh` es normal la primera vez: se resuelve en el paso 9. Si la región de Snowflake no es `AWS_US_EAST_2`, la cuenta de Snowflake está en otra nube o región: vuelve al paso 1.
+
+   Verifica herramientas (Python 3.11+, Java 17, AWS CLI, Terraform, `snow`, jq, zip; las instala el Lifecycle Config al arrancar), crea `.venv`, valida que Snowflake esté en AWS, alinea `AWS_REGION` y crea en S3 la configuración de Terraform (te pide el correo de alertas).
+9. **Secrets del fork: automáticos.** `make setup` los carga (`AWS_ROLE_ARN` y `TF_STATE_BUCKET`). Si te dice que GitHub no está autenticado, hazlo una vez y repite:
+   ```bash
+   cd ~/<TU_FORK>
+   gh auth login --hostname github.com --git-protocol https --web
+   make secrets
+   ```
+   Así se ve `gh auth login` (tu código será otro):
+   ```text
+   ? Authenticate Git with your GitHub credentials? Yes        <- responde Yes (Enter)
+   ! Failed to copy one-time code to clipboard                 <- normal en Code Editor, ignóralo
+   ! First copy your one-time code: 1234-ABCD                  <- copia este código
+   Press Enter to open https://github.com/login/device in your browser...
+   ✓ Authentication complete.
+   ✓ Configured git protocol
+   ! Authentication credentials saved in plain text            <- normal, quedan solo en tu Code Editor
+   ✓ Logged in as <TU_USUARIO>
+   ```
+   Al pulsar Enter el navegador no se abre solo: abre tú `https://github.com/login/device` en otra pestaña, pega el código y pulsa **Authorize**. Vuelve a la terminal y espera `✓ Logged in as <TU_USUARIO>`.
+
+   Salida exitosa de `make secrets` y `make doctor` (versiones, cuenta y usuario serán los tuyos):
+   ```text
+   ==> Cargando secrets en <TU_USUARIO>/<TU_FORK>
+   ✓ Set Actions secret AWS_ROLE_ARN for <TU_USUARIO>/<TU_FORK>
+   ✓ Set Actions secret TF_STATE_BUCKET for <TU_USUARIO>/<TU_FORK>
+   ==> Secrets listos: AWS_ROLE_ARN y TF_STATE_BUCKET (2 en total).
+
+   ==> Herramientas y versiones
+   [OK]     python3: Python 3.12.x
+   [OK]     java: openjdk version "17.0.x"
+   [OK]     aws: aws-cli/2.x
+   [OK]     terraform: Terraform v1.17.0
+   [OK]     snow: Snowflake CLI version: 3.x
+   [OK]     jq / zip / session-manager-plugin
+   ==> AWS
+   [OK]     aws sts get-caller-identity: cuenta 123456789012
+   [OK]     Bucket de estado de Terraform accesible
+   ==> Snowflake
+   [OK]     snow connection test
+   ==> Estado OIDC para GitHub Actions
+   [INFO]   No se puede listar el proveedor OIDC con este rol (normal en Code Editor)
+   [OK]     Rol bigdata-github-actions existe
+
+   ==> Diagnóstico sin fallos
+   ```
+   Lo importante es la última línea: `Diagnóstico sin fallos`. Las líneas `[INFO]` son informativas; cualquier `[FALLO]` dice qué revisar.
+
+10. **`make deploy`.**
+    ```bash
+    cd ~/<TU_FORK>
+    make deploy
+    ```
+    Aplica `infra/aws` (lake, Glue, Athena, guardrails y, si lo activas, Airflow) y sube a S3 el código del pipeline (`pipeline.zip`, `run_glue.py`), los DAGs y el framework de Airflow. La VM de prod solo existe si activas Airflow con `make airflow-habilitar` (cambia `enable_airflow` y despliega); el Airflow de dev corre en el Code Editor y no lo necesita. También se ejecuta solo en cada push a `main`.
+
+    Salida exitosa (el final; la cuenta será la tuya). La primera vez Terraform crea unos 23 recursos:
+    ```text
+    Apply complete! Resources: 23 added, 0 changed, 0 destroyed.
+
+    Outputs:
+
+    glue_jobs = tomap({
+      "large" = "bigdata-large"
+      "medium" = "bigdata-medium"
+      "small" = "bigdata-small"
+    })
+    lake_bucket = "bigdata-lake-123456789012-us-east-2"
+    snowflake_s3_role_arn = "arn:aws:iam::123456789012:role/bigdata-snowflake-s3"
+    ==> Empaquetando src/pipeline
+    ==> Subiendo código, DAGs y framework a s3://bigdata-lake-123456789012-us-east-2/
+    upload: build/pipeline.zip to s3://.../code/pipeline.zip
+    ...
+    ==> Deploy completado
+    ```
+    Guarda `lake_bucket` y `snowflake_s3_role_arn`: los usas en el paso 11.
+
+11. **Snowflake (después de AWS).** Un solo comando:
+    ```bash
+    cd ~/<TU_FORK>
+    make snowflake
+    ```
+    Usa tu conexión de `snow` (paso 7) y los outputs del paso 10, así que no hay que copiar valores ni editar archivos. Hace, en orden:
+    1. Genera la llave de `TERRAFORM_SVC` en `~/.snowflake/keys/` y ejecuta `bootstrap/snowflake/01_admin.sql` (resource monitor `BIGDATA_RM`, `TERRAFORM_ROLE`, usuario `TERRAFORM_SVC`).
+    2. Escribe `infra/snowflake/terraform.tfvars` y `backend.hcl` (si no existen) con tu cuenta, el lake y tu usuario en `dev_users`.
+    3. Aplica `infra/snowflake` (warehouse `BIGDATA_WH`, base `BIGDATA`, roles, stages y el usuario `AIRFLOW_SVC`). **Te pide confirmar el plan: escribe `yes`.**
+    4. Aplica la fase 2 de AWS (trust policy de Snowflake) y guarda la conexión de Airflow en el secreto `bigdata/snowflake`.
 
     **Conexión de Airflow a Snowflake: no hay nada que hacer a mano.** `make snowflake` crea el usuario `AIRFLOW_SVC` en Snowflake (genera su llave en `~/.snowflake/keys/airflow_svc_rsa_key.p8`), aplica la fase 2 de AWS y guarda la conexión en el secreto `bigdata/snowflake`, que usan el Airflow de dev y el de prod. Si Airflow ya estaba encendido, reinícialo: `make airflow-local-down && make airflow-local` (dev) y `make airflow-off && make airflow-on` (prod). Para repetir solo ese paso: `make snowflake-secreto`.
 
     Detalle: [infra/snowflake/README.md](infra/snowflake/README.md).
 
-12. **Prepara los datos (una vez).** `make muestra`: Glue baja el año de FHVHV a `bronze/` (~5.4 GB) y genera la muestra en `muestra/` (~US$0.15, ~5 min). Si termina en `TIMEOUT`, repítelo: retoma desde lo que ya descargó.
-13. **Desarrolla en local y dev.** `make run-local` (o `LIMITE=100` para una prueba rapidísima) y `make airflow-local` para el Airflow de dev: abre `https://<id-del-space>.studio.us-east-2.sagemaker.aws/codeeditor/default/ports/8080/` y lanza `pipeline_taxi`.
+12. **Prepara los datos (una vez).**
+    ```bash
+    cd ~/<TU_FORK>
+    make muestra
+    ```
+    Glue baja el año de FHVHV a `bronze/` (~5.4 GB) y genera la muestra en `muestra/` (~US$0.15, ~5 min). Si termina en `TIMEOUT`, repítelo: retoma desde lo que ya descargó.
+13. **Desarrolla en local y dev.**
+    ```bash
+    cd ~/<TU_FORK>
+    make run-local        # o: make run-local LIMITE=100 (prueba rapidísima)
+    make airflow-local    # Airflow de dev
+    ```
+    Luego abre `https://<id-del-space>.studio.us-east-2.sagemaker.aws/codeeditor/default/ports/8080/` y lanza `pipeline_taxi`.
     - `<id-del-space>` es el subdominio de la URL del Code Editor que tienes abierta en el navegador: `https://<id-del-space>.studio.us-east-2.sagemaker.aws/codeeditor/default/...`. Copia esa parte y deja el final `/codeeditor/default/ports/8080/`.
     - El Airflow del Code Editor es siempre el entorno **dev** (no se elige al lanzar). Lo que eliges es el parámetro `computo`, que decide con qué recursos se calcula:
       - `spark_local`: Spark en el Code Editor sobre la muestra (gratis). Como mucho 10 000 filas por fuente. El resultado queda en `./lake` y no se carga en Snowflake.
