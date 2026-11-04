@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 520" font-family="Helvetica Neue, Arial, sans-serif">
+<title>Mapa de los ocho problemas: dónde sigue cada uno</title>
+<desc>Tabla de ocho problemas de lectura con su síntoma medido, la idea de ingeniería y dónde continúa cada uno: cinco se resuelven hoy y tres en las clases 4 a 6.</desc>
+<text x="32" y="50" font-size="22" fill="#5F6672" font-weight="700">Problema</text>
+<text x="292" y="50" font-size="22" fill="#4A5160" font-weight="700">Síntoma con dato</text>
+<text x="632" y="50" font-size="22" fill="#4A5160" font-weight="700">Idea de ingeniería</text>
+<text x="912" y="50" font-size="22" fill="#5F6672" font-weight="700">Dónde sigue</text>
+<line x1="24" y1="56" x2="1176" y2="56" stroke="#5F6672" stroke-width="2"/>
+<rect x="24" y="74" width="32" height="32" rx="16" fill="#2340D8"/>
+<text x="40" y="97" font-size="22" fill="#FFFFFF" font-weight="700" text-anchor="middle">1</text>
+<text x="64" y="98" font-size="22" fill="#15171C" font-weight="700">Columnar</text>
+<text x="292" y="98" font-size="22" fill="#4A5160">0.60 GB frente a 6.37 GB</text>
+<text x="632" y="98" font-size="22" fill="#4A5160">Leer solo columnas</text>
+<text x="912" y="86" font-size="20" fill="#2340D8" font-weight="700">Hoy: Lab 1, Lab 2</text>
+<text x="912" y="108" font-size="20" fill="#2340D8" font-weight="700">y mini-caso</text>
+<line x1="24" y1="118" x2="1176" y2="118" stroke="#D9D6CC" stroke-width="1"/>
+<rect x="24" y="130" width="32" height="32" rx="16" fill="#2340D8"/>
+<text x="40" y="153" font-size="22" fill="#FFFFFF" font-weight="700" text-anchor="middle">2</text>
+<text x="64" y="154" font-size="22" fill="#15171C" font-weight="700">Pruning</text>
+<text x="292" y="154" font-size="22" fill="#4A5160">134 de 10 336 particiones</text>
+<text x="632" y="154" font-size="22" fill="#4A5160">Omitir por rango</text>
+<text x="912" y="142" font-size="20" fill="#2340D8" font-weight="700">Hoy: Lab 1, Lab 2</text>
+<text x="912" y="164" font-size="20" fill="#2340D8" font-weight="700">y mini-caso</text>
+<line x1="24" y1="174" x2="1176" y2="174" stroke="#D9D6CC" stroke-width="1"/>
+<rect x="24" y="186" width="32" height="32" rx="16" fill="#2340D8"/>
+<text x="40" y="209" font-size="22" fill="#FFFFFF" font-weight="700" text-anchor="middle">3</text>
+<text x="64" y="210" font-size="22" fill="#15171C" font-weight="700">Escalar</text>
+<text x="292" y="210" font-size="22" fill="#4A5160">10× filas, unas 9× tiempo</text>
+<text x="632" y="210" font-size="22" fill="#4A5160">Separar cómputo y datos</text>
+<text x="912" y="210" font-size="22" fill="#2340D8" font-weight="700">Hoy: demos</text>
+<line x1="24" y1="230" x2="1176" y2="230" stroke="#D9D6CC" stroke-width="1"/>
+<rect x="24" y="242" width="32" height="32" rx="16" fill="#2340D8"/>
+<text x="40" y="265" font-size="22" fill="#FFFFFF" font-weight="700" text-anchor="middle">4</text>
+<text x="64" y="266" font-size="22" fill="#15171C" font-weight="700">Aislar cargas</text>
+<text x="292" y="254" font-size="20" fill="#4A5160">Carga de 6.0 s con</text>
+<text x="292" y="276" font-size="20" fill="#4A5160">consulta de 0.79 s</text>
+<text x="632" y="266" font-size="22" fill="#4A5160">Cómputo por carga</text>
+<text x="912" y="266" font-size="22" fill="#2340D8" font-weight="700">Hoy: demos</text>
+<line x1="24" y1="286" x2="1176" y2="286" stroke="#D9D6CC" stroke-width="1"/>
+<rect x="24" y="298" width="32" height="32" rx="16" fill="#2340D8"/>
+<text x="40" y="321" font-size="22" fill="#FFFFFF" font-weight="700" text-anchor="middle">5</text>
+<text x="64" y="321" font-size="20" fill="#15171C" font-weight="700">Costo y elasticidad</text>
+<text x="292" y="310" font-size="20" fill="#4A5160">Medium: 1.45× más</text>
+<text x="292" y="332" font-size="20" fill="#4A5160">rápido, 2.8× el costo</text>
+<text x="632" y="322" font-size="22" fill="#4A5160">Pagar lo encendido</text>
+<text x="912" y="322" font-size="22" fill="#2340D8" font-weight="700">Hoy: demos</text>
+<line x1="24" y1="342" x2="1176" y2="342" stroke="#D9D6CC" stroke-width="1"/>
+<rect x="24" y="354" width="32" height="32" rx="16" fill="#2340D8"/>
+<text x="40" y="377" font-size="22" fill="#FFFFFF" font-weight="700" text-anchor="middle">6</text>
+<text x="64" y="378" font-size="22" fill="#15171C" font-weight="700">Datos crudos</text>
+<text x="292" y="378" font-size="22" fill="#4A5160">15 de 24 columnas usadas</text>
+<text x="632" y="378" font-size="22" fill="#4A5160">Esquema flexible</text>
+<text x="912" y="378" font-size="22" fill="#5F6672">Clase 4: lake en S3</text>
+<line x1="24" y1="398" x2="1176" y2="398" stroke="#D9D6CC" stroke-width="1"/>
+<rect x="24" y="410" width="32" height="32" rx="16" fill="#2340D8"/>
+<text x="40" y="433" font-size="22" fill="#FFFFFF" font-weight="700" text-anchor="middle">7</text>
+<text x="64" y="434" font-size="22" fill="#15171C" font-weight="700">Transformación</text>
+<text x="292" y="434" font-size="22" fill="#4A5160">Filtros, 2 uniones, aplanado</text>
+<text x="632" y="434" font-size="22" fill="#4A5160">Código con pruebas</text>
+<text x="912" y="422" font-size="20" fill="#5F6672">Clases 5 y 6:</text>
+<text x="912" y="444" font-size="20" fill="#5F6672">Spark y Airflow</text>
+<line x1="24" y1="454" x2="1176" y2="454" stroke="#D9D6CC" stroke-width="1"/>
+<rect x="24" y="466" width="32" height="32" rx="16" fill="#2340D8"/>
+<text x="40" y="489" font-size="22" fill="#FFFFFF" font-weight="700" text-anchor="middle">8</text>
+<text x="64" y="490" font-size="22" fill="#15171C" font-weight="700">Formatos abiertos</text>
+<text x="292" y="490" font-size="22" fill="#4A5160">5.4 GB de Parquet en S3</text>
+<text x="632" y="490" font-size="22" fill="#4A5160">Archivos abiertos</text>
+<text x="912" y="490" font-size="22" fill="#5F6672">Clase 4: Parquet en S3</text>
+<line x1="24" y1="510" x2="1176" y2="510" stroke="#D9D6CC" stroke-width="1"/>
+</svg>

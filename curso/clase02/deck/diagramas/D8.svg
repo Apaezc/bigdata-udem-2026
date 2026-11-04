@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 520" font-family="'Helvetica Neue', Arial, sans-serif">
+<title>Media de tres ejecuciones: Medium tarda 9.1 s frente a 13.2 s de X-Small y su costo medio es 2.8 veces mayor.</title>
+<defs>
+<marker id="ar" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="14" refX="14" refY="7" orient="auto"><path d="M0,0 L14,7 L0,14 Z" fill="#15171C"/></marker>
+<marker id="arA" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="14" refX="14" refY="7" orient="auto"><path d="M0,0 L14,7 L0,14 Z" fill="#2340D8"/></marker>
+<marker id="arG" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="14" refX="14" refY="7" orient="auto"><path d="M0,0 L14,7 L0,14 Z" fill="#5F6672"/></marker>
+</defs>
+<rect x="24" y="16" width="1152" height="64" rx="0" fill="#F0EEE7"/>
+<rect x="24" y="16" width="6" height="64" fill="#2340D8"/>
+<text x="46" y="44" font-size="22" fill="#15171C">Misma consulta y mismo volumen: 9 144 de 10 336 micro-particiones</text>
+<text x="46" y="70" font-size="22" fill="#15171C">en las ejecuciones completas; tres ejecuciones por talla.</text>
+<g transform="translate(0,16)">
+<text x="24" y="106" font-size="22" font-weight="700" fill="#15171C">Tiempo medio (s)</text>
+<line x1="240" y1="114" x2="240" y2="238" stroke="#D9D6CC" stroke-width="1"/>
+<text x="240" y="106" font-size="20" fill="#5F6672" text-anchor="middle">0</text>
+<line x1="460" y1="114" x2="460" y2="238" stroke="#D9D6CC" stroke-width="1"/>
+<text x="460" y="106" font-size="20" fill="#5F6672" text-anchor="middle">4</text>
+<line x1="680" y1="114" x2="680" y2="238" stroke="#D9D6CC" stroke-width="1"/>
+<text x="680" y="106" font-size="20" fill="#5F6672" text-anchor="middle">8</text>
+<line x1="900" y1="114" x2="900" y2="238" stroke="#D9D6CC" stroke-width="1"/>
+<text x="900" y="106" font-size="20" fill="#5F6672" text-anchor="middle">12</text>
+<line x1="1120" y1="114" x2="1120" y2="238" stroke="#D9D6CC" stroke-width="1"/>
+<text x="1120" y="106" font-size="20" fill="#5F6672" text-anchor="middle">16 s</text>
+<text x="24" y="149" font-size="22" fill="#15171C">X-Small</text>
+<rect x="240" y="118" width="726" height="44" rx="2" fill="#5F6672"/>
+<text x="978" y="150" font-size="26" font-weight="700" fill="#15171C">13.2 s</text>
+<text x="240" y="184" font-size="20" fill="#5F6672">rango 8.6 a 16.8 s</text>
+<text x="24" y="221" font-size="22" fill="#15171C">Medium</text>
+<rect x="240" y="190" width="501" height="44" rx="2" fill="#5F6672"/>
+<text x="753" y="222" font-size="26" font-weight="700" fill="#15171C">9.1 s</text>
+<text x="240" y="256" font-size="20" fill="#5F6672">rango 7.5 a 10.4 s</text>
+<text x="24" y="284" font-size="22" font-weight="700" fill="#15171C">Costo medio por consulta (créditos, sin el mínimo de 60 s)</text>
+<text x="24" y="328" font-size="22" fill="#15171C">X-Small</text>
+<rect x="240" y="296" width="320" height="44" rx="2" fill="#5F6672"/>
+<text x="572" y="328" font-size="26" font-weight="700" fill="#15171C">0.0037</text>
+<text x="24" y="382" font-size="22" fill="#15171C">Medium</text>
+<rect x="240" y="350" width="880" height="44" rx="2" fill="#2340D8"/>
+<text x="1108" y="382" font-size="26" font-weight="700" fill="#FFFFFF" text-anchor="end">0.0101 · 2.8 veces</text>
+</g>
+<rect x="24" y="440" width="1152" height="64" rx="0" fill="#F0EEE7"/>
+<rect x="24" y="440" width="6" height="64" fill="#5F6672"/>
+<text x="46" y="468" font-size="22" fill="#15171C">Medium fue 1.45 veces más rápido y costó 2.8 veces</text>
+<text x="46" y="494" font-size="22" fill="#15171C">más. Con n = 3, la diferencia de tiempo es indicativa.</text>
+</svg>

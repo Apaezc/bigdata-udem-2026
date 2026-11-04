@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 520" font-family="Helvetica Neue, Arial, sans-serif">
+<title>INNER y LEFT JOIN</title>
+<desc>Con las mismas dos tablas, INNER JOIN devuelve 3 filas y LEFT JOIN 4, porque conserva al cliente 3 que no tiene pedidos.</desc>
+<rect x="24" y="16" width="6" height="64" fill="#2340D8"/>
+<text x="44" y="43" font-size="22" fill="#15171C">JOIN combina filas cuando se cumple la condición ON:</text>
+<text x="44" y="69" font-size="22" fill="#15171C">C_CUSTKEY = O_CUSTKEY. Ejemplo ilustrativo.</text>
+<text x="24" y="104" font-size="22" fill="#15171C" font-weight="700">CUSTOMER</text>
+<rect x="24" y="110" width="340" height="144" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+<rect x="24" y="110" width="340" height="36" rx="6" fill="#D9D6CC" stroke="#5F6672" stroke-width="2"/>
+<line x1="24" y1="146" x2="364" y2="146" stroke="#5F6672" stroke-width="1.5"/>
+<line x1="24" y1="182" x2="364" y2="182" stroke="#5F6672" stroke-width="1.5"/>
+<line x1="24" y1="218" x2="364" y2="218" stroke="#5F6672" stroke-width="1.5"/>
+<text x="34" y="135" font-size="20" fill="#15171C" font-weight="700">C_CUSTKEY</text>
+<text x="34" y="171" font-size="20" fill="#15171C">1</text>
+<text x="34" y="207" font-size="20" fill="#15171C">2</text>
+<text x="34" y="243" font-size="20" fill="#15171C">3</text>
+<text x="24" y="282" font-size="22" fill="#15171C" font-weight="700">ORDERS</text>
+<rect x="24" y="288" width="340" height="144" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+<rect x="24" y="288" width="340" height="36" rx="6" fill="#D9D6CC" stroke="#5F6672" stroke-width="2"/>
+<line x1="24" y1="324" x2="364" y2="324" stroke="#5F6672" stroke-width="1.5"/>
+<line x1="24" y1="360" x2="364" y2="360" stroke="#5F6672" stroke-width="1.5"/>
+<line x1="24" y1="396" x2="364" y2="396" stroke="#5F6672" stroke-width="1.5"/>
+<line x1="194" y1="288" x2="194" y2="432" stroke="#5F6672" stroke-width="1.5"/>
+<text x="34" y="313" font-size="20" fill="#15171C" font-weight="700">O_ORDERKEY</text>
+<text x="34" y="349" font-size="20" fill="#15171C">a</text>
+<text x="34" y="385" font-size="20" fill="#15171C">b</text>
+<text x="34" y="421" font-size="20" fill="#15171C">c</text>
+<text x="204" y="313" font-size="20" fill="#15171C" font-weight="700">O_CUSTKEY</text>
+<text x="204" y="349" font-size="20" fill="#15171C">1</text>
+<text x="204" y="385" font-size="20" fill="#15171C">1</text>
+<text x="204" y="421" font-size="20" fill="#15171C">2</text>
+<text x="620" y="124" font-size="26" fill="#15171C" font-weight="700" text-anchor="middle">INNER JOIN</text>
+<rect x="450" y="134" width="340" height="144" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+<rect x="450" y="134" width="340" height="36" rx="6" fill="#D9D6CC" stroke="#5F6672" stroke-width="2"/>
+<line x1="450" y1="170" x2="790" y2="170" stroke="#5F6672" stroke-width="1.5"/>
+<line x1="450" y1="206" x2="790" y2="206" stroke="#5F6672" stroke-width="1.5"/>
+<line x1="450" y1="242" x2="790" y2="242" stroke="#5F6672" stroke-width="1.5"/>
+<line x1="620" y1="134" x2="620" y2="278" stroke="#5F6672" stroke-width="1.5"/>
+<text x="460" y="159" font-size="20" fill="#15171C" font-weight="700">C_CUSTKEY</text>
+<text x="460" y="195" font-size="20" fill="#15171C">1</text>
+<text x="460" y="231" font-size="20" fill="#15171C">1</text>
+<text x="460" y="267" font-size="20" fill="#15171C">2</text>
+<text x="630" y="159" font-size="20" fill="#15171C" font-weight="700">O_ORDERKEY</text>
+<text x="630" y="195" font-size="20" fill="#15171C">a</text>
+<text x="630" y="231" font-size="20" fill="#15171C">b</text>
+<text x="630" y="267" font-size="20" fill="#15171C">c</text>
+<text x="620" y="310" font-size="22" fill="#15171C" font-weight="700" text-anchor="middle">3 filas</text>
+<text x="1006" y="124" font-size="26" fill="#15171C" font-weight="700" text-anchor="middle">LEFT JOIN</text>
+<rect x="836" y="134" width="340" height="180" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+<rect x="836" y="134" width="340" height="36" rx="6" fill="#D9D6CC" stroke="#5F6672" stroke-width="2"/>
+<line x1="836" y1="170" x2="1176" y2="170" stroke="#5F6672" stroke-width="1.5"/>
+<line x1="836" y1="206" x2="1176" y2="206" stroke="#5F6672" stroke-width="1.5"/>
+<line x1="836" y1="242" x2="1176" y2="242" stroke="#5F6672" stroke-width="1.5"/>
+<line x1="836" y1="278" x2="1176" y2="278" stroke="#5F6672" stroke-width="1.5"/>
+<line x1="1006" y1="134" x2="1006" y2="314" stroke="#5F6672" stroke-width="1.5"/>
+<text x="846" y="159" font-size="20" fill="#15171C" font-weight="700">C_CUSTKEY</text>
+<text x="846" y="195" font-size="20" fill="#15171C">1</text>
+<text x="846" y="231" font-size="20" fill="#15171C">1</text>
+<text x="846" y="267" font-size="20" fill="#15171C">2</text>
+<text x="846" y="303" font-size="20" fill="#15171C">3</text>
+<text x="1016" y="159" font-size="20" fill="#15171C" font-weight="700">O_ORDERKEY</text>
+<text x="1016" y="195" font-size="20" fill="#15171C">a</text>
+<text x="1016" y="231" font-size="20" fill="#15171C">b</text>
+<text x="1016" y="267" font-size="20" fill="#15171C">c</text>
+<text x="1016" y="303" font-size="20" fill="#15171C">NULL</text>
+<rect x="836" y="278" width="340" height="36" fill="#2340D8" fill-opacity="0.35"/>
+<rect x="836" y="278" width="340" height="36" fill="none" stroke="#2340D8" stroke-width="3"/>
+<text x="1006" y="346" font-size="22" fill="#15171C" font-weight="700" text-anchor="middle">4 filas</text>
+<polyline points="364,164 392,164 392,400" fill="none" stroke="#15171C" stroke-width="3" stroke-linejoin="round"/>
+<polyline points="364,342 392,342" fill="none" stroke="#15171C" stroke-width="3"/>
+<polyline points="392,224 436,224" fill="none" stroke="#15171C" stroke-width="3"/>
+<polygon points="448,224 434,231 434,217" fill="#15171C"/>
+<polyline points="392,400 813,400 813,224 822,224" fill="none" stroke="#15171C" stroke-width="3" stroke-linejoin="round"/>
+<polygon points="834,224 820,231 820,217" fill="#15171C"/>
+<text x="600" y="390" font-size="22" fill="#15171C" font-weight="700" text-anchor="middle">ON</text>
+<rect x="24" y="440" width="6" height="64" fill="#5F6672"/>
+<text x="44" y="467" font-size="22" fill="#15171C"><tspan>En SF1, </tspan><tspan fill="#2340D8" font-weight="700">50 004</tspan><tspan> de 150 000 clientes no tienen pedidos:</tspan></text>
+<text x="44" y="493" font-size="22" fill="#15171C">un INNER JOIN los pierde, un LEFT JOIN los conserva.</text>
+</svg>

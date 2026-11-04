@@ -1,0 +1,94 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 520" font-family="Helvetica Neue, Arial, sans-serif">
+<title>Orden lógico de una consulta</title>
+<desc>Siete cláusulas en el orden en que el motor las evalúa y las filas que quedan: 1.5 M, 228 637, 86 573 grupos, 622 y 5.</desc>
+<rect x="24" y="16" width="6" height="64" fill="#2340D8"/>
+<text x="44" y="55" font-size="22" fill="#15171C">Se escribe empezando por SELECT; se evalúa empezando por FROM.</text>
+<text x="24" y="108" font-size="22" fill="#5F6672" font-weight="700">Cómo se escribe (el círculo marca su orden de evaluación)</text>
+<rect x="24" y="128" width="150" height="44" rx="10" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+<text x="99" y="157" font-size="20" fill="#15171C" text-anchor="middle">SELECT</text>
+<circle cx="160" cy="128" r="15" fill="#FFFFFF" stroke="#2340D8" stroke-width="2.5"/>
+<text x="160" y="135" font-size="20" fill="#2340D8" font-weight="700" text-anchor="middle">5</text>
+<rect x="194" y="128" width="150" height="44" rx="10" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+<text x="269" y="157" font-size="20" fill="#15171C" text-anchor="middle">FROM</text>
+<circle cx="330" cy="128" r="15" fill="#FFFFFF" stroke="#2340D8" stroke-width="2.5"/>
+<text x="330" y="135" font-size="20" fill="#2340D8" font-weight="700" text-anchor="middle">1</text>
+<rect x="364" y="128" width="150" height="44" rx="10" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+<text x="439" y="157" font-size="20" fill="#15171C" text-anchor="middle">WHERE</text>
+<circle cx="500" cy="128" r="15" fill="#FFFFFF" stroke="#2340D8" stroke-width="2.5"/>
+<text x="500" y="135" font-size="20" fill="#2340D8" font-weight="700" text-anchor="middle">2</text>
+<rect x="534" y="128" width="150" height="44" rx="10" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+<text x="609" y="157" font-size="20" fill="#15171C" text-anchor="middle">GROUP BY</text>
+<circle cx="670" cy="128" r="15" fill="#FFFFFF" stroke="#2340D8" stroke-width="2.5"/>
+<text x="670" y="135" font-size="20" fill="#2340D8" font-weight="700" text-anchor="middle">3</text>
+<rect x="704" y="128" width="150" height="44" rx="10" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+<text x="779" y="157" font-size="20" fill="#15171C" text-anchor="middle">HAVING</text>
+<circle cx="840" cy="128" r="15" fill="#FFFFFF" stroke="#2340D8" stroke-width="2.5"/>
+<text x="840" y="135" font-size="20" fill="#2340D8" font-weight="700" text-anchor="middle">4</text>
+<rect x="874" y="128" width="150" height="44" rx="10" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+<text x="949" y="157" font-size="20" fill="#15171C" text-anchor="middle">ORDER BY</text>
+<circle cx="1010" cy="128" r="15" fill="#FFFFFF" stroke="#2340D8" stroke-width="2.5"/>
+<text x="1010" y="135" font-size="20" fill="#2340D8" font-weight="700" text-anchor="middle">6</text>
+<rect x="1044" y="128" width="150" height="44" rx="10" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+<text x="1119" y="157" font-size="20" fill="#15171C" text-anchor="middle">LIMIT</text>
+<circle cx="1180" cy="128" r="15" fill="#FFFFFF" stroke="#2340D8" stroke-width="2.5"/>
+<text x="1180" y="135" font-size="20" fill="#2340D8" font-weight="700" text-anchor="middle">7</text>
+<text x="24" y="224" font-size="22" fill="#5F6672" font-weight="700">Cómo se evalúa</text>
+<rect x="24" y="236" width="150" height="76" rx="10" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+<circle cx="51" cy="263" r="16" fill="#2340D8"/>
+<text x="51" y="270" font-size="20" fill="#FFFFFF" font-weight="700" text-anchor="middle">1</text>
+<text x="99" y="302" font-size="22" fill="#15171C" font-weight="700" text-anchor="middle">FROM</text>
+<polyline points="174,274 183,274" fill="none" stroke="#15171C" stroke-width="3"/>
+<polygon points="194,274 182,280 182,268" fill="#15171C"/>
+<rect x="194" y="236" width="150" height="76" rx="10" fill="#F0EEE7" stroke="#2340D8" stroke-width="4"/>
+<circle cx="221" cy="263" r="16" fill="#2340D8"/>
+<text x="221" y="270" font-size="20" fill="#FFFFFF" font-weight="700" text-anchor="middle">2</text>
+<text x="269" y="302" font-size="22" fill="#15171C" font-weight="700" text-anchor="middle">WHERE</text>
+<polyline points="344,274 353,274" fill="none" stroke="#15171C" stroke-width="3"/>
+<polygon points="364,274 352,280 352,268" fill="#15171C"/>
+<rect x="364" y="236" width="150" height="76" rx="10" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+<circle cx="391" cy="263" r="16" fill="#2340D8"/>
+<text x="391" y="270" font-size="20" fill="#FFFFFF" font-weight="700" text-anchor="middle">3</text>
+<text x="439" y="302" font-size="22" fill="#15171C" font-weight="700" text-anchor="middle">GROUP BY</text>
+<polyline points="514,274 523,274" fill="none" stroke="#15171C" stroke-width="3"/>
+<polygon points="534,274 522,280 522,268" fill="#15171C"/>
+<rect x="534" y="236" width="150" height="76" rx="10" fill="#F0EEE7" stroke="#2340D8" stroke-width="4"/>
+<circle cx="561" cy="263" r="16" fill="#2340D8"/>
+<text x="561" y="270" font-size="20" fill="#FFFFFF" font-weight="700" text-anchor="middle">4</text>
+<text x="609" y="302" font-size="22" fill="#15171C" font-weight="700" text-anchor="middle">HAVING</text>
+<polyline points="684,274 693,274" fill="none" stroke="#15171C" stroke-width="3"/>
+<polygon points="704,274 692,280 692,268" fill="#15171C"/>
+<rect x="704" y="236" width="150" height="76" rx="10" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+<circle cx="731" cy="263" r="16" fill="#2340D8"/>
+<text x="731" y="270" font-size="20" fill="#FFFFFF" font-weight="700" text-anchor="middle">5</text>
+<text x="779" y="302" font-size="22" fill="#15171C" font-weight="700" text-anchor="middle">SELECT</text>
+<polyline points="854,274 863,274" fill="none" stroke="#15171C" stroke-width="3"/>
+<polygon points="874,274 862,280 862,268" fill="#15171C"/>
+<rect x="874" y="236" width="150" height="76" rx="10" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+<circle cx="901" cy="263" r="16" fill="#2340D8"/>
+<text x="901" y="270" font-size="20" fill="#FFFFFF" font-weight="700" text-anchor="middle">6</text>
+<text x="949" y="302" font-size="22" fill="#15171C" font-weight="700" text-anchor="middle">ORDER BY</text>
+<polyline points="1024,274 1033,274" fill="none" stroke="#15171C" stroke-width="3"/>
+<polygon points="1044,274 1032,280 1032,268" fill="#15171C"/>
+<rect x="1044" y="236" width="150" height="76" rx="10" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+<circle cx="1071" cy="263" r="16" fill="#2340D8"/>
+<text x="1071" y="270" font-size="20" fill="#FFFFFF" font-weight="700" text-anchor="middle">7</text>
+<text x="1119" y="302" font-size="22" fill="#15171C" font-weight="700" text-anchor="middle">LIMIT</text>
+<text x="24" y="346" font-size="22" fill="#5F6672" font-weight="700">Filas que quedan (SF1, consulta de la slide 37)</text>
+<text x="99" y="382" font-size="22" fill="#15171C" font-weight="700" text-anchor="middle">1 500 000</text>
+<text x="99" y="408" font-size="20" fill="#5F6672" text-anchor="middle">pedidos</text>
+<text x="269" y="382" font-size="22" fill="#2340D8" font-weight="700" text-anchor="middle">228 637</text>
+<text x="269" y="408" font-size="20" fill="#5F6672" text-anchor="middle">de 1995</text>
+<text x="439" y="382" font-size="22" fill="#15171C" font-weight="700" text-anchor="middle">86 573</text>
+<text x="439" y="408" font-size="20" fill="#5F6672" text-anchor="middle">grupos</text>
+<text x="609" y="382" font-size="22" fill="#2340D8" font-weight="700" text-anchor="middle">622</text>
+<text x="609" y="408" font-size="20" fill="#5F6672" text-anchor="middle">con 8 o más</text>
+<text x="779" y="382" font-size="22" fill="#15171C" font-weight="700" text-anchor="middle">622</text>
+<text x="779" y="408" font-size="20" fill="#5F6672" text-anchor="middle">filas, 2 columnas</text>
+<text x="949" y="382" font-size="22" fill="#15171C" font-weight="700" text-anchor="middle">622</text>
+<text x="949" y="408" font-size="20" fill="#5F6672" text-anchor="middle">ordenadas</text>
+<text x="1119" y="382" font-size="22" fill="#15171C" font-weight="700" text-anchor="middle">5</text>
+<text x="1119" y="408" font-size="20" fill="#5F6672" text-anchor="middle">filas</text>
+<rect x="24" y="440" width="6" height="64" fill="#5F6672"/>
+<text x="44" y="467" font-size="22" fill="#15171C">WHERE no ve agregaciones: aún no existen. ORDER BY sí ve los alias del SELECT.</text>
+<text x="44" y="493" font-size="22" fill="#15171C">Es un orden lógico, no físico.</text>
+</svg>

@@ -1,11 +1,11 @@
 -- =====================================================================
--- LAB 1 · Tu primer SQL sobre TPC-H (Big Data UdeM · Clase 1)
+-- LAB 1 · Tu primer SQL sobre TPC-H (Big Data UdeM · Clase 2)
 -- =====================================================================
 --
 -- OBJETIVO
 --   Escribir tus primeras consultas en SQL: SELECT, WHERE, ORDER BY,
 --   LIMIT, COUNT(*) y SUM. Y mirar por primera vez el Query Profile
---   (la "radiografía" de cómo Snowflake ejecutó tu consulta).
+--   (el registro de cómo Snowflake ejecutó tu consulta, paso a paso).
 --
 -- GLOSARIO (6 palabras que verás en este archivo)
 --   *fork*: tu copia personal del repositorio del curso, en tu cuenta de GitHub.
@@ -31,7 +31,7 @@
 --   Ctrl/Cmd + Enter corre solo la consulta donde está el cursor.
 --   Run All corre todo el archivo: en este archivo NO lo uses.
 --
--- TIEMPO: 40 min en clase.
+-- TIEMPO: 33 min en clase.
 --   Orden sugerido: ★ (6 ejercicios, núcleo) > ★★ si te sobra tiempo
 --   > ★★★ reto. Al final corre la verificación (ver "PASO FINAL").
 --
@@ -40,7 +40,7 @@
 --   ★★   si te sobra tiempo
 --   ★★★  reto
 --
--- DICCIONARIO RÁPIDO (datos de ejemplo TPC-H, una empresa ficticia de ventas)
+-- DICCIONARIO RÁPIDO (datos de ejemplo TPC-H: un mayorista)
 --   CUSTOMER  (clientes)  C_CUSTKEY, C_NAME, C_NATIONKEY, C_ACCTBAL, C_MKTSEGMENT
 --   ORDERS    (pedidos)   O_ORDERKEY, O_CUSTKEY, O_ORDERSTATUS, O_TOTALPRICE,
 --                         O_ORDERDATE, O_ORDERPRIORITY
@@ -109,8 +109,8 @@
 -- administrador de tu cuenta de prueba: puede hacer todo.
 USE ROLE ACCOUNTADMIN;
 
--- WAREHOUSE: el motor que ejecuta tus consultas (como la estufa de una
--- cocina). Se cobra por el tiempo encendido. Este se apaga solo tras
+-- WAREHOUSE: el cómputo (CPU y memoria) que ejecuta tus consultas.
+-- Se cobra por el tiempo encendido. Se apaga solo tras
 -- 60 segundos sin uso (AUTO_SUSPEND = 60) y se prende solo al consultar.
 CREATE WAREHOUSE IF NOT EXISTS COMPUTE_WH
   WAREHOUSE_SIZE = XSMALL
@@ -147,9 +147,8 @@ SELECT * FROM SNOWFLAKE_SAMPLE_DATA.TPCH_SF1.REGION LIMIT 5;
 -- =====================================================================
 -- ¿POR QUÉ CADA EJERCICIO ES UNA VISTA (view)?
 -- =====================================================================
--- Analogía: es como guardar tu respuesta en un cajón con tu nombre
--- para que el profe la revise. El cajón siempre se llama igual
--- (EJ1, EJ2, ...) y la verificación lo abre sin preguntarte nada.
+-- Cada vista tiene un nombre fijo (EJ1, EJ2, ...). La verificación
+-- abre cada una por ese nombre y compara su resultado.
 --
 -- Una vista es una consulta guardada con nombre. No guarda datos: guarda
 -- la consulta. Por eso cada ejercicio empieza con CREATE OR REPLACE VIEW.
@@ -158,9 +157,8 @@ SELECT * FROM SNOWFLAKE_SAMPLE_DATA.TPCH_SF1.REGION LIMIT 5;
 -- =====================================================================
 -- EJERCICIO 1 ★ · SELECT, ORDER BY y LIMIT
 -- =====================================================================
--- ANALOGÍA: SELECT es elegir columnas de un formulario. ORDER BY es
--- ordenar una lista de alumnos por estatura. LIMIT es quedarte solo
--- con los primeros N de la lista.
+-- SELECT elige las columnas de salida. ORDER BY ordena las filas por
+-- una o más columnas. LIMIT devuelve como máximo N filas.
 --
 -- DEFINICIÓN:
 --   SELECT columnas FROM tabla ORDER BY columna LIMIT n;
@@ -191,7 +189,7 @@ SELECT * FROM EJ1;  -- mira tu resultado
 -- =====================================================================
 -- PRÁCTICA ANTES DE EJ2 · AS para nombrar columnas
 -- =====================================================================
--- ANALOGÍA: AS es ponerle etiqueta a una columna, como un gafete con su nombre.
+-- AS asigna un alias (nombre) a una columna de salida.
 --
 -- DEFINICIÓN:
 --   SELECT columna AS NOMBRE  -> la columna de salida se llama NOMBRE.
@@ -217,8 +215,8 @@ LIMIT 3;
 -- =====================================================================
 -- EJERCICIO 2 ★ · WHERE y COUNT(*)
 -- =====================================================================
--- ANALOGÍA: WHERE es el cadenero de una fiesta: solo deja pasar a quien
--- cumple la condición. COUNT(*) cuenta cuántas filas pasaron.
+-- WHERE conserva solo las filas que cumplen la condición.
+-- COUNT(*) cuenta cuántas filas quedan.
 --
 -- DEFINICIÓN:
 --   WHERE columna = 'valor' filtra filas. El texto va entre comillas
@@ -249,8 +247,7 @@ SELECT * FROM EJ2;  -- mira tu resultado
 -- =====================================================================
 -- EJERCICIO 3 ★ · WHERE con dos condiciones (AND)
 -- =====================================================================
--- ANALOGÍA: AND es "y". La fila debe cumplir las dos condiciones a la
--- vez, como pedir una pizza que sea vegetariana Y chica.
+-- AND exige que la fila cumpla las dos condiciones a la vez.
 --
 -- DEFINICIÓN:
 --   WHERE condición1 AND condición2
@@ -282,8 +279,8 @@ SELECT * FROM EJ3;  -- mira tu resultado
 -- =====================================================================
 -- EJERCICIO 4 ★ · Fechas en WHERE y COUNT(*)
 -- =====================================================================
--- ANALOGÍA: filtrar por fechas es buscar en un calendario: "desde el
--- primer día del periodo hasta justo antes del primer día del siguiente".
+-- CONCEPTO: un periodo es un intervalo [inicio, fin): el inicio se
+-- incluye y el fin se excluye.
 --
 -- DEFINICIÓN:
 --   Las fechas van entre comillas: '1995-01-01'.
@@ -313,8 +310,8 @@ SELECT * FROM EJ4;  -- mira tu resultado
 -- =====================================================================
 -- EJERCICIO 5 ★ · SUM (sumar una columna)
 -- =====================================================================
--- ANALOGÍA: SUM es sumar todo lo que hay en la caja registradora al
--- cierre del día.
+-- SUM es una función de agregación: reduce los valores de las filas
+-- que pasan el WHERE a un solo número.
 --
 -- DEFINICIÓN:
 --   SUM(columna) suma los valores de todas las filas que pasan el WHERE.
@@ -343,16 +340,17 @@ SELECT * FROM EJ5;  -- mira tu resultado
 -- =====================================================================
 -- EJERCICIO 6 ★ · Query Profile (la parte del Query Profile NO se verifica)
 -- =====================================================================
--- ANALOGÍA: el Query Profile es la radiografía de tu consulta. Te
--- muestra por dentro cada paso y cuántas filas leyó y pasó a la
--- siguiente etapa. Así se ve por qué una consulta tarda o cuesta.
+-- El Query Profile es el registro de ejecución de tu consulta: por cada
+-- paso (operador) muestra cuántas filas leyó y pasó a la siguiente
+-- etapa, y cuánto tiempo tomó. Así se ve por qué una consulta tarda o cuesta.
 --
 -- DEFINICIÓN:
 --   Después de correr una consulta, abre su Query Profile:
 --   1. Corre la consulta con Cmd/Ctrl+Enter.
---   2. En el panel de resultados, abre "Query Details" (o el ID de la consulta).
---   3. Pulsa "Query Profile".
---   4. Busca el nodo TableScan (la lectura de la tabla) de ORDERS. El número
+--   2. Abre el Query Profile: en el panel de resultados, Query Details > botón de tres
+--      puntos > View Query Profile; o Monitoring > Query History > consulta > pestaña
+--      Query Profile.
+--   3. Busca el nodo TableScan (la lectura de la tabla) de ORDERS. El número
 --      de filas leídas está en "Statistics" o en la flecha que sale del nodo.
 --   OJO: si repites la misma consulta, Snowflake la responde desde la caché
 --   y no verás las filas leídas. Cambia algo (por ejemplo, el número del
@@ -386,9 +384,9 @@ SELECT * FROM EJ6;  -- mira tu resultado
 -- =====================================================================
 -- EJERCICIO 7 ★★ · ORDER BY con desempate
 -- =====================================================================
--- ANALOGÍA: un desempate es el criterio extra en una carrera empatada.
--- Si dos pedidos cuestan lo mismo, decides quién va primero con otro
--- dato (el número de pedido).
+-- Un desempate es una columna secundaria del ORDER BY: solo se usa
+-- cuando dos filas empatan en la columna principal (p. ej., dos pedidos
+-- con el mismo precio se ordenan por su número de pedido).
 --
 -- DEFINICIÓN:
 --   ORDER BY columna1 DESC, columna2
@@ -421,8 +419,8 @@ SELECT * FROM EJ7;  -- mira tu resultado
 -- =====================================================================
 -- EJERCICIO 8 ★★ · IN y varias condiciones
 -- =====================================================================
--- ANALOGÍA: IN es una lista de invitados: "entras si tu nombre está en
--- esta lista". Es más corto que escribir varios OR.
+-- IN compara una columna contra una lista de valores. Equivale a varios
+-- OR unidos, pero más corto.
 --
 -- DEFINICIÓN:
 --   WHERE columna IN ('valor1', 'valor2')
@@ -454,8 +452,8 @@ SELECT * FROM EJ8;  -- mira tu resultado
 -- =====================================================================
 -- EJERCICIO 9 ★★ · Los más recientes primero (ORDER BY DESC con fechas)
 -- =====================================================================
--- ANALOGÍA: como un feed de redes sociales, lo más reciente va arriba.
--- Ordenar por fecha de mayor a menor (DESC) pone lo nuevo primero.
+-- Con DESC el orden va de mayor a menor. Sobre una columna de fecha,
+-- la fila más reciente queda primero.
 --
 -- DEFINICIÓN:
 --   ORDER BY fecha DESC, columna_de_desempate LIMIT n
@@ -487,11 +485,11 @@ SELECT * FROM EJ9;  -- mira tu resultado
 -- =====================================================================
 -- EJERCICIO 10 ★★★ · Reto: GROUP BY e INFORMATION_SCHEMA
 -- =====================================================================
--- ANALOGÍA:
---   GROUP BY es separar la ropa por color y contar cuántas prendas hay
---   de cada color.
---   INFORMATION_SCHEMA es el índice del libro de la base: una tabla donde
---   Snowflake anota el nombre de cada tabla y de cada columna.
+-- CONCEPTOS:
+--   GROUP BY agrupa las filas que comparten el valor de una columna y
+--   produce una fila por grupo.
+--   INFORMATION_SCHEMA es el esquema de metadatos de Snowflake: contiene
+--   vistas con el nombre de cada tabla y de cada columna.
 --
 -- DEFINICIÓN:
 --   SELECT columna, COUNT(*) FROM tabla GROUP BY columna;
@@ -561,6 +559,4 @@ SELECT * FROM EJ10;  -- mira tu resultado
 --   cuánto tarda y cuánto cuesta una consulta.
 -- - Cada ejercicio fue una vista: así el sistema puede revisar tu respuesta.
 --
--- Próxima clase: GROUP BY, JOIN y CTE, con más ejemplos de TPC-H.
-
--- (nota instructor: validar ruta en Snowsight actual)
+-- Siguiente en esta sesión: GROUP BY, HAVING y JOIN; CTE en la clase 3.

@@ -4,7 +4,7 @@ USE SCHEMA CURSO.LAB1;
 -- No necesitas leer este archivo: pégalo y pulsa Run All.
 
 -- =====================================================================
--- LAB 1 · VERIFICACIÓN (autoverificación; Big Data UdeM · Clase 1)
+-- LAB 1 · VERIFICACIÓN (autoverificación; Big Data UdeM · Clase 2)
 -- =====================================================================
 -- QUÉ HACE
 --   Compara tus vistas EJ1..EJ10 (en CURSO.LAB1) con la respuesta

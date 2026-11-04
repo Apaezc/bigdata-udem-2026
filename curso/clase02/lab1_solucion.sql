@@ -1,5 +1,5 @@
 -- =====================================================================
--- LAB 1 · SOLUCIÓN DE REFERENCIA (Big Data UdeM · Clase 1)
+-- LAB 1 · SOLUCIÓN DE REFERENCIA (Big Data UdeM · Clase 2)
 -- =====================================================================
 -- Para revisar tu trabajo después de intentarlo. Intenta primero el
 -- enunciado (lab1.sql). Mismas vistas, con la respuesta escrita.

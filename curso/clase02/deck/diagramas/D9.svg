@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 520" font-family="Helvetica Neue, Arial, sans-serif">
+<title>Crudo semiestructurado en VARIANT</title>
+<desc>El JSON del clima se carga en una columna VARIANT dentro del almacenamiento propio de Snowflake; los archivos no quedan abiertos a otros motores.</desc>
+<text x="24" y="42" font-size="22" fill="#15171C" font-weight="700">JSON de Open-Meteo</text>
+<rect x="24" y="54" width="396" height="138" rx="10" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+<text x="36" y="86" font-size="20" fill="#15171C" font-family="Menlo, Consolas, monospace">{"daily": {</text>
+<text x="36" y="114" font-size="20" fill="#15171C" font-family="Menlo, Consolas, monospace">  "time": ["2024-01-01", …],</text>
+<text x="36" y="142" font-size="20" fill="#15171C" font-family="Menlo, Consolas, monospace">  "precipitation_sum": [0.0, …]</text>
+<text x="36" y="170" font-size="20" fill="#15171C" font-family="Menlo, Consolas, monospace">}}</text>
+<rect x="24" y="232" width="52" height="40" rx="0" fill="#15171C" stroke="#FBFAF6" stroke-width="3"/>
+<rect x="76" y="232" width="52" height="40" rx="0" fill="#15171C" stroke="#FBFAF6" stroke-width="3"/>
+<rect x="128" y="232" width="52" height="40" rx="0" fill="#15171C" stroke="#FBFAF6" stroke-width="3"/>
+<rect x="180" y="232" width="52" height="40" rx="0" fill="#15171C" stroke="#FBFAF6" stroke-width="3"/>
+<rect x="232" y="232" width="52" height="40" rx="0" fill="#15171C" stroke="#FBFAF6" stroke-width="3"/>
+<rect x="284" y="232" width="52" height="40" rx="0" fill="#15171C" stroke="#FBFAF6" stroke-width="3"/>
+<rect x="336" y="232" width="52" height="40" rx="0" fill="#15171C" stroke="#FBFAF6" stroke-width="3"/>
+<rect x="388" y="232" width="52" height="40" rx="0" fill="#15171C" stroke="#FBFAF6" stroke-width="3"/>
+<rect x="24" y="272" width="52" height="40" rx="0" fill="#15171C" stroke="#FBFAF6" stroke-width="3"/>
+<rect x="76" y="272" width="52" height="40" rx="0" fill="#15171C" stroke="#FBFAF6" stroke-width="3"/>
+<rect x="128" y="272" width="52" height="40" rx="0" fill="#15171C" stroke="#FBFAF6" stroke-width="3"/>
+<rect x="180" y="272" width="52" height="40" rx="0" fill="#15171C" stroke="#FBFAF6" stroke-width="3"/>
+<rect x="232" y="272" width="52" height="40" rx="0" fill="#15171C" stroke="#FBFAF6" stroke-width="3"/>
+<rect x="284" y="272" width="52" height="40" rx="0" fill="#15171C" stroke="#FBFAF6" stroke-width="3"/>
+<rect x="336" y="272" width="52" height="40" rx="0" fill="#15171C" stroke="#FBFAF6" stroke-width="3"/>
+<rect x="388" y="272" width="52" height="40" rx="0" fill="#D9D6CC" stroke="#FBFAF6" stroke-width="3"/>
+<rect x="24" y="312" width="52" height="40" rx="0" fill="#D9D6CC" stroke="#FBFAF6" stroke-width="3"/>
+<rect x="76" y="312" width="52" height="40" rx="0" fill="#D9D6CC" stroke="#FBFAF6" stroke-width="3"/>
+<rect x="128" y="312" width="52" height="40" rx="0" fill="#D9D6CC" stroke="#FBFAF6" stroke-width="3"/>
+<rect x="180" y="312" width="52" height="40" rx="0" fill="#D9D6CC" stroke="#FBFAF6" stroke-width="3"/>
+<rect x="232" y="312" width="52" height="40" rx="0" fill="#D9D6CC" stroke="#FBFAF6" stroke-width="3"/>
+<rect x="284" y="312" width="52" height="40" rx="0" fill="#D9D6CC" stroke="#FBFAF6" stroke-width="3"/>
+<rect x="336" y="312" width="52" height="40" rx="0" fill="#D9D6CC" stroke="#FBFAF6" stroke-width="3"/>
+<rect x="388" y="312" width="52" height="40" rx="0" fill="#D9D6CC" stroke="#FBFAF6" stroke-width="3"/>
+<text x="24" y="382" font-size="22" fill="#15171C">15 de 24 columnas usadas</text>
+<polyline points="420.0,130.0 515.0,130.0" fill="none" stroke="#2340D8" stroke-width="4" stroke-linejoin="round"/>
+<polygon points="530.0,130.0 514.0,138.0 514.0,122.0" fill="#2340D8"/>
+<text x="475" y="116" font-size="22" fill="#2340D8" font-weight="700" text-anchor="middle">cargar</text>
+<rect x="530" y="85" width="230" height="90" rx="10" fill="#F0EEE7" stroke="#2340D8" stroke-width="4"/>
+<text x="645" y="137" font-size="22" fill="#15171C" font-weight="700" text-anchor="middle">Columna VARIANT</text>
+<polyline points="645.0,175.0 645.0,241.0" fill="none" stroke="#15171C" stroke-width="3" stroke-linejoin="round"/>
+<polygon points="645.0,254.0 638.0,240.0 652.0,240.0" fill="#15171C"/>
+<text x="633" y="222" font-size="22" fill="#15171C" text-anchor="end">consultar por ruta</text>
+<rect x="530" y="258" width="230" height="108" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+<rect x="530" y="258" width="230" height="36" rx="6" fill="#D9D6CC" stroke="#5F6672" stroke-width="2"/>
+<line x1="650" y1="258" x2="650" y2="366" stroke="#5F6672" stroke-width="2"/>
+<line x1="530" y1="294" x2="760" y2="294" stroke="#5F6672" stroke-width="2"/>
+<line x1="530" y1="330" x2="760" y2="330" stroke="#5F6672" stroke-width="2"/>
+<text x="540" y="283" font-size="20" fill="#15171C" font-weight="700">fecha</text>
+<text x="660" y="283" font-size="20" fill="#15171C" font-weight="700">lluvia_mm</text>
+<text x="540" y="319" font-size="20" fill="#15171C">2024-01-01</text>
+<text x="660" y="319" font-size="20" fill="#15171C">0.0</text>
+<text x="540" y="355" font-size="20" fill="#15171C">…</text>
+<text x="660" y="355" font-size="20" fill="#15171C">…</text>
+<rect x="530" y="388" width="230" height="44" rx="10" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+<text x="645" y="418" font-size="22" fill="#15171C" text-anchor="middle">Tabla de viajes</text>
+<path d="M800,112 A188.0,22 0 0 1 1176,112 L1176,268 A188.0,22 0 0 1 800,268 Z" fill="#F0EEE7" stroke="#5F6672" stroke-width="2" stroke-linejoin="round"/>
+<path d="M800,112 A188.0,22 0 0 0 1176,112" fill="none" stroke="#5F6672" stroke-width="2"/>
+<text x="988" y="185" font-size="22" fill="#15171C" font-weight="700" text-anchor="middle">Almacenamiento de Snowflake</text>
+<text x="988" y="225" font-size="22" fill="#5F6672" text-anchor="middle">Formato propio de Snowflake</text>
+<polyline points="760.0,130.0 787.0,130.0" fill="none" stroke="#15171C" stroke-width="3" stroke-linejoin="round"/>
+<polygon points="800.0,130.0 786.0,137.0 786.0,123.0" fill="#15171C"/>
+<polyline points="760.0,395.0 798.1,274.4" fill="none" stroke="#15171C" stroke-width="3" stroke-linejoin="round"/>
+<polygon points="802.0,262.0 804.5,277.5 791.1,273.2" fill="#15171C"/>
+<polyline points="988.0,292.0 988.0,347.0" fill="none" stroke="#5F6672" stroke-width="3" stroke-dasharray="8 6" stroke-linejoin="round"/>
+<polygon points="988.0,360.0 981.0,346.0 995.0,346.0" fill="#5F6672"/>
+<circle cx="988" cy="326" r="16" fill="#FBFAF6"/>
+<path d="M978,316 L998,336 M978,336 L998,316" stroke="#15171C" stroke-width="4" stroke-linecap="round" fill="none"/>
+<text x="1010" y="322" font-size="22" fill="#15171C">sin salida</text>
+<text x="1010" y="348" font-size="22" fill="#15171C">abierta</text>
+<rect x="808" y="360" width="360" height="60" rx="10" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+<text x="988" y="397" font-size="22" fill="#15171C" text-anchor="middle">Otros motores sobre archivos</text>
+<rect x="24" y="440" width="6" height="64" fill="#5F6672"/>
+<text x="44" y="467" font-size="22" fill="#15171C">Resuelve: esquema flexible para JSON.</text>
+<text x="44" y="493" font-size="22" fill="#15171C">No resuelve: el crudo en archivos abiertos de cualquier motor.</text>
+</svg>
