@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 520" font-family="'Helvetica Neue', Arial, sans-serif">
+<title>A la izquierda dos consultas corren a la vez en un warehouse compartido y comparten CPU y memoria; a la derecha cada carga tiene su warehouse y todas leen una sola copia.</title>
+<defs>
+<marker id="ar" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="14" refX="14" refY="7" orient="auto"><path d="M0,0 L14,7 L0,14 Z" fill="#15171C"/></marker>
+<marker id="arA" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="14" refX="14" refY="7" orient="auto"><path d="M0,0 L14,7 L0,14 Z" fill="#2340D8"/></marker>
+<marker id="arG" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="14" refX="14" refY="7" orient="auto"><path d="M0,0 L14,7 L0,14 Z" fill="#5F6672"/></marker>
+</defs>
+<rect x="24" y="24" width="564" height="402" rx="10" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+<rect x="612" y="24" width="564" height="402" rx="10" fill="#F0EEE7" stroke="#2340D8" stroke-width="4"/>
+<text x="44" y="68" font-size="26" font-weight="700" fill="#15171C">Un warehouse compartido</text>
+<text x="44" y="94" font-size="20" fill="#3F4652">Escenario ilustrativo; duraciones medidas</text>
+<g transform="translate(0,-24)">
+<rect x="56" y="204" width="500" height="170" rx="10" fill="#FFFFFF" stroke="#5F6672" stroke-width="2"/>
+<text x="76" y="234" font-size="26" font-weight="700" fill="#15171C">Warehouse</text>
+<rect x="76" y="248" width="400" height="34" rx="4" fill="#2340D8"/>
+<text x="90" y="272" font-size="22" font-weight="700" fill="#FFFFFF">Carga pesada · 6.0 s</text>
+<rect x="76" y="290" width="40" height="34" rx="4" fill="#5F6672"/>
+<text x="128" y="314" font-size="22" fill="#15171C">Consulta corta · 0.79 s</text>
+<text x="76" y="346" font-size="20" fill="#3F4652">Comparten CPU y memoria; hacen cola solo si</text>
+<text x="76" y="367" font-size="20" fill="#3F4652">el warehouse se satura</text>
+</g>
+<text x="632" y="68" font-size="26" font-weight="700" fill="#15171C">Un warehouse por carga</text>
+<rect x="634" y="112" width="160" height="70" rx="10" fill="#FFFFFF" stroke="#5F6672" stroke-width="2"/>
+<text x="714" y="142" font-size="22" font-weight="700" fill="#15171C" text-anchor="middle">Warehouse A</text>
+<text x="714" y="168" font-size="20" fill="#3F4652" text-anchor="middle">carga pesada</text>
+<line x1="714" y1="184" x2="714" y2="316" stroke="#15171C" stroke-width="3" marker-end="url(#ar)"/>
+<text x="726" y="256" font-size="20" fill="#3F4652">leen</text>
+<rect x="814" y="112" width="160" height="70" rx="10" fill="#FFFFFF" stroke="#5F6672" stroke-width="2"/>
+<text x="894" y="142" font-size="22" font-weight="700" fill="#15171C" text-anchor="middle">Warehouse B</text>
+<text x="894" y="168" font-size="20" fill="#3F4652" text-anchor="middle">consulta corta</text>
+<line x1="894" y1="184" x2="894" y2="316" stroke="#15171C" stroke-width="3" marker-end="url(#ar)"/>
+<text x="906" y="256" font-size="20" fill="#3F4652">leen</text>
+<rect x="994" y="112" width="160" height="70" rx="10" fill="#FFFFFF" stroke="#5F6672" stroke-width="2"/>
+<text x="1074" y="142" font-size="22" font-weight="700" fill="#15171C" text-anchor="middle">Warehouse C</text>
+<text x="1074" y="168" font-size="20" fill="#3F4652" text-anchor="middle">pruebas</text>
+<line x1="1074" y1="184" x2="1074" y2="316" stroke="#15171C" stroke-width="3" marker-end="url(#ar)"/>
+<text x="1086" y="256" font-size="20" fill="#3F4652">leen</text>
+<path d="M644,336 A250.0,16 0 0 1 1144,336 V384 A250.0,16 0 0 1 644,384 Z" fill="#FFFFFF" stroke="#2340D8" stroke-width="4"/><path d="M644,336 A250.0,16 0 0 0 1144,336" fill="none" stroke="#2340D8" stroke-width="4"/>
+<text x="894" y="372" font-size="26" font-weight="700" fill="#15171C" text-anchor="middle">Almacenamiento: una sola copia</text>
+<rect x="24" y="440" width="1152" height="64" rx="0" fill="#F0EEE7"/>
+<rect x="24" y="440" width="6" height="64" fill="#5F6672"/>
+<text x="46" y="468" font-size="22" fill="#15171C">Cada warehouse tiene su propio tiempo y no afecta a</text>
+<text x="46" y="494" font-size="22" fill="#15171C">los demás; cada uno encendido factura sus créditos.</text>
+</svg>

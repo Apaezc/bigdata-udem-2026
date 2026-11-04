@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 520" font-family="Helvetica Neue, Arial, sans-serif">
+<title>Guía de diagnóstico del Query Profile</title>
+<desc>Tabla de seis síntomas del Query Profile, cada uno con su causa y su decisión.</desc>
+<rect x="24" y="16" width="1152" height="464" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+<rect x="24" y="16" width="1152" height="44" rx="6" fill="#D9D6CC" stroke="#5F6672" stroke-width="2"/>
+<text x="40" y="46" font-size="22" font-weight="700" fill="#15171C">Síntoma</text>
+<text x="490" y="46" font-size="22" font-weight="700" fill="#15171C">Causa</text>
+<text x="840" y="46" font-size="22" font-weight="700" fill="#15171C">Decisión</text>
+<line x1="24" y1="130" x2="1176" y2="130" stroke="#5F6672" stroke-width="1.5"/>
+<line x1="24" y1="200" x2="1176" y2="200" stroke="#5F6672" stroke-width="1.5"/>
+<line x1="24" y1="270" x2="1176" y2="270" stroke="#5F6672" stroke-width="1.5"/>
+<line x1="24" y1="340" x2="1176" y2="340" stroke="#5F6672" stroke-width="1.5"/>
+<line x1="24" y1="410" x2="1176" y2="410" stroke="#5F6672" stroke-width="1.5"/>
+<line x1="474" y1="16" x2="474" y2="480" stroke="#5F6672" stroke-width="1.5"/>
+<line x1="824" y1="16" x2="824" y2="480" stroke="#5F6672" stroke-width="1.5"/>
+<text x="40" y="103" font-size="22" font-weight="700" fill="#15171C">Particiones leídas = totales</text>
+<text x="490" y="103" font-size="22" fill="#15171C">Filtro sin poda</text>
+<text x="840" y="89" font-size="22" font-weight="700" fill="#2340D8">Filtrar por columna</text>
+<text x="840" y="117" font-size="22" font-weight="700" fill="#2340D8">ordenada</text>
+<text x="40" y="173" font-size="22" font-weight="700" fill="#15171C">Muchos bytes en TableScan</text>
+<text x="490" y="173" font-size="22" fill="#15171C">Columnas de más</text>
+<text x="840" y="159" font-size="22" font-weight="700" fill="#2340D8">Pedir solo las columnas</text>
+<text x="840" y="187" font-size="22" font-weight="700" fill="#2340D8">que necesitas</text>
+<text x="40" y="229" font-size="22" font-weight="700" fill="#15171C">Join entrega más filas</text>
+<text x="40" y="257" font-size="22" font-weight="700" fill="#15171C">que su entrada mayor</text>
+<text x="490" y="243" font-size="22" fill="#15171C">Llave incompleta</text>
+<text x="840" y="229" font-size="20" font-weight="700" fill="#2340D8">Revisar qué representa cada</text>
+<text x="840" y="257" font-size="20" font-weight="700" fill="#2340D8">fila y la clave de unión</text>
+<text x="40" y="313" font-size="22" font-weight="700" fill="#15171C">Join o Aggregate dominan</text>
+<text x="490" y="299" font-size="22" fill="#15171C">Muchas filas</text>
+<text x="490" y="327" font-size="22" fill="#15171C">antes de unir</text>
+<text x="840" y="299" font-size="22" font-weight="700" fill="#2340D8">Agregar antes</text>
+<text x="840" y="327" font-size="22" font-weight="700" fill="#2340D8">de unir</text>
+<text x="40" y="383" font-size="22" font-weight="700" fill="#15171C">Bytes spilled</text>
+<text x="490" y="383" font-size="22" fill="#15171C">Falta memoria</text>
+<text x="840" y="369" font-size="22" font-weight="700" fill="#2340D8">Menos datos</text>
+<text x="840" y="397" font-size="22" font-weight="700" fill="#2340D8">o más talla</text>
+<text x="40" y="453" font-size="22" font-weight="700" fill="#15171C">Sort domina sin necesidad</text>
+<text x="490" y="453" font-size="22" fill="#15171C">ORDER BY intermedio</text>
+<text x="840" y="453" font-size="22" font-weight="700" fill="#2340D8">Quitarlo</text>
+</svg>

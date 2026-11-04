@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 520" font-family="'Helvetica Neue', Arial, sans-serif">
+<title>Tabla de ocho problemas de lectura con su síntoma medido, la idea de ingeniería y la respuesta de Snowflake; cinco los resuelve el motor.</title>
+<defs>
+<marker id="ar" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="14" refX="14" refY="7" orient="auto"><path d="M0,0 L14,7 L0,14 Z" fill="#15171C"/></marker>
+<marker id="arA" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="14" refX="14" refY="7" orient="auto"><path d="M0,0 L14,7 L0,14 Z" fill="#2340D8"/></marker>
+<marker id="arG" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="14" refX="14" refY="7" orient="auto"><path d="M0,0 L14,7 L0,14 Z" fill="#5F6672"/></marker>
+</defs>
+<text x="24" y="42" font-size="22" font-weight="700" fill="#3F4652">Problema</text>
+<text x="284" y="42" font-size="22" font-weight="700" fill="#3F4652">Síntoma con dato</text>
+<text x="624" y="42" font-size="22" font-weight="700" fill="#3F4652">Idea de ingeniería</text>
+<text x="904" y="42" font-size="22" font-weight="700" fill="#3F4652">Snowflake</text>
+<line x1="24" y1="58" x2="1176" y2="58" stroke="#5F6672" stroke-width="2"/>
+<rect x="24" y="74" width="32" height="32" rx="16" fill="#2340D8"/>
+<text x="40" y="97" font-size="20" font-weight="700" fill="#FFFFFF" text-anchor="middle">1</text>
+<text x="66" y="98" font-size="22" font-weight="700" fill="#15171C">Columnar</text>
+<text x="284" y="98" font-size="22" fill="#15171C">0.60 GB frente a 6.37 GB</text>
+<text x="624" y="98" font-size="22" fill="#15171C">Leer solo columnas</text>
+<text x="904" y="98" font-size="22" font-weight="700" fill="#2340D8">Micro-particiones</text>
+<line x1="24" y1="118" x2="1176" y2="118" stroke="#D9D6CC" stroke-width="1"/>
+<rect x="24" y="130" width="32" height="32" rx="16" fill="#2340D8"/>
+<text x="40" y="153" font-size="20" font-weight="700" fill="#FFFFFF" text-anchor="middle">2</text>
+<text x="66" y="154" font-size="22" font-weight="700" fill="#15171C">Pruning</text>
+<text x="284" y="154" font-size="22" fill="#15171C">134 de 10 336 particiones</text>
+<text x="624" y="154" font-size="22" fill="#15171C">Omitir por rango</text>
+<text x="904" y="154" font-size="22" font-weight="700" fill="#2340D8">Rango por columna</text>
+<line x1="24" y1="174" x2="1176" y2="174" stroke="#D9D6CC" stroke-width="1"/>
+<rect x="24" y="186" width="32" height="32" rx="16" fill="#2340D8"/>
+<text x="40" y="209" font-size="20" font-weight="700" fill="#FFFFFF" text-anchor="middle">3</text>
+<text x="66" y="210" font-size="22" font-weight="700" fill="#15171C">Escalar</text>
+<text x="284" y="210" font-size="22" fill="#15171C">10× filas, unas 9× tiempo</text>
+<text x="624" y="210" font-size="22" fill="#15171C">Separar cómputo y datos</text>
+<text x="904" y="210" font-size="22" font-weight="700" fill="#2340D8">Warehouses por talla</text>
+<line x1="24" y1="230" x2="1176" y2="230" stroke="#D9D6CC" stroke-width="1"/>
+<rect x="24" y="242" width="32" height="32" rx="16" fill="#2340D8"/>
+<text x="40" y="265" font-size="20" font-weight="700" fill="#FFFFFF" text-anchor="middle">4</text>
+<text x="66" y="266" font-size="22" font-weight="700" fill="#15171C">Aislar cargas</text>
+<text x="284" y="254" font-size="20" fill="#15171C">Carga de 6.0 s con</text><text x="284" y="276" font-size="20" fill="#15171C">consulta de 0.79 s</text>
+<text x="624" y="266" font-size="22" fill="#15171C">Cómputo por carga</text>
+<text x="904" y="265" font-size="20" font-weight="700" fill="#2340D8">Un warehouse por carga</text>
+<line x1="24" y1="286" x2="1176" y2="286" stroke="#D9D6CC" stroke-width="1"/>
+<rect x="24" y="298" width="32" height="32" rx="16" fill="#2340D8"/>
+<text x="40" y="321" font-size="20" font-weight="700" fill="#FFFFFF" text-anchor="middle">5</text>
+<text x="66" y="310" font-size="20" font-weight="700" fill="#15171C">Costo y</text><text x="66" y="332" font-size="20" font-weight="700" fill="#15171C">elasticidad</text>
+<text x="284" y="310" font-size="20" fill="#15171C">Medium: 1.45× más</text><text x="284" y="332" font-size="20" fill="#15171C">rápido, 2.8× el costo</text>
+<text x="624" y="322" font-size="22" fill="#15171C">Pagar lo encendido</text>
+<text x="904" y="322" font-size="22" font-weight="700" fill="#2340D8">Auto-suspend y caché</text>
+<line x1="24" y1="342" x2="1176" y2="342" stroke="#D9D6CC" stroke-width="1"/>
+<rect x="24" y="354" width="32" height="32" rx="16" fill="#2340D8"/>
+<text x="40" y="377" font-size="20" font-weight="700" fill="#FFFFFF" text-anchor="middle">6</text>
+<text x="66" y="378" font-size="22" font-weight="700" fill="#15171C">Datos crudos</text>
+<text x="284" y="378" font-size="22" fill="#15171C">15 de 24 columnas usadas</text>
+<text x="624" y="378" font-size="22" fill="#15171C">Esquema flexible</text>
+<text x="904" y="378" font-size="22" fill="#3F4652">VARIANT</text>
+<line x1="24" y1="398" x2="1176" y2="398" stroke="#D9D6CC" stroke-width="1"/>
+<rect x="24" y="410" width="32" height="32" rx="16" fill="#2340D8"/>
+<text x="40" y="433" font-size="20" font-weight="700" fill="#FFFFFF" text-anchor="middle">7</text>
+<text x="66" y="434" font-size="22" font-weight="700" fill="#15171C">Transformación</text>
+<text x="284" y="434" font-size="22" fill="#15171C">Filtros, 2 uniones, aplanado</text>
+<text x="624" y="434" font-size="22" fill="#15171C">Código con pruebas</text>
+<text x="904" y="434" font-size="22" fill="#3F4652">SQL; pipeline aparte</text>
+<line x1="24" y1="454" x2="1176" y2="454" stroke="#D9D6CC" stroke-width="1"/>
+<rect x="24" y="466" width="32" height="32" rx="16" fill="#2340D8"/>
+<text x="40" y="489" font-size="20" font-weight="700" fill="#FFFFFF" text-anchor="middle">8</text>
+<text x="66" y="489" font-size="20" font-weight="700" fill="#15171C">Formatos abiertos</text>
+<text x="284" y="490" font-size="22" fill="#15171C">5.4 GB de Parquet en S3</text>
+<text x="624" y="490" font-size="22" fill="#15171C">Archivos abiertos</text>
+<text x="904" y="490" font-size="22" fill="#3F4652">Tablas Iceberg</text>
+</svg>

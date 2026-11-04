@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 520" font-family="Helvetica Neue, Arial, sans-serif">
+<title>Anatomía del Query Profile</title>
+<desc>Árbol de operadores del Query Profile, de TableScan a Result, con porcentaje de tiempo por nodo, filas por flecha y el panel de estadísticas del TableScan; el spilling se señala en el operador que derrama.</desc>
+<rect x="255" y="40" width="210" height="52" rx="10" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+<text x="360.0" y="73" font-size="20" fill="#15171C" text-anchor="middle">Result</text>
+<rect x="255" y="148" width="210" height="52" rx="10" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+<text x="360.0" y="181" font-size="20" fill="#15171C" text-anchor="middle">Aggregate</text>
+<rect x="255" y="256" width="210" height="52" rx="10" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+<text x="360.0" y="289" font-size="20" fill="#15171C" text-anchor="middle">Join</text>
+<rect x="130" y="364" width="210" height="52" rx="10" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+<text x="235.0" y="397" font-size="20" fill="#15171C" text-anchor="middle">TableScan ORDERS</text>
+<rect x="380" y="364" width="210" height="52" rx="10" fill="#F0EEE7" stroke="#2340D8" stroke-width="4"/>
+<text x="485.0" y="397" font-size="20" fill="#15171C" text-anchor="middle">TableScan LINEITEM</text>
+<polyline points="360.0,148.0 360.0,103.0" fill="none" stroke="#15171C" stroke-width="3" stroke-linejoin="round"/>
+<polygon points="360.0,92.0 366.0,104.0 354.0,104.0" fill="#15171C"/>
+<text x="374" y="126" font-size="18" fill="#15171C">1.0 M (clientes)</text>
+<polyline points="360.0,256.0 360.0,211.0" fill="none" stroke="#15171C" stroke-width="3" stroke-linejoin="round"/>
+<polygon points="360.0,200.0 366.0,212.0 354.0,212.0" fill="#15171C"/>
+<text x="374" y="234" font-size="18" fill="#15171C">60.0 M</text>
+<polyline points="235.0,364.0 301.2,314.6" fill="none" stroke="#15171C" stroke-width="3" stroke-linejoin="round"/>
+<polygon points="310.0,308.0 304.0,320.0 296.8,310.4" fill="#15171C"/>
+<text x="254" y="342" font-size="18" fill="#15171C" text-anchor="end">15.0 M</text>
+<polyline points="485.0,364.0 418.8,314.6" fill="none" stroke="#15171C" stroke-width="3" stroke-linejoin="round"/>
+<polygon points="410.0,308.0 423.2,310.4 416.0,320.0" fill="#15171C"/>
+<text x="458" y="342" font-size="18" fill="#15171C">60.0 M</text>
+<rect x="475" y="152" width="72" height="32" rx="16" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+<text x="511" y="175" font-size="22" fill="#15171C" font-weight="700" text-anchor="middle">44 %</text>
+<rect x="243" y="132" width="32" height="32" rx="16" fill="#2340D8"/>
+<text x="259" y="155" font-size="22" fill="#FFFFFF" font-weight="700" text-anchor="middle">5</text>
+<rect x="720" y="24" width="456" height="238" rx="10" fill="#F0EEE7" stroke="#2340D8" stroke-width="4"/>
+<text x="740" y="60" font-size="22" fill="#15171C" font-weight="700">Statistics</text>
+<text x="1156" y="60" font-size="20" fill="#3F4652" text-anchor="end">nodo TableScan seleccionado</text>
+<rect x="740" y="84" width="32" height="32" rx="16" fill="#2340D8"/>
+<text x="756" y="107" font-size="22" fill="#FFFFFF" font-weight="700" text-anchor="middle">1</text>
+<text x="788" y="98" font-size="20" fill="#15171C">Bytes scanned</text><text x="788" y="118" font-size="18" fill="#3F4652">bytes leídos</text>
+<rect x="740" y="128" width="32" height="32" rx="16" fill="#2340D8"/>
+<text x="756" y="151" font-size="22" fill="#FFFFFF" font-weight="700" text-anchor="middle">2</text>
+<text x="788" y="142" font-size="20" fill="#15171C">Percentage scanned from cache</text><text x="788" y="162" font-size="18" fill="#3F4652">% leído desde la caché</text>
+<rect x="740" y="172" width="32" height="32" rx="16" fill="#2340D8"/>
+<text x="756" y="195" font-size="22" fill="#FFFFFF" font-weight="700" text-anchor="middle">3</text>
+<text x="788" y="186" font-size="20" fill="#15171C">Partitions scanned</text><text x="788" y="206" font-size="18" fill="#3F4652">particiones leídas</text>
+<rect x="740" y="216" width="32" height="32" rx="16" fill="#2340D8"/>
+<text x="756" y="239" font-size="22" fill="#FFFFFF" font-weight="700" text-anchor="middle">4</text>
+<text x="788" y="230" font-size="20" fill="#15171C">Partitions total</text><text x="788" y="250" font-size="18" fill="#3F4652">particiones totales</text>
+<polyline points="736,262 736,390 590,390" fill="none" stroke="#2340D8" stroke-width="3" stroke-linejoin="round"/>
+<circle cx="590" cy="390" r="5" fill="#2340D8"/>
+<rect x="760" y="290" width="416" height="130" rx="10" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+<rect x="776" y="306" width="32" height="32" rx="16" fill="#2340D8"/>
+<text x="792" y="329" font-size="22" fill="#FFFFFF" font-weight="700" text-anchor="middle">5</text>
+<text x="824" y="330" font-size="20" fill="#15171C" font-weight="700">Spilling (bytes spilled):</text>
+<text x="824" y="356" font-size="20" fill="#15171C">datos que no caben en memoria</text>
+<text x="824" y="382" font-size="20" fill="#15171C">van a disco, local o remoto,</text>
+<text x="824" y="408" font-size="20" fill="#15171C">en el operador que los derrama</text>
+<rect x="24" y="440" width="6" height="64" fill="#5F6672"/>
+<text x="44" y="467" font-size="22" fill="#15171C">Se lee de abajo hacia arriba: filas que suben, tiempo por nodo</text>
+<text x="44" y="493" font-size="22" fill="#15171C">y, en el nodo elegido, lectura y derrame.</text>
+</svg>

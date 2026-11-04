@@ -4,6 +4,7 @@
 --
 -- Numeración de slides: final. QP1 a QP8 son las slides 47 a 54; las
 -- slides de la versión anterior 47 a 56 son ahora 55 a 64.
+-- «corta: M» = número en el deck corto de 30 slides (deck_corto/slides.pdf).
 -- Fuente de cifras: clase02_demos_medidas_v2.md (principal) y
 -- clase02_demos_medidas.md (v1, solo COUNT(*), caché y costo).
 -- Las cifras marcadas [orq] vienen de consultas de lectura del 2026-11-03.
@@ -37,7 +38,7 @@
 
 
 -- =====================================================================
--- DEMO 1 · Slide 4 · Sumar 600 M de líneas
+-- DEMO 1 · Slide 4 (corta: 3) · Sumar 600 M de líneas
 -- Qué se muestra: TableScan de LINEITEM: bytes leídos y 1 022 de 1 022
 --   micro-particiones. Una sola fila de resultado.
 -- Resultado esperado (medido, X-Small, caché de resultados desactivada):
@@ -52,7 +53,7 @@ FROM SNOWFLAKE_SAMPLE_DATA.TPCH_SF100.LINEITEM;
 
 
 -- =====================================================================
--- DEMO 2 · Slide 7 · Columnas: 0.6 GB una numérica, 6.4 GB un texto
+-- DEMO 2 · Slide 7 (corta: 6) · Columnas: 0.6 GB una numérica, 6.4 GB un texto
 -- Qué se muestra: dos TableScan de LINEITEM en SF100 con mismas
 --   particiones (1 022 de 1 022) y bytes muy distintos.
 --   Suspender COMPUTE_WH antes de cada consulta (ver la nota del error
@@ -73,7 +74,7 @@ SELECT MAX(L_COMMENT) FROM SNOWFLAKE_SAMPLE_DATA.TPCH_SF100.LINEITEM;
 
 
 -- =====================================================================
--- DEMO 3 · Slide 9 · Filtrar por un mes baja el tiempo y los bytes
+-- DEMO 3 · Slide 9 (corta: 7) · Filtrar por un mes baja el tiempo y los bytes
 -- Qué se muestra: Partitions scanned contra Partitions total en cada
 --   una. Decir en voz alta que sin filtro el número de particiones varió
 --   entre ejecuciones (QAS hace parte del escaneo; el dato es indicativo).
@@ -95,7 +96,7 @@ WHERE L_SHIPDATE >= '1995-03-01' AND L_SHIPDATE < '1995-04-01';
 
 
 -- =====================================================================
--- DEMO 4 · Slide 10 · COUNT(*) sin filtro se responde sin leer datos
+-- DEMO 4 · Slide 10 (corta: 7) · COUNT(*) sin filtro se responde sin leer datos
 -- Qué se muestra: el COUNT(*) sin filtro no tiene TableScan con bytes
 --   (0 bytes, solo metadatos). El segundo, con filtro sobre L_QUANTITY,
 --   sí lee la columna.
@@ -116,7 +117,7 @@ WHERE L_QUANTITY > 10;
 
 
 -- =====================================================================
--- DEMO 5 · Slide 11 · 10 veces más filas, unas 9 veces más tiempo
+-- DEMO 5 · Slide 11 (corta: 8) · 10 veces más filas, unas 9 veces más tiempo
 -- Qué se muestra: total de micro-particiones de cada tabla (1 022 en
 --   SF100 y 10 336 en SF1000). No mostrar BYTES_SCANNED de la consulta:
 --   no es estable (v2).
@@ -137,7 +138,7 @@ SELECT SUM(L_EXTENDEDPRICE) FROM SNOWFLAKE_SAMPLE_DATA.TPCH_SF1000.LINEITEM;
 
 
 -- =====================================================================
--- DEMO 6 · Slide 15 · Medium contra X-Small en la misma consulta
+-- DEMO 6 · Slide 15 (corta: 11) · Medium contra X-Small en la misma consulta
 -- Qué se muestra: porcentaje del TableScan frente a Aggregate (esta consulta
 --   no tiene Join: solo TableScan, Aggregate y Result);
 --   «Percentage scanned from cache»; micro-particiones que lee el
@@ -171,10 +172,10 @@ ALTER WAREHOUSE DEMO_M_WH SUSPEND;
 
 
 -- =====================================================================
--- DEMO 7 · Slide 16 · Caché de resultados
+-- DEMO 7 · Slide 16 (corta: 11) · Caché de resultados
 -- Qué se muestra: la segunda ejecución no tiene TableScan; el perfil
 --   muestra reutilización de resultado. Comprobar en vivo el nombre del
---   nodo. Esta consulta reaparece en la slide 36.
+--   nodo. Esta consulta reaparece en la slide 36 (corta: 17).
 -- Resultado esperado (medido, X-Small):
 --   Primera ejecución: 2.14 s y 2.07 GB por operador.
 --   Segunda: 0.05 s, 0 bytes y 0 micro-particiones; 7 filas [v1 5].
@@ -199,8 +200,8 @@ GROUP BY 1;
 
 
 -- =====================================================================
--- DEMO 7b · Slide 36 · GROUP BY reduce 600 M de líneas a 7 filas
--- Qué se muestra: la misma consulta de la slide 16, ahora para ver qué hace
+-- DEMO 7b · Slide 36 (corta: 17) · GROUP BY reduce 600 M de líneas a 7 filas
+-- Qué se muestra: la misma consulta de la slide 16 (corta: 11), ahora para ver qué hace
 --   GROUP BY: una fila por modo de envío, con COUNT(*) y SUM por grupo.
 --   Sale de la caché de resultados (la demo 7 dejó USE_CACHED_RESULT = TRUE).
 -- Resultado esperado (medido, X-Small): 0.05 s, 0 bytes y 7 filas; la
@@ -215,7 +216,7 @@ GROUP BY 1;
 
 
 -- =====================================================================
--- DEMO 8 · Slide 37 · WHERE filtra filas, HAVING filtra grupos
+-- DEMO 8 · Slide 37 (corta: 17) · WHERE filtra filas, HAVING filtra grupos
 -- Qué se muestra: TableScan de ORDERS con 10 de 10 micro-particiones en
 --   SF1 (el filtro de fecha no poda en SF1); el orden lógico en el texto.
 -- Resultado esperado (medido, [orq]): 5 filas:
@@ -234,7 +235,7 @@ LIMIT 5;
 
 
 -- =====================================================================
--- DEMO 9 · Slide 39 · WHERE no admite agregaciones
+-- DEMO 9 · Slide 39 (corta: 17) · WHERE no admite agregaciones
 -- Qué se muestra: el error de compilación. No hay Query Profile: la
 --   consulta no llega a ejecutarse. Se lee el mensaje en voz alta.
 -- Resultado esperado (error de compilación, [orq]):
@@ -249,7 +250,7 @@ GROUP BY O_CUSTKEY;
 
 
 -- =====================================================================
--- DEMO 10 · Slide 40 · Columna fuera de GROUP BY
+-- DEMO 10 · Slide 40 (corta: 17) · Columna fuera de GROUP BY
 -- Qué se muestra: el error de compilación. No hay Query Profile.
 -- Resultado esperado (error de compilación, [orq]):
 --   'CUSTOMER.C_NAME' in select clause is neither an aggregate nor in the group by clause
@@ -262,7 +263,7 @@ GROUP BY C_MKTSEGMENT;
 
 
 -- =====================================================================
--- DEMO 11 · Slide 43 · Unir pedidos con líneas repite cada pedido
+-- DEMO 11 · Slide 43 (corta: 19) · Unir pedidos con líneas repite cada pedido
 -- Qué se muestra: el conteo de filas antes y después del JOIN, y la
 --   suma de O_TOTALPRICE antes y después. Es la misma tabla, la suma se
 --   infla al unir.
@@ -290,7 +291,7 @@ JOIN SNOWFLAKE_SAMPLE_DATA.TPCH_SF1.LINEITEM L
 
 
 -- =====================================================================
--- DEMO 12 · Slide 45 · COUNT(DISTINCT) cuenta cada clave una vez
+-- DEMO 12 · Slide 45 (corta: 21) · COUNT(DISTINCT) cuenta cada clave una vez
 -- Qué se muestra: FILAS contra CLIENTES por segmento después del JOIN.
 --   Es el caso que la clase 3 resuelve agregando antes de unir.
 -- Resultado esperado [orq]:
@@ -310,7 +311,7 @@ GROUP BY C.C_MKTSEGMENT;
 
 
 -- =====================================================================
--- QP5 · Slide 51 · Proyección: SELECT * contra tres columnas (caso 1)
+-- QP5 · Slide 51 (corta: 24) · Proyección: SELECT * contra tres columnas (caso 1)
 -- Qué se muestra: el TableScan de LINEITEM en SF10 lee 1.72 GB con
 --   SELECT * y 0.45 GB con tres columnas. Las particiones no cambian
 --   (116 de 116 en ambas). HASH_AGG(*) obliga a leer las columnas sin
@@ -338,7 +339,7 @@ SELECT HASH_AGG(*) AS H FROM (
 
 
 -- =====================================================================
--- QP7 · Slide 53 · Join con llave incompleta (caso 4)
+-- QP7 · Slide 53 (corta: 26) · Join con llave incompleta (caso 4)
 -- Qué se muestra: el nodo Join de la versión con una sola llave muestra
 --   la explosión: 239 944 208 filas de salida frente a 59 986 052 (la
 --   cardinalidad de LINEITEM) con dos llaves. Demo en vivo: menos de 2 s.
@@ -369,7 +370,7 @@ JOIN SNOWFLAKE_SAMPLE_DATA.TPCH_SF10.PARTSUPP PS
 
 
 -- =====================================================================
--- QP8 · Slide 54 · Spilling (SOLO COMENTARIO; NO SE EJECUTA EN VIVO)
+-- QP8 · Slide 54 (corta: 27) · Spilling (SOLO COMENTARIO; NO SE EJECUTA EN VIVO)
 -- La consulta tarda 48 s en X-Small: no cabe en la clase. Mostrar
 -- capturas de los dos perfiles, no ejecutarla.
 --   Consulta: ROW_NUMBER() OVER (PARTITION BY L_ORDERKEY ORDER BY
@@ -384,7 +385,7 @@ JOIN SNOWFLAKE_SAMPLE_DATA.TPCH_SF10.PARTSUPP PS
 
 
 -- =====================================================================
--- DEMO 13 · Slide 58 · Q4 del mini-caso
+-- DEMO 13 · Slide 58 (corta: 29) · Q4 del mini-caso
 -- Qué se muestra: Árbol del plan, TableScan de LINEITEM y estadísticas
 --   de las tres cifras: bytes leídos, micro-particiones y el operador
 --   dominante. Caché de resultados desactivada.

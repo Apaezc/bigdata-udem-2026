@@ -33,4 +33,5 @@ Orden de trabajo en clase. Cada actividad tiene tres archivos: el enunciado, la 
 ## Presentación y guion de demos
 
 - **Presentación** ([`deck/slides.pdf`](deck/slides.pdf)): cómo se lee big data y qué resuelve Snowflake; el orden de las slides sigue esta lista de actividades.
+- **Versión para proyectar (30 slides)** ([`deck_corto/slides.pdf`](deck_corto/slides.pdf)): mismos bloques y horarios; el deck de 64 queda como material de lectura.
 - **Guion de demos** ([`demos.sql`](demos.sql)): consultas de las demos en vivo del instructor, con el resultado esperado de cada una.
