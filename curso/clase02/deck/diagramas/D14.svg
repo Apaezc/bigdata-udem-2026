@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 520" font-family="Helvetica Neue, Arial, sans-serif">
+<title>Lectura del Query Profile de Q4</title>
+<desc>Árbol del plan de Q4: el TableScan de LINEITEM lee 0.39 GB, 116 de 116 micro-particiones y es el operador que más tarda en la primera ejecución.</desc>
+<rect x="250" y="24" width="190" height="52" rx="10" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+<text x="345" y="57" font-size="20" fill="#15171C" text-anchor="middle">Result</text>
+<rect x="250" y="100" width="190" height="52" rx="10" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+<text x="345" y="133" font-size="20" fill="#15171C" text-anchor="middle">Sort</text>
+<rect x="250" y="176" width="190" height="52" rx="10" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+<text x="345" y="209" font-size="20" fill="#15171C" text-anchor="middle">Aggregate</text>
+<rect x="250" y="252" width="190" height="52" rx="10" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+<text x="345" y="285" font-size="20" fill="#15171C" text-anchor="middle">Join</text>
+<polyline points="345.0,100.0 345.0,87.0" fill="none" stroke="#15171C" stroke-width="3" stroke-linejoin="round"/>
+<polygon points="345.0,76.0 351.0,88.0 339.0,88.0" fill="#15171C"/>
+<polyline points="345.0,176.0 345.0,163.0" fill="none" stroke="#15171C" stroke-width="3" stroke-linejoin="round"/>
+<polygon points="345.0,152.0 351.0,164.0 339.0,164.0" fill="#15171C"/>
+<polyline points="345.0,252.0 345.0,239.0" fill="none" stroke="#15171C" stroke-width="3" stroke-linejoin="round"/>
+<polygon points="345.0,228.0 351.0,240.0 339.0,240.0" fill="#15171C"/>
+<rect x="24" y="340" width="224" height="76" rx="10" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+<text x="136.0" y="370" font-size="20" fill="#15171C" text-anchor="middle">TableScan CUSTOMER</text>
+<text x="136.0" y="398" font-size="20" fill="#15171C" text-anchor="middle">0.006 GB · 16 de 16</text>
+<polyline points="136.0,340.0 289.2,308.2" fill="none" stroke="#15171C" stroke-width="3" stroke-linejoin="round"/>
+<polygon points="300.0,306.0 289.5,314.3 287.0,302.6" fill="#15171C"/>
+<rect x="256" y="340" width="210" height="76" rx="10" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+<text x="361.0" y="370" font-size="20" fill="#15171C" text-anchor="middle">TableScan ORDERS</text>
+<text x="361.0" y="398" font-size="20" fill="#15171C" text-anchor="middle">0.09 GB · 32 de 32</text>
+<polyline points="361.0,340.0 349.7,316.0" fill="none" stroke="#15171C" stroke-width="3" stroke-linejoin="round"/>
+<polygon points="345.0,306.0 355.5,314.3 344.7,319.4" fill="#15171C"/>
+<rect x="476" y="340" width="224" height="76" rx="10" fill="#F0EEE7" stroke="#2340D8" stroke-width="4"/>
+<text x="588.0" y="370" font-size="20" fill="#15171C" text-anchor="middle">TableScan LINEITEM</text>
+<text x="588.0" y="398" font-size="20" fill="#15171C" text-anchor="middle">0.39 GB · 116 de 116</text>
+<polyline points="588.0,340.0 400.8,307.9" fill="none" stroke="#15171C" stroke-width="3" stroke-linejoin="round"/>
+<polygon points="390.0,306.0 402.8,302.1 400.8,313.9" fill="#15171C"/>
+<rect x="636" y="402" width="64" height="32" rx="16" fill="#2340D8"/>
+<text x="668" y="425" font-size="22" fill="#FFFFFF" font-weight="700" text-anchor="middle">61 %</text>
+<text x="466" y="196" font-size="20" fill="#5F6672">NATION y REGION:</text>
+<text x="466" y="222" font-size="20" fill="#5F6672">tablas pequeñas, omitidas</text>
+<rect x="740" y="24" width="436" height="406" rx="10" fill="#F0EEE7" stroke="#2340D8" stroke-width="4"/>
+<rect x="756" y="84" width="32" height="32" rx="16" fill="#2340D8"/>
+<text x="772" y="107" font-size="22" fill="#FFFFFF" font-weight="700" text-anchor="middle">1</text>
+<text x="804" y="98" font-size="22" fill="#15171C" font-weight="700">Bytes leídos:</text>
+<text x="804" y="126" font-size="22" fill="#15171C">0.39 GB en LINEITEM</text>
+<polyline points="756,100 712,100 712,360 700,360" fill="none" stroke="#2340D8" stroke-width="3" stroke-linejoin="round"/>
+<circle cx="700" cy="360" r="5" fill="#2340D8"/>
+<rect x="756" y="204" width="32" height="32" rx="16" fill="#2340D8"/>
+<text x="772" y="227" font-size="22" fill="#FFFFFF" font-weight="700" text-anchor="middle">2</text>
+<text x="804" y="218" font-size="22" fill="#15171C" font-weight="700">Particiones:</text>
+<text x="804" y="246" font-size="22" fill="#15171C">116 de 116, sin filtro que pode</text>
+<polyline points="756,220 722,220 722,380 700,380" fill="none" stroke="#2340D8" stroke-width="3" stroke-linejoin="round"/>
+<circle cx="700" cy="380" r="5" fill="#2340D8"/>
+<rect x="756" y="324" width="32" height="32" rx="16" fill="#2340D8"/>
+<text x="772" y="347" font-size="22" fill="#FFFFFF" font-weight="700" text-anchor="middle">3</text>
+<text x="804" y="338" font-size="22" fill="#15171C" font-weight="700">Operador dominante: TableScan,</text>
+<text x="804" y="366" font-size="22" fill="#15171C">61 % del tiempo</text>
+<polyline points="756,340 732,340 732,418 704,418" fill="none" stroke="#2340D8" stroke-width="3" stroke-linejoin="round"/>
+<circle cx="704" cy="418" r="5" fill="#2340D8"/>
+<rect x="24" y="440" width="6" height="64" fill="#5F6672"/>
+<text x="44" y="467" font-size="22" fill="#15171C">Con el dato ya en el caché del warehouse, el mayor porcentaje pasó a Join y Aggregate</text>
+<text x="44" y="493" font-size="22" fill="#15171C">(en la 2.ª y 3.ª ejecución).</text>
+</svg>

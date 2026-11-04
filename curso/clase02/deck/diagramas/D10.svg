@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 520" font-family="Helvetica Neue, Arial, sans-serif">
+<title>Tabla nativa contra tabla Iceberg</title>
+<desc>Una tabla nativa guarda sus micro-particiones en el almacenamiento de Snowflake; una tabla Iceberg guarda Parquet en un bucket del cliente.</desc>
+<rect x="24" y="24" width="564" height="402" rx="10" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+<text x="306" y="64" font-size="26" fill="#15171C" font-weight="700" text-anchor="middle">Tabla nativa</text>
+<rect x="206" y="86" width="200" height="54" rx="10" fill="#2340D8"/>
+<text x="306" y="121" font-size="26" fill="#FFFFFF" font-weight="700" text-anchor="middle">Snowflake</text>
+<polyline points="306.0,140.0 306.0,181.0" fill="none" stroke="#15171C" stroke-width="3" stroke-linejoin="round"/>
+<polygon points="306.0,194.0 299.0,180.0 313.0,180.0" fill="#15171C"/>
+<rect x="612" y="24" width="564" height="402" rx="10" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+<text x="894" y="64" font-size="26" fill="#15171C" font-weight="700" text-anchor="middle">Tabla Iceberg</text>
+<rect x="794" y="86" width="200" height="54" rx="10" fill="#2340D8"/>
+<text x="894" y="121" font-size="26" fill="#FFFFFF" font-weight="700" text-anchor="middle">Snowflake</text>
+<polyline points="894.0,140.0 894.0,181.0" fill="none" stroke="#15171C" stroke-width="3" stroke-linejoin="round"/>
+<polygon points="894.0,194.0 887.0,180.0 901.0,180.0" fill="#15171C"/>
+<path d="M54,210 A252.0,16 0 0 1 558,210 L558,278 A252.0,16 0 0 1 54,278 Z" fill="#FBFAF6" stroke="#5F6672" stroke-width="2" stroke-linejoin="round"/>
+<path d="M54,210 A252.0,16 0 0 0 558,210" fill="none" stroke="#5F6672" stroke-width="2"/>
+<text x="306" y="244" font-size="22" fill="#15171C" font-weight="700" text-anchor="middle">Almacenamiento de Snowflake</text>
+<text x="306" y="274" font-size="20" fill="#5F6672" text-anchor="middle">micro-particiones propias</text>
+<polyline points="306.0,296.0 306.0,345.0" fill="none" stroke="#5F6672" stroke-width="3" stroke-dasharray="8 6" stroke-linejoin="round"/>
+<polygon points="306.0,358.0 299.0,344.0 313.0,344.0" fill="#5F6672"/>
+<circle cx="306" cy="327" r="16" fill="#F0EEE7"/>
+<path d="M296,317 L316,337 M296,337 L316,317" stroke="#15171C" stroke-width="4" stroke-linecap="round" fill="none"/>
+<rect x="206" y="360" width="200" height="46" rx="10" fill="#FBFAF6" stroke="#5F6672" stroke-width="2"/>
+<text x="306" y="391" font-size="22" fill="#15171C" text-anchor="middle">Otro motor</text>
+<path d="M642,210 A252.0,16 0 0 1 1146,210 L1146,278 A252.0,16 0 0 1 642,278 Z" fill="#FBFAF6" stroke="#2340D8" stroke-width="4" stroke-linejoin="round"/>
+<path d="M642,210 A252.0,16 0 0 0 1146,210" fill="none" stroke="#2340D8" stroke-width="4"/>
+<text x="894" y="244" font-size="22" fill="#15171C" font-weight="700" text-anchor="middle">Bucket del cliente (S3)</text>
+<text x="894" y="274" font-size="20" fill="#5F6672" text-anchor="middle">archivos Parquet + metadatos Iceberg</text>
+<rect x="662" y="330" width="464" height="66" rx="16" fill="#5F6672"/>
+<text x="894" y="359" font-size="22" fill="#FFFFFF" font-weight="700" text-anchor="middle">Sin Fail-safe de Snowflake</text>
+<text x="894" y="385" font-size="22" fill="#FFFFFF" font-weight="700" text-anchor="middle">en el bucket del cliente</text>
+<rect x="24" y="440" width="6" height="64" fill="#5F6672"/>
+<text x="44" y="467" font-size="22" fill="#15171C">En el curso: bronze es Parquet en S3 (clase 4); gold se sirve en una tabla de Snowflake.</text>
+<text x="44" y="493" font-size="22" fill="#15171C">Sin Fail-safe en el bucket del cliente.</text>
+</svg>

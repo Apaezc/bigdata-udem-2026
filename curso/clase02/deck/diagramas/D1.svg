@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 520" font-family="'Helvetica Neue', Arial, sans-serif">
+<title>Cinco tablas de TPC-H encadenadas de región a línea de pedido y cuatro factores de escala de LINEITEM, de 6 M a 6 000 M de filas.</title>
+<defs>
+<marker id="ar" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="14" refX="14" refY="7" orient="auto"><path d="M0,0 L14,7 L0,14 Z" fill="#15171C"/></marker>
+<marker id="arA" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="14" refX="14" refY="7" orient="auto"><path d="M0,0 L14,7 L0,14 Z" fill="#2340D8"/></marker>
+<marker id="arG" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="14" refX="14" refY="7" orient="auto"><path d="M0,0 L14,7 L0,14 Z" fill="#5F6672"/></marker>
+</defs>
+<rect x="24" y="16" width="1152" height="64" rx="0" fill="#F0EEE7"/>
+<rect x="24" y="16" width="6" height="64" fill="#2340D8"/>
+<text x="46" y="56" font-size="22" fill="#15171C">TPC-H simula un mayorista. Los labs usan SF1; las demos de escala, SF100 y SF1000.</text>
+<rect x="24" y="100" width="190" height="150" rx="10" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+<text x="119" y="138" font-size="26" font-weight="700" fill="#15171C" text-anchor="middle">REGION</text>
+<text x="119" y="166" font-size="20" fill="#15171C" text-anchor="middle">regiones</text>
+<text x="119" y="192" font-size="20" fill="#15171C" text-anchor="middle">5 filas</text>
+<rect x="264" y="100" width="190" height="170" rx="10" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+<text x="359" y="138" font-size="26" font-weight="700" fill="#15171C" text-anchor="middle">NATION</text>
+<text x="359" y="166" font-size="20" fill="#15171C" text-anchor="middle">naciones</text>
+<text x="359" y="192" font-size="20" fill="#15171C" text-anchor="middle">25 filas</text>
+<text x="359" y="226" font-size="20" fill="#5F6672" text-anchor="middle">N_REGIONKEY</text>
+<rect x="504" y="100" width="190" height="170" rx="10" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+<text x="599" y="138" font-size="26" font-weight="700" fill="#15171C" text-anchor="middle">CUSTOMER</text>
+<text x="599" y="166" font-size="20" fill="#15171C" text-anchor="middle">clientes</text>
+<text x="599" y="192" font-size="20" fill="#15171C" text-anchor="middle">150 000 filas</text>
+<text x="599" y="226" font-size="20" fill="#5F6672" text-anchor="middle">C_NATIONKEY</text>
+<rect x="744" y="100" width="190" height="170" rx="10" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+<text x="839" y="138" font-size="26" font-weight="700" fill="#15171C" text-anchor="middle">ORDERS</text>
+<text x="839" y="166" font-size="20" fill="#15171C" text-anchor="middle">pedidos</text>
+<text x="839" y="192" font-size="20" fill="#15171C" text-anchor="middle">1 500 000 filas</text>
+<text x="839" y="226" font-size="20" fill="#5F6672" text-anchor="middle">O_CUSTKEY</text>
+<rect x="984" y="100" width="190" height="170" rx="10" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+<text x="1079" y="138" font-size="26" font-weight="700" fill="#15171C" text-anchor="middle">LINEITEM</text>
+<text x="1079" y="166" font-size="20" fill="#15171C" text-anchor="middle">líneas de pedido</text>
+<text x="1079" y="192" font-size="20" fill="#15171C" text-anchor="middle">6 001 215 filas</text>
+<text x="1079" y="226" font-size="20" fill="#5F6672" text-anchor="middle">L_ORDERKEY</text>
+<line x1="214" y1="185" x2="264" y2="185" stroke="#15171C" stroke-width="3"/>
+<text x="239.0" y="174" font-size="22" fill="#15171C" text-anchor="middle">1:N</text>
+<line x1="454" y1="185" x2="504" y2="185" stroke="#15171C" stroke-width="3"/>
+<text x="479.0" y="174" font-size="22" fill="#15171C" text-anchor="middle">1:N</text>
+<line x1="694" y1="185" x2="744" y2="185" stroke="#15171C" stroke-width="3"/>
+<text x="719.0" y="174" font-size="22" fill="#15171C" text-anchor="middle">1:N</text>
+<line x1="934" y1="185" x2="984" y2="185" stroke="#2340D8" stroke-width="4"/>
+<text x="959.0" y="174" font-size="22" font-weight="700" fill="#2340D8" text-anchor="middle">1:N</text>
+<text x="24" y="314" font-size="22" font-weight="700" fill="#15171C">Filas de LINEITEM por factor de escala (SF)</text>
+<rect x="24" y="330" width="270" height="60" rx="10" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+<text x="159" y="368" font-size="26" font-weight="700" fill="#15171C" text-anchor="middle">SF1 · 6 M</text>
+<rect x="318" y="330" width="270" height="60" rx="10" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+<text x="453" y="368" font-size="26" font-weight="700" fill="#15171C" text-anchor="middle">SF10 · 60 M</text>
+<rect x="612" y="330" width="270" height="60" rx="10" fill="#2340D8"/>
+<text x="747" y="368" font-size="26" font-weight="700" fill="#FFFFFF" text-anchor="middle">SF100 · 600 M</text>
+<rect x="906" y="330" width="270" height="60" rx="10" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+<text x="1041" y="368" font-size="26" font-weight="700" fill="#15171C" text-anchor="middle">SF1000 · 6 000 M</text>
+<rect x="24" y="440" width="1152" height="64" rx="0" fill="#F0EEE7"/>
+<rect x="24" y="440" width="6" height="64" fill="#5F6672"/>
+<text x="46" y="480" font-size="22" fill="#15171C">PART y SUPPLIER no se usan; PARTSUPP, solo en la slide 53. SF1 pesa 165 MB en LINEITEM.</text>
+</svg>
