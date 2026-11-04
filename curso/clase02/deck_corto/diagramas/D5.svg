@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 520" font-family="'Helvetica Neue', Arial, sans-serif">
+<title>Tres capas: servicios de nube arriba, tres warehouses de distinta talla en medio y un único almacenamiento columnar abajo.</title>
+<defs>
+<marker id="ar" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="14" refX="14" refY="7" orient="auto"><path d="M0,0 L14,7 L0,14 Z" fill="#15171C"/></marker>
+<marker id="arA" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="14" refX="14" refY="7" orient="auto"><path d="M0,0 L14,7 L0,14 Z" fill="#2340D8"/></marker>
+<marker id="arG" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="14" refX="14" refY="7" orient="auto"><path d="M0,0 L14,7 L0,14 Z" fill="#5F6672"/></marker>
+</defs>
+<rect x="24" y="24" width="1152" height="96" rx="10" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+<text x="600" y="62" font-size="26" font-weight="700" fill="#15171C" text-anchor="middle">Servicios de nube</text>
+<text x="600" y="94" font-size="22" fill="#15171C" text-anchor="middle">Coordinan consultas, metadatos y seguridad</text>
+<line x1="210" y1="123" x2="210" y2="147" stroke="#5F6672" stroke-width="2" marker-end="url(#arG)"/>
+<line x1="600" y1="123" x2="600" y2="147" stroke="#5F6672" stroke-width="2" marker-end="url(#arG)"/>
+<line x1="990" y1="123" x2="990" y2="147" stroke="#5F6672" stroke-width="2" marker-end="url(#arG)"/>
+<text x="612" y="143" font-size="20" fill="#3F4652">coordinan</text>
+<rect x="24" y="150" width="1152" height="170" rx="10" fill="#F0EEE7" stroke="#2340D8" stroke-width="4"/>
+<text x="48" y="186" font-size="26" font-weight="700" fill="#15171C">Cómputo: warehouses independientes</text>
+<rect x="60" y="196" width="300" height="90" rx="10" fill="#FFFFFF" stroke="#5F6672" stroke-width="2"/>
+<text x="210" y="232" font-size="26" font-weight="700" fill="#15171C" text-anchor="middle">Warehouse X-Small</text>
+<text x="210" y="264" font-size="22" fill="#15171C" text-anchor="middle">1 crédito por hora</text>
+<line x1="210" y1="288" x2="210" y2="348" stroke="#15171C" stroke-width="3" marker-end="url(#ar)"/>
+<text x="222" y="341" font-size="20" fill="#3F4652">leen</text>
+<rect x="450" y="196" width="300" height="90" rx="10" fill="#FFFFFF" stroke="#5F6672" stroke-width="2"/>
+<text x="600" y="232" font-size="26" font-weight="700" fill="#15171C" text-anchor="middle">Warehouse Medium</text>
+<text x="600" y="264" font-size="22" fill="#15171C" text-anchor="middle">4 créditos por hora</text>
+<line x1="600" y1="288" x2="600" y2="348" stroke="#15171C" stroke-width="3" marker-end="url(#ar)"/>
+<text x="612" y="341" font-size="20" fill="#3F4652">leen</text>
+<rect x="840" y="196" width="300" height="90" rx="10" fill="#FFFFFF" stroke="#5F6672" stroke-width="2"/>
+<text x="990" y="232" font-size="26" font-weight="700" fill="#15171C" text-anchor="middle">Warehouse X-Large</text>
+<text x="990" y="264" font-size="22" fill="#15171C" text-anchor="middle">16 créditos por hora</text>
+<line x1="990" y1="288" x2="990" y2="348" stroke="#15171C" stroke-width="3" marker-end="url(#ar)"/>
+<text x="1002" y="341" font-size="20" fill="#3F4652">leen</text>
+<path d="M60,350 H1140 A36,40 0 0 1 1140,430 H60 A36,40 0 0 1 60,350 Z" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+<path d="M60,350 A36,40 0 0 1 60,430" fill="none" stroke="#5F6672" stroke-width="2"/>
+<text x="600" y="386" font-size="26" font-weight="700" fill="#15171C" text-anchor="middle">Almacenamiento</text>
+<text x="600" y="414" font-size="22" fill="#15171C" text-anchor="middle">Micro-particiones columnares y comprimidas, de 50 a 500 MB sin comprimir</text>
+<rect x="24" y="440" width="1152" height="64" rx="0" fill="#F0EEE7"/>
+<rect x="24" y="440" width="6" height="64" fill="#5F6672"/>
+<text x="46" y="468" font-size="22" fill="#15171C">Cada capa escala por su cuenta: más datos, solo almacenamiento;</text>
+<text x="46" y="494" font-size="22" fill="#15171C">más consultas, más warehouses; más potencia, una talla mayor.</text>
+</svg>

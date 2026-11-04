@@ -1,0 +1,137 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 520" font-family="'Helvetica Neue', Arial, sans-serif">
+<title>Por columnas se lee 1 de 16: una columna numérica lee 0.60 GB, un texto 6.37 GB y la fila completa 16.60 GB de la misma tabla de 600 M de filas.</title>
+<defs>
+<marker id="ar" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="14" refX="14" refY="7" orient="auto"><path d="M0,0 L14,7 L0,14 Z" fill="#15171C"/></marker>
+<marker id="arA" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="14" refX="14" refY="7" orient="auto"><path d="M0,0 L14,7 L0,14 Z" fill="#2340D8"/></marker>
+<marker id="arG" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="14" refX="14" refY="7" orient="auto"><path d="M0,0 L14,7 L0,14 Z" fill="#5F6672"/></marker>
+</defs>
+<rect x="24" y="16" width="1152" height="64" rx="0" fill="#F0EEE7"/>
+<rect x="24" y="16" width="6" height="64" fill="#2340D8"/>
+<text x="46" y="56" font-size="22" fill="#15171C">Las columnas se guardan por separado: la consulta lee solo las que nombra.</text>
+<rect x="24" y="96" width="564" height="140" rx="10" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+<text x="44" y="126" font-size="26" font-weight="700" fill="#15171C">Por filas</text>
+<rect x="67" y="141" width="28" height="10" fill="#5F6672" fill-opacity="0.35"/>
+<rect x="67" y="153" width="28" height="10" fill="#5F6672" fill-opacity="0.35"/>
+<rect x="67" y="165" width="28" height="10" fill="#5F6672" fill-opacity="0.35"/>
+<rect x="97" y="141" width="28" height="10" fill="#5F6672" fill-opacity="0.35"/>
+<rect x="97" y="153" width="28" height="10" fill="#5F6672" fill-opacity="0.35"/>
+<rect x="97" y="165" width="28" height="10" fill="#5F6672" fill-opacity="0.35"/>
+<rect x="127" y="141" width="28" height="10" fill="#5F6672" fill-opacity="0.35"/>
+<rect x="127" y="153" width="28" height="10" fill="#5F6672" fill-opacity="0.35"/>
+<rect x="127" y="165" width="28" height="10" fill="#5F6672" fill-opacity="0.35"/>
+<rect x="157" y="141" width="28" height="10" fill="#5F6672" fill-opacity="0.35"/>
+<rect x="157" y="153" width="28" height="10" fill="#5F6672" fill-opacity="0.35"/>
+<rect x="157" y="165" width="28" height="10" fill="#5F6672" fill-opacity="0.35"/>
+<rect x="187" y="141" width="28" height="10" fill="#5F6672" fill-opacity="0.35"/>
+<rect x="187" y="153" width="28" height="10" fill="#5F6672" fill-opacity="0.35"/>
+<rect x="187" y="165" width="28" height="10" fill="#5F6672" fill-opacity="0.35"/>
+<rect x="217" y="141" width="28" height="10" fill="#5F6672" fill-opacity="0.35"/>
+<rect x="217" y="153" width="28" height="10" fill="#5F6672" fill-opacity="0.35"/>
+<rect x="217" y="165" width="28" height="10" fill="#5F6672" fill-opacity="0.35"/>
+<rect x="247" y="141" width="28" height="10" fill="#5F6672" fill-opacity="0.35"/>
+<rect x="247" y="153" width="28" height="10" fill="#5F6672" fill-opacity="0.35"/>
+<rect x="247" y="165" width="28" height="10" fill="#5F6672" fill-opacity="0.35"/>
+<rect x="277" y="141" width="28" height="10" fill="#5F6672" fill-opacity="0.35"/>
+<rect x="277" y="153" width="28" height="10" fill="#5F6672" fill-opacity="0.35"/>
+<rect x="277" y="165" width="28" height="10" fill="#5F6672" fill-opacity="0.35"/>
+<rect x="307" y="141" width="28" height="10" fill="#5F6672" fill-opacity="0.35"/>
+<rect x="307" y="153" width="28" height="10" fill="#5F6672" fill-opacity="0.35"/>
+<rect x="307" y="165" width="28" height="10" fill="#5F6672" fill-opacity="0.35"/>
+<rect x="337" y="141" width="28" height="10" fill="#5F6672" fill-opacity="0.35"/>
+<rect x="337" y="153" width="28" height="10" fill="#5F6672" fill-opacity="0.35"/>
+<rect x="337" y="165" width="28" height="10" fill="#5F6672" fill-opacity="0.35"/>
+<rect x="367" y="141" width="28" height="10" fill="#5F6672" fill-opacity="0.35"/>
+<rect x="367" y="153" width="28" height="10" fill="#5F6672" fill-opacity="0.35"/>
+<rect x="367" y="165" width="28" height="10" fill="#5F6672" fill-opacity="0.35"/>
+<rect x="397" y="141" width="28" height="10" fill="#5F6672" fill-opacity="0.35"/>
+<rect x="397" y="153" width="28" height="10" fill="#5F6672" fill-opacity="0.35"/>
+<rect x="397" y="165" width="28" height="10" fill="#5F6672" fill-opacity="0.35"/>
+<rect x="427" y="141" width="28" height="10" fill="#5F6672" fill-opacity="0.35"/>
+<rect x="427" y="153" width="28" height="10" fill="#5F6672" fill-opacity="0.35"/>
+<rect x="427" y="165" width="28" height="10" fill="#5F6672" fill-opacity="0.35"/>
+<rect x="457" y="141" width="28" height="10" fill="#5F6672" fill-opacity="0.35"/>
+<rect x="457" y="153" width="28" height="10" fill="#5F6672" fill-opacity="0.35"/>
+<rect x="457" y="165" width="28" height="10" fill="#5F6672" fill-opacity="0.35"/>
+<rect x="487" y="141" width="28" height="10" fill="#5F6672" fill-opacity="0.35"/>
+<rect x="487" y="153" width="28" height="10" fill="#5F6672" fill-opacity="0.35"/>
+<rect x="487" y="165" width="28" height="10" fill="#5F6672" fill-opacity="0.35"/>
+<rect x="517" y="141" width="28" height="10" fill="#5F6672" fill-opacity="0.35"/>
+<rect x="517" y="153" width="28" height="10" fill="#5F6672" fill-opacity="0.35"/>
+<rect x="517" y="165" width="28" height="10" fill="#5F6672" fill-opacity="0.35"/>
+<rect x="66" y="141" width="480" height="10" rx="2" fill="none" stroke="#2340D8" stroke-width="3"/>
+<rect x="66" y="153" width="480" height="10" rx="2" fill="none" stroke="#2340D8" stroke-width="3"/>
+<rect x="66" y="165" width="480" height="10" rx="2" fill="none" stroke="#2340D8" stroke-width="3"/>
+<text x="44" y="226" font-size="22" fill="#15171C">Lee las 16 columnas de cada fila</text>
+<rect x="612" y="96" width="564" height="140" rx="10" fill="#F0EEE7" stroke="#2340D8" stroke-width="4"/>
+<text x="632" y="126" font-size="26" font-weight="700" fill="#15171C">Por columnas</text>
+<rect x="655" y="141" width="28" height="10" fill="#5F6672" fill-opacity="0.35"/>
+<rect x="655" y="153" width="28" height="10" fill="#5F6672" fill-opacity="0.35"/>
+<rect x="655" y="165" width="28" height="10" fill="#5F6672" fill-opacity="0.35"/>
+<rect x="685" y="141" width="28" height="10" fill="#5F6672" fill-opacity="0.35"/>
+<rect x="685" y="153" width="28" height="10" fill="#5F6672" fill-opacity="0.35"/>
+<rect x="685" y="165" width="28" height="10" fill="#5F6672" fill-opacity="0.35"/>
+<rect x="715" y="141" width="28" height="10" fill="#5F6672" fill-opacity="0.35"/>
+<rect x="715" y="153" width="28" height="10" fill="#5F6672" fill-opacity="0.35"/>
+<rect x="715" y="165" width="28" height="10" fill="#5F6672" fill-opacity="0.35"/>
+<rect x="745" y="141" width="28" height="10" fill="#5F6672" fill-opacity="0.35"/>
+<rect x="745" y="153" width="28" height="10" fill="#5F6672" fill-opacity="0.35"/>
+<rect x="745" y="165" width="28" height="10" fill="#5F6672" fill-opacity="0.35"/>
+<rect x="775" y="141" width="28" height="10" fill="#2340D8" fill-opacity="0.35" stroke="#2340D8" stroke-width="1.5"/>
+<rect x="775" y="153" width="28" height="10" fill="#2340D8" fill-opacity="0.35" stroke="#2340D8" stroke-width="1.5"/>
+<rect x="775" y="165" width="28" height="10" fill="#2340D8" fill-opacity="0.35" stroke="#2340D8" stroke-width="1.5"/>
+<rect x="805" y="141" width="28" height="10" fill="#5F6672" fill-opacity="0.35"/>
+<rect x="805" y="153" width="28" height="10" fill="#5F6672" fill-opacity="0.35"/>
+<rect x="805" y="165" width="28" height="10" fill="#5F6672" fill-opacity="0.35"/>
+<rect x="835" y="141" width="28" height="10" fill="#5F6672" fill-opacity="0.35"/>
+<rect x="835" y="153" width="28" height="10" fill="#5F6672" fill-opacity="0.35"/>
+<rect x="835" y="165" width="28" height="10" fill="#5F6672" fill-opacity="0.35"/>
+<rect x="865" y="141" width="28" height="10" fill="#5F6672" fill-opacity="0.35"/>
+<rect x="865" y="153" width="28" height="10" fill="#5F6672" fill-opacity="0.35"/>
+<rect x="865" y="165" width="28" height="10" fill="#5F6672" fill-opacity="0.35"/>
+<rect x="895" y="141" width="28" height="10" fill="#5F6672" fill-opacity="0.35"/>
+<rect x="895" y="153" width="28" height="10" fill="#5F6672" fill-opacity="0.35"/>
+<rect x="895" y="165" width="28" height="10" fill="#5F6672" fill-opacity="0.35"/>
+<rect x="925" y="141" width="28" height="10" fill="#5F6672" fill-opacity="0.35"/>
+<rect x="925" y="153" width="28" height="10" fill="#5F6672" fill-opacity="0.35"/>
+<rect x="925" y="165" width="28" height="10" fill="#5F6672" fill-opacity="0.35"/>
+<rect x="955" y="141" width="28" height="10" fill="#5F6672" fill-opacity="0.35"/>
+<rect x="955" y="153" width="28" height="10" fill="#5F6672" fill-opacity="0.35"/>
+<rect x="955" y="165" width="28" height="10" fill="#5F6672" fill-opacity="0.35"/>
+<rect x="985" y="141" width="28" height="10" fill="#5F6672" fill-opacity="0.35"/>
+<rect x="985" y="153" width="28" height="10" fill="#5F6672" fill-opacity="0.35"/>
+<rect x="985" y="165" width="28" height="10" fill="#5F6672" fill-opacity="0.35"/>
+<rect x="1015" y="141" width="28" height="10" fill="#5F6672" fill-opacity="0.35"/>
+<rect x="1015" y="153" width="28" height="10" fill="#5F6672" fill-opacity="0.35"/>
+<rect x="1015" y="165" width="28" height="10" fill="#5F6672" fill-opacity="0.35"/>
+<rect x="1045" y="141" width="28" height="10" fill="#5F6672" fill-opacity="0.35"/>
+<rect x="1045" y="153" width="28" height="10" fill="#5F6672" fill-opacity="0.35"/>
+<rect x="1045" y="165" width="28" height="10" fill="#5F6672" fill-opacity="0.35"/>
+<rect x="1075" y="141" width="28" height="10" fill="#5F6672" fill-opacity="0.35"/>
+<rect x="1075" y="153" width="28" height="10" fill="#5F6672" fill-opacity="0.35"/>
+<rect x="1075" y="165" width="28" height="10" fill="#5F6672" fill-opacity="0.35"/>
+<rect x="1105" y="141" width="28" height="10" fill="#5F6672" fill-opacity="0.35"/>
+<rect x="1105" y="153" width="28" height="10" fill="#5F6672" fill-opacity="0.35"/>
+<rect x="1105" y="165" width="28" height="10" fill="#5F6672" fill-opacity="0.35"/>
+<text x="789" y="200" font-size="20" font-weight="700" fill="#2340D8" text-anchor="middle">L_QUANTITY</text>
+<text x="632" y="226" font-size="22" fill="#15171C">Lee 1 de 16 columnas</text>
+<text x="24" y="280" font-size="22" fill="#15171C">SUM(L_QUANTITY)</text>
+<rect x="340" y="252" width="20" height="40" rx="2" fill="#2340D8"/>
+<text x="372" y="282" font-size="26" font-weight="700" fill="#2340D8">0.60 GB · 4.89 s</text>
+<text x="24" y="334" font-size="22" fill="#15171C">MAX(L_COMMENT)</text>
+<rect x="340" y="306" width="215" height="40" rx="2" fill="#5F6672"/>
+<text x="567" y="336" font-size="26" font-weight="700" fill="#15171C">6.37 GB · 10.53 s</text>
+<text x="24" y="388" font-size="22" fill="#15171C">SUM(HASH(*)), 16 columnas</text>
+<rect x="340" y="360" width="560" height="40" rx="2" fill="#2340D8"/>
+<text x="912" y="390" font-size="26" font-weight="700" fill="#2340D8">16.60 GB · 10.92 s</text>
+<text x="884" y="386" font-size="20" fill="#FFFFFF" text-anchor="end">WH 3.79 + QAS 12.82</text>
+<line x1="340" y1="412" x2="744" y2="412" stroke="#5F6672" stroke-width="2"/>
+<line x1="340" y1="406" x2="340" y2="418" stroke="#5F6672" stroke-width="2"/>
+<text x="340" y="436" font-size="20" fill="#3F4652" text-anchor="middle">0</text>
+<line x1="542" y1="406" x2="542" y2="418" stroke="#5F6672" stroke-width="2"/>
+<text x="542" y="436" font-size="20" fill="#3F4652" text-anchor="middle">6</text>
+<line x1="744" y1="406" x2="744" y2="418" stroke="#5F6672" stroke-width="2"/>
+<text x="744" y="436" font-size="20" fill="#3F4652" text-anchor="middle">12 GB</text>
+<rect x="24" y="440" width="1152" height="64" rx="0" fill="#F0EEE7"/>
+<rect x="24" y="440" width="6" height="64" fill="#5F6672"/>
+<text x="46" y="480" font-size="22" fill="#15171C">TPCH_SF100, X-Small, caché fría. WH: warehouse; QAS: escaneo fuera del warehouse.</text>
+</svg>

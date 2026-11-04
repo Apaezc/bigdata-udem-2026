@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 520" font-family="'Helvetica Neue', Arial, sans-serif">
+<title>Ocho micro-particiones con su rango de fechas: el filtro de un mes descarta siete y lee una; en SF1000 leyó 134 de 10 336.</title>
+<defs>
+<marker id="ar" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="14" refX="14" refY="7" orient="auto"><path d="M0,0 L14,7 L0,14 Z" fill="#15171C"/></marker>
+<marker id="arA" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="14" refX="14" refY="7" orient="auto"><path d="M0,0 L14,7 L0,14 Z" fill="#2340D8"/></marker>
+<marker id="arG" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="14" refX="14" refY="7" orient="auto"><path d="M0,0 L14,7 L0,14 Z" fill="#5F6672"/></marker>
+</defs>
+<rect x="24" y="16" width="1152" height="64" rx="0" fill="#F0EEE7"/>
+<rect x="24" y="16" width="6" height="64" fill="#2340D8"/>
+<text x="46" y="44" font-size="22" fill="#15171C">El orden de carga agrupa las fechas: cada micro-partición guarda</text>
+<text x="46" y="70" font-size="22" fill="#15171C">el rango de cada columna y el filtro salta las que no encajan.</text>
+<g><rect x="24" y="100" width="136" height="170" rx="10" fill="#FBFAF6" stroke="#8B919B" stroke-width="2" stroke-dasharray="6 4"/><text x="92" y="140" font-size="26" font-weight="700" fill="#4A5160" text-anchor="middle">MP 1</text><text x="92" y="182" font-size="20" fill="#4A5160" text-anchor="middle">min 1992-01</text><text x="92" y="210" font-size="20" fill="#4A5160" text-anchor="middle">max 1992-10</text><text x="92" y="246" font-size="20" fill="#3F4652" text-anchor="middle">L_SHIPDATE</text></g>
+<g><rect x="168" y="100" width="136" height="170" rx="10" fill="#FBFAF6" stroke="#8B919B" stroke-width="2" stroke-dasharray="6 4"/><text x="236" y="140" font-size="26" font-weight="700" fill="#4A5160" text-anchor="middle">MP 2</text><text x="236" y="182" font-size="20" fill="#4A5160" text-anchor="middle">min 1992-11</text><text x="236" y="210" font-size="20" fill="#4A5160" text-anchor="middle">max 1993-08</text><text x="236" y="246" font-size="20" fill="#3F4652" text-anchor="middle">L_SHIPDATE</text></g>
+<g><rect x="312" y="100" width="136" height="170" rx="10" fill="#FBFAF6" stroke="#8B919B" stroke-width="2" stroke-dasharray="6 4"/><text x="380" y="140" font-size="26" font-weight="700" fill="#4A5160" text-anchor="middle">MP 3</text><text x="380" y="182" font-size="20" fill="#4A5160" text-anchor="middle">min 1993-09</text><text x="380" y="210" font-size="20" fill="#4A5160" text-anchor="middle">max 1994-06</text><text x="380" y="246" font-size="20" fill="#3F4652" text-anchor="middle">L_SHIPDATE</text></g>
+<rect x="456" y="100" width="136" height="170" rx="10" fill="#F0EEE7" stroke="#2340D8" stroke-width="4"/><text x="524" y="140" font-size="26" font-weight="700" fill="#15171C" text-anchor="middle">MP 4</text><text x="524" y="182" font-size="20" fill="#15171C" text-anchor="middle">min 1994-07</text><text x="524" y="210" font-size="20" fill="#15171C" text-anchor="middle">max 1995-04</text><text x="524" y="246" font-size="20" fill="#3F4652" text-anchor="middle">L_SHIPDATE</text>
+<g><rect x="600" y="100" width="136" height="170" rx="10" fill="#FBFAF6" stroke="#8B919B" stroke-width="2" stroke-dasharray="6 4"/><text x="668" y="140" font-size="26" font-weight="700" fill="#4A5160" text-anchor="middle">MP 5</text><text x="668" y="182" font-size="20" fill="#4A5160" text-anchor="middle">min 1995-05</text><text x="668" y="210" font-size="20" fill="#4A5160" text-anchor="middle">max 1996-02</text><text x="668" y="246" font-size="20" fill="#3F4652" text-anchor="middle">L_SHIPDATE</text></g>
+<g><rect x="744" y="100" width="136" height="170" rx="10" fill="#FBFAF6" stroke="#8B919B" stroke-width="2" stroke-dasharray="6 4"/><text x="812" y="140" font-size="26" font-weight="700" fill="#4A5160" text-anchor="middle">MP 6</text><text x="812" y="182" font-size="20" fill="#4A5160" text-anchor="middle">min 1996-03</text><text x="812" y="210" font-size="20" fill="#4A5160" text-anchor="middle">max 1996-12</text><text x="812" y="246" font-size="20" fill="#3F4652" text-anchor="middle">L_SHIPDATE</text></g>
+<g><rect x="888" y="100" width="136" height="170" rx="10" fill="#FBFAF6" stroke="#8B919B" stroke-width="2" stroke-dasharray="6 4"/><text x="956" y="140" font-size="26" font-weight="700" fill="#4A5160" text-anchor="middle">MP 7</text><text x="956" y="182" font-size="20" fill="#4A5160" text-anchor="middle">min 1997-01</text><text x="956" y="210" font-size="20" fill="#4A5160" text-anchor="middle">max 1997-10</text><text x="956" y="246" font-size="20" fill="#3F4652" text-anchor="middle">L_SHIPDATE</text></g>
+<g><rect x="1032" y="100" width="136" height="170" rx="10" fill="#FBFAF6" stroke="#8B919B" stroke-width="2" stroke-dasharray="6 4"/><text x="1100" y="140" font-size="26" font-weight="700" fill="#4A5160" text-anchor="middle">MP 8</text><text x="1100" y="182" font-size="20" fill="#4A5160" text-anchor="middle">min 1997-11</text><text x="1100" y="210" font-size="20" fill="#4A5160" text-anchor="middle">max 1998-08</text><text x="1100" y="246" font-size="20" fill="#3F4652" text-anchor="middle">L_SHIPDATE</text></g>
+<rect x="320" y="330" width="560" height="40" rx="16" fill="#2340D8"/>
+<text x="600" y="358" font-size="22" font-weight="700" fill="#FFFFFF" text-anchor="middle">WHERE L_SHIPDATE en marzo de 1995</text>
+<line x1="345" y1="330" x2="92" y2="272" stroke="#5F6672" stroke-width="3" stroke-dasharray="8 6" marker-end="url(#arG)"/>
+<path d="M209.5,292 L227.5,310 M209.5,310 L227.5,292" stroke="#15171C" stroke-width="3.5" stroke-linecap="round" fill="none"/>
+<line x1="395" y1="330" x2="236" y2="272" stroke="#5F6672" stroke-width="3" stroke-dasharray="8 6" marker-end="url(#arG)"/>
+<path d="M306.5,292 L324.5,310 M306.5,310 L324.5,292" stroke="#15171C" stroke-width="3.5" stroke-linecap="round" fill="none"/>
+<line x1="445" y1="330" x2="380" y2="272" stroke="#5F6672" stroke-width="3" stroke-dasharray="8 6" marker-end="url(#arG)"/>
+<path d="M403.5,292 L421.5,310 M403.5,310 L421.5,292" stroke="#15171C" stroke-width="3.5" stroke-linecap="round" fill="none"/>
+<line x1="524" y1="330" x2="524" y2="272" stroke="#2340D8" stroke-width="4" marker-end="url(#arA)"/>
+<line x1="600" y1="330" x2="668" y2="272" stroke="#5F6672" stroke-width="3" stroke-dasharray="8 6" marker-end="url(#arG)"/>
+<path d="M625.0,292 L643.0,310 M625.0,310 L643.0,292" stroke="#15171C" stroke-width="3.5" stroke-linecap="round" fill="none"/>
+<line x1="660" y1="330" x2="812" y2="272" stroke="#5F6672" stroke-width="3" stroke-dasharray="8 6" marker-end="url(#arG)"/>
+<path d="M727.0,292 L745.0,310 M727.0,310 L745.0,292" stroke="#15171C" stroke-width="3.5" stroke-linecap="round" fill="none"/>
+<line x1="720" y1="330" x2="956" y2="272" stroke="#5F6672" stroke-width="3" stroke-dasharray="8 6" marker-end="url(#arG)"/>
+<path d="M829.0,292 L847.0,310 M829.0,310 L847.0,292" stroke="#15171C" stroke-width="3.5" stroke-linecap="round" fill="none"/>
+<line x1="780" y1="330" x2="1100" y2="272" stroke="#5F6672" stroke-width="3" stroke-dasharray="8 6" marker-end="url(#arG)"/>
+<path d="M931.0,292 L949.0,310 M931.0,310 L949.0,292" stroke="#15171C" stroke-width="3.5" stroke-linecap="round" fill="none"/>
+<text x="536" y="306" font-size="22" font-weight="700" fill="#2340D8">se lee</text>
+<text x="600" y="404" font-size="26" font-weight="700" text-anchor="middle" fill="#15171C"><tspan fill="#2340D8">134 de 10 336 micro-particiones</tspan><tspan font-size="22" font-weight="400" fill="#3F4652">  ·  </tspan><tspan>19.2 GB → 0.25 GB</tspan><tspan font-size="22" font-weight="400" fill="#3F4652">  ·  </tspan><tspan>6.0 s → 2.0 s</tspan></text>
+<text x="600" y="428" font-size="20" fill="#3F4652" text-anchor="middle">SF1000, X-Small, un mes de L_SHIPDATE. Sin filtro: 6.0 s, media de las ejecuciones 3 a 5; 19.2 GB</text>
+<rect x="24" y="440" width="1152" height="64" rx="0" fill="#F0EEE7"/>
+<rect x="24" y="440" width="6" height="64" fill="#5F6672"/>
+<text x="46" y="468" font-size="22" fill="#15171C">Límite: solo poda si las filas llegan ordenadas por esa columna. En L_SHIPDATE sí;</text>
+<text x="46" y="494" font-size="22" fill="#15171C">en L_QUANTITY cada micro-partición abarca casi todos los valores. Rangos ilustrativos.</text>
+</svg>
