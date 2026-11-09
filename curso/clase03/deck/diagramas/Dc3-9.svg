@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 520" font-family="Helvetica Neue, Arial, sans-serif">
+<title>El Code Editor entra a Snowflake con una llave y a GitHub con tu cuenta; make doctor comprueba Snowflake y AWS</title>
+<desc>El Code Editor guarda la llave privada y se conecta a Snowflake con ella; con gh se conecta a GitHub con tu cuenta; GitHub Actions entra a AWS con los secrets AWS_ROLE_ARN y TF_STATE_BUCKET; make doctor comprueba la conexión a Snowflake y la cuenta, el bucket y el rol de AWS.</desc>
+<defs><marker id="m_acento" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#2340D8"/></marker><marker id="m_gris" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#5F6672"/></marker></defs>
+<rect x="30" y="30" width="300" height="460" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+<text x="46" y="72" font-size="26" fill="#15171C" font-weight="700">Code Editor</text>
+<text x="46" y="106" font-size="22" fill="#5F6672">terminal y archivos</text>
+<text x="46" y="148" font-size="22" fill="#15171C">tu fork en ~/bigdata</text>
+<rect x="46" y="190" width="268" height="150" rx="6" fill="#DFE2F2" stroke="#2340D8" stroke-width="3"/>
+<text x="62" y="232" font-size="24" fill="#2340D8" font-weight="700">make doctor</text>
+<text x="62" y="268" font-size="22" fill="#15171C">comprueba la llave</text>
+<text x="62" y="298" font-size="22" fill="#15171C">y el acceso a AWS</text>
+<text x="46" y="428" font-size="22" fill="#15171C" font-weight="700">llave privada</text>
+<text x="46" y="460" font-size="22" fill="#5F6672">~/.snowflake/keys</text>
+<rect x="800" y="30" width="370" height="90" rx="6" fill="#FBFAF6" stroke="#5F6672" stroke-width="2"/>
+<text x="816" y="70" font-size="26" fill="#15171C" font-weight="700">GitHub</text>
+<text x="816" y="102" font-size="22" fill="#5F6672">tu fork y sus Actions</text>
+<rect x="800" y="215" width="370" height="90" rx="6" fill="#FBFAF6" stroke="#5F6672" stroke-width="2"/>
+<text x="816" y="255" font-size="26" fill="#15171C" font-weight="700">AWS</text>
+<text x="816" y="287" font-size="22" fill="#5F6672">rol y bucket de tu cuenta</text>
+<rect x="800" y="390" width="370" height="100" rx="6" fill="#FBFAF6" stroke="#5F6672" stroke-width="2"/>
+<text x="816" y="436" font-size="26" fill="#15171C" font-weight="700">Snowflake</text>
+<text x="816" y="468" font-size="22" fill="#5F6672">guarda la llave pública</text>
+<line x1="330" y1="75" x2="796" y2="75" stroke="#5F6672" stroke-width="2" marker-end="url(#m_gris)"/>
+<text x="563" y="60" font-size="22" fill="#15171C" text-anchor="middle">gh: tu cuenta de GitHub</text>
+<text x="563" y="106" font-size="22" fill="#5F6672" text-anchor="middle">make secrets los carga en tu fork</text>
+<line x1="985" y1="122" x2="985" y2="211" stroke="#5F6672" stroke-width="2" marker-end="url(#m_gris)"/>
+<text x="965" y="160" font-size="22" fill="#15171C" text-anchor="end">Actions entra a AWS con los secrets</text>
+<text x="965" y="190" font-size="22" fill="#5F6672" text-anchor="end">AWS_ROLE_ARN y TF_STATE_BUCKET</text>
+<line x1="314" y1="260" x2="796" y2="260" stroke="#2340D8" stroke-width="3" stroke-dasharray="10 6" marker-end="url(#m_acento)"/>
+<text x="555" y="246" font-size="22" fill="#2340D8" text-anchor="middle">cuenta, bucket y rol de Actions</text>
+<path d="M314,322 L740,322 L740,412 L796,412" fill="none" stroke="#2340D8" stroke-width="3" stroke-dasharray="10 6" marker-end="url(#m_acento)"/>
+<text x="527" y="308" font-size="22" fill="#2340D8" text-anchor="middle">snow connection test</text>
+<line x1="330" y1="465" x2="796" y2="465" stroke="#5F6672" stroke-width="2" marker-end="url(#m_gris)"/>
+<text x="563" y="450" font-size="22" fill="#15171C" text-anchor="middle">llave privada: no sale del Code Editor</text>
+<text x="563" y="496" font-size="22" fill="#5F6672" text-anchor="middle">la pública va a tu usuario de Snowflake</text>
+</svg>

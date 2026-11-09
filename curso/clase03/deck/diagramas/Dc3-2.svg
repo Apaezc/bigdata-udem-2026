@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 520" font-family="Helvetica Neue, Arial, sans-serif">
+<title>Las ocho tablas de TPC-H: qué son, qué contienen y cuántas filas</title>
+<desc>Cinco tablas unidas 1:N (REGION, NATION, CUSTOMER, ORDERS, LINEITEM) y tres que no se usan hoy o son opcionales (PART, SUPPLIER, PARTSUPP); cifras de SF1.</desc>
+<defs><marker id="m_acento" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#2340D8"/></marker><marker id="m_gris" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#5F6672"/></marker><marker id="m_ink" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#15171C"/></marker></defs>
+<rect x="30" y="34" width="208" height="250" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+<text x="40" y="66.8" font-size="24" fill="#15171C" font-weight="700">REGION</text>
+<text x="40" y="95.0" font-size="20" fill="#15171C">regiones del mundo</text>
+<text x="40" y="128.1" font-size="18" fill="#15171C">R_REGIONKEY</text>
+<text x="40" y="150.6" font-size="18" fill="#15171C">R_NAME</text>
+<text x="40" y="187.0" font-size="20" fill="#5F6672">5 filas</text>
+<line x1="241" y1="159" x2="260" y2="159" stroke="#15171C" stroke-width="3" marker-end="url(#m_ink)"/>
+<text x="250.5" y="24" font-size="20" fill="#15171C" font-weight="700" text-anchor="middle">1:N</text>
+<rect x="263" y="34" width="208" height="250" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+<text x="273" y="66.8" font-size="24" fill="#15171C" font-weight="700">NATION</text>
+<text x="273" y="95.0" font-size="20" fill="#15171C">naciones</text>
+<text x="273" y="128.1" font-size="18" fill="#15171C">N_NATIONKEY</text>
+<text x="273" y="150.6" font-size="18" fill="#15171C">N_NAME</text>
+<text x="273" y="173.1" font-size="18" fill="#15171C">N_REGIONKEY</text>
+<text x="273" y="209.5" font-size="20" fill="#5F6672">25 filas</text>
+<line x1="474" y1="159" x2="493" y2="159" stroke="#15171C" stroke-width="3" marker-end="url(#m_ink)"/>
+<text x="483.5" y="24" font-size="20" fill="#15171C" font-weight="700" text-anchor="middle">1:N</text>
+<rect x="496" y="34" width="208" height="250" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+<text x="506" y="66.8" font-size="24" fill="#15171C" font-weight="700">CUSTOMER</text>
+<text x="506" y="95.0" font-size="20" fill="#15171C">clientes</text>
+<text x="506" y="128.1" font-size="18" fill="#15171C">C_CUSTKEY</text>
+<text x="506" y="150.6" font-size="18" fill="#15171C">C_NAME</text>
+<text x="506" y="173.1" font-size="18" fill="#15171C">C_NATIONKEY</text>
+<text x="506" y="195.6" font-size="18" fill="#15171C">C_MKTSEGMENT</text>
+<text x="506" y="232.0" font-size="20" fill="#5F6672">150 000 filas</text>
+<line x1="707" y1="159" x2="726" y2="159" stroke="#15171C" stroke-width="3" marker-end="url(#m_ink)"/>
+<text x="716.5" y="24" font-size="20" fill="#15171C" font-weight="700" text-anchor="middle">1:N</text>
+<rect x="729" y="34" width="208" height="250" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+<text x="739" y="66.8" font-size="24" fill="#15171C" font-weight="700">ORDERS</text>
+<text x="739" y="95.0" font-size="20" fill="#15171C">pedidos</text>
+<text x="739" y="128.1" font-size="18" fill="#15171C">O_ORDERKEY</text>
+<text x="739" y="150.6" font-size="18" fill="#15171C">O_CUSTKEY</text>
+<text x="739" y="173.1" font-size="18" fill="#15171C">O_ORDERDATE</text>
+<text x="739" y="195.6" font-size="18" fill="#15171C">O_TOTALPRICE</text>
+<text x="739" y="232.0" font-size="20" fill="#5F6672">1 500 000 filas</text>
+<line x1="940" y1="159" x2="959" y2="159" stroke="#15171C" stroke-width="3" marker-end="url(#m_ink)"/>
+<text x="949.5" y="24" font-size="20" fill="#15171C" font-weight="700" text-anchor="middle">1:N</text>
+<rect x="962" y="34" width="208" height="250" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+<text x="972" y="66.8" font-size="24" fill="#15171C" font-weight="700">LINEITEM</text>
+<text x="972" y="95.0" font-size="20" fill="#15171C">líneas de pedido</text>
+<text x="972" y="128.1" font-size="18" fill="#15171C">L_ORDERKEY</text>
+<text x="972" y="150.6" font-size="18" fill="#15171C">L_PARTKEY</text>
+<text x="972" y="173.1" font-size="18" fill="#15171C">L_QUANTITY</text>
+<text x="972" y="195.6" font-size="18" fill="#15171C">L_EXTENDEDPRICE</text>
+<text x="972" y="232.0" font-size="20" fill="#5F6672">6 001 215 filas</text>
+<rect x="120" y="310" width="300" height="146" rx="6" fill="#F0EEE7" stroke="#2340D8" stroke-width="3" stroke-dasharray="8 6"/>
+<text x="132" y="342.9" font-size="22" fill="#5F6672" font-weight="700">PART</text>
+<text x="132" y="372.5" font-size="20" fill="#5F6672">piezas del catálogo · 200 000</text>
+<text x="132" y="397.5" font-size="20" fill="#5F6672">filas · opcional en el Lab 3C</text>
+<rect x="450" y="310" width="300" height="146" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2" stroke-dasharray="8 6"/>
+<text x="462" y="342.9" font-size="22" fill="#5F6672" font-weight="700">SUPPLIER</text>
+<text x="462" y="372.5" font-size="20" fill="#5F6672">proveedores · 10 000 filas ·</text>
+<text x="462" y="397.5" font-size="20" fill="#5F6672">no se usa hoy</text>
+<rect x="780" y="310" width="300" height="146" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2" stroke-dasharray="8 6"/>
+<text x="792" y="342.9" font-size="22" fill="#5F6672" font-weight="700">PARTSUPP</text>
+<text x="792" y="372.5" font-size="20" fill="#5F6672">qué proveedor ofrece qué</text>
+<text x="792" y="397.5" font-size="20" fill="#5F6672">parte · 800 000 filas · no se</text>
+<text x="792" y="422.5" font-size="20" fill="#5F6672">usa hoy</text>
+<text x="30" y="492" font-size="20" fill="#15171C">LINEITEM por escala: SF1 6 001 215 · SF10 59 986 052 · SF100 600 037 902</text>
+</svg>

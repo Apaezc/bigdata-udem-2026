@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 520" font-family="Helvetica Neue, Arial, sans-serif">
+<title>Normalizado: R_NAME vive en 5 filas de REGION y no en las 6 001 215 de LINEITEM</title>
+<desc>Cadena LINEITEM, ORDERS, CUSTOMER, NATION y REGION con sus llaves; el nombre de región vive en la última tabla.</desc>
+<defs><marker id="m_acento" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#2340D8"/></marker><marker id="m_gris" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#5F6672"/></marker><marker id="m_ink" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#15171C"/></marker></defs>
+<rect x="30" y="140" width="260" height="200" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+<text x="44" y="216.2" font-size="26" fill="#15171C" font-weight="700">LINEITEM</text>
+<text x="44" y="250.9" font-size="22" fill="#5F6672">6 001 215 filas</text>
+<text x="44" y="282.5" font-size="20" fill="#15171C">cantidad y precio</text>
+<rect x="325" y="140" width="230" height="200" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+<text x="339" y="216.2" font-size="26" fill="#15171C" font-weight="700">ORDERS</text>
+<text x="339" y="250.9" font-size="22" fill="#5F6672">1 500 000 filas</text>
+<text x="339" y="282.5" font-size="20" fill="#15171C">fecha y estado</text>
+<rect x="590" y="140" width="200" height="200" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+<text x="604" y="203.7" font-size="26" fill="#15171C" font-weight="700">CUSTOMER</text>
+<text x="604" y="238.4" font-size="22" fill="#5F6672">150 000 filas</text>
+<text x="604" y="270.0" font-size="20" fill="#15171C">nombre y</text>
+<text x="604" y="295.0" font-size="20" fill="#15171C">segmento</text>
+<rect x="825" y="140" width="170" height="200" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+<text x="839" y="216.2" font-size="26" fill="#15171C" font-weight="700">NATION</text>
+<text x="839" y="250.9" font-size="22" fill="#5F6672">25 filas</text>
+<text x="839" y="282.5" font-size="20" fill="#15171C">N_NAME</text>
+<rect x="1030" y="140" width="140" height="200" rx="6" fill="#DFE2F2" stroke="#2340D8" stroke-width="3"/>
+<text x="1044" y="216.2" font-size="26" fill="#2340D8" font-weight="700">REGION</text>
+<text x="1044" y="250.9" font-size="22" fill="#5F6672">5 filas</text>
+<text x="1044" y="282.5" font-size="20" fill="#15171C">R_NAME</text>
+<line x1="294" y1="240" x2="321" y2="240" stroke="#5F6672" stroke-width="2" marker-end="url(#m_gris)"/>
+<text x="307.5" y="128" font-size="20" fill="#15171C" text-anchor="middle">L_ORDERKEY</text>
+<line x1="559" y1="240" x2="586" y2="240" stroke="#5F6672" stroke-width="2" marker-end="url(#m_gris)"/>
+<text x="572.5" y="128" font-size="20" fill="#15171C" text-anchor="middle">O_CUSTKEY</text>
+<line x1="794" y1="240" x2="821" y2="240" stroke="#5F6672" stroke-width="2" marker-end="url(#m_gris)"/>
+<text x="807.5" y="128" font-size="20" fill="#15171C" text-anchor="middle">C_NATIONKEY</text>
+<line x1="999" y1="240" x2="1026" y2="240" stroke="#5F6672" stroke-width="2" marker-end="url(#m_gris)"/>
+<text x="1012.5" y="128" font-size="20" fill="#15171C" text-anchor="middle">N_REGIONKEY</text>
+<text x="1170" y="374" font-size="20" fill="#2340D8" font-weight="700" text-anchor="end">R_NAME vive aquí: 5 filas</text>
+<text x="30" y="430" font-size="22" fill="#5F6672">Si R_NAME estuviera en cada línea: 6 001 215 copias</text>
+</svg>
