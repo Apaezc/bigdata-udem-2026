@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 520" font-family="Helvetica Neue, Arial, sans-serif">
+<title>FACT_LINEITEM al centro de tres dimensiones</title>
+<desc>Una fila de hechos por línea de pedido, con las llaves a tres dimensiones; DIM_PRODUCTO es opcional.</desc>
+<defs><marker id="m_acento" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#2340D8"/></marker><marker id="m_gris" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#5F6672"/></marker><marker id="m_ink" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#15171C"/></marker></defs>
+<rect x="400" y="60" width="400" height="290" rx="6" fill="#F0EEE7" stroke="#2340D8" stroke-width="4"/>
+<text x="414" y="99.3" font-size="24" fill="#15171C" font-weight="700">FACT_LINEITEM · 6 001 215</text>
+<text x="414" y="129.3" font-size="24" fill="#15171C" font-weight="700">filas</text>
+<text x="414" y="165.5" font-size="20" fill="#15171C">Grano: una línea de pedido</text>
+<text x="414" y="196.5" font-size="20" fill="#15171C">Llaves: L_ORDERKEY,</text>
+<text x="414" y="221.5" font-size="20" fill="#15171C">L_LINENUMBER, CLIENTE_KEY,</text>
+<text x="414" y="246.5" font-size="20" fill="#15171C">FECHA, PRODUCTO_KEY</text>
+<text x="414" y="277.5" font-size="20" fill="#15171C">Medidas: L_QUANTITY,</text>
+<text x="414" y="302.5" font-size="20" fill="#15171C">L_EXTENDEDPRICE, L_DISCOUNT,</text>
+<text x="414" y="327.5" font-size="20" fill="#15171C">INGRESO</text>
+<rect x="24" y="95" width="210" height="220" rx="6" fill="#FBFAF6" stroke="#5F6672" stroke-width="2"/>
+<text x="34" y="157.2" font-size="22" fill="#15171C" font-weight="700">DIM_CLIENTE</text>
+<text x="34" y="186.8" font-size="20" fill="#5F6672">150 000 filas</text>
+<text x="34" y="217.8" font-size="20" fill="#15171C">C_NAME,</text>
+<text x="34" y="242.8" font-size="20" fill="#15171C">C_MKTSEGMENT,</text>
+<text x="34" y="267.8" font-size="20" fill="#15171C">N_NAME, R_NAME</text>
+<rect x="970" y="110" width="206" height="190" rx="6" fill="#FBFAF6" stroke="#5F6672" stroke-width="2"/>
+<text x="982" y="169.7" font-size="22" fill="#15171C" font-weight="700">DIM_FECHA</text>
+<text x="982" y="199.2" font-size="20" fill="#5F6672">2 406 filas</text>
+<text x="982" y="230.2" font-size="20" fill="#15171C">FECHA, ANIO,</text>
+<text x="982" y="255.2" font-size="20" fill="#15171C">MES</text>
+<line x1="234" y1="205" x2="400" y2="205" stroke="#5F6672" stroke-width="2"/>
+<line x1="800" y1="205" x2="970" y2="205" stroke="#5F6672" stroke-width="2"/>
+<text x="317" y="191" font-size="20" fill="#15171C" text-anchor="middle">CLIENTE_KEY</text>
+<text x="885" y="191" font-size="20" fill="#15171C" text-anchor="middle">FECHA</text>
+<line x1="600" y1="350" x2="600" y2="392" stroke="#5F6672" stroke-width="2" stroke-dasharray="8 6"/>
+<text x="614" y="378" font-size="20" fill="#15171C">PRODUCTO_KEY</text>
+<rect x="400" y="392" width="400" height="112" rx="6" fill="#FBFAF6" stroke="#5F6672" stroke-width="2" stroke-dasharray="8 6"/>
+<text x="410" y="428.1" font-size="22" fill="#5F6672" font-weight="700">DIM_PRODUCTO</text>
+<text x="410" y="457.8" font-size="20" fill="#5F6672">200 000 filas · P_NAME, P_BRAND,</text>
+<text x="410" y="482.8" font-size="20" fill="#5F6672">P_TYPE · opcional</text>
+</svg>

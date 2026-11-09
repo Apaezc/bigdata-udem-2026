@@ -450,7 +450,9 @@ Cuando la hayas ejecutado, pulsa Enter para probar la conexión...
 <a id="paso-8"></a>
 ### Paso 8 de 14 · Ejecuta `make setup`
 
-💻 **Terminal del Code Editor** <!-- AUTOR: añadir tiempo estimado del paso 8; no consta en el original -->
+💻 **Terminal del Code Editor**
+
+**Tiempo:** unos 21 s medidos en una cuenta ya configurada (con el correo y la configuración nuevas, la primera vez puede tardar más).
 
 1. Ejecuta `make setup`:
    ```bash
@@ -462,7 +464,7 @@ Cuando la hayas ejecutado, pulsa Enter para probar la conexión...
 > [!NOTE]
 > **Terraform** es la herramienta que crea recursos en la nube desde archivos de configuración. La configuración se guarda en un **bucket**: la carpeta de nivel superior de S3, el servicio de AWS para guardar archivos. Qué hace `make setup`: [detalle](referencia.md#make-setup).
 
-En la salida puede aparecer una línea `AVISO` sobre `gh`: es normal la primera vez y se resuelve en el [Paso 9](#paso-9).
+En la salida puede aparecer una línea `AVISO` sobre `gh`: es normal la primera vez y se resuelve en el [Paso 9](#paso-9). Si `gh` ya está autenticado en tu Code Editor, no hay `AVISO`: `make setup` carga los secrets del fork en este mismo paso.
 
 **✅ Debes ver:** una salida como esta (la primera vez; tu cuenta y tu correo serán otros):
 ```text
@@ -475,6 +477,15 @@ En la salida puede aparecer una línea `AVISO` sobre `gh`: es normal la primera 
 Correo para las alertas de presupuesto (alert_email): jperez@gmail.com
 ==> Configuración creada en S3 (enable_glue=true, enable_airflow=false).
 AVISO: Falta autenticar gh para cargar los secrets del fork: 'gh auth login --web' y luego 'make secrets'.
+==> Setup completado. Siguiente paso: make doctor
+```
+
+Si `gh` ya estaba autenticado, la salida cambia al final: en lugar del `AVISO`, `make setup` ejecuta `make secrets` y muestra esto antes de `Setup completado` (el número depende de cuántos secrets de Actions tenga tu fork; ver la nota del [Paso 9](#paso-9-3)):
+```text
+==> Cargando secrets en <TU_USUARIO>/<TU_FORK>
+✓ Set Actions secret AWS_ROLE_ARN for <TU_USUARIO>/<TU_FORK>
+✓ Set Actions secret TF_STATE_BUCKET for <TU_USUARIO>/<TU_FORK>
+==> Secrets listos: AWS_ROLE_ARN y TF_STATE_BUCKET (3 en total).
 ==> Setup completado. Siguiente paso: make doctor
 ```
 
@@ -538,7 +549,7 @@ Press Enter to open https://github.com/login/device in your browser...
    ```
 
 > [!NOTE]
-> Las líneas `[INFO]` son informativas. Lo importante es la última línea.
+> Las líneas `[INFO]` son informativas. Lo importante es la última línea. El número entre paréntesis de `Secrets listos` es el total de secrets de Actions que tiene tu fork (`gh secret list`), no solo los dos que carga el script: con otros secrets previos verás 3 o más.
 
 **✅ Debes ver:** la salida de `make secrets` (si lo ejecutaste) y de `make doctor`; la última línea es `==> Diagnóstico sin fallos` (versiones, cuenta y usuario serán los tuyos):
 ```text
@@ -562,6 +573,8 @@ Press Enter to open https://github.com/login/device in your browser...
 ==> Estado OIDC para GitHub Actions
 [INFO]   No se puede listar el proveedor OIDC con este rol (normal en Code Editor)
 [OK]     Rol bigdata-github-actions existe
+[INFO]   Verifica también el secret AWS_ROLE_ARN del fork (Settings -> Secrets and variables -> Actions).
+[INFO]   Si OIDC falla en CI, ejecuta el workflow 'Debug OIDC' para ver el claim sub real.
 
 ==> Diagnóstico sin fallos
 ```

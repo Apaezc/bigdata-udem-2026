@@ -390,7 +390,10 @@ TAB_TAM, TAB_TAM_MIN, TAB_PASO = 22, TAM_CUERPO_MIN, 2
 
 def ancho_texto(texto, size, mono=False):
     """Estimación del ancho en px de un texto sin cortes (mono 0.6 em, sans 0.55 em por carácter)."""
-    return len(texto) * size * (0.6 if mono else 0.55)
+    if mono:
+        return len(texto) * size * 0.6
+    # Las mayúsculas (EUROPE, CUSTOMER) son más anchas que el promedio de 0.55 em.
+    return sum(0.68 if c.isupper() else 0.55 for c in texto) * size
 
 
 def anchos_proporcionales(pesos, total, minimo=ANCHO_MIN_COL):
@@ -612,7 +615,8 @@ def L_comparacion(s, n, ctx):
 SQL_KW = set(
     """select from where group by order having join left right inner outer full cross on as
 create or replace table view insert into values update set delete and not null is in case when then
-else end limit distinct union all with using over partition desc asc between like exists""".split()
+else end limit distinct union all with using over partition desc asc between like exists
+qualify rows range preceding following unbounded current row""".split()
 )
 
 

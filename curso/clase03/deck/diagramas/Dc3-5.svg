@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 520" font-family="Helvetica Neue, Arial, sans-serif">
+<title>Copo de nieve frente a estrella: tres uniones contra una</title>
+<desc>Dos formas de la dimensión de cliente: en copo de nieve cada nombre vive en su tabla; en estrella, una sola dimensión desnormalizada.</desc>
+<defs><marker id="m_acento" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#2340D8"/></marker><marker id="m_gris" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#5F6672"/></marker><marker id="m_ink" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#15171C"/></marker></defs>
+<rect x="30" y="60" width="540" height="390" rx="0" fill="#F0EEE7"/>
+<rect x="630" y="60" width="540" height="390" rx="0" fill="#F0EEE7"/>
+<line x1="600" y1="60" x2="600" y2="450" stroke="#5F6672" stroke-width="1.5"/>
+<text x="300" y="100" font-size="24" fill="#15171C" font-weight="700" text-anchor="middle">Copo de nieve</text>
+<rect x="150" y="116" width="300" height="44" rx="6" fill="#FBFAF6" stroke="#5F6672" stroke-width="2"/>
+<text x="300.0" y="145.2" font-size="22" fill="#15171C" text-anchor="middle">FACT_LINEITEM</text>
+<line x1="300" y1="163" x2="300" y2="181" stroke="#5F6672" stroke-width="2" marker-end="url(#m_gris)"/>
+<rect x="150" y="184" width="300" height="44" rx="6" fill="#FBFAF6" stroke="#5F6672" stroke-width="2"/>
+<text x="300.0" y="213.2" font-size="22" fill="#15171C" text-anchor="middle">CUSTOMER (150 000)</text>
+<line x1="300" y1="231" x2="300" y2="249" stroke="#5F6672" stroke-width="2" marker-end="url(#m_gris)"/>
+<rect x="150" y="252" width="300" height="44" rx="6" fill="#FBFAF6" stroke="#5F6672" stroke-width="2"/>
+<text x="300.0" y="281.1" font-size="22" fill="#15171C" text-anchor="middle">NATION (25)</text>
+<line x1="300" y1="299" x2="300" y2="317" stroke="#5F6672" stroke-width="2" marker-end="url(#m_gris)"/>
+<rect x="150" y="320" width="300" height="44" rx="6" fill="#FBFAF6" stroke="#5F6672" stroke-width="2"/>
+<text x="300.0" y="349.1" font-size="22" fill="#15171C" text-anchor="middle">REGION (5)</text>
+<text x="300" y="392" font-size="22" fill="#15171C" text-anchor="middle">3 uniones desde el hecho · cada nombre en</text>
+<text x="300" y="419.5" font-size="22" fill="#15171C" text-anchor="middle">una sola tabla</text>
+<text x="900" y="100" font-size="24" fill="#15171C" font-weight="700" text-anchor="middle">Estrella</text>
+<rect x="720" y="116" width="360" height="44" rx="6" fill="#FBFAF6" stroke="#5F6672" stroke-width="2"/>
+<text x="900.0" y="145.2" font-size="22" fill="#15171C" text-anchor="middle">FACT_LINEITEM</text>
+<line x1="900" y1="163" x2="900" y2="187" stroke="#5F6672" stroke-width="2" marker-end="url(#m_gris)"/>
+<rect x="720" y="190" width="360" height="162" rx="6" fill="#FBFAF6" stroke="#2340D8" stroke-width="3"/>
+<text x="900.0" y="229.6" font-size="24" fill="#2340D8" font-weight="700" text-anchor="middle">DIM_CLIENTE</text>
+<text x="900.0" y="263.6" font-size="22" fill="#15171C" text-anchor="middle">C_NAME, C_MKTSEGMENT,</text>
+<text x="900.0" y="291.1" font-size="22" fill="#15171C" text-anchor="middle">N_NAME, R_NAME</text>
+<text x="900.0" y="328.6" font-size="22" fill="#15171C" font-weight="700" text-anchor="middle">1 unión con FACT_LINEITEM</text>
+<text x="900" y="392" font-size="22" fill="#15171C" text-anchor="middle">+7.0 % al repetir N_NAME y R_NAME en una</text>
+<text x="900" y="419.5" font-size="22" fill="#15171C" text-anchor="middle">dimensión con todas las columnas (SF10)</text>
+<text x="600" y="494" font-size="20" fill="#5F6672" text-anchor="middle">Ambos usan FACT_LINEITEM con O_CUSTKEY copiado: +6.2 % de espacio (88 MB) en el hecho.</text>
+</svg>
