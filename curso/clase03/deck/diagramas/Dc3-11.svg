@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 520" font-family="Helvetica Neue, Arial, sans-serif">
+<title>Unir primero o agregar primero: dos consultas y sus resultados</title>
+<desc>A la izquierda la consulta que une ORDERS con LINEITEM y suma: 1 134.4 mil millones en SF1 y 60 M de filas en el Join en SF10. A la derecha la que agrega las líneas en una CTE antes de unir: 226.8 mil millones, exacto, y 15 M de filas en el Join. La ejecución no cambia.</desc>
+<defs><marker id="m_acento" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#2340D8"/></marker><marker id="m_gris" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#5F6672"/></marker><marker id="m_ink" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#15171C"/></marker></defs>
+<text x="46" y="34" font-size="24" fill="#15171C" font-weight="700">Unir primero</text>
+<text x="626" y="34" font-size="24" fill="#2340D8" font-weight="700">Agregar primero, en una CTE</text>
+<rect x="30" y="48" width="560" height="318" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+<text x="46" y="82" font-size="20" fill="#15171C" font-family="JetBrains Mono, Menlo, Consolas, monospace" xml:space="preserve">SELECT O.O_CUSTKEY,</text>
+<text x="46" y="109" font-size="20" fill="#15171C" font-family="JetBrains Mono, Menlo, Consolas, monospace" xml:space="preserve">       SUM(L.L_EXTENDEDPRICE),</text>
+<text x="46" y="136" font-size="20" fill="#15171C" font-family="JetBrains Mono, Menlo, Consolas, monospace" xml:space="preserve">       SUM(O.O_TOTALPRICE)</text>
+<text x="46" y="163" font-size="20" fill="#15171C" font-family="JetBrains Mono, Menlo, Consolas, monospace" xml:space="preserve">FROM ORDERS O</text>
+<text x="46" y="190" font-size="20" fill="#15171C" font-family="JetBrains Mono, Menlo, Consolas, monospace" xml:space="preserve">JOIN LINEITEM L</text>
+<text x="46" y="217" font-size="20" fill="#15171C" font-family="JetBrains Mono, Menlo, Consolas, monospace" xml:space="preserve">  ON O.O_ORDERKEY = L.L_ORDERKEY</text>
+<text x="46" y="244" font-size="20" fill="#15171C" font-family="JetBrains Mono, Menlo, Consolas, monospace" xml:space="preserve">GROUP BY O.O_CUSTKEY;</text>
+<rect x="610" y="48" width="560" height="318" rx="6" fill="#F0EEE7" stroke="#2340D8" stroke-width="3"/>
+<rect x="613" y="54" width="554" height="147" rx="0" fill="#DFE2F2"/>
+<text x="626" y="82" font-size="20" fill="#15171C" font-family="JetBrains Mono, Menlo, Consolas, monospace" xml:space="preserve">WITH L AS (</text>
+<text x="626" y="109" font-size="20" fill="#15171C" font-family="JetBrains Mono, Menlo, Consolas, monospace" xml:space="preserve">  SELECT L_ORDERKEY,</text>
+<text x="626" y="136" font-size="20" fill="#15171C" font-family="JetBrains Mono, Menlo, Consolas, monospace" xml:space="preserve">         SUM(L_EXTENDEDPRICE) AS S_LINEAS</text>
+<text x="626" y="163" font-size="20" fill="#15171C" font-family="JetBrains Mono, Menlo, Consolas, monospace" xml:space="preserve">  FROM LINEITEM</text>
+<text x="626" y="190" font-size="20" fill="#15171C" font-family="JetBrains Mono, Menlo, Consolas, monospace" xml:space="preserve">  GROUP BY L_ORDERKEY)</text>
+<text x="626" y="217" font-size="20" fill="#15171C" font-family="JetBrains Mono, Menlo, Consolas, monospace" xml:space="preserve">SELECT O.O_CUSTKEY, SUM(L.S_LINEAS),</text>
+<text x="626" y="244" font-size="20" fill="#15171C" font-family="JetBrains Mono, Menlo, Consolas, monospace" xml:space="preserve">       SUM(O.O_TOTALPRICE)</text>
+<text x="626" y="271" font-size="20" fill="#15171C" font-family="JetBrains Mono, Menlo, Consolas, monospace" xml:space="preserve">FROM L JOIN ORDERS O</text>
+<text x="626" y="298" font-size="20" fill="#15171C" font-family="JetBrains Mono, Menlo, Consolas, monospace" xml:space="preserve">  ON O.O_ORDERKEY = L.L_ORDERKEY</text>
+<text x="626" y="325" font-size="20" fill="#15171C" font-family="JetBrains Mono, Menlo, Consolas, monospace" xml:space="preserve">GROUP BY O.O_CUSTKEY;</text>
+<text x="46" y="306" font-size="20" fill="#5F6672" font-weight="700">Cada pedido llega repetido</text>
+<text x="46" y="333" font-size="20" fill="#5F6672" font-weight="700">tantas veces como líneas tiene.</text>
+<text x="46" y="408" font-size="20" fill="#5F6672">Total, SF1</text>
+<text x="260" y="408" font-size="20" fill="#15171C" font-weight="700">1 134.4 mil millones (× 5.0)</text>
+<text x="626" y="408" font-size="20" fill="#5F6672">Total, SF1</text>
+<text x="840" y="408" font-size="20" fill="#2340D8" font-weight="700">226.8 mil millones, exacto</text>
+<text x="46" y="448" font-size="20" fill="#5F6672">Filas del Join, SF10</text>
+<text x="260" y="448" font-size="20" fill="#15171C" font-weight="700">60 M</text>
+<text x="626" y="448" font-size="20" fill="#5F6672">Filas del Join, SF10</text>
+<text x="840" y="448" font-size="20" fill="#2340D8" font-weight="700">15 M</text>
+<text x="46" y="488" font-size="20" fill="#5F6672">Ejecución, SF10</text>
+<text x="260" y="488" font-size="20" fill="#15171C" font-weight="700">0.9–1.3 s</text>
+<text x="626" y="488" font-size="20" fill="#5F6672">Ejecución, SF10</text>
+<text x="840" y="488" font-size="20" fill="#2340D8" font-weight="700">1.1–1.2 s</text>
+<line x1="46" y1="380" x2="574" y2="380" stroke="#D9D6CC" stroke-width="1.5"/>
+<line x1="626" y1="380" x2="1154" y2="380" stroke="#D9D6CC" stroke-width="1.5"/>
+</svg>

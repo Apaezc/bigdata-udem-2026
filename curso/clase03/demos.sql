@@ -714,7 +714,8 @@ ORDER BY 1;
 --   tiempo es CreateTableAsSelect. Aquí se repiten dos cargas con la marca en el esquema
 --   CURSO.DEMO3 (en el lab, el esquema es CURSO.LAB3C).
 -- Resultado esperado (lab3c_solucion.sql, X-Small): FACT_LINEITEM primero, unos 2 s; el resto,
---   entre 0.5 y 1.5 s. En su perfil, CreateTableAsSelect entre 93 y 98 % del tiempo.
+--   entre 0.5 y 1.5 s. En su perfil, CreateTableAsSelect entre 71 y 98 % del tiempo
+--   (rango medido en varias corridas; evidencia.sql, bloque 35).
 -- =====================================================================
 USE SCHEMA CURSO.DEMO3;
 ALTER SESSION SET QUERY_TAG = 'LAB3C';

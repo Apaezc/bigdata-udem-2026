@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 520" font-family="Helvetica Neue, Arial, sans-serif">
+<title>Un JOIN sin error repite el total de cada pedido en cada una de sus líneas</title>
+<desc>A la izquierda una consulta que une ORDERS con LINEITEM y no da error; a la derecha el pedido 1066817 con sus cuatro líneas: O_TOTALPRICE, 144 930.46, aparece cuatro veces y la suma da 579 721.84. En todo SF1 la suma pasa de 226.8 a 1 134.4 mil millones.</desc>
+<defs><marker id="m_acento" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#2340D8"/></marker><marker id="m_gris" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#5F6672"/></marker><marker id="m_ink" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#15171C"/></marker></defs>
+<rect x="30" y="30" width="470" height="320" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+<text x="46" y="66" font-size="22" fill="#15171C" font-weight="700">La consulta</text>
+<text x="46" y="108" font-size="20" fill="#15171C" font-family="JetBrains Mono, Menlo, Consolas, monospace" xml:space="preserve">SELECT SUM(O.O_TOTALPRICE)</text>
+<text x="46" y="135" font-size="20" fill="#15171C" font-family="JetBrains Mono, Menlo, Consolas, monospace" xml:space="preserve">FROM ORDERS O</text>
+<text x="46" y="162" font-size="20" fill="#15171C" font-family="JetBrains Mono, Menlo, Consolas, monospace" xml:space="preserve">JOIN LINEITEM L</text>
+<text x="46" y="189" font-size="20" fill="#15171C" font-family="JetBrains Mono, Menlo, Consolas, monospace" xml:space="preserve">  ON O.O_ORDERKEY = L.L_ORDERKEY;</text>
+<rect x="46" y="238" width="438" height="1.5" rx="0" fill="#D9D6CC"/>
+<text x="46" y="282" font-size="30" fill="#2340D8" font-weight="700">Sin error</text>
+<text x="46" y="320" font-size="20" fill="#5F6672">Termina en 0.2 s, sin ningún aviso</text>
+<line x1="512" y1="190" x2="568" y2="190" stroke="#2340D8" stroke-width="4" marker-end="url(#m_acento)"/>
+<rect x="580" y="30" width="590" height="320" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+<text x="596" y="66" font-size="22" fill="#15171C" font-weight="700">Pedido 1066817: sus 4 líneas tras el JOIN</text>
+<rect x="596" y="84" width="558" height="40" rx="0" fill="#D9D6CC" stroke="#5F6672" stroke-width="1.5"/>
+<text x="641.0" y="111" font-size="20" fill="#15171C" font-weight="700" text-anchor="middle">Línea</text>
+<text x="804.0" y="111" font-size="20" fill="#15171C" font-weight="700" text-anchor="middle">Total del pedido</text>
+<text x="1038.0" y="111" font-size="20" fill="#15171C" font-weight="700" text-anchor="middle">Precio de la línea</text>
+<rect x="596" y="124" width="558" height="38" rx="0" fill="#FBFAF6" stroke="#5F6672" stroke-width="1.5"/>
+<text x="641.0" y="150" font-size="20" fill="#15171C" text-anchor="middle">1</text>
+<text x="804.0" y="150" font-size="20" fill="#2340D8" font-weight="700" text-anchor="middle">144 930.46</text>
+<text x="1038.0" y="150" font-size="20" fill="#15171C" text-anchor="middle">30 964.08</text>
+<rect x="596" y="162" width="558" height="38" rx="0" fill="#FBFAF6" stroke="#5F6672" stroke-width="1.5"/>
+<text x="641.0" y="188" font-size="20" fill="#15171C" text-anchor="middle">2</text>
+<text x="804.0" y="188" font-size="20" fill="#2340D8" font-weight="700" text-anchor="middle">144 930.46</text>
+<text x="1038.0" y="188" font-size="20" fill="#15171C" text-anchor="middle">25 868.64</text>
+<rect x="596" y="200" width="558" height="38" rx="0" fill="#FBFAF6" stroke="#5F6672" stroke-width="1.5"/>
+<text x="641.0" y="226" font-size="20" fill="#15171C" text-anchor="middle">3</text>
+<text x="804.0" y="226" font-size="20" fill="#2340D8" font-weight="700" text-anchor="middle">144 930.46</text>
+<text x="1038.0" y="226" font-size="20" fill="#15171C" text-anchor="middle">41 592.32</text>
+<rect x="596" y="238" width="558" height="38" rx="0" fill="#FBFAF6" stroke="#5F6672" stroke-width="1.5"/>
+<text x="641.0" y="264" font-size="20" fill="#15171C" text-anchor="middle">4</text>
+<text x="804.0" y="264" font-size="20" fill="#2340D8" font-weight="700" text-anchor="middle">144 930.46</text>
+<text x="1038.0" y="264" font-size="20" fill="#15171C" text-anchor="middle">48 703.98</text>
+<rect x="596" y="276" width="558" height="46" rx="0" fill="#DFE2F2" stroke="#2340D8" stroke-width="2"/>
+<text x="641.0" y="307" font-size="20" fill="#15171C" font-weight="700" text-anchor="middle">Suma</text>
+<text x="804.0" y="307" font-size="20" fill="#2340D8" font-weight="700" text-anchor="middle">579 721.84 (× 4)</text>
+<text x="1038.0" y="307" font-size="20" fill="#5F6672" text-anchor="middle">real: 144 930.46</text>
+<line x1="686" y1="84" x2="686" y2="276" stroke="#5F6672" stroke-width="1.5"/>
+<line x1="922" y1="84" x2="922" y2="276" stroke="#5F6672" stroke-width="1.5"/>
+<rect x="30" y="378" width="1140" height="112" rx="6" fill="#FBFAF6" stroke="#2340D8" stroke-width="3"/>
+<text x="600" y="430" font-size="32" fill="#2340D8" font-weight="700" text-anchor="middle">En todo SF1: 226.8 → 1 134.4 mil millones (× 5.0)</text>
+<text x="600" y="466" font-size="20" fill="#5F6672" text-anchor="middle">Las filas pasan de 1 500 000 a 6 001 215 (× 4.0); unidades monetarias de TPC-H.</text>
+</svg>

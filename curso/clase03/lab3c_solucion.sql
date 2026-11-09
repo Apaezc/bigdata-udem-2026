@@ -120,8 +120,8 @@ ORDER BY SEGUNDOS DESC, PASO;
 
 -- Paso más caro: FACT_LINEITEM, unos 2 s en X-Small (3 corridas de prueba, 8 nov. 2026: 2.0 s);
 --   los demás pasos tardan entre 0.5 y 1.5 s.
--- Operador que concentra el tiempo: CreateTableAsSelect, entre 93 y 98 % del tiempo de ejecución
---   (3 de 3 corridas de prueba): es la escritura de las 6001215 filas del hecho. El Join pesa
+-- Operador que concentra el tiempo: CreateTableAsSelect, entre 71 y 98 % del tiempo de ejecución
+--   (8 nov.: 93 a 98 % en 3 corridas; 9 nov.: 71 % y 92 %; evidencia.sql, bloque 35): es la escritura de las 6001215 filas del hecho. El Join pesa
 --   entre 0 y 5 % y los dos TableScan casi nada.
 -- Decisión (una respuesta defendible; otras también valen si se apoyan en el perfil): dejarlo
 --   así. El hecho se carga una vez y el costo está en escribir, no en unir. Para cargas
