@@ -43,6 +43,8 @@ Siempre `cd ~/bigdata` antes de cada `make`: fuera de esa carpeta aparece `No ru
 
 **Guion de demos** ([`demos.sql`](demos.sql)): una demo por consulta de las slides (2, 3, 5 a 11, 18 a 22, 24 a 34, 36, 37 y, para la 35, el perfil de la carga del Lab 3C), con el número de slide y el resultado esperado de cada una. Las demos 0, 22 y 23 (SCD tipo 1 y tipo 2, slides 33 y 34) usan la estrella que deja lista la demo 0 en `CURSO.DEMO3`. Para borrar los objetos de las demos: ver el final del archivo.
 
+**Evidencia de las slides** ([`evidencia.sql`](evidencia.sql)): para cada afirmación del deck, las consultas paso a paso que llevan a la cifra y el resultado esperado, ordenadas por número de slide; se pega en una hoja de Snowsight y crea y borra su propia base `CURSO_EVIDENCIA_C3`.
+
 ## Presentación
 
 - **Presentación** ([`deck/slides.pdf`](deck/slides.pdf)): 38 slides, 240 min. Orden del día: Lab 3A, parada AWS (sección 2), descanso de 20 min, Lab 3B, Lab 3C, controles, caso de NYC y cierre.

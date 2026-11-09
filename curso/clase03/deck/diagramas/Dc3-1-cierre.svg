@@ -14,9 +14,9 @@
 <text x="448" y="139.4" font-size="26" fill="#15171C" font-weight="700">sin errores</text>
 <text x="448" y="180.2" font-size="22" fill="#15171C" font-weight="700">Quedó:</text>
 <text x="448" y="209.7" font-size="22" fill="#15171C">filtrar sin anidar; pasos con</text>
-<text x="448" y="237.2" font-size="22" fill="#15171C">nombre; promedio</text>
-<text x="448" y="264.6" font-size="22" fill="#15171C">ponderado (SUM / SUM)</text>
-<text x="448" y="292.1" font-size="22" fill="#15171C">151 219.54, igual al directo</text>
+<text x="448" y="237.2" font-size="22" fill="#15171C">nombre; agregar antes de</text>
+<text x="448" y="264.6" font-size="22" fill="#15171C">unir (sin el 5×); promedio</text>
+<text x="448" y="292.1" font-size="22" fill="#15171C">ponderado 151 219.54</text>
 <text x="448" y="331.8" font-size="20" fill="#5F6672">Slides 18-22 · Lab 3B</text>
 <rect x="820" y="60" width="340" height="300" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
 <text x="838" y="120.7" font-size="26" fill="#15171C" font-weight="700">3 · Guardar para que el</text>

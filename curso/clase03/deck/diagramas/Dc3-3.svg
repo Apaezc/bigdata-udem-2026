@@ -1,10 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 520" font-family="Helvetica Neue, Arial, sans-serif">
-<title>ORDER BY dentro de la ventana: 4 veces el tiempo y 215 MB derramados a disco</title>
-<desc>Mediana de tres corridas: GROUP BY 0.28 s; ventana sin ORDER BY 0.43 s; ventana con ORDER BY 1.76 s, con derrame de 215 MB.</desc>
+<title>ORDER BY dentro de la ventana: unas 4 veces el tiempo y 215 MB derramados a disco</title>
+<desc>Mediana de tres corridas en SF10: GROUP BY 0.28 s (rango 0.26 a 0.29); ventana sin ORDER BY 0.43 s; ventana con ORDER BY 1.76 s (rango 1.63 a 1.87), con derrame de 215 MB.</desc>
 <defs><marker id="m_acento" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#2340D8"/></marker><marker id="m_gris" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#5F6672"/></marker><marker id="m_ink" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#15171C"/></marker></defs>
 <text x="30" y="95.0" font-size="20" fill="#15171C" font-weight="700">GROUP BY</text>
 <rect x="260" y="70" width="67.2" height="36" rx="0" fill="#5F6672"/>
-<text x="260" y="60" font-size="20" fill="#15171C">mediana 0.28 s · rango 0.27–0.29 s</text>
+<text x="260" y="60" font-size="20" fill="#15171C">mediana 0.28 s · rango 0.26–0.29 s</text>
 <text x="770" y="82.5" font-size="20" fill="#15171C">Aggregate 79-96 % del tiempo</text>
 <text x="770" y="107.5" font-size="20" fill="#15171C">sin derrame</text>
 <text x="30" y="182.5" font-size="20" fill="#15171C" font-weight="700">Ventana sin</text>
@@ -16,7 +16,7 @@
 <text x="30" y="282.5" font-size="20" fill="#15171C" font-weight="700">Ventana con</text>
 <text x="30" y="307.5" font-size="20" fill="#15171C" font-weight="700">ORDER BY</text>
 <rect x="260" y="270" width="422.4" height="36" rx="0" fill="#2340D8"/>
-<text x="260" y="260" font-size="20" fill="#15171C">mediana 1.76 s · rango 1.72–1.87 s</text>
+<text x="260" y="260" font-size="20" fill="#15171C">mediana 1.76 s · rango 1.63–1.87 s</text>
 <text x="770" y="282.5" font-size="20" fill="#15171C">WindowFunction 81-98 %</text>
 <text x="770" y="307.5" font-size="20" fill="#15171C">derrame a disco local: 215 MB</text>
 <line x1="260" y1="332" x2="740.0" y2="332" stroke="#5F6672" stroke-width="1.5"/>
@@ -32,5 +32,5 @@
 <text x="740.0" y="368" font-size="20" fill="#5F6672" text-anchor="middle">2.0 s</text>
 <text x="30" y="418" font-size="20" fill="#15171C" font-weight="700">Cambio de escala: SF10 (15 M de filas en ORDERS), no SF1 como en las slides 3 a 10.</text>
 <text x="30" y="448" font-size="20" fill="#5F6672">X-Small, caché de resultados desactivada, 3 corridas por consulta. Señal, no medición fina.</text>
-<text x="30" y="478" font-size="20" fill="#5F6672">4 veces = 1.76 s con ORDER BY frente a 0.43 s sin él.</text>
+<text x="30" y="478" font-size="20" fill="#5F6672">Unas 4 veces: 1.76 s con ORDER BY frente a 0.43 s sin él (4.1); en otras corridas, hasta 4.6.</text>
 </svg>

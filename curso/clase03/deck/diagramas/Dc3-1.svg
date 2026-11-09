@@ -10,13 +10,14 @@
 <text x="58" y="268.6" font-size="22" fill="#15171C">Idea: función de ventana</text>
 <text x="58" y="308.2" font-size="20" fill="#5F6672">Slides 6-11 · Lab 3A</text>
 <rect x="430" y="60" width="340" height="300" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
-<text x="448" y="116.7" font-size="26" fill="#15171C" font-weight="700">2 · Encadenar cálculos</text>
-<text x="448" y="149.2" font-size="26" fill="#15171C" font-weight="700">sin errores</text>
-<text x="448" y="189.9" font-size="22" fill="#15171C">Síntoma: el promedio de</text>
-<text x="448" y="217.4" font-size="22" fill="#15171C">promedios se desvía 6.9 %</text>
-<text x="448" y="254.9" font-size="22" fill="#15171C">Idea: QUALIFY, CTE,</text>
-<text x="448" y="282.4" font-size="22" fill="#15171C">agregar antes de unir</text>
-<text x="448" y="322.0" font-size="20" fill="#5F6672">Slides 18-22 · Lab 3B</text>
+<text x="448" y="103.0" font-size="26" fill="#15171C" font-weight="700">2 · Encadenar cálculos</text>
+<text x="448" y="135.4" font-size="26" fill="#15171C" font-weight="700">sin errores</text>
+<text x="448" y="176.2" font-size="22" fill="#15171C">Síntoma: un JOIN infla el</text>
+<text x="448" y="203.7" font-size="22" fill="#15171C">total 5 veces; el promedio de</text>
+<text x="448" y="231.2" font-size="22" fill="#15171C">promedios se desvía 6.9 %</text>
+<text x="448" y="268.6" font-size="22" fill="#15171C">Idea: QUALIFY, CTE,</text>
+<text x="448" y="296.1" font-size="22" fill="#15171C">agregar antes de unir</text>
+<text x="448" y="335.8" font-size="20" fill="#5F6672">Slides 18-22 · Lab 3B</text>
 <rect x="820" y="60" width="340" height="300" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
 <text x="838" y="116.7" font-size="26" fill="#15171C" font-weight="700">3 · Guardar para que el</text>
 <text x="838" y="149.2" font-size="26" fill="#15171C" font-weight="700">total cuadre</text>
