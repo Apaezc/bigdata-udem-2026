@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 520" font-family="Helvetica Neue, Arial, sans-serif">
+<title>Del resumen diario a la estrella: cinco preguntas y un memo</title>
+<desc>Cuatro bloques de izquierda a derecha: el resumen diario gold, la estrella con su tabla de hechos y tres dimensiones, las cinco preguntas y el memo; abajo, un ejemplo de fila del hecho.</desc>
+<defs><marker id="m_acento" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#2340D8"/></marker><marker id="m_gris" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#5F6672"/></marker><marker id="m_ink" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#15171C"/></marker></defs>
+<rect x="40" y="60" width="220" height="360" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+<text x="56" y="158.3" font-size="24" fill="#15171C" font-weight="700">Resumen</text>
+<text x="56" y="188.3" font-size="24" fill="#15171C" font-weight="700">diario (gold)</text>
+<text x="56" y="226.5" font-size="20" fill="#15171C">fecha × zona ×</text>
+<text x="56" y="251.5" font-size="20" fill="#15171C">empresa</text>
+<text x="56" y="282.5" font-size="20" fill="#15171C">8 columnas</text>
+<text x="56" y="313.5" font-size="20" fill="#15171C">enero a marzo de</text>
+<text x="56" y="338.5" font-size="20" fill="#15171C">2024</text>
+<rect x="300" y="60" width="420" height="360" rx="6" fill="#F0EEE7" stroke="#2340D8" stroke-width="3"/>
+<text x="312" y="96" font-size="24" fill="#2340D8" font-weight="700">Estrella</text>
+<rect x="312" y="110" width="396" height="46" rx="6" fill="#FBFAF6" stroke="#5F6672" stroke-width="2"/>
+<text x="322" y="139.5" font-size="20" fill="#15171C">DIM_FECHA · lluvia por día</text>
+<line x1="510" y1="156" x2="510" y2="170" stroke="#5F6672" stroke-width="2"/>
+<rect x="312" y="170" width="396" height="166" rx="6" fill="#FBFAF6" stroke="#2340D8" stroke-width="3"/>
+<text x="322" y="203.8" font-size="24" fill="#2340D8" font-weight="700">FACT_VIAJES_DIA</text>
+<text x="322" y="238.0" font-size="20" fill="#15171C">Grano: una fecha en una zona para una</text>
+<text x="322" y="263.0" font-size="20" fill="#15171C">empresa</text>
+<text x="322" y="294.0" font-size="20" fill="#15171C">Medidas (sumas): VIAJES,</text>
+<text x="322" y="319.0" font-size="20" fill="#15171C">INGRESO_TOTAL, propina y distancia</text>
+<line x1="417" y1="336" x2="417" y2="352" stroke="#5F6672" stroke-width="2"/>
+<line x1="621" y1="336" x2="621" y2="352" stroke="#5F6672" stroke-width="2"/>
+<rect x="312" y="352" width="210" height="58" rx="6" fill="#FBFAF6" stroke="#5F6672" stroke-width="2"/>
+<text x="320" y="387.5" font-size="20" fill="#15171C">DIM_ZONA · distrito</text>
+<rect x="534" y="352" width="174" height="58" rx="6" fill="#FBFAF6" stroke="#5F6672" stroke-width="2"/>
+<text x="542" y="387.5" font-size="20" fill="#15171C">DIM_EMPRESA</text>
+<rect x="760" y="60" width="200" height="360" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+<text x="776" y="145.8" font-size="24" fill="#15171C" font-weight="700">Cinco</text>
+<text x="776" y="175.8" font-size="24" fill="#15171C" font-weight="700">preguntas</text>
+<text x="776" y="214.0" font-size="20" fill="#15171C">2 con GROUP BY</text>
+<text x="776" y="239.0" font-size="20" fill="#15171C">· 3 con ventanas</text>
+<text x="776" y="276.0" font-size="20" fill="#5F6672">ventana: cálculo</text>
+<text x="776" y="301.0" font-size="20" fill="#5F6672">sobre un grupo</text>
+<text x="776" y="326.0" font-size="20" fill="#5F6672">de filas sin</text>
+<text x="776" y="351.0" font-size="20" fill="#5F6672">colapsarlas</text>
+<rect x="1000" y="60" width="160" height="360" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+<text x="1014" y="204.3" font-size="24" fill="#15171C" font-weight="700">Memo</text>
+<text x="1014" y="242.5" font-size="20" fill="#15171C">1 página ·</text>
+<text x="1014" y="267.5" font-size="20" fill="#15171C">audiencia no</text>
+<text x="1014" y="292.5" font-size="20" fill="#15171C">técnica</text>
+<line x1="264" y1="240" x2="296" y2="240" stroke="#15171C" stroke-width="2" marker-end="url(#m_ink)"/>
+<line x1="724" y1="240" x2="756" y2="240" stroke="#15171C" stroke-width="2" marker-end="url(#m_ink)"/>
+<line x1="964" y1="240" x2="996" y2="240" stroke="#15171C" stroke-width="2" marker-end="url(#m_ink)"/>
+<text x="40" y="452" font-size="20" fill="#5F6672">Ejemplo de fila del hecho: 2024-01-24 · JFK Airport · Lyft · 1 965 viajes · 153 097.03</text>
+<text x="40" y="486" font-size="20" fill="#15171C" font-weight="700">El gold trae promedios: la estrella guarda sumas (promedio × viajes) o pondera por viajes.</text>
+</svg>

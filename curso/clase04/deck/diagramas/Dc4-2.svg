@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 520" font-family="Helvetica Neue, Arial, sans-serif">
+<title>Árbol de carpetas del lake y paquete público del curso</title>
+<desc>A la izquierda, el lake de tu cuenta tras make muestra: bucket con bronze y muestra, y silver y gold que escribe el pipeline en la clase 5. A la derecha, el paquete público con tres carpetas mensuales de gold.</desc>
+<defs><marker id="m_acento" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#2340D8"/></marker><marker id="m_gris" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#5F6672"/></marker><marker id="m_ink" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#15171C"/></marker></defs>
+<rect x="40" y="30" width="600" height="450" rx="0" fill="#FBFAF6" stroke="#5F6672" stroke-width="2"/>
+<text x="64" y="68" font-size="24" fill="#15171C" font-weight="700">Tu lake de AWS tras make muestra</text>
+<text x="64" y="96" font-size="20" fill="#5F6672">Hoy solo existen bronze/ y muestra/; silver/ y gold/ los</text>
+<text x="64" y="121.0" font-size="20" fill="#5F6672">escribe el pipeline (clase 5).</text>
+<text x="64" y="154.0" font-size="20" fill="#15171C" font-family="Menlo, Consolas, monospace" font-weight="700" xml:space="preserve">bigdata-lake-&lt;cuenta&gt;-us-east-2/</text>
+<text x="64" y="180.0" font-size="20" fill="#5F6672">bucket: carpeta de nivel superior de S3</text>
+<text x="64" y="222.0" font-size="20" fill="#15171C" font-family="Menlo, Consolas, monospace" xml:space="preserve">├─ </text>
+<text x="100.140625" y="222.0" font-size="20" fill="#B4622F" font-family="Menlo, Consolas, monospace" font-weight="700" xml:space="preserve">bronze/</text>
+<text x="100" y="250.0" font-size="20" fill="#5F6672">crudo · 24 columnas · ≈ 450 MB por mes</text>
+<text x="64" y="278.0" font-size="20" fill="#15171C" font-family="Menlo, Consolas, monospace" xml:space="preserve">├─ </text>
+<text x="100.140625" y="278.0" font-size="20" fill="#15171C" font-family="Menlo, Consolas, monospace" font-weight="700" xml:space="preserve">muestra/</text>
+<text x="100" y="306.0" font-size="20" fill="#5F6672">muestra pequeña del año, para la clase 5</text>
+<text x="64" y="334.0" font-size="20" fill="#15171C" font-family="Menlo, Consolas, monospace" xml:space="preserve">├─ </text>
+<text x="100.140625" y="334.0" font-size="20" fill="#6E7F94" font-family="Menlo, Consolas, monospace" font-weight="700" xml:space="preserve">silver/pickup_date=2024-01-01/ …</text>
+<text x="100" y="362.0" font-size="20" fill="#5F6672">depurado · 16 columnas · una carpeta por día</text>
+<text x="64" y="390.0" font-size="20" fill="#15171C" font-family="Menlo, Consolas, monospace" xml:space="preserve">└─ </text>
+<text x="100.140625" y="390.0" font-size="20" fill="#B07F0E" font-family="Menlo, Consolas, monospace" font-weight="700" xml:space="preserve">gold/daily_zone_metrics/mes=2024-01/ …</text>
+<text x="100" y="418.0" font-size="20" fill="#5F6672">resumen · 8 columnas · una carpeta por mes</text>
+<text x="64" y="450.0" font-size="20" fill="#2340D8" font-weight="700">carpeta = clave=valor</text>
+<rect x="680" y="30" width="480" height="450" rx="0" fill="#F0EEE7"/>
+<text x="704" y="76" font-size="24" fill="#15171C" font-weight="700">Paquete público del curso: el gold</text>
+<text x="704" y="106.0" font-size="24" fill="#15171C" font-weight="700">de enero a marzo, igual para todos</text>
+<text x="704" y="144.0" font-size="20" fill="#15171C" font-family="Menlo, Consolas, monospace" xml:space="preserve">bigdata-udem-2026-publico/paquete/</text>
+<text x="704" y="169.0" font-size="20" fill="#15171C" font-family="Menlo, Consolas, monospace" xml:space="preserve">gold/daily_zone_metrics/</text>
+<text x="704" y="207.0" font-size="20" fill="#15171C" font-family="Menlo, Consolas, monospace" font-weight="700" xml:space="preserve">mes=2024-01/</text>
+<text x="874" y="207.0" font-size="20" fill="#5F6672">2 archivos .parquet</text>
+<text x="704" y="249.0" font-size="20" fill="#15171C" font-family="Menlo, Consolas, monospace" font-weight="700" xml:space="preserve">mes=2024-02/</text>
+<text x="874" y="249.0" font-size="20" fill="#5F6672">2 archivos .parquet</text>
+<text x="704" y="291.0" font-size="20" fill="#15171C" font-family="Menlo, Consolas, monospace" font-weight="700" xml:space="preserve">mes=2024-03/</text>
+<text x="874" y="291.0" font-size="20" fill="#5F6672">2 archivos .parquet</text>
+<text x="704" y="331.0" font-size="20" fill="#15171C">WHERE mes = '2024-01' lee solo esta</text>
+<text x="704" y="356.0" font-size="20" fill="#15171C">carpeta (Athena)</text>
+<text x="704" y="395.0" font-size="22" fill="#15171C" font-weight="700">Total: 6 archivos · 641 KB</text>
+<text x="40" y="506" font-size="20" fill="#5F6672">La columna fecha va también dentro del Parquet; mes solo está en el nombre de la carpeta.</text>
+</svg>

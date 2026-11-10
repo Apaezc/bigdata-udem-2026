@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 520" font-family="Helvetica Neue, Arial, sans-serif">
+<title>Los tres casos con sus cinco preguntas y la técnica de cada una</title>
+<desc>Tres columnas, una por caso (A, B y C), cada una con su pregunta guía y cinco preguntas con la técnica que las resuelve (GROUP BY, SUM/SUM, RANK, QUALIFY, LAG, AVG OVER, SUM OVER).</desc>
+<defs><marker id="m_acento" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#2340D8"/></marker><marker id="m_gris" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#5F6672"/></marker><marker id="m_ink" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#15171C"/></marker></defs>
+<rect x="20" y="24" width="376" height="420" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+<text x="28" y="58" font-size="24" fill="#15171C" font-weight="700">A · Competencia entre</text>
+<text x="28" y="88.0" font-size="24" fill="#15171C" font-weight="700">plataformas</text>
+<text x="28" y="122.0" font-size="20" fill="#5F6672">¿Hay concentración por zona?</text>
+<text x="28" y="155.0" font-size="20" fill="#15171C">A1 Ingresos y viajes por empresa-mes</text>
+<text x="28" y="180.0" font-size="20" fill="#2340D8" font-weight="700">GROUP BY</text>
+<text x="28" y="213.0" font-size="20" fill="#15171C">A2 Propina ponderada por empresa</text>
+<text x="28" y="238.0" font-size="20" fill="#2340D8" font-weight="700">SUM/SUM</text>
+<text x="28" y="271.0" font-size="20" fill="#15171C">A3 Top-3 zonas por empresa</text>
+<text x="28" y="296.0" font-size="20" fill="#2340D8" font-weight="700">RANK + QUALIFY</text>
+<text x="28" y="329.0" font-size="20" fill="#15171C">A4 Cuota de mercado por zona y mes</text>
+<text x="28" y="354.0" font-size="20" fill="#2340D8" font-weight="700">SUM OVER</text>
+<text x="28" y="387.0" font-size="20" fill="#15171C">A5 Variación mensual de la cuota</text>
+<text x="28" y="412.0" font-size="20" fill="#2340D8" font-weight="700">LAG</text>
+<rect x="412" y="24" width="376" height="420" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+<text x="420" y="58" font-size="24" fill="#15171C" font-weight="700">B · Clima y festivos</text>
+<text x="420" y="92.0" font-size="20" fill="#5F6672">¿Cuándo se dispara la demanda?</text>
+<text x="420" y="125.0" font-size="20" fill="#15171C">B1 Viajes por día: lluvia o seco</text>
+<text x="420" y="150.0" font-size="20" fill="#2340D8" font-weight="700">GROUP BY</text>
+<text x="420" y="183.0" font-size="20" fill="#15171C">B2 Saltos de más de 50 %</text>
+<text x="420" y="208.0" font-size="20" fill="#2340D8" font-weight="700">LAG</text>
+<text x="420" y="241.0" font-size="20" fill="#15171C">B3 Media móvil de 7 días por zona</text>
+<text x="420" y="266.0" font-size="20" fill="#2340D8" font-weight="700">AVG OVER</text>
+<text x="420" y="299.0" font-size="20" fill="#15171C">B4 Top-3 zonas por día de semana</text>
+<text x="420" y="324.0" font-size="20" fill="#2340D8" font-weight="700">RANK + QUALIFY</text>
+<text x="420" y="357.0" font-size="20" fill="#15171C">B5 Festivo frente a día típico</text>
+<text x="420" y="382.0" font-size="20" fill="#2340D8" font-weight="700">GROUP BY</text>
+<rect x="804" y="24" width="376" height="420" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+<text x="812" y="58" font-size="24" fill="#15171C" font-weight="700">C · Aeropuertos y distritos</text>
+<text x="812" y="92.0" font-size="20" fill="#5F6672">¿Dónde se concentra el servicio?</text>
+<text x="812" y="125.0" font-size="20" fill="#15171C">C1 Viajes por distrito y mes</text>
+<text x="812" y="150.0" font-size="20" fill="#2340D8" font-weight="700">GROUP BY</text>
+<text x="812" y="183.0" font-size="20" fill="#15171C">C2 Ranking de zonas por distrito</text>
+<text x="812" y="208.0" font-size="20" fill="#2340D8" font-weight="700">RANK</text>
+<text x="812" y="241.0" font-size="20" fill="#15171C">C3 Propina ponderada por distrito</text>
+<text x="812" y="266.0" font-size="20" fill="#2340D8" font-weight="700">SUM/SUM</text>
+<text x="812" y="299.0" font-size="20" fill="#15171C">C4 Media móvil 7 días: aeropuertos</text>
+<text x="812" y="324.0" font-size="20" fill="#2340D8" font-weight="700">AVG OVER</text>
+<text x="812" y="357.0" font-size="20" fill="#15171C">C5 Participación en el distrito y LAG</text>
+<text x="812" y="382.0" font-size="20" fill="#2340D8" font-weight="700">SUM OVER</text>
+<text x="20" y="470" font-size="20" fill="#15171C">RANK: puesto dentro de un grupo · QUALIFY: filtra una ventana · LAG: valor de la fila anterior · OVER: ventana que no</text>
+<text x="20" y="495.0" font-size="20" fill="#15171C">colapsa filas</text>
+</svg>

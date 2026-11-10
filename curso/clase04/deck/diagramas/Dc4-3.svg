@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 520" font-family="Helvetica Neue, Arial, sans-serif">
+<title>Consulta en Athena: el catálogo indica dónde están los archivos y cuáles leer</title>
+<desc>Tres cajas en fila: la consulta SQL, el catálogo de Glue y los archivos en S3, con sus rótulos numerados y dos líneas de comandos debajo.</desc>
+<defs><marker id="m_acento" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#2340D8"/></marker><marker id="m_gris" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#5F6672"/></marker><marker id="m_ink" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#15171C"/></marker></defs>
+<rect x="40" y="110" width="330" height="200" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+<text x="58" y="146" font-size="24" fill="#15171C" font-weight="700">Consulta SQL</text>
+<text x="58" y="190" font-size="20" fill="#15171C" font-family="Menlo, Consolas, monospace" xml:space="preserve">SELECT … FROM</text>
+<text x="58" y="216" font-size="20" fill="#15171C" font-family="Menlo, Consolas, monospace" xml:space="preserve">gold_publico</text>
+<text x="58" y="242" font-size="20" fill="#15171C" font-family="Menlo, Consolas, monospace" xml:space="preserve">WHERE mes = '2024-01'</text>
+<rect x="435" y="110" width="330" height="200" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+<text x="453" y="160.3" font-size="24" fill="#15171C" font-weight="700">Catálogo · Glue Data</text>
+<text x="453" y="190.3" font-size="24" fill="#15171C" font-weight="700">Catalog</text>
+<text x="453" y="226.5" font-size="20" fill="#15171C">tabla gold_publico · 8</text>
+<text x="453" y="251.5" font-size="20" fill="#15171C">columnas y tipos · partición</text>
+<text x="453" y="276.5" font-size="20" fill="#15171C">mes · ubicación en S3</text>
+<rect x="830" y="110" width="330" height="200" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+<text x="848" y="146" font-size="24" fill="#15171C" font-weight="700">Archivos · S3</text>
+<text x="848" y="210" font-size="20" fill="#15171C" font-family="Menlo, Consolas, monospace" xml:space="preserve">mes=2024-01/…parquet</text>
+<line x1="374" y1="210.0" x2="431" y2="210.0" stroke="#15171C" stroke-width="2" marker-end="url(#m_ink)"/>
+<line x1="769" y1="210.0" x2="826" y2="210.0" stroke="#15171C" stroke-width="2" marker-end="url(#m_ink)"/>
+<text x="402" y="88" font-size="20" fill="#15171C" font-weight="700" text-anchor="middle">1 ¿qué columnas y dónde?</text>
+<text x="797" y="88" font-size="20" fill="#15171C" font-weight="700" text-anchor="middle">2 ubicación y particiones</text>
+<text x="1160" y="88" font-size="20" fill="#2340D8" font-weight="700" text-anchor="end">3 lee solo lo necesario</text>
+<text x="40" y="346" font-size="20" fill="#15171C">MSCK REPAIR TABLE registra en el catálogo cada carpeta mes=…</text>
+<text x="40" y="374" font-size="20" fill="#15171C">DROP TABLE borra la entrada del catálogo, no los archivos</text>
+<rect x="40" y="400" width="1120" height="90" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2" stroke-dasharray="8 6"/>
+<text x="64" y="436" font-size="20" fill="#15171C">Athena: sin servidor · se cobra por datos escaneados · workgroup: configuración de Athena con ubicación de</text>
+<text x="64" y="461.0" font-size="20" fill="#15171C">resultados y límite de datos</text>
+</svg>

@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 520" font-family="Helvetica Neue, Arial, sans-serif">
+<title>Camino de los datos: tres fuentes, las capas bronze, silver y gold, y Snowflake</title>
+<desc>Cinco cajas en fila: tres fuentes, las capas bronze, silver y gold del lake y Snowflake. La carga final va en acento y debajo hay tres tramos del día.</desc>
+<defs><marker id="m_acento" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#2340D8"/></marker><marker id="m_gris" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#5F6672"/></marker><marker id="m_ink" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#15171C"/></marker></defs>
+<rect x="40" y="100" width="165" height="250" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+<text x="52" y="136.3" font-size="24" fill="#15171C" font-weight="700">3 fuentes</text>
+<text x="52" y="168.5" font-size="20" fill="#15171C">Viajes:</text>
+<text x="52" y="193.5" font-size="20" fill="#15171C">Parquet de la</text>
+<text x="52" y="218.5" font-size="20" fill="#15171C">TLC</text>
+<text x="52" y="249.5" font-size="20" fill="#15171C">Zonas: CSV</text>
+<text x="52" y="280.5" font-size="20" fill="#15171C">Clima: JSON</text>
+<text x="52" y="305.5" font-size="20" fill="#15171C">de</text>
+<text x="52" y="330.5" font-size="20" fill="#15171C">Open-Meteo</text>
+<rect x="240" y="100" width="175" height="250" rx="6" fill="#F2E6DC" stroke="#B4622F" stroke-width="4"/>
+<text x="252" y="161.3" font-size="24" fill="#B4622F" font-weight="700">bronze</text>
+<text x="252" y="193.5" font-size="20" fill="#15171C">dato crudo, tal</text>
+<text x="252" y="218.5" font-size="20" fill="#15171C">como llegó</text>
+<text x="252" y="249.5" font-size="20" fill="#15171C">24 columnas</text>
+<text x="252" y="280.5" font-size="20" fill="#15171C">19.7 M de filas</text>
+<text x="252" y="305.5" font-size="20" fill="#15171C">al mes</text>
+<rect x="450" y="100" width="165" height="250" rx="6" fill="#E9EAE9" stroke="#6E7F94" stroke-width="4"/>
+<text x="462" y="201.8" font-size="24" fill="#6E7F94" font-weight="700">silver</text>
+<text x="462" y="234.0" font-size="20" fill="#15171C">dato depurado</text>
+<text x="462" y="265.0" font-size="20" fill="#15171C">16 columnas</text>
+<rect x="660" y="100" width="205" height="250" rx="6" fill="#F1EAD8" stroke="#2340D8" stroke-width="4"/>
+<text x="672" y="148.8" font-size="24" fill="#B07F0E" font-weight="700">gold</text>
+<text x="672" y="181.0" font-size="20" fill="#15171C">resumen diario:</text>
+<text x="672" y="206.0" font-size="20" fill="#15171C">una fila por fecha,</text>
+<text x="672" y="231.0" font-size="20" fill="#15171C">zona y empresa</text>
+<text x="672" y="262.0" font-size="20" fill="#15171C">8 columnas</text>
+<text x="672" y="293.0" font-size="20" fill="#15171C">15 909 filas en</text>
+<text x="672" y="318.0" font-size="20" fill="#15171C">enero</text>
+<rect x="900" y="100" width="270" height="250" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+<text x="910" y="176.8" font-size="24" fill="#15171C" font-weight="700">Snowflake</text>
+<text x="910" y="209.0" font-size="20" fill="#15171C">plataforma de datos en la</text>
+<text x="910" y="234.0" font-size="20" fill="#15171C">nube</text>
+<text x="910" y="265.0" font-size="20" fill="#15171C">aquí cargas la tabla</text>
+<text x="910" y="290.0" font-size="20" fill="#15171C">DAILY_ZONE_METRICS</text>
+<line x1="209" y1="225.0" x2="236" y2="225.0" stroke="#5F6672" stroke-width="2" marker-end="url(#m_gris)"/>
+<line x1="419" y1="225.0" x2="446" y2="225.0" stroke="#5F6672" stroke-width="2" marker-end="url(#m_gris)"/>
+<line x1="619" y1="225.0" x2="656" y2="225.0" stroke="#5F6672" stroke-width="2" marker-end="url(#m_gris)"/>
+<line x1="869" y1="225.0" x2="896" y2="225.0" stroke="#2340D8" stroke-width="3" marker-end="url(#m_acento)"/>
+<text x="877" y="88" font-size="20" fill="#2340D8" font-weight="700">carga</text>
+<line x1="240" y1="66" x2="865" y2="66" stroke="#5F6672" stroke-width="2"/>
+<line x1="240" y1="66" x2="240" y2="84" stroke="#5F6672" stroke-width="2"/>
+<line x1="865" y1="66" x2="865" y2="84" stroke="#5F6672" stroke-width="2"/>
+<text x="552.5" y="46" font-size="20" fill="#15171C" text-anchor="middle">Lake: archivos en carpetas de S3, el almacenamiento de AWS</text>
+<text x="240" y="384" font-size="20" fill="#5F6672">Glue: ejecuta los trabajos que llevan un dato de una capa a la siguiente</text>
+<text x="240" y="412" font-size="20" fill="#5F6672">Athena: consulta esos archivos con SQL, sin cargarlos</text>
+<rect x="40" y="440" width="360" height="48" rx="0" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+<text x="220" y="470" font-size="20" fill="#15171C" font-weight="700" text-anchor="middle">1 · Dónde viven los archivos</text>
+<rect x="400" y="440" width="360" height="48" rx="0" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+<text x="580" y="470" font-size="20" fill="#15171C" font-weight="700" text-anchor="middle">2 · Cómo se cargan sin duplicar</text>
+<rect x="760" y="440" width="360" height="48" rx="0" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+<text x="940" y="470" font-size="20" fill="#15171C" font-weight="700" text-anchor="middle">3 · Cómo los usa el Taller 1</text>
+</svg>

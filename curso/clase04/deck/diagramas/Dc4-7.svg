@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 520" font-family="Helvetica Neue, Arial, sans-serif">
+<title>Trampas 3 y 4: el redondeo de punto flotante y el nombre de zona repetido</title>
+<desc>Izquierda: 0.1 + 0.2 no es 0.3 en FLOAT, y ROUND sí. Derecha: unir por ZONA duplica las filas de Corona al tener dos LocationID.</desc>
+<defs><marker id="m_acento" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#2340D8"/></marker><marker id="m_gris" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#5F6672"/></marker><marker id="m_ink" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#15171C"/></marker></defs>
+<rect x="40" y="30" width="540" height="460" rx="0" fill="#F0EEE7"/>
+<rect x="620" y="30" width="540" height="460" rx="0" fill="#F0EEE7"/>
+<line x1="600" y1="30" x2="600" y2="490" stroke="#5F6672" stroke-width="1.5"/>
+<text x="64" y="76" font-size="24" fill="#15171C" font-weight="700">Redondeo</text>
+<text x="64" y="160" font-size="22" fill="#5F6672" font-weight="700">✗</text>
+<text x="100" y="160" font-size="20" fill="#15171C" font-family="Menlo, Consolas, monospace" xml:space="preserve">0.1 + 0.2 = 0.3 → FALSE (FLOAT)</text>
+<text x="64" y="204" font-size="22" fill="#2340D8" font-weight="700">✓</text>
+<text x="100" y="204" font-size="20" fill="#2340D8" font-family="Menlo, Consolas, monospace" font-weight="700" xml:space="preserve">ROUND(0.1 + 0.2, 2) = 0.3 → TRUE</text>
+<text x="64" y="260" font-size="20" fill="#15171C">Compara con ROUND(x, 2) o ABS(a − b) &lt; 0.01</text>
+<text x="64" y="380" font-size="20" fill="#5F6672">INGRESO_TOTAL y los promedios se redondean a</text>
+<text x="64" y="405.0" font-size="20" fill="#5F6672">2 decimales en gold.</text>
+<text x="644" y="76" font-size="24" fill="#15171C" font-weight="700">Nombre de zona repetido</text>
+<rect x="670" y="90" width="440" height="42" rx="6" fill="#FBFAF6" stroke="#5F6672" stroke-width="2"/>
+<text x="890.0" y="117.5" font-size="20" fill="#15171C" text-anchor="middle">gold · ZONA = «Corona» · 182 filas</text>
+<line x1="890" y1="132" x2="890" y2="156" stroke="#5F6672" stroke-width="2" marker-end="url(#m_gris)"/>
+<text x="906" y="150" font-size="20" fill="#15171C">unión por nombre</text>
+<rect x="670" y="156" width="440" height="64" rx="6" fill="#FBFAF6" stroke="#5F6672" stroke-width="2"/>
+<text x="890.0" y="182.0" font-size="20" fill="#15171C" text-anchor="middle">DIM_ZONA · «Corona» · 2 filas (LocationID</text>
+<text x="890.0" y="207.0" font-size="20" fill="#15171C" text-anchor="middle">56 y 57)</text>
+<line x1="890" y1="220" x2="890" y2="244" stroke="#5F6672" stroke-width="2" marker-end="url(#m_gris)"/>
+<rect x="670" y="244" width="440" height="42" rx="6" fill="#FBFAF6" stroke="#2340D8" stroke-width="3"/>
+<text x="890.0" y="271.5" font-size="20" fill="#2340D8" font-weight="700" text-anchor="middle">resultado · 364 filas · SUM(VIAJES) × 2</text>
+<text x="644" y="318" font-size="20" fill="#15171C">En total: +196 filas y +184 265 viajes (0.3 %)</text>
+<text x="644" y="347.0" font-size="20" fill="#2340D8" font-weight="700">Solución: el gold trae el nombre, no el</text>
+<text x="644" y="372.0" font-size="20" fill="#2340D8" font-weight="700">LocationID; une con una fila por nombre (262</text>
+<text x="644" y="397.0" font-size="20" fill="#2340D8" font-weight="700">zonas distintas).</text>
+<text x="644" y="426.0" font-size="20" fill="#15171C">Control: GROUP BY ZONA HAVING COUNT(*) &gt; 1;</text>
+<text x="644" y="451.0" font-size="20" fill="#15171C">cuenta las filas antes y después de unir.</text>
+</svg>
