@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 520" font-family="Helvetica Neue, Arial, sans-serif">
+<title>Trampas 1 y 2: la lluvia repetida por fila y el promedio simple de un grupo</title>
+<desc>Izquierda: SUM de la lluvia sobre 514 filas del 10 de enero da 11 153.8; MAX por fecha da 21.7. Derecha: el promedio simple de dos empresas da 3.905; el ponderado por viajes da 3.82.</desc>
+<defs><marker id="m_acento" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#2340D8"/></marker><marker id="m_gris" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#5F6672"/></marker><marker id="m_ink" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#15171C"/></marker></defs>
+<rect x="40" y="30" width="540" height="460" rx="0" fill="#F0EEE7"/>
+<rect x="620" y="30" width="540" height="460" rx="0" fill="#F0EEE7"/>
+<line x1="600" y1="30" x2="600" y2="490" stroke="#5F6672" stroke-width="1.5"/>
+<text x="64" y="76" font-size="24" fill="#15171C" font-weight="700">Lluvia repetida</text>
+<text x="64" y="116" font-size="20" fill="#15171C">2024-01-10 · 514 filas · LLUVIA_MM = 21.7 en cada</text>
+<text x="64" y="141.0" font-size="20" fill="#15171C">una</text>
+<text x="100" y="196" font-size="20" fill="#5F6672">SUM(LLUVIA_MM) = 11 153.8</text>
+<line x1="100" y1="189.4" x2="370.3" y2="189.4" stroke="#5F6672" stroke-width="2"/>
+<text x="64" y="196" font-size="22" fill="#5F6672" font-weight="700">✗</text>
+<text x="100" y="252" font-size="20" fill="#15171C">COUNT(*) = 514 → son filas, no días</text>
+<text x="64" y="252" font-size="22" fill="#5F6672" font-weight="700">✗</text>
+<text x="100" y="308" font-size="20" fill="#2340D8" font-weight="700">MAX(LLUVIA_MM) por FECHA = 21.7</text>
+<text x="64" y="308" font-size="22" fill="#2340D8" font-weight="700">✓</text>
+<text x="64" y="400" font-size="20" fill="#5F6672">Cada día tiene entre 510 y 516 filas (enero a</text>
+<text x="64" y="425.0" font-size="20" fill="#5F6672">marzo).</text>
+<text x="644" y="76" font-size="24" fill="#15171C" font-weight="700">Promedio de un grupo</text>
+<text x="644" y="116" font-size="20" fill="#15171C" font-weight="700">JFK Airport · 2024-01-24</text>
+<rect x="660" y="130" width="460" height="38" rx="0" fill="#FBFAF6" stroke="#5F6672" stroke-width="1.5"/>
+<text x="676" y="156" font-size="20" fill="#15171C">Lyft · 1 965 viajes · propina 4.05</text>
+<rect x="660" y="168" width="460" height="38" rx="0" fill="#FBFAF6" stroke="#5F6672" stroke-width="1.5"/>
+<text x="676" y="194" font-size="20" fill="#15171C">Uber · 7 265 viajes · propina 3.76</text>
+<text x="680" y="252" font-size="20" fill="#15171C">AVG simple = 3.905</text>
+<text x="644" y="252" font-size="22" fill="#5F6672" font-weight="700">✗</text>
+<text x="680" y="308" font-size="20" fill="#2340D8" font-weight="700">SUM(propina × viajes) / SUM(viajes) = 3.82</text>
+<text x="644" y="308" font-size="22" fill="#2340D8" font-weight="700">✓</text>
+<text x="680" y="364" font-size="20" fill="#15171C">Diferencia: 2.2 %</text>
+<text x="644" y="400" font-size="20" fill="#5F6672">El gold ya redondeó cada promedio a 2 decimales.</text>
+</svg>

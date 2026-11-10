@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 520" font-family="Helvetica Neue, Arial, sans-serif">
+<title>Athena y Snowflake leen los mismos archivos en S3; solo COPY INTO crea una copia</title>
+<desc>En el centro, el Parquet de gold en S3. A la izquierda Athena y a la derecha Snowflake, ambos con flechas de lectura en el lugar. COPY INTO copia los archivos a la tabla DAILY_ZONE_METRICS.</desc>
+<defs><marker id="m_acento" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#2340D8"/></marker><marker id="m_gris" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#5F6672"/></marker><marker id="m_ink" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#15171C"/></marker></defs>
+<rect x="40" y="100" width="260" height="300" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+<text x="58" y="184.3" font-size="24" fill="#15171C" font-weight="700">Athena</text>
+<text x="58" y="220.5" font-size="20" fill="#15171C">sin servidor</text>
+<text x="58" y="251.5" font-size="20" fill="#15171C">catálogo de Glue</text>
+<text x="58" y="282.5" font-size="20" fill="#15171C">se paga por datos</text>
+<text x="58" y="307.5" font-size="20" fill="#15171C">escaneados (mín.</text>
+<text x="58" y="332.5" font-size="20" fill="#15171C">10 MB)</text>
+<rect x="470" y="170" width="260" height="160" rx="6" fill="#F0EEE7" stroke="#15171C" stroke-width="2"/>
+<text x="600.0" y="228.8" font-size="24" fill="#15171C" font-weight="700" text-anchor="middle">Parquet en S3</text>
+<text x="600.0" y="263.0" font-size="20" fill="#15171C" text-anchor="middle">gold · mes=2024-01 a</text>
+<text x="600.0" y="288.0" font-size="20" fill="#15171C" text-anchor="middle">2024-03</text>
+<rect x="870" y="100" width="290" height="300" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+<text x="888" y="136" font-size="24" fill="#15171C" font-weight="700">Snowflake</text>
+<text x="888" y="172" font-size="20" fill="#15171C">stage LAKE_PUBLICO</text>
+<text x="888" y="204" font-size="20" fill="#15171C">warehouse: el cómputo de</text>
+<text x="888" y="229.0" font-size="20" fill="#15171C">Snowflake, créditos por</text>
+<text x="888" y="254.0" font-size="20" fill="#15171C">segundo</text>
+<rect x="880" y="292" width="270" height="92" rx="6" fill="#FBFAF6" stroke="#2340D8" stroke-width="3"/>
+<text x="890" y="326" font-size="20" fill="#2340D8" font-weight="700">tabla</text>
+<text x="890" y="351.0" font-size="20" fill="#2340D8" font-weight="700">DAILY_ZONE_METRICS</text>
+<line x1="304" y1="215" x2="466" y2="215" stroke="#5F6672" stroke-width="2" marker-end="url(#m_gris)"/>
+<line x1="866" y1="215" x2="734" y2="215" stroke="#5F6672" stroke-width="2" marker-end="url(#m_gris)"/>
+<text x="385" y="200" font-size="20" fill="#15171C" text-anchor="middle">lee en el lugar</text>
+<text x="800" y="200" font-size="20" fill="#15171C" text-anchor="middle">SELECT $1</text>
+<line x1="734" y1="290" x2="874" y2="290" stroke="#2340D8" stroke-width="3" marker-end="url(#m_acento)"/>
+<text x="804" y="276" font-size="20" fill="#2340D8" font-weight="700" text-anchor="middle">COPY INTO</text>
+<line x1="40" y1="432" x2="100" y2="432" stroke="#5F6672" stroke-width="2" marker-end="url(#m_gris)"/>
+<text x="114" y="439" font-size="20" fill="#15171C">SELECT $1: lee el archivo en el lugar, sin copiarlo</text>
+<line x1="40" y1="466" x2="100" y2="466" stroke="#2340D8" stroke-width="3" marker-end="url(#m_acento)"/>
+<text x="114" y="473" font-size="20" fill="#2340D8" font-weight="700">COPY INTO: copia los archivos del stage a una tabla; es la única copia</text>
+<text x="40" y="508" font-size="22" fill="#15171C" font-weight="700">Los dos leen los mismos archivos; solo COPY INTO los copia.</text>
+</svg>
