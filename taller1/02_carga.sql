@@ -3,6 +3,20 @@
 -- ARCHIVO: 02_carga.sql
 -- RESPONSABLE: INGENIERÍA DE DATOS
 --
+-- Carga las dimensiones primero y la tabla de hechos después.
+-- Se puede ejecutar más de una vez porque se vacían las tablas
+-- antes de insertar nuevamente los datos.
+--
+-- Fuentes:
+-- DAILY_ZONE_METRICS: 46715 filas
+-- DIM_ZONA: 265 filas originales
+-- FESTIVOS_2024: 11 filas
+--
+-- IMPORTANTE:
+-- DIM_ZONA conserva una fila por combinación ZONA, BOROUGH
+-- y SERVICE_ZONE para evitar perder información.
+-- La lluvia se almacena una sola vez por fecha en DIM_FECHA.
+--
 -- OBJETIVO:
 -- Cargar los datos en las tablas del modelo estrella
 -- de manera reproducible.
@@ -100,3 +114,7 @@ SELECT
     COUNT(*) AS TOTAL_REGISTROS,
     SUM(VIAJES) AS TOTAL_VIAJES
 FROM CURSO.T1.FACT_VIAJES_DIA;
+
+-- RESULTADO ESPERADO:
+-- FILAS: 46715
+-- VIAJES: 60268466
