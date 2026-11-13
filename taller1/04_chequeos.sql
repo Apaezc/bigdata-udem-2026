@@ -1,28 +1,67 @@
+
 -- =====================================================================
--- TALLER 1 · 04_chequeos.sql · Los cuatro controles de integridad (esqueleto)
+-- TALLER 1 · 04_chequeos.sql · Controles de integridad
 -- =====================================================================
--- Los cuatro controles del enunciado (sección 15): filas, grano único, sin huérfanos y viajes
--- totales contra el origen. Debajo está la consulta del enunciado como punto de partida:
--- descoméntala y ajusta los nombres de tus llaves (ZONA_KEY, EMPRESA_KEY) a los de tu estrella.
--- Salida esperada: cuatro filas con HECHO igual a ESPERADO.
--- Si `filas` o `viajes` no coinciden, revisa la trampa 4; si `grano` es menor que `filas`, hay duplicados.
+-- TALLER 1 - BIG DATA E INGENIERÍA DE DATOS
+-- ARCHIVO: 04_chequeos.sql
+-- RESPONSABLE: INGENIERÍA DE DATOS
+-- 
+-- Se ejecutan los cuatro controles obligatorios del enunciado:
+-- 1. Cantidad de filas.
+-- 2. Unicidad del grano FECHA + ZONA + EMPRESA.
+-- 3. Registros sin zona correspondiente en DIM_ZONA.
+-- 4. Total de viajes contra el origen.
+--
+-- OBJETIVO:
+-- Validar la integridad y consistencia del modelo estrella.
+--
+-- El modelo utiliza ZONA y EMPRESA como llaves naturales.
 -- =====================================================================
 
-USE ROLE ACCOUNTADMIN;
 USE WAREHOUSE COMPUTE_WH;
-USE SCHEMA CURSO.T1;
 
--- SELECT 'filas' AS CONTROL, COUNT(*) AS HECHO, 46715 AS ESPERADO
--- FROM CURSO.T1.FACT_VIAJES_DIA
--- UNION ALL
--- SELECT 'grano', COUNT(DISTINCT FECHA || '|' || ZONA_KEY || '|' || EMPRESA_KEY), 46715
--- FROM CURSO.T1.FACT_VIAJES_DIA
--- UNION ALL
--- SELECT 'sin zona', COUNT(*), 0
--- FROM CURSO.T1.FACT_VIAJES_DIA F LEFT JOIN CURSO.T1.DIM_ZONA Z USING (ZONA_KEY)
--- WHERE Z.ZONA_KEY IS NULL
--- UNION ALL
--- SELECT 'viajes', SUM(VIAJES), 60268466
--- FROM CURSO.T1.FACT_VIAJES_DIA;
+USE DATABASE CURSO;
 
--- TODO · Un control más que decidas tú (por ejemplo, sin fecha o sin empresa huérfanas).
+USE SCHEMA T1;
+
+-- ============================================================
+-- CONTROL 1: CANTIDAD DE REGISTROS
+-- Se esperan 46.715 registros.
+-- ============================================================
+
+SELECT
+    'filas' AS CONTROL,
+    COUNT(*) AS HECHO,
+    46715 AS ESPERADO
+FROM CURSO.T1.FACT_VIAJES_DIA;
+
+-- ============================================================
+-- CONTROL 2: UNICIDAD DEL GRANO
+-- Cada registro debe ser único por fecha, zona y empresa.
+-- ============================================================
+
+SELECT
+    COUNT(*) AS TOTAL_REGISTROS,
+    COUNT(DISTINCT CONCAT(FECHA,'|',ZONA,'|',EMPRESA)) AS COMBINACIONES_UNICAS
+FROM CURSO.T1.FACT_VIAJES_DIA;
+
+-- ============================================================
+-- CONTROL 3: ZONAS HUÉRFANAS
+-- Todas las zonas deben existir en DIM_ZONA.
+-- ============================================================
+
+SELECT
+    COUNT(*) AS ZONAS_SIN_DIMENSION
+FROM CURSO.T1.FACT_VIAJES_DIA F
+LEFT JOIN CURSO.T1.DIM_ZONA D
+    ON F.ZONA = D.ZONA
+WHERE D.ZONA IS NULL;
+
+-- ============================================================
+-- CONTROL 4: TOTAL DE VIAJES
+-- Se esperan 60.268.466 viajes.
+-- ============================================================
+
+SELECT
+    SUM(VIAJES) AS TOTAL_VIAJES
+FROM CURSO.T1.FACT_VIAJES_DIA;
