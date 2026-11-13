@@ -71,6 +71,7 @@ FROM CURSO.T1.FACT_VIAJES_DIA;
 -- HECHO debe coincidir con ESPERADO en todos los controles.
 -- ============================================================
 
+
 SELECT
     'filas' AS CONTROL,
     COUNT(*) AS HECHO,
@@ -95,6 +96,28 @@ FROM CURSO.T1.FACT_VIAJES_DIA F
 LEFT JOIN CURSO.T1.DIM_ZONA D
     ON F.ZONA = D.ZONA
 WHERE D.ZONA IS NULL
+
+UNION ALL
+
+SELECT
+    'sin fecha',
+    COUNT(*),
+    0
+FROM CURSO.T1.FACT_VIAJES_DIA F
+LEFT JOIN CURSO.T1.DIM_FECHA D
+    ON F.FECHA = D.FECHA
+WHERE D.FECHA IS NULL
+
+UNION ALL
+
+SELECT
+    'sin empresa',
+    COUNT(*),
+    0
+FROM CURSO.T1.FACT_VIAJES_DIA F
+LEFT JOIN CURSO.T1.DIM_EMPRESA D
+    ON F.EMPRESA = D.EMPRESA
+WHERE D.EMPRESA IS NULL
 
 UNION ALL
 
