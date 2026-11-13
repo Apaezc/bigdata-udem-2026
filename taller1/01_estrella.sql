@@ -1,42 +1,109 @@
--- GRANO: <escribe aquí, en una frase, qué representa una fila de FACT_VIAJES_DIA. Sugerido: «una fila por fecha, zona y empresa»>
+
 -- =====================================================================
--- TALLER 1 · 01_estrella.sql · DDL de la estrella (esqueleto)
--- Equipo: <nombres> · Anfitrión: <nombre> · Caso elegido: <A, B o C>
+-- TALLER 1 - 01_ESTRELLA.SQL
+-- CREACION DE LA ESTRUCTURA DEL MODELO ESTRELLA
 -- =====================================================================
--- CÓMO USAR ESTE ARCHIVO
---   1. Copia esta carpeta (plantilla/) a taller1/ en el fork del anfitrión: Add file > Create new
---      file, o Upload files.
---   2. Reemplaza cada línea «TODO» por tu sentencia. Todo se crea en CURSO.T1, con estos nombres:
---      FACT_VIAJES_DIA, DIM_FECHA, DIM_ZONA y DIM_EMPRESA.
---   3. La primera línea de este archivo es el grano. Si cambias el grano sugerido, justifícalo en el memo.
---   4. Cada integrante corre este archivo y 02_carga.sql en su propia cuenta de Snowflake.
+-- GRANO:
+-- Una fila por fecha, zona y empresa.
 --
--- RECORDATORIOS DEL ENUNCIADO (taller1/README.md, secciones 3, 4 y 6)
---   - El hecho guarda medidas aditivas: VIAJES, INGRESO_TOTAL y las sumas que permiten rehacer los
---     promedios (promedio x viajes). La lluvia no va en el hecho.
---   - Cada dimensión tiene una clave única. DIM_ZONA del Lab 4 repite 2 nombres de zona: decide
---     cómo dejar una fila por nombre.
---   - DIM_EMPRESA se construye con SELECT DISTINCT; no escribas los nombres de las empresas a mano.
+-- TABLAS:
+-- DIM_EMPRESA
+-- DIM_ZONA
+-- DIM_FECHA
+-- FACT_VIAJES_DIA
 -- =====================================================================
 
 USE ROLE ACCOUNTADMIN;
 USE WAREHOUSE COMPUTE_WH;
+USE DATABASE CURSO;
+
 CREATE SCHEMA IF NOT EXISTS CURSO.T1;
 USE SCHEMA CURSO.T1;
 
--- TODO · DIM_EMPRESA: clave y nombre de la empresa.
--- CREATE OR REPLACE TABLE DIM_EMPRESA ( ... );
 
--- TODO · DIM_ZONA: clave única, zona, distrito (BOROUGH) y tipo de zona (SERVICE_ZONE).
--- CREATE OR REPLACE TABLE DIM_ZONA ( ... );
+-- ============================================================
+-- 1. DIMENSION EMPRESA
+-- Una fila por empresa.
+-- Clave primaria: EMPRESA.
+-- ============================================================
 
--- TODO · DIM_FECHA: un día por fila, con día de la semana, fin de semana, festivo y la lluvia del día.
--- CREATE OR REPLACE TABLE DIM_FECHA ( ... );
+CREATE OR REPLACE TABLE DIM_EMPRESA (
+    EMPRESA VARCHAR(50) NOT NULL,
+    CONSTRAINT PK_DIM_EMPRESA PRIMARY KEY (EMPRESA)
+);
 
--- TODO · FACT_VIAJES_DIA: las llaves de las dimensiones y las medidas aditivas.
--- CREATE OR REPLACE TABLE FACT_VIAJES_DIA ( ... );
 
--- Claves (una línea por dimensión): cómo se une cada dimensión con el hecho y por qué esa clave es única.
---   DIM_EMPRESA: <...>
---   DIM_ZONA:    <...>
---   DIM_FECHA:   <...>
+-- ============================================================
+-- 2. DIMENSION ZONA
+-- Una fila por nombre de zona.
+-- Clave primaria: ZONA.
+-- Los nombres repetidos se depuran en 02_carga.sql.
+-- ============================================================
+
+CREATE OR REPLACE TABLE DIM_ZONA (
+    ZONA VARCHAR(150) NOT NULL,
+    BOROUGH VARCHAR(100),
+    SERVICE_ZONE VARCHAR(100),
+    CONSTRAINT PK_DIM_ZONA PRIMARY KEY (ZONA)
+);
+
+
+-- ============================================================
+-- 3. DIMENSION FECHA
+-- Una fila por dia del calendario.
+-- Clave primaria: FECHA.
+-- ============================================================
+
+CREATE OR REPLACE TABLE DIM_FECHA (
+    FECHA DATE NOT NULL,
+    ANIO NUMBER(4),
+    MES NUMBER(2),
+    DIA NUMBER(2),
+    DIA_SEMANA VARCHAR(10),
+    ES_FIN_SEMANA BOOLEAN,
+    ES_FESTIVO BOOLEAN,
+    LLUVIA_MM FLOAT,
+    CONSTRAINT PK_DIM_FECHA PRIMARY KEY (FECHA)
+);
+
+
+-- ============================================================
+-- 4. TABLA DE HECHOS
+-- Grano: fecha + zona + empresa.
+-- Contiene medidas aditivas.
+-- ============================================================
+
+CREATE OR REPLACE TABLE FACT_VIAJES_DIA (
+    FECHA DATE NOT NULL,
+    ZONA VARCHAR(150) NOT NULL,
+    EMPRESA VARCHAR(50) NOT NULL,
+    VIAJES NUMBER(38,0),
+    INGRESO_TOTAL FLOAT,
+    PROPINA_TOTAL FLOAT,
+    DISTANCIA_TOTAL FLOAT,
+    CONSTRAINT PK_FACT_VIAJES_DIA
+        PRIMARY KEY (FECHA, ZONA, EMPRESA)
+);
+
+
+-- ============================================================
+-- 5. DOCUMENTACION DE LAS CLAVES
+-- ============================================================
+-- DIM_EMPRESA:
+-- EMPRESA identifica de forma unica cada empresa.
+--
+-- DIM_ZONA:
+-- ZONA identifica de forma unica cada zona.
+--
+-- DIM_FECHA:
+-- FECHA identifica de forma unica cada dia.
+--
+-- FACT_VIAJES_DIA:
+-- FECHA + ZONA + EMPRESA identifican cada registro.
+--
+-- Las relaciones se validan mediante 04_chequeos.sql.
+-- =====================================================================
+-- FIN DEL ARCHIVO 01_ESTRELLA.SQL
+-- =====================================================================
+SHOW TABLES IN SCHEMA CURSO.T1;
+
