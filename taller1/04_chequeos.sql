@@ -65,3 +65,41 @@ WHERE D.ZONA IS NULL;
 SELECT
     SUM(VIAJES) AS TOTAL_VIAJES
 FROM CURSO.T1.FACT_VIAJES_DIA;
+
+-- ============================================================
+-- RESUMEN CONSOLIDADO DE LOS CUATRO CONTROLES
+-- HECHO debe coincidir con ESPERADO en todos los controles.
+-- ============================================================
+
+SELECT
+    'filas' AS CONTROL,
+    COUNT(*) AS HECHO,
+    46715 AS ESPERADO
+FROM CURSO.T1.FACT_VIAJES_DIA
+
+UNION ALL
+
+SELECT
+    'grano',
+    COUNT(DISTINCT CONCAT(FECHA,'|',ZONA,'|',EMPRESA)),
+    46715
+FROM CURSO.T1.FACT_VIAJES_DIA
+
+UNION ALL
+
+SELECT
+    'sin zona',
+    COUNT(*),
+    0
+FROM CURSO.T1.FACT_VIAJES_DIA F
+LEFT JOIN CURSO.T1.DIM_ZONA D
+    ON F.ZONA = D.ZONA
+WHERE D.ZONA IS NULL
+
+UNION ALL
+
+SELECT
+    'viajes',
+    SUM(VIAJES),
+    60268466
+FROM CURSO.T1.FACT_VIAJES_DIA;
