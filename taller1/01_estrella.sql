@@ -2,6 +2,7 @@
 -- =====================================================================
 -- TALLER 1 - 01_ESTRELLA.SQL
 -- CREACION DE LA ESTRUCTURA DEL MODELO ESTRELLA
+-- RESPONSABLE: INGENIERÍA DE DATOS (inicio)
 -- =====================================================================
 -- GRANO:
 -- Una fila por fecha, zona y empresa.
