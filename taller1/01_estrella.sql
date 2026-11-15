@@ -1,4 +1,4 @@
-
+-- GRANO: una fila por fecha, zona y empresa.
 -- =====================================================================
 -- TALLER 1 - 01_ESTRELLA.SQL
 -- CREACION DE LA ESTRUCTURA DEL MODELO ESTRELLA
