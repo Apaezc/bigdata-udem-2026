@@ -18,6 +18,8 @@
 -- El modelo utiliza ZONA y EMPRESA como llaves naturales.
 -- =====================================================================
 
+USE ROLE ACCOUNTADMIN;
+
 USE WAREHOUSE COMPUTE_WH;
 
 USE DATABASE CURSO;
