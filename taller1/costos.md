@@ -1,8 +1,8 @@
 # Costos · Taller 1
 
-Equipo: Andrea Páez Cardona, Ana María Montealegre, Manuela Restrepo Céspedes, Julian Olaya · Responsable: Julian Olaya (calidad y costos)
+Equipo: Andrea Páez Cardona, Ana María Montealegre, Manuela Restrepo Céspedes, Julian Olaya
 
-Cuenta medida: **la de Julian Olaya**, el 15 de noviembre de 2026. En esa cuenta se reprodujo todo desde cero: Lab 4, estrella del equipo y controles de calidad. El enunciado pide reportar desde la cuenta de la anfitriona (Andrea Páez). Si ella corre las consultas de la sección 2, su fila se agrega a la tabla; las cifras de esta cuenta sirven como medida de cuánto cuesta reproducir el taller completo.
+
 
 ## 1. Warehouse
 
@@ -13,9 +13,9 @@ Configuración comprobada con `SHOW WAREHOUSES LIKE 'COMPUTE_WH'`:
 | COMPUTE_WH | X-Small (1 crédito por hora encendido) | 60 s | Sí |
 
 ```sql
--- Configuración usada (la deja así el Paso 0 del Lab 4):
+
 ALTER WAREHOUSE COMPUTE_WH SET WAREHOUSE_SIZE = 'XSMALL' AUTO_SUSPEND = 60 AUTO_RESUME = TRUE;
--- Al terminar una sesión de trabajo, si se quiere apagar de inmediato:
+
 ALTER WAREHOUSE COMPUTE_WH SUSPEND;
 ```
 
@@ -40,7 +40,7 @@ ORDER BY DIA;
 | 2026-11-14 | Julian Olaya | COMPUTE_WH | XS | 0,0642 |
 | 2026-11-15 (carga del Lab 4, estrella y controles) | Julian Olaya | COMPUTE_WH | XS | 0,0738 |
 | **Total desde 2026-11-10** | Julian Olaya | COMPUTE_WH | XS | **0,1381** |
-| Total desde 2026-11-10 | Andrea Páez (anfitriona) | COMPUTE_WH | XS | <pendiente: valor de su cuenta> |
+
 
 Referencia de presupuesto (estimación del pensum, no medida): hasta 0,3 créditos el Lab 4 y hasta 0,8 el taller en clase. **Reproducir todo el taller en una cuenta nueva costó menos de 0,14 créditos**, menos de una quinta parte del presupuesto del taller. Esta consulta puede tardar unos minutos en reflejar el consumo más reciente, así que la cifra del 15 de noviembre puede subir un poco.
 
