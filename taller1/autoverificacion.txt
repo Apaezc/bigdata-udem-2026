@@ -1,0 +1,7 @@
+CONTROL	RESULTADO	PISTA
+hecho FACT_VIAJES_DIA	OK	Existe CURSO.T1.FACT_VIAJES_DIA
+filas del hecho	OK	Tiene 46715 filas, como el paquete
+viajes del hecho	OK	Suma 60268466 viajes, como el paquete
+dimensiones	OK	Hay 3 tablas más en CURSO.T1 (las dimensiones)
+lluvia fuera del hecho (aviso)	OK	La lluvia no está en el hecho
+RESUMEN	OK	4 de 4 controles en OK
