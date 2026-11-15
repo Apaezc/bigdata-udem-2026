@@ -32,6 +32,8 @@
 -- CONFIGURACIÓN DEL ENTORNO
 -- ============================================================
 
+USE ROLE ACCOUNTADMIN;
+
 USE WAREHOUSE COMPUTE_WH;
 
 USE DATABASE CURSO;
