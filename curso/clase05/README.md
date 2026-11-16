@@ -50,7 +50,7 @@ Salida esperada: ninguna (si no hay error, la copia salió bien). Comprueba con 
 
 1. En el Code Editor abre el explorador de archivos y entra a `clase05_mis_notebooks/`.
 2. Abre `01_fundamentos.ipynb`. Si el editor ofrece instalar la extensión de Jupyter, acéptala.
-3. Arriba a la derecha pulsa **Select Kernel**, elige **Jupyter Kernel** y después **Python (bigdata)**. Hazlo de nuevo cada vez que corras `make reparar-entorno`, porque ese comando recrea el `.venv`. Si no aparece, elige el intérprete `~/bigdata/.venv/bin/python`.
+3. Arriba a la derecha haz clic en **Select Kernel**, elige **Jupyter Kernel** y después **Python (bigdata)**. Hazlo de nuevo cada vez que corras `make reparar-entorno`, porque ese comando recrea el `.venv`. Si no aparece, elige el intérprete `~/bigdata/.venv/bin/python`.
 4. Ejecuta la primera celda de código (la Celda 1). Debe imprimir una ruta de Python que contiene `.venv` y la versión de Java. Si imprime `AVISO: este kernel no es el del proyecto`, el kernel está mal elegido: vuelve al paso 3.
 
 **Nunca elijas un kernel que se llame `Glue PySpark`, `Glue Spark` ni `SparkMagic`.** El Code Editor los ofrece en la lista, pero abren una sesión de AWS Glue en la nube, y esa sesión cobra mientras está abierta. Los notebooks de esta clase usan Spark en tu propia máquina, con el kernel **Python (bigdata)**, y no cuestan nada.
@@ -80,7 +80,7 @@ Las cifras no están escritas aquí a propósito: las produce cada celda en tu m
 | **03** · 1 Consumir una fuente | Las tres URL de febrero de 2024, el peso del archivo de viajes sin descargarlo, el comienzo del JSON del clima (termina el día 29, porque 2024 es bisiesto) y el comienzo del CSV de zonas. |
 | **03** · 2 y 3 | Las rutas de un lote de ejemplo, con el crudo y el lote bajo el mismo identificador; la tabla de metadatos y el ejercicio 1, la huella de una fila. |
 | **03** · 4 La tabla de control | La demostración con la tabla `demo`: consultar un mes que no existe devuelve `[]`, registrar una ingesta y consultar devuelve un JSON con siete campos, un segundo registro con `reprocesar=True` aparece después del primero, y al final se borran los registros de `demo`. La primera celda tarda un poco más porque crea el esquema y la tabla. |
-| **03** · ejercicios 2, 3 y 4 | Cada uno trae pistas plegables y una prueba que imprime `OK`, `PENDIENTE` o `REVISAR` con una pista. Con el enunciado sin resolver las cuatro líneas dicen `PENDIENTE`; con todo resuelto, `OK`. Cada prueba tarda unos segundos porque abre varias conexiones a Snowflake y usa la tabla `prueba_*` y el mes `2099-01`, que borra al terminar. |
+| **03** · ejercicios 2, 3 y 4 | Cada uno trae pistas desplegables y una prueba que imprime `OK`, `PENDIENTE` o `REVISAR` con una pista. Con el enunciado sin resolver las cuatro líneas dicen `PENDIENTE`; con todo resuelto, `OK`. Cada prueba tarda unos segundos porque abre varias conexiones a Snowflake y usa la tabla `prueba_*` y el mes `2099-01`, que borra al terminar. |
 | **03** · ejecución con datos reales | Clima en tres llamadas (ingesta, no hace nada, reproceso con otro lote), zonas en dos y viajes en modo de prueba: descarga el archivo de enero completo y escribe 1 000 filas. Después lista los archivos, muestra la tabla de control de cada fuente y lee un lote de cada una. Un mes completo de viajes es opcional y viene apagado. |
 | **03** · cierre | Borra los registros de práctica de la tabla de control, borra los archivos de prueba temporales y apaga Spark. |
 
