@@ -1,8 +1,8 @@
 """Capa silver: limpieza de viajes FHVHV y enriquecimiento con zonas y clima.
 
 Funciones puras (DataFrame -> DataFrame): limpiar_viajes, clima_diario, enriquecer.
-main(spark, cfg, args) lee los viajes de todos los meses, transforma, valida y escribe silver
-particionado por pickup_date.
+main(spark, cfg, args) lee los viajes de todos los meses (del lote de bronze más reciente de cada
+mes), transforma, valida y escribe silver particionado por pickup_date.
 """
 
 from __future__ import annotations
@@ -82,19 +82,16 @@ def limpiar_viajes(trips: DataFrame, meses: list[str] | None = None) -> DataFram
     return base.where(condicion).withColumn("pickup_date", F.to_date("pickup_datetime"))
 
 
-def clima_diario(clima_raw: DataFrame) -> DataFrame:
-    """Aplana el bloque 'daily' de Open-Meteo a filas (fecha, lluvia_mm, temp_media_c)."""
-    # posexplode + element_at en lugar de explode(arrays_zip(...alias...)): Snowpark Connect
-    # nombra los campos del struct "time AS fecha" y d.fecha deja de resolverse.
-    base = clima_raw.select(
-        F.posexplode(F.col("daily.time")).alias("i", "fecha"),
-        F.col("daily.precipitation_sum").alias("lluvia"),
-        F.col("daily.temperature_2m_mean").alias("temp"),
-    )
-    return base.select(
+def clima_diario(clima_bronze: DataFrame) -> DataFrame:
+    """Clima de bronze (fecha, lluvia_mm, temperatura) -> (fecha, lluvia_mm, temp_media_c).
+
+    Bronze ya trae una fila por día; aquí solo se pone la fecha como date y la temperatura con
+    el nombre que usa silver.
+    """
+    return clima_bronze.select(
         F.to_date("fecha").alias("fecha"),
-        F.element_at("lluvia", F.col("i") + 1).cast("double").alias("lluvia_mm"),
-        F.element_at("temp", F.col("i") + 1).cast("double").alias("temp_media_c"),
+        F.col("lluvia_mm").cast("double").alias("lluvia_mm"),
+        F.col("temperatura").cast("double").alias("temp_media_c"),
     )
 
 
@@ -126,7 +123,10 @@ def enriquecer(trips: DataFrame, zonas: DataFrame, clima: DataFrame) -> DataFram
 def revisar_tamano(cfg: dict, meses: list[str]) -> float:
     """MB de viajes a leer; error claro si superan limites.max_mb_entrada del entorno."""
     base = cfg["rutas"]["bronze"]
-    mb = io.tamano_mb([io.dir_viajes(base, m) for m in meses])
+    carpetas = []
+    for mes in meses:
+        carpetas.append(io.dir_lote_reciente(base, io.VIAJES, mes))
+    mb = io.tamano_mb(carpetas)
     maximo = (cfg.get("limites") or {}).get("max_mb_entrada")
     if maximo and mb > maximo:
         raise EntradaDemasiadoGrande(

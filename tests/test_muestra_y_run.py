@@ -1,33 +1,15 @@
 from __future__ import annotations
 
-import shutil
 from argparse import Namespace
-from pathlib import Path
 
 import pytest
 
 from pipeline import gold, io, muestra, silver
+from pipeline.bronze import COLUMNAS_METADATOS
 from pipeline.muestra import aplicar_muestra, limite_efectivo
 from pipeline.run import pasos_de
 
-DATA = Path(__file__).resolve().parent / "data"
 MES = "2024-01"
-
-
-def _armar_bronze(spark, base: Path) -> None:
-    """Bronze local con el mismo layout que S3 (a partir de las muestras de tests/data)."""
-    viajes = (
-        spark.read.option("header", True)
-        .option("inferSchema", True)
-        .csv(str(DATA / "fhvhv_tripdata_sample.csv"))
-    )
-    viajes.write.mode("overwrite").parquet(io.dir_viajes(str(base), MES))
-    zonas = Path(io.ruta_zonas(str(base)))
-    zonas.parent.mkdir(parents=True)
-    shutil.copyfile(DATA / "taxi_zone_lookup_sample.csv", zonas)
-    clima = Path(io.ruta_clima(str(base), MES))
-    clima.parent.mkdir(parents=True)
-    shutil.copyfile(DATA / "open_meteo_sample.json", clima)
 
 
 def test_limite_efectivo_prioriza_cli():
@@ -51,9 +33,9 @@ def test_pasos_por_entorno():
         pasos_de("bronze", "local")
 
 
-def test_muestra_y_pipeline_local_de_punta_a_punta(spark, tmp_path):
+def test_muestra_y_pipeline_local_de_punta_a_punta(spark, tmp_path, armar_bronze):
     bronze = tmp_path / "bronze"
-    _armar_bronze(spark, bronze)
+    armar_bronze(bronze)
     destino = tmp_path / "muestra"
     cfg_nube = {
         "entorno": "dev",
@@ -62,10 +44,17 @@ def test_muestra_y_pipeline_local_de_punta_a_punta(spark, tmp_path):
     }
     muestra.main(spark, cfg_nube, Namespace(meses=[MES]))
 
-    n = spark.read.parquet(io.dir_viajes(str(destino), MES)).count()
+    viajes_muestra = io.leer_viajes(spark, str(destino), [MES])
+    n = viajes_muestra.count()
     assert 0 < n < 100  # ~50 de 100, aleatoria y reproducible
-    assert Path(io.ruta_zonas(str(destino))).exists()
-    assert Path(io.ruta_clima(str(destino), MES)).exists()
+    assert io.lote_mas_reciente(str(destino), io.ZONAS)
+    assert io.lote_mas_reciente(str(destino), io.CLIMA, MES)
+
+    # la muestra conserva el lote de bronze y sus columnas de metadatos
+    id_bronze = io.lote_mas_reciente(str(bronze), io.VIAJES, MES)
+    assert io.lote_mas_reciente(str(destino), io.VIAJES, MES) == id_bronze
+    assert set(COLUMNAS_METADATOS) <= set(viajes_muestra.columns)
+    assert viajes_muestra.select("_id_lote").distinct().first()[0] == id_bronze
 
     # local: silver y gold leen la muestra con el mismo código que dev/prod
     cfg_local = {
@@ -98,11 +87,11 @@ def _cfg_local(tmp_path, bronze):
     }
 
 
-def test_reproceso_con_limite_no_deja_dias_viejos(spark, tmp_path):
+def test_reproceso_con_limite_no_deja_dias_viejos(spark, tmp_path, armar_bronze):
     """Regresión: con overwrite dinámico, correr con --limite dejaba los días de la corrida
     anterior y gold contaba más viajes que los procesados."""
     bronze = tmp_path / "bronze"
-    _armar_bronze(spark, bronze)
+    armar_bronze(bronze)
     cfg = _cfg_local(tmp_path, bronze)
 
     silver.main(spark, cfg, Namespace(meses=[MES], limite=None))
@@ -115,20 +104,34 @@ def test_reproceso_con_limite_no_deja_dias_viejos(spark, tmp_path):
     assert viajes_gold.agg({"viajes": "sum"}).first()[0] <= 5
 
 
-def test_guardia_de_tamano_en_local(spark, tmp_path):
+def test_guardia_de_tamano_en_local(spark, tmp_path, armar_bronze):
     bronze = tmp_path / "bronze"
-    _armar_bronze(spark, bronze)
+    armar_bronze(bronze)
     cfg = _cfg_local(tmp_path, bronze)
     cfg["limites"]["max_mb_entrada"] = 0.000001  # cualquier archivo lo supera
     with pytest.raises(silver.EntradaDemasiadoGrande, match="usa Glue"):
         silver.main(spark, cfg, Namespace(meses=[MES], limite=None))
 
 
-def test_leer_fuente_aplica_el_limite_y_rechaza_fuentes_no_declaradas(spark, tmp_path):
+def test_leer_fuente_aplica_el_limite_y_rechaza_fuentes_no_declaradas(
+    spark, tmp_path, armar_bronze
+):
     bronze = tmp_path / "bronze"
-    _armar_bronze(spark, bronze)
+    armar_bronze(bronze)
     cfg = {"rutas": {"bronze": str(bronze)}, "muestra": {"max_rows": None}}
     assert io.leer_fuente(spark, cfg, "viajes", [MES], 7).count() == 7
     assert io.leer_fuente(spark, cfg, "zonas", [MES]).count() == 12
     with pytest.raises(ValueError, match="Declárala en io.LECTORES"):
         io.leer_fuente(spark, cfg, "citibike", [MES])
+
+
+def test_muestra_local_de_la_version_anterior_no_es_vigente(tmp_path):
+    # versión anterior: la muestra traía el CSV de zonas suelto, sin carpeta lote=
+    zonas = tmp_path / "taxi_zones"
+    zonas.mkdir()
+    (zonas / "taxi_zone_lookup.csv").write_text("LocationID\n1\n")
+    assert muestra.muestra_local_vigente(tmp_path) is False
+
+    (zonas / "lote=20260115T143005Z_a3f9c1").mkdir()
+    assert muestra.muestra_local_vigente(tmp_path) is True
+    assert muestra.muestra_local_vigente(tmp_path / "no_existe") is False

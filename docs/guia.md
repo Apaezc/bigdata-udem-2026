@@ -677,9 +677,9 @@ Apply complete! Resources: 0 added, 1 changed, 0 destroyed.
 <a id="paso-12"></a>
 ### Paso 12 de 14 · Prepara los datos (una vez)
 
-**Para qué:** bajar los datos del año y generar la muestra con la que trabajarás en local.
+**Para qué:** bajar los datos del año, dejarlos en bronze con sus metadatos y generar la muestra con la que trabajarás en local.
 
-**Tiempo:** ~5 min · **Costo:** ~US$0.15
+**Tiempo:** ~5 min · **Costo:** ~US$0.15 <!-- AUTOR: tiempo y costo medidos antes de la ingesta con metadatos; bronze ahora usa Glue `large` y calcula un hash por fila: validar en Glue -->
 
 > [!IMPORTANT]
 > La terminal se queda quieta varios minutos entre líneas mientras Glue trabaja. Es normal: no la cierres.
@@ -693,11 +693,11 @@ Apply complete! Resources: 0 added, 1 changed, 0 destroyed.
    ```
 
 > [!NOTE]
-> **FHVHV** son los viajes de Uber/Lyft de NYC publicados por la NYC TLC. **Bronze** son los datos crudos tal como llegan. La **muestra** es un subconjunto pequeño de los datos para trabajar en local. Qué hace `make muestra`: [detalle](referencia.md#make-muestra).
+> **FHVHV** son los viajes de Uber/Lyft de NYC publicados por la NYC TLC. **Bronze** guarda cada archivo tal como llega (en `_crudo/`) y una copia en Parquet con columnas extra que dicen de dónde y cuándo vino cada fila. La **muestra** es un subconjunto pequeño de los datos para trabajar en local. Qué hace `make muestra`: [detalle](referencia.md#make-muestra).
 
 **✅ Debes ver:** estas líneas (los ids de **run**, una ejecución de Glue, serán otros):
 ```text
-==> Glue bigdata-small --step bronze (run jr_...)
+==> Glue bigdata-large --step bronze (run jr_...)
 ==> bronze OK
 ==> Glue bigdata-medium --step muestra (run jr_...)
 ==> muestra OK

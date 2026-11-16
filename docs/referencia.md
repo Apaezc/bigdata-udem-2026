@@ -5,6 +5,7 @@ Material de consulta. No hace falta leerlo para empezar: el recorrido está en l
 ## Índice
 
 - [Arquitectura](#arquitectura): diagrama y entornos (local, dev y prod).
+- [Bronze: ingesta con metadatos](#bronze): dónde queda cada archivo, qué columnas se agregan y cómo se elige el lote.
 - [Configuración por estudiante](#configuracion): el archivo de configuración de AWS.
 - [Comandos de `make`](#make): qué hace cada comando y en qué paso se usa.
 - [Costos (referencia)](#costos): presupuesto, cobros y apagado.
@@ -28,7 +29,7 @@ Material de consulta. No hace falta leerlo para empezar: el recorrido está en l
                                      v              v                v
  +--------------------------------------+    +------------------------------------------+
  | Code Editor (SageMaker, 8 GB)        |    | S3  bigdata-lake-<cuenta>-us-east-2      |
- |  - tu código, tests                  |    |  bronze/  (crudo, compartido dev y prod) |
+ |  - tu código, tests                  |    |  bronze/  (crudo + lotes, compartido)    |
  |  - Airflow de dev (make airflow-local)|-->|  muestra/ (~100 k filas, para local)     |
  |     computo=spark_local: Spark aquí, |    |  dev/  silver/ gold/                     |
  |       sobre la muestra (gratis)      |    |  prod/ silver/ gold/                     |
@@ -74,9 +75,60 @@ Hay tres entornos. Usan el mismo código con distinta configuración.
 |---|---|---|
 | **Bootstrap** | `bootstrap/` | Plantilla de CloudFormation. Crea tu entorno de trabajo (SageMaker Code Editor), el acceso de GitHub Actions a AWS por OIDC (sin claves), el bucket de state de Terraform y un presupuesto con alertas. Incluye un script SQL para Snowflake. |
 | **Infraestructura** | `infra/aws`, `infra/snowflake` | Terraform. AWS: lake S3, catálogo Glue y Athena, jobs Glue, VM de Airflow opcional y guardrails de costo. Snowflake: warehouse XS, base `BIGDATA` (BRONZE/SILVER/GOLD para SQL; DEV/PROD para el pipeline), rol `BIGDATA_DEV` y stages externos sobre `gold/`, `dev/gold/` y `prod/gold/`. |
-| **Pipeline** | `src/pipeline` | bronze (descarga sin transformar) -> silver (limpieza y enriquecimiento) -> gold (métricas diarias por zona y empresa), más el paso `muestra`. Corre con Spark local o en Glue. La configuración de cada entorno está en `src/pipeline/config/<entorno>.yaml`, donde `<entorno>` es local, dev o prod. |
+| **Pipeline** | `src/pipeline` | bronze (descarga el archivo intacto y lo convierte a Parquet con metadatos) -> silver (limpieza y enriquecimiento) -> gold (métricas diarias por zona y empresa), más el paso `muestra`. Corre con Spark local o en Glue. La configuración de cada entorno está en `src/pipeline/config/<entorno>.yaml`, donde `<entorno>` es local, dev o prod. |
 | **Orquestación** | `airflow/` | DAG `pipeline_taxi` con un camino por entorno (local, dev, prod). Snowpark Connect se compara aparte, en el laboratorio de la sesión 7. |
 | **Automatización** | `Makefile`, `scripts/`, `.github/workflows/` | Comandos de `make`, sus scripts y los workflows de GitHub Actions. |
+
+---
+
+<a id="bronze"></a>
+## Bronze: ingesta con metadatos
+
+Bronze guarda los datos tal como llegan de la fuente, pero ahora los guarda **dos veces** y con un registro de cuándo y de dónde vinieron. Así puedes reconstruir cualquier ingesta, comparar dos ingestas del mismo mes y saber de qué archivo salió cada fila.
+
+### Los dos pasos
+
+1. **Crudo intacto.** El archivo se descarga y se guarda sin modificar ni un byte, en `bronze/_crudo/`. Si el archivo ya está ahí, no se descarga otra vez.
+2. **Bronze en Parquet.** Spark lee el crudo y lo escribe en formato Parquet, con las columnas originales sin transformar más cinco columnas de metadatos. Cada ejecución crea una carpeta nueva, llamada **lote**, y nunca borra las anteriores.
+
+```text
+bronze/
+  _crudo/                                        paso 1: archivos tal como se descargaron
+    fhvhv/mes=2024-01/fhvhv_tripdata_2024-01.parquet
+    clima/mes=2024-01/open_meteo_2024-01.json
+    taxi_zones/taxi_zone_lookup.csv
+  fhvhv/mes=2024-01/lote=20260115T143005Z_a3f9c1/   paso 2: Parquet con metadatos
+  clima/mes=2024-01/lote=20260115T143005Z_a3f9c1/   una fila por día
+  taxi_zones/lote=20260115T143005Z_a3f9c1/
+```
+
+El clima llega como un JSON con listas por día. En bronze se convierte a una fila por día (`fecha`, `lluvia_mm`, `temperatura`) y no se cambia nada más.
+
+### Las cinco columnas de metadatos
+
+| Columna | Tipo | Qué contiene |
+|---|---|---|
+| `_fecha_ingesta` | timestamp (UTC) | El momento en que se ejecutó la ingesta. |
+| `_id_lote` | texto | El identificador del lote, con formato `AAAAMMDDTHHMMSSZ_<6 hex>`, por ejemplo `20260115T143005Z_a3f9c1`. Es el mismo para todo lo que se ingesta en una ejecución. |
+| `_hash_fila` | texto | La huella SHA-256 de la fila completa (ver abajo). |
+| `_fuente` | texto | La URL de donde se descargó el archivo. |
+| `_archivo_origen` | texto | El nombre del archivo, por ejemplo `fhvhv_tripdata_2024-01.parquet`. |
+
+**Cómo se calcula `_hash_fila`.** Se toman todas las columnas originales (sin contar los metadatos), cada una se convierte a texto, el valor nulo se reemplaza por el texto `<nulo>` y los textos se unen con `||`. Del texto resultante se calcula el SHA-256 y se guarda en hexadecimal (64 caracteres). La misma fila siempre da el mismo hash, aunque se ingeste en otro lote; si cambia un solo valor, el hash cambia. El marcador `<nulo>` evita que un nulo se confunda con un texto vacío. Las fechas se convierten a texto en UTC, porque el pipeline fija la zona horaria de Spark en UTC.
+
+### Qué lote lee silver
+
+Silver y la muestra leen, **para cada mes, el lote más reciente**: el de mayor `lote=`. Como el identificador empieza con la fecha, el mayor es también el más nuevo. Un lote que no tiene el archivo `_SUCCESS` (porque la ingesta falló mientras lo escribía) se ignora y se usa el anterior. Con los mismos datos, silver da el mismo resultado que antes de agregar los metadatos.
+
+Reingestar un mes (`--step bronze --mes 2024-01`) crea un lote nuevo sin tocar los anteriores. Como el crudo ya existe, no se vuelve a descargar. Para volver a descargar un archivo hay que borrar su archivo de `_crudo/` (con `aws s3 rm`).
+
+### Si ya tenías bronze de la versión anterior
+
+La versión anterior guardaba el archivo descargado directamente en `bronze/<fuente>/mes=AAAA-MM/<archivo>`. Al ejecutar `--step bronze` por primera vez, el pipeline **mueve** ese archivo a `_crudo/` en lugar de descargarlo otra vez, así que los ~5.4 GB del año no se bajan de nuevo. Mover es copiar dentro de S3 y borrar el original solo cuando la copia terminó bien: no quedan dos copias y no se paga almacenamiento doble. Después de la migración, en `bronze/<fuente>/mes=.../` solo quedan carpetas `lote=`. No necesitas borrar nada a mano.
+
+### En local
+
+El modo local no tiene bronze: lee la **muestra** (`make muestra` la genera en `s3://<LAKE>/muestra`). La muestra tiene la misma estructura que bronze (carpetas `lote=`, con el mismo identificador del lote del que salió) y conserva las cinco columnas de metadatos; no incluye `_crudo/`. Si en tu Code Editor quedó una muestra de la versión anterior, `make run-local` la detecta, la borra y descarga la nueva (después de haber ejecutado `make muestra` otra vez).
 
 ---
 
@@ -176,9 +228,9 @@ Conexión de Airflow a Snowflake: no hay nada que hacer a mano. `make snowflake`
 <a id="make-muestra"></a>
 #### `make muestra` ([Paso 12](guia.md#paso-12))
 
-- Glue baja el año de **FHVHV** (los viajes de Uber/Lyft de NYC publicados por la NYC TLC) a `bronze/` (~5.4 GB).
-- **Bronze** son los datos crudos tal como llegan.
-- Genera la **muestra** en `muestra/`: un subconjunto pequeño de los datos para trabajar en local.
+- Glue baja el año de **FHVHV** (los viajes de Uber/Lyft de NYC publicados por la NYC TLC) a `bronze/_crudo/` (~5.4 GB). Si ya los tenías en la ruta anterior de `bronze/`, los mueve en lugar de descargarlos otra vez.
+- **Bronze** guarda cada archivo tal como llegó y además lo convierte a Parquet con metadatos (hash de cada fila, fecha de ingesta, lote). Detalle: [Bronze: ingesta con metadatos](#bronze).
+- Genera la **muestra** en `muestra/`: un subconjunto pequeño de los datos, con la misma estructura de bronze, para trabajar en local.
 
 ---
 
