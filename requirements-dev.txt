@@ -13,3 +13,5 @@ snowflake-connector-python[pandas]==3.12.4
 pyOpenSSL==24.2.1
 cryptography==43.0.3
 ipykernel==6.29.5
+# PySpark 3.5 usa distutils en toPandas(); Python 3.12 lo eliminó. setuptools trae su reemplazo.
+setuptools==75.8.0
