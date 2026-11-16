@@ -464,12 +464,18 @@ Cuando la hayas ejecutado, pulsa Enter para probar la conexión...
 > [!NOTE]
 > **Terraform** es la herramienta que crea recursos en la nube desde archivos de configuración. La configuración se guarda en un **bucket**: la carpeta de nivel superior de S3, el servicio de AWS para guardar archivos. Qué hace `make setup`: [detalle](referencia.md#make-setup).
 
+> [!TIP]
+> `make setup` crea el entorno de Python del proyecto (`.venv`) siempre con **Python 3.12**, sin importar qué versión traiga el Code Editor. Si más adelante, después de reiniciar el Code Editor, ves `No module named 'snowflake'` o `No module named 'snowflake.cli'`, la imagen cambió de versión de Python y basta con correr `cd ~/bigdata && make reparar-entorno` ([qué hacer](problemas.md#p-venv-roto)).
+
 En la salida puede aparecer una línea `AVISO` sobre `gh`: es normal la primera vez y se resuelve en el [Paso 9](#paso-9). Si `gh` ya está autenticado en tu Code Editor, no hay `AVISO`: `make setup` carga los secrets del fork en este mismo paso.
 
 **✅ Debes ver:** una salida como esta (la primera vez; tu cuenta y tu correo serán otros):
 ```text
 ==> Verificando herramientas
 ==> Entorno virtual y dependencias de desarrollo
+==> Creando .venv con Python 3.12 (uv)
+==> Instalando dependencias de requirements-dev.txt
+==> Registrando el kernel «Python (bigdata)»
 ==> Validando región de Snowflake (snow sql)
 ==> Región de Snowflake: AWS_US_EAST_2 -> us-east-2
 ==> Configuración guardada en .env (PREFIX=bigdata, AWS_REGION=us-east-2)
@@ -489,7 +495,7 @@ Si `gh` ya estaba autenticado, la salida cambia al final: en lugar del `AVISO`, 
 ==> Setup completado. Siguiente paso: make doctor
 ```
 
-**❌ Si falla:** [`make setup` dice que Snowflake no está en AWS](problemas.md#p-sin-region-aws) (si la región no es `AWS_US_EAST_2`, vuelve al [Paso 1](#paso-1)) · [`make setup` dice que no hay conexión de `snow`](problemas.md#p-snow-sin-conexion) <!-- AUTOR: qué de los pasos 7 y 8 se rehace si la cuenta de Snowflake cambia -->
+**❌ Si falla:** [`make setup` dice que Snowflake no está en AWS](problemas.md#p-sin-region-aws) (si la región no es `AWS_US_EAST_2`, vuelve al [Paso 1](#paso-1)) · [`make setup` dice que no hay conexión de `snow`](problemas.md#p-snow-sin-conexion) · [`No module named 'snowflake'` o `'pip'` en `.venv`](problemas.md#p-venv-roto) · [`No module named 'snowflake.cli'` al usar `snow`](problemas.md#p-snow-cli) <!-- AUTOR: qué de los pasos 7 y 8 se rehace si la cuenta de Snowflake cambia -->
 
 **Siguiente:** [Paso 9](#paso-9)
 
@@ -565,6 +571,8 @@ Press Enter to open https://github.com/login/device in your browser...
 [OK]     terraform: Terraform v1.17.0
 [OK]     snow: Snowflake CLI version: 3.x
 [OK]     jq / zip / session-manager-plugin
+==> Entorno de Python (.venv)
+[OK]     .venv usa Python 3.12.x e importa pyspark, pandas y snowflake.connector
 ==> AWS
 [OK]     aws sts get-caller-identity: cuenta 123456789012
 [OK]     Bucket de estado de Terraform accesible
@@ -579,7 +587,7 @@ Press Enter to open https://github.com/login/device in your browser...
 ==> Diagnóstico sin fallos
 ```
 
-**❌ Si falla:** una línea `[FALLO]` dice qué revisar. Si `ci.yml` o `deploy.yml` fallan pidiendo `AWS_ROLE_ARN` o `TF_STATE_BUCKET`, ve a [esta fila](problemas.md#p-ci-secrets).
+**❌ Si falla:** una línea `[FALLO]` dice qué revisar. Si el fallo es de `.venv` o de `snow`, corre `cd ~/bigdata && make reparar-entorno` ([detalle](problemas.md#p-venv-roto)). Si `ci.yml` o `deploy.yml` fallan pidiendo `AWS_ROLE_ARN` o `TF_STATE_BUCKET`, ve a [esta fila](problemas.md#p-ci-secrets).
 
 **Siguiente:** [Paso 10](#paso-10)
 

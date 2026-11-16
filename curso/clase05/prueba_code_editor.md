@@ -32,18 +32,18 @@ cd ~/bigdata && .venv/bin/python --version
 java -version
 ```
 
-Salida esperada: `2` (la instancia ml.t3.large tiene 2 vCPU), una fila `Mem:` con unos 8 GB, `Python 3.12.x` y `openjdk version "17...`. **Pégame estas cuatro salidas.**
+Salida esperada: `2` (la instancia ml.t3.large tiene 2 vCPU), una fila `Mem:` con unos 8 GB, `Python 3.12.x` y `openjdk version "17...`. Si `.venv/bin/python --version` falla o dice otra versión, es el síntoma de la imagen actualizada: sigue con el paso 3, que lo recrea. **Pégame estas cuatro salidas.**
 
-3. Instala y registra el kernel:
+3. Repara el entorno (recrea el `.venv` con Python 3.12, instala las dependencias, registra el kernel y comprueba `snow`) y verifica las librerías. Es el mismo comando con el que empieza la clase, y el que hay que usar si SageMaker actualizó la imagen del Code Editor:
 
 ```bash
-cd ~/bigdata && .venv/bin/pip install -r requirements-dev.txt
-cd ~/bigdata && .venv/bin/python -m ipykernel install --user --name bigdata --display-name "Python (bigdata)"
+cd ~/bigdata && git pull && make reparar-entorno
+/opt/conda/bin/python3 --version
 cd ~/bigdata && .venv/bin/python -c "import pandas, pyarrow, pyspark, snowflake.connector; print('librerias ok')"
 cd ~/bigdata && .venv/bin/python -c "import distutils; print('distutils ok')"
 ```
 
-Salida esperada: `Successfully installed ...` (o `Requirement already satisfied`), `Installed kernelspec bigdata in ...`, `librerias ok` y `distutils ok`. Si el último falla con `No module named 'distutils'`, `setuptools` no se instaló: dímelo. Si el tercero falla con `X509_V_FLAG_NOTIFY_POLICY`, copia el error completo.
+Salida esperada: al final de `make reparar-entorno`, `Entorno reparado: Python 3.12.x, snow OK`; la versión del Python de conda (puede ser 3.13: ya no importa, porque el `.venv` usa 3.12 con `uv`); `librerias ok` y `distutils ok`. **Pégame la salida de `make reparar-entorno` y la del Python de conda**: si el Code Editor volvió a cambiar de imagen, quiero saber con qué versión quedó y si `uv` seguía en `/opt/conda/bin/uv`. Si `snow` falló antes de reparar, anota el mensaje (`No module named 'snowflake.cli'`). Si el último falla con `No module named 'distutils'`, `setuptools` no se instaló: dímelo. Si el tercero falla con `X509_V_FLAG_NOTIFY_POLICY`, copia el error completo.
 
 4. Comprueba la conexión de Snowflake y el warehouse:
 

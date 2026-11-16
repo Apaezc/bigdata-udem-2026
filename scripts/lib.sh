@@ -32,6 +32,76 @@ msg() { echo "==> $*"; }
 aviso() { echo "AVISO: $*" >&2; }
 error() { echo "ERROR: $*" >&2; exit 1; }
 
+# Entorno virtual del proyecto: siempre con Python 3.12. Los notebooks de la clase 5 y PySpark 3.5
+# lo necesitan, y no se puede depender de 'python3' del sistema: SageMaker actualiza la imagen del
+# Code Editor y /opt/conda/bin/python3 cambia de versión (pasó de 3.12 a 3.13).
+VENV_PYTHON_VERSION="3.12"
+VENV_DIR="$ROOT_DIR/.venv"
+
+buscar_uv() {
+  # Imprime la ruta de uv (en el PATH o en conda) o sale con 1 si no existe.
+  if command -v uv >/dev/null 2>&1; then
+    command -v uv
+  elif [[ -x /opt/conda/bin/uv ]]; then
+    echo /opt/conda/bin/uv
+  else
+    return 1
+  fi
+}
+
+venv_sano() {
+  # 0 si .venv existe, es Python 3.12 y puede importar pip y pyspark; 1 en cualquier otro caso
+  # (por ejemplo, cuando su Python era un enlace a conda y conda cambió de versión).
+  local py="$VENV_DIR/bin/python"
+  [[ -x "$py" ]] || return 1
+  "$py" -c "
+import sys
+import pip
+import pyspark
+sys.exit(0 if sys.version_info[:2] == (3, 12) else 1)
+" >/dev/null 2>&1
+}
+
+crear_venv() {
+  # Borra .venv y lo crea de nuevo con Python 3.12: con uv si existe y, si no, con python3.12.
+  local uv_bin=""
+  uv_bin="$(buscar_uv)" || uv_bin=""
+  rm -rf "$VENV_DIR"
+  if [[ -n "$uv_bin" ]]; then
+    msg "Creando .venv con Python $VENV_PYTHON_VERSION (uv)"
+    "$uv_bin" venv --seed --python "$VENV_PYTHON_VERSION" "$VENV_DIR"
+  elif command -v "python$VENV_PYTHON_VERSION" >/dev/null 2>&1; then
+    msg "Creando .venv con python$VENV_PYTHON_VERSION (no hay uv)"
+    "python$VENV_PYTHON_VERSION" -m venv "$VENV_DIR"
+  else
+    error "No hay uv ni python$VENV_PYTHON_VERSION para crear .venv. Instala uv (https://docs.astral.sh/uv/) o Python $VENV_PYTHON_VERSION y repite."
+  fi
+  export PATH="$VENV_DIR/bin:$PATH"
+}
+
+instalar_dependencias_venv() {
+  # Instala requirements-dev.txt en .venv (con uv si existe; si no, con pip).
+  local requisitos="$ROOT_DIR/requirements-dev.txt" uv_bin=""
+  if [[ ! -f "$requisitos" ]]; then
+    aviso "No existe requirements-dev.txt; se omite la instalación de dependencias."
+    return 0
+  fi
+  uv_bin="$(buscar_uv)" || uv_bin=""
+  msg "Instalando dependencias de requirements-dev.txt"
+  if [[ -n "$uv_bin" ]]; then
+    "$uv_bin" pip install --quiet --python "$VENV_DIR/bin/python" -r "$requisitos"
+  else
+    "$VENV_DIR/bin/python" -m pip install --quiet --upgrade pip
+    "$VENV_DIR/bin/python" -m pip install --quiet -r "$requisitos"
+  fi
+}
+
+registrar_kernel() {
+  # Registra .venv como el kernel de Jupyter «Python (bigdata)».
+  msg "Registrando el kernel «Python (bigdata)»"
+  "$VENV_DIR/bin/python" -m ipykernel install --user --name bigdata --display-name "Python (bigdata)" >/dev/null
+}
+
 requerir() {
   local cmd
   for cmd in "$@"; do

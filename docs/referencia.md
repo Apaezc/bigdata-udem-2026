@@ -175,10 +175,11 @@ Ejecuta `make help` para ver la lista actualizada. La columna **Paso** dice dón
 | Target | Qué hace | Paso |
 |---|---|---|
 | `make snowflake-conexion` | Configura la conexión `[default]` de `snow` (llave en `~/.snowflake/keys`, `connections.toml`) y guía el `ALTER USER` en Snowsight | [Paso 7](guia.md#paso-7) |
-| `make setup` | Verifica herramientas, crea `.venv`, valida la región de Snowflake, alinea `AWS_REGION` y crea la configuración de AWS en S3 si no existe | [Paso 8](guia.md#paso-8) |
+| `make setup` | Verifica herramientas, crea `.venv` con Python 3.12, valida la región de Snowflake, alinea `AWS_REGION` y crea la configuración de AWS en S3 si no existe | [Paso 8](guia.md#paso-8) |
 | `make config` | Muestra la configuración de AWS guardada en S3 | — |
 | `make secrets` | Carga `AWS_ROLE_ARN` y `TF_STATE_BUCKET` en tu fork desde el bootstrap (lo hace `make setup` si `gh` está autenticado) | [Paso 9](guia.md#paso-9) |
-| `make doctor` | Diagnóstico: versiones, AWS, Snowflake, Terraform, OIDC | [Paso 9](guia.md#paso-9) |
+| `make reparar-entorno` | Recrea `.venv` con Python 3.12, reinstala dependencias, registra el kernel y repara `snow`; úsalo si el Code Editor se actualizó y ves `No module named 'snowflake'` | — |
+| `make doctor` | Diagnóstico: versiones, entorno de Python (`.venv` con 3.12), AWS, Snowflake, Terraform, OIDC | [Paso 9](guia.md#paso-9) |
 | `make estado` | Estado de Airflow, últimos job runs de Glue, warehouse y costos | [Apagar](cada-sesion.md#apagar) |
 | `make test` | `ruff check`, `ruff format --check`, `pytest` (y tests de DAGs si Airflow está instalado) | — |
 | `make muestra` | Glue: bronze del año de prod + muestra en tu bucket (una vez por curso). El modo local ya no la necesita | [Paso 12](guia.md#paso-12) |
@@ -204,7 +205,12 @@ Qué hace por dentro cada comando largo de los pasos 8, 10, 11 y 12.
 <a id="make-setup"></a>
 #### `make setup` ([Paso 8](guia.md#paso-8))
 
-Verifica las herramientas (Python 3.11+, Java 17, AWS CLI, Terraform, `snow`, jq y zip; el **Lifecycle Config** de SageMaker las instala al arrancar), crea `.venv`, valida que Snowflake esté en AWS, alinea `AWS_REGION` y crea en S3 la configuración de Terraform.
+Verifica las herramientas (Python 3.11+, Java 17, AWS CLI, Terraform, `snow`, jq y zip; el **Lifecycle Config** de SageMaker las instala al arrancar), crea `.venv` con Python 3.12 (con `uv`; si el `.venv` existente usa otra versión o está roto, lo recrea), instala `requirements-dev.txt`, registra el kernel **Python (bigdata)**, valida que Snowflake esté en AWS, alinea `AWS_REGION` y crea en S3 la configuración de Terraform.
+
+<a id="make-reparar-entorno"></a>
+#### `make reparar-entorno`
+
+Úsalo cuando SageMaker actualice la imagen del Code Editor y cambie la versión de Python del sistema (síntomas: `No module named 'snowflake'` en `.venv` o `No module named 'snowflake.cli'` al usar `snow`). Borra `.venv` y lo crea de nuevo con Python 3.12, reinstala `requirements-dev.txt`, registra el kernel **Python (bigdata)** y comprueba `snow`: si `snow --version` falla, reinstala `snowflake-cli` con el Python de conda (`pip install --user`). Termina con `Entorno reparado: Python 3.12.x, snow OK`.
 
 <a id="make-deploy"></a>
 #### `make deploy` ([Paso 10](guia.md#paso-10))

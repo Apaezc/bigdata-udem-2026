@@ -107,6 +107,24 @@ Busca tu mensaje con **Ctrl+F**. Cada entrada muestra el mensaje exacto, su caus
 - **Qué hacer:** `cd ~/bigdata && make snowflake-conexion` (el [paso 7](guia.md#paso-7)).
 - [Volver al paso 8](guia.md#paso-8)
 
+## Entorno de Python (después de actualizar el Code Editor)
+
+<a id="p-venv-roto"></a>
+### `No module named 'snowflake'` o `No module named 'pip'` en `.venv` tras reiniciar el Code Editor
+
+- **Síntoma:** al reiniciar el Code Editor, el notebook o la terminal dicen `ModuleNotFoundError: No module named 'snowflake'` (o `'pandas'`, `'pyspark'`), o `.venv/bin/python -m pip` responde `No module named pip`. `make doctor` marca `.venv` en `[FALLO]`.
+- **Causa:** SageMaker actualiza la imagen del Code Editor y cambia la versión de Python del sistema (`/opt/conda/bin/python3` pasó de 3.12 a 3.13). Tu `.venv` era solo un enlace a ese Python, así que ahora apunta a otra versión y deja de ver las librerías que instalaste. Con Python 3.13 tampoco sirve reinstalar a ciegas: `numpy 1.26.4` se compila desde el código fuente y PySpark 3.5 no es compatible.
+- **Qué hacer:** `cd ~/bigdata && make reparar-entorno`. El comando borra `.venv`, lo crea de nuevo con Python 3.12 (con `uv`), reinstala `requirements-dev.txt`, registra el kernel **Python (bigdata)** y revisa `snow`. Termina con `Entorno reparado: Python 3.12.x, snow OK`. Después elige de nuevo el kernel en tu notebook y reinícialo.
+- [Volver al paso 8](guia.md#paso-8)
+
+<a id="p-snow-cli"></a>
+### `No module named 'snowflake.cli'` al usar `snow`
+
+- **Síntoma:** cualquier comando `snow` (`snow --version`, `snow sql`, `make snowflake`) termina con `ModuleNotFoundError: No module named 'snowflake.cli'`.
+- **Causa:** `snow` se instaló con `pip install --user` sobre el Python de conda de la imagen anterior (3.12). Al actualizarse la imagen, ese Python cambió a 3.13 y las librerías del usuario de 3.12 ya no se ven.
+- **Qué hacer:** `cd ~/bigdata && make reparar-entorno` también comprueba `snow` y lo reinstala si falla. Si prefieres hacerlo a mano: `/opt/conda/bin/python3 -m pip install --user snowflake-cli` y luego `snow --version`.
+- [Volver al paso 8](guia.md#paso-8)
+
 ## Paso 9 · Secrets del fork
 
 <a id="p-ci-secrets"></a>

@@ -12,25 +12,19 @@ Pregunta de la clase: ¿cómo llegan al lake, sin repetirse, los datos de tres f
 
 Los datos de la clase son los de enero de 2024: 19 663 930 viajes FHVHV, las 265 zonas de la ciudad y el clima diario de Open-Meteo. Los notebooks 01 y 02 leen el archivo de viajes desde tu propio bucket `bigdata-lake-<CUENTA>-us-east-2` y lo guardan una sola vez en `~/datos_clase05`, fuera del repositorio, para que nunca llegue a un commit. El lab 03 descarga desde las fuentes originales (la TLC y Open-Meteo) y escribe su bronze en `~/datos_clase05/bronze_alumno`; en el modo de prueba de los viajes baja otra vez el archivo de unos 450 MiB, así que conviene tener ese espacio libre en disco.
 
-La tabla de control de la ingesta vive en Snowflake, en `BIGDATA.CONTROL.WATERMARK`. Los métodos `consultar_watermark` y `registrar_watermark` ya están hechos en `src/pipeline/watermark.py`. El esquema `CONTROL` y la tabla los crea Terraform: **al inicio de la clase**, corre `cd ~/bigdata && git pull && make snowflake` (confirma el plan con `yes`; solo agrega recursos nuevos). Usan la conexión `default` de `~/.snowflake/connections.toml` (el lab tiene una variable `CONEXION_SNOWFLAKE` por si la tuya se llama distinto) con el rol `ACCOUNTADMIN` y el warehouse `COMPUTE_WH`.
+La tabla de control de la ingesta vive en Snowflake, en `BIGDATA.CONTROL.WATERMARK`. Los métodos `consultar_watermark` y `registrar_watermark` ya están hechos en `src/pipeline/watermark.py`. El esquema `CONTROL` y la tabla los crea Terraform: **al inicio de la clase**, corre `cd ~/bigdata && git pull && make reparar-entorno && make snowflake` (confirma el plan con `yes`; solo agrega recursos nuevos; la sección 1 explica cada parte). Usan la conexión `default` de `~/.snowflake/connections.toml` (el lab tiene una variable `CONEXION_SNOWFLAKE` por si la tuya se llama distinto) con el rol `ACCOUNTADMIN` y el warehouse `COMPUTE_WH`.
 
-## 1. Instalar (una sola vez)
+## 1. Preparar el entorno (al inicio de cada clase)
 
-Necesitas haber terminado la [guía](../../docs/guia.md): el repositorio en `~/bigdata` con su `.venv`, tu lake con el bronze de enero y la conexión a Snowflake llamada `default` (el lab de esta clase también la usa, para la tabla de control). Desde una terminal del Code Editor:
-
-```bash
-cd ~/bigdata && .venv/bin/pip install -r requirements-dev.txt
-```
-
-Entrada: ese comando. Salida esperada: unos minutos de descargas y, al final, una línea que empieza con `Successfully installed` y lista los paquetes nuevos (`pandas`, `pyarrow`, `snowflake-connector-python`, `ipykernel`, `setuptools`...). Si ya estaban instalados, dice `Requirement already satisfied`.
-
-Después registra el entorno del proyecto como un kernel de Jupyter con nombre propio:
+Necesitas haber terminado la [guía](../../docs/guia.md): el repositorio en `~/bigdata`, tu lake con el bronze de enero y la conexión a Snowflake llamada `default` (el lab de esta clase también la usa, para la tabla de control). Cada vez que el Code Editor se reinicia, SageMaker puede haber actualizado la imagen y cambiado la versión de Python del sistema; si eso pasa, el `.venv` deja de ver sus librerías y el comando `snow` falla. Por eso la clase empieza siempre con este comando, desde una terminal del Code Editor:
 
 ```bash
-cd ~/bigdata && .venv/bin/python -m ipykernel install --user --name bigdata --display-name "Python (bigdata)"
+cd ~/bigdata && git pull && make reparar-entorno && make snowflake
 ```
 
-Salida esperada: `Installed kernelspec bigdata in ...`. Un kernel es el programa Python que ejecuta las celdas del notebook; este lo registra con el Python de `~/bigdata/.venv`, que es el que tiene PySpark.
+Cada parte hace una cosa. `git pull` trae la última versión de los notebooks y del código. `make reparar-entorno` recrea el `.venv` con Python 3.12, reinstala las dependencias (`pandas`, `pyarrow`, `snowflake-connector-python`, `ipykernel`, `setuptools`...), registra el kernel de Jupyter **Python (bigdata)** y comprueba que `snow` funcione. `make snowflake` aplica Terraform y crea la tabla `BIGDATA.CONTROL.WATERMARK` con sus permisos; muestra un plan y debes confirmarlo escribiendo `yes` (solo agrega recursos nuevos).
+
+Salida esperada: unos minutos de instalación y, al final de `make reparar-entorno`, la línea `==> Entorno reparado: Python 3.12.x, snow OK`. Un kernel es el programa Python que ejecuta las celdas del notebook; el que se registra usa el Python de `~/bigdata/.venv`, que es el que tiene PySpark. Como el `.venv` se crea de nuevo, **si ya tenías un notebook abierto debes elegir otra vez el kernel** (sección 3) y reiniciarlo.
 
 Comprueba tres cosas antes de la clase:
 
@@ -40,7 +34,7 @@ java -version
 cd ~/bigdata && .venv/bin/python -c "import snowflake.connector as s; c = s.connect(connection_name='default'); print(c.cursor().execute('select current_user()').fetchone()); c.close()"
 ```
 
-Salida esperada: `librerias ok`; una versión de Java que empieza por `openjdk version "17`; y una tupla con tu usuario de Snowflake, por ejemplo `('TU_USUARIO',)`. Esta última comprobación es la que necesita el lab 03: si falla, la tabla de control no podrá consultarse. Antes de seguir, corre también `cd ~/bigdata && git pull && make snowflake`: crea la tabla `BIGDATA.CONTROL.WATERMARK` y los permisos de `ACCOUNTADMIN` sobre ella. Si `java -version` no encuentra Java, no te preocupes todavía: la primera celda de cada notebook busca el Java que instaló `make setup` en `~/.local/opt/java17`.
+Salida esperada: `librerias ok`; una versión de Java que empieza por `openjdk version "17`; y una tupla con tu usuario de Snowflake, por ejemplo `('TU_USUARIO',)`. Esta última comprobación es la que necesita el lab 03: si falla, la tabla de control no podrá consultarse. La tabla de control y sus permisos ya los creó `make snowflake` en el comando anterior. Si `java -version` no encuentra Java, no te preocupes todavía: la primera celda de cada notebook busca el Java que instaló `make setup` en `~/.local/opt/java17`.
 
 ## 2. Trabajar sobre una copia del notebook
 
@@ -56,7 +50,7 @@ Salida esperada: ninguna (si no hay error, la copia salió bien). Comprueba con 
 
 1. En el Code Editor abre el explorador de archivos y entra a `clase05_mis_notebooks/`.
 2. Abre `01_fundamentos.ipynb`. Si el editor ofrece instalar la extensión de Jupyter, acéptala.
-3. Arriba a la derecha pulsa **Select Kernel**, elige **Jupyter Kernel** y después **Python (bigdata)**. Si no aparece, elige el intérprete `~/bigdata/.venv/bin/python`.
+3. Arriba a la derecha pulsa **Select Kernel**, elige **Jupyter Kernel** y después **Python (bigdata)**. Hazlo de nuevo cada vez que corras `make reparar-entorno`, porque ese comando recrea el `.venv`. Si no aparece, elige el intérprete `~/bigdata/.venv/bin/python`.
 4. Ejecuta la primera celda de código (la Celda 1). Debe imprimir una ruta de Python que contiene `.venv` y la versión de Java. Si imprime `AVISO: este kernel no es el del proyecto`, el kernel está mal elegido: vuelve al paso 3.
 
 **Nunca elijas un kernel que se llame `Glue PySpark`, `Glue Spark` ni `SparkMagic`.** El Code Editor los ofrece en la lista, pero abren una sesión de AWS Glue en la nube, y esa sesión cobra mientras está abierta. Los notebooks de esta clase usan Spark en tu propia máquina, con el kernel **Python (bigdata)**, y no cuestan nada.
@@ -95,11 +89,12 @@ Las cifras no están escritas aquí a propósito: las produce cada celda en tu m
 | Lo que ves | Causa | Cómo evitarlo o arreglarlo |
 |---|---|---|
 | `Java gateway process exited before sending its port number` o `JAVA_HOME is not set`, o la Celda 1 imprime `AVISO: no se encontró Java` | El kernel del notebook no lee `~/.bashrc` y no ve el Java que instaló `make setup` | La Celda 1 busca Java en `~/.local/opt/java17` y define `JAVA_HOME` sola. Si aun así falla, ejecuta `ls ~/.local/opt/java17/bin/java` en una terminal; si no existe, ejecuta `cd ~/bigdata && make setup` y reinicia el kernel |
-| `ModuleNotFoundError: No module named 'pandas'` (o `pyarrow`, `snowflake`) | El notebook corre con otro kernel, no con el del proyecto | Elige el kernel **Python (bigdata)** (sección 3 de este README) y reinicia el kernel |
+| `ModuleNotFoundError: No module named 'pandas'` (o `pyarrow`, `snowflake`) | El notebook corre con otro kernel, o el `.venv` quedó roto porque el Code Editor actualizó su imagen y cambió de Python | Elige el kernel **Python (bigdata)** (sección 3 de este README). Si ya lo elegiste y sigue fallando, ejecuta `cd ~/bigdata && make reparar-entorno`, elige el kernel de nuevo y reinicia |
+| `ModuleNotFoundError: No module named 'snowflake.cli'` al usar `snow` | `snow` se instaló sobre una versión anterior de Python de la imagen del Code Editor | Ejecuta `cd ~/bigdata && make reparar-entorno`: comprueba `snow` y lo reinstala si falla |
 | Aparece una sesión de Glue, un mensaje de *Glue Session* o un cargo de AWS Glue | Elegiste un kernel `Glue PySpark`, `Glue Spark` o `SparkMagic` | Cierra esa sesión, elige **Python (bigdata)** y reinicia. Esos kernels abren una sesión de Glue que cobra |
 | `No active warehouse selected in the current session` o `Warehouse: None` en la sección 2 de `02_como_funciona` | La conexión de Snowflake por llave no trae warehouse | La celda ejecuta `USE ROLE ACCOUNTADMIN` y `USE WAREHOUSE COMPUTE_WH`. Si el warehouse de tu cuenta se llama distinto, cambia ese nombre en la celda |
 | La Spark UI abre sin estilos (texto plano) o dice `Unsupported URL path` | Spark no conocía el prefijo del proxy del Code Editor, o abriste la raíz del enlace, que redirige mal detrás del proxy | Usa el enlace que imprime la Celda 5, que termina en `/jobs/`. Esa celda define `PYSPARK_SUBMIT_ARGS` con `spark.ui.proxyBase` **antes** de arrancar Spark; si Spark ya estaba encendido de antes, reinicia el kernel y ejecuta la celda desde el principio |
-| `ModuleNotFoundError: No module named 'distutils'` al ejecutar `toPandas()` | PySpark 3.5 usa `distutils` y Python 3.12 lo eliminó; `setuptools` lo reemplaza | Ejecuta `cd ~/bigdata && .venv/bin/pip install -r requirements-dev.txt`: el archivo incluye `setuptools`. Reinicia el kernel |
+| `ModuleNotFoundError: No module named 'distutils'` al ejecutar `toPandas()` | PySpark 3.5 usa `distutils` y Python 3.12 lo eliminó; `setuptools` lo reemplaza | Ejecuta `cd ~/bigdata && make reparar-entorno`: instala `requirements-dev.txt`, que incluye `setuptools`. Reinicia el kernel |
 | `error: Your local changes to the following files would be overwritten by merge` al hacer `git pull` | Editaste un notebook que está dentro del repositorio | Trabaja siempre sobre la copia (sección 2). Para rescatar lo que ya escribiste: `cd ~/bigdata && cp curso/clase05/03_lab.ipynb ~/clase05_mis_notebooks/03_lab_recuperado.ipynb && git checkout -- curso/clase05/03_lab.ipynb && git pull`. Cambia `03_lab.ipynb` por el archivo que editaste |
 | `AttributeError: module 'lib' has no attribute 'X509_V_FLAG_NOTIFY_POLICY'` al importar `snowflake.connector` | `cryptography` y `pyOpenSSL` quedaron en versiones incompatibles | Repite `cd ~/bigdata && .venv/bin/pip install -r requirements-dev.txt`: el archivo fija las dos versiones correctas |
 | El kernel muere (`Kernel died`) o `OutOfMemoryError: Java heap space` | Se trajo demasiado al driver, o hay dos procesos grandes a la vez | Reinicia el kernel, cierra otros notebooks y no ejecutes `toPandas()` sobre datos crudos |
