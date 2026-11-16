@@ -1,6 +1,6 @@
 # Guion de prueba de la clase 5 en el Code Editor
 
-Para el autor. La clase 5 son tres notebooks: `01_fundamentos`, `02_como_funciona` y `03_lab` (con su `03_lab_solucion`). Este guion los recorre en el Code Editor, en orden, con la salida esperada de cada paso y lo que debes pegarme al final. Hazlo primero con los notebooks de estudiante y al final con `03_lab_solucion.ipynb`.
+Para el autor. La clase 5 son tres notebooks: `01_fundamentos`, `02_como_funciona` y `03_lab` (con su `03_lab_solucion`), y el lab ya no es el de silver y gold sino el de **ingesta a bronze** de las tres fuentes, con la tabla de control en Snowflake. El lab anterior de silver y gold se movió a `curso/clase06/lab_silver_gold.ipynb` (y `lab_silver_gold_solucion.ipynb`); su prueba está en la sección 5 de este guion. Este guion recorre los notebooks en el Code Editor, en orden, con la salida esperada de cada paso y lo que debes pegarme al final. Hazlo primero con los notebooks de estudiante y al final con `03_lab_solucion.ipynb`.
 
 ## Qué se probó ya, y dónde
 
@@ -11,14 +11,14 @@ Todo el código de los tres notebooks se ejecutó en un Mac de 32 GB con Python 
 | Los cuatro `.ipynb` son JSON válido (`nbformat`), sin salidas guardadas, con la sintaxis de todas las celdas correcta y sin nombres sin definir (`ruff` con las reglas `F`) | Correcto |
 | `01_fundamentos` ejecutado completo con un kernel real | Sin errores. Las salidas coinciden con las tablas del texto (primer viaje de enero, 265 zonas, 31 días de clima, `Llaves repetidas en zonas: 0`, `Las filas de más son exactamente los viajes de JFK: True`, SQL y DataFrames con 0 filas de diferencia). Las soluciones plegables de los «Pruébalo tú» se ejecutaron todas sin error, y con las tres correcciones de la sección de depuración los tres `comprobar` dicen `OK` |
 | `02_como_funciona` ejecutado completo, con Snowflake (`connection_name="bigdata-test"`, `COMPUTE_WH`, base `CURSO_PRUEBA_C5`, borrada al final) | Sin errores. Los tres motores dan 8 006 grupos, 19 663 930 viajes e ingreso 471 132 933.49 y dos líneas `COINCIDEN`; un grupo de 1 048 576 filas con 24 columnas ocupa 526 MB en pandas; `Exchange SinglePartition` en la ventana sin partición; `SortMergeJoin` frente a `BroadcastHashJoin` con `Resultados iguales: True` |
-| `03_lab` (enunciado) | Siete líneas `PENDIENTE` (1a, 1b, 2, 3, 4, 5a y 5b) y las celdas que dependen de ellas imprimen su aviso, sin ningún error |
-| `03_lab_solucion` | Siete líneas `OK`; la ingesta real descarga una sola vez y deja un crudo y dos lotes con su marcador `_LOTE_COMPLETO` (62 filas con dos lotes); la cadena completa da `Tu gold es equivalente al del pipeline del repo: True` (14 499 filas y 197 208 viajes sobre la muestra); correlación diaria lluvia-viajes de la muestra 0.132 |
-| Pruebas del lab con respuestas malas | Sin `coalesce` del nulo, 1a dice `REVISAR` con la pista del nulo y 1b dice que primero hay que resolver 1a; con `crudo_ya_existe = False`, 1b dice `REVISAR  La segunda ejecución volvió a llamar a la red`; con la huella calculada con menos columnas, 1b dice `REVISAR` por la huella; sin `F.broadcast`, 4 dice `REVISAR  El plan no usa BroadcastHashJoin`; con `F.avg` de promedios, 5b dice `REVISAR` con la cuenta de 1.2. El ejercicio 3 con `row_number()` también da `OK` |
-| La huella frente a su definición | La prueba 1a recalcula la huella con `hashlib` (texto, nulo como `<nulo>`, unir con `||`, SHA-256) y la compara con la columna de Spark y con `bronze.hash_fila` del pipeline; la 1b la recalcula sobre las 31 filas del lote real de Open-Meteo |
-| Con el gold del pipeline | Sin filas sin pareja, con los mismos viajes y la misma lluvia; en 100 de 14 499 filas un monto difiere en el último decimal por el orden de la suma (por eso la comparación usa una tolerancia de 0.011) |
+| `03_lab` (enunciado) | Cuatro líneas `PENDIENTE` (E1 a E4); la celda de datos reales dice que todavía no y no hay ningún error |
+| `03_lab_solucion` | Cuatro líneas `OK`. Las pruebas usan archivos pequeños (100 viajes, 12 zonas, 31 días de clima de `tests/data`), la tabla `prueba_*` y el mes `2099-01`, y borran sus registros al terminar. La ejecución real descarga el clima de enero (3 llamadas: ingesta, «ya hay registro», reproceso con lote nuevo), las 265 zonas (2 llamadas) y los viajes de enero en modo de prueba (descarga el archivo de 450.9 MiB, 19 s en el Mac, y escribe 1 000 filas): la tabla de control queda con 2, 1 y 1 registros, y la celda de cierre los borra |
+| Respuestas malas del lab | Sin `coalesce` del nulo, E1 dice `REVISAR` con la pista de `(«a», nulo)` y E2 a E4 piden resolver E1. Una ingesta que ignora la tabla de control dice `REVISAR  La segunda llamada (reprocesar=False) volvió a descargar`; con el crudo sin la carpeta del lote, `REVISAR  El crudo debe guardarse en ...`; sin registrar, `REVISAR  Después de la primera llamada la tabla de control debe tener 1 registro ... y tiene 0`; sin el marcador, `REVISAR  El lote debe estar completo: falta el marcador _LOTE_COMPLETO`; con una columna de más, `REVISAR  Las columnas deben ser ...`; sin recortar con `limite_filas`, `REVISAR  El lote debe tener 40 filas y tiene 100`; sin la guarda, `REVISAR  La guarda debe rechazar limite_filas con la tabla real` |
+| Tabla de control con Snowflake real (`connection_name="bigdata-test"`, rol `ACCOUNTADMIN`, `COMPUTE_WH`) | `consultar_watermark` de un mes inexistente da `[]`; el registro de `demo` aparece como JSON con siete campos; un segundo con `reprocesar=True` aparece después del primero; los borrados solo aceptan tablas `demo` o `prueba*`. **En BIGDATA no se pudo crear el esquema `CONTROL`**: `ACCOUNTADMIN` no tiene `CREATE SCHEMA` sobre esa base (la base es de `TERRAFORM_ROLE`). Las pruebas con Snowflake se hicieron en una base de prueba (variable `WATERMARK_DATABASE`), que se borró al final. Ver «Pendiente» más abajo |
+| Pruebas de `watermark.py` sin red (`tests/test_watermark.py`) | Diez pruebas con un conector falso: rol, warehouse y creación de esquema y tabla, consulta parametrizada y ordenada por `INICIO`, JSON con siete campos, inicio en UTC sin zona, nombre de conexión configurable, conexión cerrada ante errores, mensaje claro cuando falta el permiso, borrado solo de tablas de prueba |
+| Lab de la clase 6 (`lab_silver_gold_solucion`) con el bronze que dejó el lab de ingesta | Cinco líneas `OK` (E1, E2, E3, E4a y E4b); la cadena lee los dos lotes del clima de `prueba_clima` (62 filas, 31 sin repetidos por la huella) y da `Tu gold es equivalente al del pipeline del repo: True`. El enunciado da cinco líneas `PENDIENTE` sin errores |
 
-
-**Lo que solo se puede probar en el Code Editor** y este guion debe cubrir: el kernel **Python (bigdata)** del `.venv` (sin los kernels de Glue), el Java de `~/.local/opt/java17`, las dos CPU y 7.6 GB de la instancia (el pico de pandas y el desempeño con `defaultParallelism` igual a 2), el enlace de la Spark UI detrás del proxy, la copia del archivo desde tu bucket, las rutas nuevas del lake (`bronze/_crudo/...`) en tu bucket real, Snowflake con `USE ROLE ACCOUNTADMIN` y `USE WAREHOUSE COMPUTE_WH`, y la sección «A mano primero» (`pipeline.run`, `make`, `pytest`, `ruff`).
+**Lo que solo se puede probar en el Code Editor** y este guion debe cubrir: el kernel **Python (bigdata)** del `.venv` (sin los kernels de Glue), el Java de `~/.local/opt/java17`, las dos CPU y 7.6 GB de la instancia (el pico de pandas y el desempeño con `defaultParallelism` igual a 2), el enlace de la Spark UI detrás del proxy, la copia del archivo desde tu bucket, las rutas nuevas del lake (`bronze/_crudo/...`) en tu bucket real, Snowflake con `USE ROLE ACCOUNTADMIN` y `USE WAREHOUSE COMPUTE_WH`, **la creación del esquema y la tabla `BIGDATA.CONTROL.WATERMARK` con tu cuenta**, la descarga del archivo de viajes (450.9 MiB) desde las redes del Code Editor y el espacio en disco que deja el lab de ingesta, y la sección «A mano primero» del lab de la clase 6 (`pipeline.run`, `make`, `pytest`, `ruff`).
 
 ## 1. Preparar el Code Editor
 
@@ -108,19 +108,29 @@ Ejecútalo después de cerrar Spark en el notebook 01. Es la versión reducida y
 | 5 broadcast | `SortMergeJoin` y `BroadcastHashJoin`, dos tiempos, `Resultados iguales: True`, umbral restaurado | Los dos tiempos |
 | Cierre | `Spark cerrado.` | |
 
-## 4. `03_lab.ipynb` (enunciado) y `03_lab_solucion.ipynb`
+## 4. `03_lab.ipynb` (ingesta a bronze, enunciado) y `03_lab_solucion.ipynb`
 
-1. En `03_lab.ipynb` ejecuta hasta el ejercicio 5b sin resolver nada. Debes ver **siete líneas `PENDIENTE`** (1a, 1b, 2, 3, 4, 5a y 5b) y ningún error rojo. Confirma que `inspect.getsource` funciona en el Code Editor: si alguna dice `OK` o `REVISAR` con el enunciado sin resolver, es lo primero que hay que mirar.
-2. Abre `03_lab_solucion.ipynb` (la copia, ya que no la copiaste, cópiala ahora a `~/clase05_mis_notebooks/`) y ejecútalo completo. Debes ver siete líneas `OK`; la celda de la ingesta lista los archivos de tu bronze de práctica (un crudo y dos lotes con su marcador `_LOTE_COMPLETO`) y cuenta 62 filas con dos lotes; la cadena imprime `Tu gold es equivalente al del pipeline del repo: True`; y se imprime la tabla de lluvia y viajes con su correlación.
-3. Provoca un `REVISAR` a propósito en la solución y vuelve a ejecutar cada prueba:
-   - En 1a, reemplaza `F.coalesce(como_texto, F.lit(MARCADOR_NULO))` por `como_texto`: debe decir `REVISAR` y la pista sobre `(«a», nulo)`.
-   - En 1b, cambia `crudo_ya_existe = crudo.exists()` por `crudo_ya_existe = False`: debe decir `REVISAR  La segunda ejecución volvió a llamar a la red`.
-   - En 1b, calcula el hash después de los metadatos (por ejemplo `calcular_hash_fila(dias.columns + ["_id_lote"])`): debe decir `REVISAR` por la huella.
-   - En 4, cambia `F.broadcast(zonas_sel)` por `zonas_sel`: debe decir `REVISAR  El plan no usa BroadcastHashJoin...`.
-   - En 5b, cambia la ponderación por `F.avg("propina_promedio")`: debe decir `REVISAR` con la pista de los promedios.
+1. Comprueba antes, en una terminal, que la conexión funciona y que puede crear el esquema de control:
+
+```bash
+cd ~/bigdata && .venv/bin/python -c "import snowflake.connector as s; c = s.connect(connection_name='default'); cur = c.cursor(); cur.execute('USE ROLE ACCOUNTADMIN'); cur.execute('USE WAREHOUSE COMPUTE_WH'); cur.execute('CREATE SCHEMA IF NOT EXISTS BIGDATA.CONTROL'); print('esquema CONTROL listo'); c.close()"
+```
+
+Salida esperada: `esquema CONTROL listo`. Si dice `Insufficient privileges to operate on database 'BIGDATA'`, hay que decidir cómo se crea el esquema (ver «Pendiente»); sin eso, la demostración de la sección 4 del lab y los ejercicios 2 a 4 fallan para todos los estudiantes.
+
+2. En `03_lab.ipynb` ejecuta hasta el final sin resolver nada. Debes ver **cuatro líneas `PENDIENTE`** (E1, E2, E3 y E4), la celda de datos reales diciendo que todavía no, y ningún error rojo. Confirma que `inspect.getsource` funciona en el Code Editor: si alguna dice `OK` o `REVISAR` con el enunciado sin resolver, es lo primero que hay que mirar.
+3. Ejecuta la sección 1 (consumir una fuente): las tres URL de febrero de 2024, el peso del archivo de viajes (`HEAD`), el clima de febrero que termina el 2024-02-29 y las zonas. **Anota** si el `HEAD` a CloudFront funciona desde el Code Editor.
+4. Ejecuta la demostración de la sección 4 (tres celdas con la tabla `demo`): `Respuesta: '[]'`, el registro como JSON con siete campos, dos registros con `reprocesar=False` y luego `True`, y «Se borraron 2 registros de demo». **Anota los segundos de la primera celda** (crea esquema y tabla) y de cada llamada a Snowflake.
+5. Abre `03_lab_solucion.ipynb` (la copia: cópiala ahora a `~/clase05_mis_notebooks/`) y ejecútalo completo. Debes ver cuatro líneas `OK`. La celda de datos reales imprime la ingesta del clima en tres llamadas, las zonas en dos y los viajes en modo de prueba (descarga 450.9 MiB y escribe 1 000 filas); lista los archivos de `bronze_alumno` (crudos por lote, lotes con `_LOTE_COMPLETO`) y la tabla de control (2, 1 y 1 registros); la celda de cierre los borra. **Anota los segundos de la descarga de viajes y del modo de prueba.**
+6. Provoca un `REVISAR` a propósito en la solución y vuelve a ejecutar cada prueba:
+   - En E1, reemplaza `F.coalesce(como_texto, F.lit(MARCADOR_NULO))` por `como_texto`: debe decir `REVISAR` y la pista sobre `(«a», nulo)`; E2 a E4 piden resolver E1.
+   - En E2, cambia `if len(registros) > 0 and not reprocesar:` por `if False:`: debe decir `REVISAR  La segunda llamada (reprocesar=False) volvió a descargar`.
+   - En E2, cambia `crudo = ruta_crudo_lote(base_bronze, tabla, id_lote, nombre, mes)` por `crudo = pio.ruta_crudo(base_bronze, tabla, nombre, mes)`: debe decir `REVISAR  El crudo debe guardarse en ...`.
+   - En E3, quita la última línea de registro (`registrar_watermark`): debe decir `REVISAR  Después de la primera llamada la tabla de control debe tener 1 registro ...`.
+   - En E4, quita la línea `original = original.limit(limite_filas)`: debe decir `REVISAR  El lote debe tener 40 filas y tiene 100`.
    Restaura cada cambio.
-4. En el notebook de estudiante, resuelve el ejercicio 3 con `row_number()` sobre una ventana en lugar de `dropDuplicates` y comprueba que también da `OK`; abre la Spark UI y mira el shuffle de esa celda.
-5. Abre tu bucket y comprueba que **no** se escribió nada: el lab trabaja en `~/datos_clase05/bronze_alumno`, no en S3.
+7. Abre Snowsight y mira `BIGDATA.CONTROL.WATERMARK` mientras la celda de datos reales corre: deben aparecer las filas de `prueba_clima`, `prueba_taxi_zones` y `prueba_fhvhv` y desaparecer al ejecutar la celda de cierre. Abre tu bucket y comprueba que **no** se escribió nada: el lab escribe en `~/datos_clase05/bronze_alumno`, no en S3.
+8. Prueba la opción de S3 por separado, sin cambiar el lab: con Spark local no se puede leer `s3://` (esa ruta es para Glue), así que solo comprueba que `BRONZE_S3` imprime `s3://<tu bucket>/bronze`.
 
 ### Medición final (celda extra al final de cualquiera de los tres notebooks)
 
@@ -132,9 +142,11 @@ print(json.dumps({k: round(v, 2) for k, v in TIEMPOS.items()}, indent=1, ensure_
 
 y, en la terminal, `free -m` justo después.
 
-## 5. La sección «A mano primero» desde la terminal
+## 5. El lab de la clase 6 y la sección «A mano primero»
 
-Con Spark ya cerrado en el notebook (y el kernel reiniciado si hace falta):
+El lab anterior de silver y gold se movió a `curso/clase06/lab_silver_gold.ipynb` y `lab_silver_gold_solucion.ipynb`. Sus ejercicios 1 a 3 (limpiar, duplicados, zonas) y 4a y 4b (gold) son los antiguos 2 a 5; los ejercicios de huella e ingesta del clima pasaron al lab de la clase 5. Lo único que cambió es lo que dependía de la clase 5: la huella de la cadena es `bronze.hash_fila` del pipeline, y el clima de la cadena sale de los lotes de `prueba_clima` que dejó el lab de ingesta en `~/datos_clase05/bronze_alumno` (si no existen, usa el clima de pruebas del repo). Ejecútalo después del lab de ingesta: el enunciado debe dar cinco líneas `PENDIENTE` y la solución cinco `OK` y `Tu gold es equivalente al del pipeline del repo: True`.
+
+Con Spark ya cerrado en el notebook (y el kernel reiniciado si hace falta), la sección «A mano primero» de ese notebook corre estos comandos desde la terminal:
 
 ```bash
 cd ~/bigdata && PYTHONPATH=src .venv/bin/python -m pipeline.run --step silver --env local --engine local --mes 2024-01 --lake-bucket <tu bucket>
@@ -153,13 +165,20 @@ Anota: si el primer comando necesitó `--lake-bucket`, de dónde tomó la muestr
 ## 6. Lo que quiero que mires con ojo crítico
 
 1. El enlace de la Spark UI (`.../codeeditor/default/ports/4040/jobs/`) y el permiso `sagemaker:DescribeSpace` desde el kernel.
-2. Que `inspect.getsource` funcione sobre las funciones definidas en una celda del Code Editor: de eso depende que `PENDIENTE` aparezca.
+2. Que `inspect.getsource` funcione sobre las funciones definidas en una celda del Code Editor: de eso depende que `PENDIENTE` aparezca (en el lab de ingesta, en las cuatro funciones).
 3. Que `explain()` se capture con `redirect_stdout` y que la línea del `FileScan` se resuma bien.
 4. La lectura de etapas por la API de la Spark UI desde Python (`/api/v1/applications/<id>/stages`).
 5. Que la celda de pandas (pico de memoria) no mate el kernel en 8 GB.
 6. El tiempo de Snowflake desde la cuenta de un estudiante, y que `CURSO` exista con el rol de la conexión `default`.
-7. Que la descarga de la Celda 3 encuentre el archivo en `bronze/_crudo/...` o en la ruta anterior, según cuál tenga tu lake.
-8. La claridad del texto: marca cualquier frase que suene a ficha escolar o a promesa de cifra. En especial, la tabla de columnas de los viajes de `01_fundamentos` (¿el diccionario de datos está bien explicado?) y la sección de depuración.
+7. Que la descarga de la Celda 3 de los notebooks 01 y 02 encuentre el archivo en `bronze/_crudo/...` o en la ruta anterior, según cuál tenga tu lake.
+8. La claridad del texto: marca cualquier frase que suene a ficha escolar o a promesa de cifra. En especial, la tabla de columnas de los viajes de `01_fundamentos` (¿el diccionario de datos está bien explicado?), la sección de depuración y las explicaciones previas a cada parte del lab de ingesta (consumir una fuente, crudo por lote, metadatos, tabla de control y `reprocesar`).
+9. La función `watermark.py` desde tu cuenta: que cree el esquema y la tabla sin permisos extra, cuánto tarda cada llamada (cada una abre su propia conexión) y que el JSON del registro tenga las siete claves esperadas.
+10. El diseño de `limite_filas` en `ingestar_viajes`: ¿la guarda que lo limita a tablas `prueba*` te parece suficiente, o prefieres otro mecanismo?
+
+## Pendiente
+
+- **El esquema `BIGDATA.CONTROL`.** En la cuenta de prueba, `ACCOUNTADMIN` no puede crearlo (`Insufficient privileges to operate on database 'BIGDATA'`) porque la base `BIGDATA` pertenece a `TERRAFORM_ROLE`. `watermark.py` no se otorga permisos a sí misma y falla con un mensaje que lo explica. Hay que decidir una de dos: que Terraform (`infra/snowflake`) cree el esquema `CONTROL` con permisos para `ACCOUNTADMIN` y `BIGDATA_DEV`, o un paso único en la guía (`GRANT CREATE SCHEMA ON DATABASE BIGDATA TO ROLE ACCOUNTADMIN`).
+- **La conexión desde Glue (clase 6).** En Glue no existe `~/.snowflake/connections.toml`: falta resolver el secreto y el conector para que las funciones de ingesta registren en la tabla de control cuando las llame el DAG.
 
 ## 7. Qué pegarme de vuelta
 
@@ -173,7 +192,9 @@ Anota: si el primer comando necesitó `--lake-bucket`, de dónde tomó la muestr
 | Segundos de cada celda con `cronometro` y la tabla de 2.5 | Notebook 02 (o la celda extra de medición) |
 | Pico de memoria del proceso Python y de Java en cada sección | Celda extra y monitor de la segunda terminal |
 | Número de particiones, `defaultParallelism` y la tabla de etapas | Notebook 02, secciones 1 y 4 |
-| Las siete líneas del lab sin resolver, y las siete con la solución | Notebook 03 |
+| Las cuatro líneas del lab de ingesta sin resolver, y las cuatro con la solución; los segundos de la descarga de viajes | Notebook 03 |
+| La salida de la consulta de la sección 4.1 (esquema `CONTROL`) y los segundos de las llamadas a Snowflake | Terminal y sección 4 del lab |
+| Las cinco líneas del lab de la clase 6 sin resolver y con la solución | `curso/clase06/lab_silver_gold*.ipynb` |
 | Cualquier celda en rojo o `REVISAR` inesperado, con el traceback completo | Cualquier notebook |
-| Salida de los comandos de la sección 5 de este guion y sus segundos | Terminal |
+| Salida de los comandos de la sección 5 de este guion (lab de la clase 6) y sus segundos | Terminal |
 | Frases del texto que no te gusten | Notebooks |
