@@ -153,6 +153,21 @@ Busca tu mensaje con **Ctrl+F**. Cada entrada muestra el mensaje exacto, su caus
 - **Qué hacer:** repítelo con `cd ~/bigdata && make muestra`. Retoma desde lo que ya descargó.
 - [Volver al paso 12](guia.md#paso-12)
 
+<a id="p-cerre-terminal-muestra"></a>
+### Cerré la terminal mientras corría `make muestra`
+
+- **Síntoma:** cerraste la terminal (o se cortó la conexión) mientras `make muestra` esperaba a Glue, y la salida nunca llegó a `==> muestra OK`. Con `cd ~/bigdata && make estado` ves el último run de `bigdata-large` en `SUCCEEDED`, pero no hay ningún run de `bigdata-medium` con el paso `muestra`.
+- **Causa:** `make muestra` lanza los dos pasos uno detrás de otro desde tu terminal. El job de bronze sigue corriendo en Glue aunque la cierres, pero el segundo paso solo lo lanza el script, y el script terminó con la terminal.
+- **Qué hacer:** lanza solo el paso que falta, cuando el bronze ya esté en `SUCCEEDED`:
+  ```bash
+  cd ~/bigdata
+  make muestra-solo
+  ```
+  Verás `==> Glue bigdata-medium --step muestra (run jr_...)` y, al terminar, `==> muestra OK`.
+- **Qué no hacer:** repetir `make muestra`. Cada ejecución del paso bronze crea otro lote completo del año en tu bucket, con su costo de almacenamiento y de Glue.
+- **Si `make muestra-solo` falla:** `No se pudo lanzar bigdata-medium` significa que hay otro run en curso o que el presupuesto bloqueó Glue (corre `make desbloquear` solo si fue el presupuesto). `muestra terminó en FAILED` significa que el job falló: abre los logs en CloudWatch (`/aws-glue/jobs/bigdata`).
+- [Volver al paso 12](guia.md#paso-12)
+
 <a id="p-sin-muestra"></a>
 ### No hay muestra para correr en local
 

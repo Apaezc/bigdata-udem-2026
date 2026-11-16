@@ -4,7 +4,7 @@ Pregunta de la clase: ¿cómo se pasa de 20 millones de viajes crudos a un resum
 
 | Archivo | Para quién | Qué es |
 |---|---|---|
-| [`01_fundamentos.ipynb`](01_fundamentos.ipynb) | Estudiantes | Tus primeras líneas de Spark con los viajes de NYC: conoces las tres fuentes de datos y practicas ver, seleccionar, transformar, filtrar, agrupar y unir, además de depurar paso a paso. Cada sección termina con un «Pruébalo tú». |
+| [`01_fundamentos.ipynb`](01_fundamentos.ipynb) | Estudiantes | Tus primeras líneas de Spark con los viajes de NYC: conoces las tres fuentes de datos y practicas ver, seleccionar, transformar, filtrar, agrupar y unir, además de depurar paso a paso. Cada sección termina con un «Pruébalo tú», y una sección propia presenta las funciones de columna que usarás en el lab. |
 | [`02_como_funciona.ipynb`](02_como_funciona.ipynb) | Estudiantes | Lo que Spark hace por dentro: driver, ejecutores y particiones; pandas frente a Spark frente a Snowflake; lazy y `explain()`; operaciones estrechas y anchas; *shuffle*; `broadcast`. |
 | [`03_lab.ipynb`](03_lab.ipynb) | Estudiantes | El lab: tu pipeline de bronze a gold, con huecos `# TU CÓDIGO AQUÍ` y una prueba debajo de cada ejercicio que dice `OK`, `PENDIENTE` o `REVISAR`. Termina con el pipeline desde la terminal. |
 | [`03_lab_solucion.ipynb`](03_lab_solucion.ipynb) | Instructor | El mismo lab con los siete ejercicios resueltos. |
@@ -55,11 +55,11 @@ Salida esperada: ninguna (si no hay error, la copia salió bien). Comprueba con 
 1. En el Code Editor abre el explorador de archivos y entra a `clase05_mis_notebooks/`.
 2. Abre `01_fundamentos.ipynb`. Si el editor ofrece instalar la extensión de Jupyter, acéptala.
 3. Arriba a la derecha pulsa **Select Kernel**, elige **Jupyter Kernel** y después **Python (bigdata)**. Si no aparece, elige el intérprete `~/bigdata/.venv/bin/python`.
-4. Ejecuta la primera celda de código (sección 0.1). Debe imprimir una ruta de Python que contiene `.venv` y la versión de Java. Si imprime `AVISO: este kernel no es el del proyecto`, el kernel está mal elegido: vuelve al paso 3.
+4. Ejecuta la primera celda de código (la Celda 1). Debe imprimir una ruta de Python que contiene `.venv` y la versión de Java. Si imprime `AVISO: este kernel no es el del proyecto`, el kernel está mal elegido: vuelve al paso 3.
 
 **Nunca elijas un kernel que se llame `Glue PySpark`, `Glue Spark` ni `SparkMagic`.** El Code Editor los ofrece en la lista, pero abren una sesión de AWS Glue en la nube, y esa sesión cobra mientras está abierta. Los notebooks de esta clase usan Spark en tu propia máquina, con el kernel **Python (bigdata)**, y no cuestan nada.
 
-Ejecuta las celdas en orden con Shift+Enter.
+Ejecuta las celdas en orden con Shift+Enter. Cada celda de código empieza con un comentario `# Celda N` que dice su número dentro del notebook; el texto y la clase usan ese número cuando te mandan a una celda concreta.
 
 ## 4. Cerrar Spark antes de la terminal y entre notebooks
 
@@ -74,32 +74,33 @@ Las cifras no están escritas aquí a propósito: las produce cada celda en tu m
 | **01** · 0 Preparación | Imprime tu cuenta y tu bucket, trae el archivo de enero una sola vez (451 MiB), las zonas y el clima, arranca Spark y muestra `defaultParallelism` y el enlace de la Spark UI. |
 | **01** · 1 Conoce tus datos | El esquema de los viajes (24 columnas), un viaje completo en vertical, las 265 zonas como texto, y el clima aplanado a 31 filas. |
 | **01** · 2 a 11 | Cada sección imprime tablas pequeñas y cifras; cada «Pruébalo tú» se resuelve con una o dos líneas. La sección 8 termina diciendo que el `join` conservó todos los viajes y que, con una zona repetida, las filas de más son exactamente los viajes de esa zona. |
-| **01** · 12 Depurar | Un recorrido por pasos con nombre sobre una muestra y después sobre todo enero, y tres errores que arreglas hasta que `comprobar` dice `OK`. |
+| **01** · 12 Funciones de columna | Seis ejemplos cortos (`F.coalesce` y `F.lit`, `F.concat_ws`, `F.sha2`, `F.concat`, `F.broadcast`, `dropDuplicates` y `orderBy`), cada uno con su «Pruébalo tú»: son las piezas que el lab te pide escribir. |
+| **01** · 13 Depurar | Un recorrido por pasos con nombre sobre una muestra y después sobre todo enero, y tres errores que arreglas hasta que `comprobar` dice `OK`. |
 | **02** · 1 Arquitectura | El número de particiones del archivo y una tabla con las filas de cada una, cuya suma es 19 663 930. |
 | **02** · 2 Pandas, Spark y Snowflake | Tiempos y memoria de los tres, y dos líneas `pandas vs ...: COINCIDEN`. |
 | **02** · 3 y 4 | Las celdas de «definir» tardan milisegundos; el `count()` tarda lo que cuesta leer el archivo; el plan muestra `ReadSchema` y `PushedFilters`; un plan sin `Exchange` y otro con `Exchange`; `HashAggregate` parcial y final; `Exchange SinglePartition` en la ventana sin partición. |
 | **02** · 5 Broadcast | `SortMergeJoin` frente a `BroadcastHashJoin`, dos tiempos y `Resultados iguales: True`. |
 | **03** · 1 a 2 | Explicación del diseño de bronze y la muestra de 1 % de enero. |
-| **03** · ejercicios 1a a 5b | Cada prueba imprime `OK`, `PENDIENTE` o `REVISAR` con una pista. Con el enunciado sin resolver todas dicen `PENDIENTE`; con todo resuelto, todas dicen `OK`. |
-| **03** · cadena completa | `Tu gold es equivalente al del pipeline del repo: True` y una tabla de lluvia y viajes por día. |
+| **03** · ejercicios 1a a 5b | Cada ejercicio trae pistas plegables y una prueba que imprime `OK`, `PENDIENTE` o `REVISAR` con una pista. Con el enunciado sin resolver todas dicen `PENDIENTE`; con todo resuelto, todas dicen `OK`. |
+| **03** · cadena completa | `Tu gold es equivalente al del pipeline del repo: True` y una tabla de lluvia y viajes por día. Si tu ejercicio 1b no está en `OK`, la cadena usa el clima del repositorio y lo avisa, para que llegues a la comparación de todos modos. |
 | **03** · «A mano primero» | Los comandos de la terminal con su salida esperada, para correrlos después de cerrar Spark. |
 
 ## 6. Errores comunes
 
 | Lo que ves | Causa | Cómo evitarlo o arreglarlo |
 |---|---|---|
-| `Java gateway process exited before sending its port number` o `JAVA_HOME is not set`, o la celda 0.1 imprime `AVISO: no se encontró Java` | El kernel del notebook no lee `~/.bashrc` y no ve el Java que instaló `make setup` | La celda 0.1 busca Java en `~/.local/opt/java17` y define `JAVA_HOME` sola. Si aun así falla, ejecuta `ls ~/.local/opt/java17/bin/java` en una terminal; si no existe, ejecuta `cd ~/bigdata && make setup` y reinicia el kernel |
+| `Java gateway process exited before sending its port number` o `JAVA_HOME is not set`, o la Celda 1 imprime `AVISO: no se encontró Java` | El kernel del notebook no lee `~/.bashrc` y no ve el Java que instaló `make setup` | La Celda 1 busca Java en `~/.local/opt/java17` y define `JAVA_HOME` sola. Si aun así falla, ejecuta `ls ~/.local/opt/java17/bin/java` en una terminal; si no existe, ejecuta `cd ~/bigdata && make setup` y reinicia el kernel |
 | `ModuleNotFoundError: No module named 'pandas'` (o `pyarrow`, `snowflake`) | El notebook corre con otro kernel, no con el del proyecto | Elige el kernel **Python (bigdata)** (sección 3 de este README) y reinicia el kernel |
 | Aparece una sesión de Glue, un mensaje de *Glue Session* o un cargo de AWS Glue | Elegiste un kernel `Glue PySpark`, `Glue Spark` o `SparkMagic` | Cierra esa sesión, elige **Python (bigdata)** y reinicia. Esos kernels abren una sesión de Glue que cobra |
 | `No active warehouse selected in the current session` o `Warehouse: None` en la sección 2 de `02_como_funciona` | La conexión de Snowflake por llave no trae warehouse | La celda ejecuta `USE ROLE ACCOUNTADMIN` y `USE WAREHOUSE COMPUTE_WH`. Si el warehouse de tu cuenta se llama distinto, cambia ese nombre en la celda |
-| La Spark UI abre sin estilos (texto plano) o dice `Unsupported URL path` | Spark no conocía el prefijo del proxy del Code Editor, o abriste la raíz del enlace, que redirige mal detrás del proxy | Usa el enlace que imprime la celda 0.5, que termina en `/jobs/`. Esa celda define `PYSPARK_SUBMIT_ARGS` con `spark.ui.proxyBase` **antes** de arrancar Spark; si Spark ya estaba encendido de antes, reinicia el kernel y ejecuta la celda desde el principio |
+| La Spark UI abre sin estilos (texto plano) o dice `Unsupported URL path` | Spark no conocía el prefijo del proxy del Code Editor, o abriste la raíz del enlace, que redirige mal detrás del proxy | Usa el enlace que imprime la Celda 5, que termina en `/jobs/`. Esa celda define `PYSPARK_SUBMIT_ARGS` con `spark.ui.proxyBase` **antes** de arrancar Spark; si Spark ya estaba encendido de antes, reinicia el kernel y ejecuta la celda desde el principio |
 | `ModuleNotFoundError: No module named 'distutils'` al ejecutar `toPandas()` | PySpark 3.5 usa `distutils` y Python 3.12 lo eliminó; `setuptools` lo reemplaza | Ejecuta `cd ~/bigdata && .venv/bin/pip install -r requirements-dev.txt`: el archivo incluye `setuptools`. Reinicia el kernel |
 | `bad interpreter` o `no such file or directory` al ejecutar `.venv/bin/pytest` | El comando `pytest` del entorno tiene escrita la ruta de un Python que ya no existe | Ejecuta las pruebas con `cd ~/bigdata && .venv/bin/python -m pytest tests/test_silver.py`, que usa el Python correcto |
 | `error: Your local changes to the following files would be overwritten by merge` al hacer `git pull` | Editaste un notebook que está dentro del repositorio | Trabaja siempre sobre la copia (sección 2). Para rescatar lo que ya escribiste: `cd ~/bigdata && cp curso/clase05/03_lab.ipynb ~/clase05_mis_notebooks/03_lab_recuperado.ipynb && git checkout -- curso/clase05/03_lab.ipynb && git pull`. Cambia `03_lab.ipynb` por el archivo que editaste |
 | `AttributeError: module 'lib' has no attribute 'X509_V_FLAG_NOTIFY_POLICY'` al importar `snowflake.connector` | `cryptography` y `pyOpenSSL` quedaron en versiones incompatibles | Repite `cd ~/bigdata && .venv/bin/pip install -r requirements-dev.txt`: el archivo fija las dos versiones correctas |
 | El kernel muere (`Kernel died`) o `OutOfMemoryError: Java heap space` | Se trajo demasiado al driver, o hay dos procesos grandes a la vez | Reinicia el kernel, cierra otros notebooks y no ejecutes `toPandas()` sobre datos crudos; en el lab usa siempre la muestra |
-| Spark no arranca, se queda esperando o la Spark UI aparece en el puerto 4041 | Ya hay otro Spark abierto (otro notebook o una terminal) | Cierra el otro con `spark.stop()` o reiniciando su kernel (sección 4); el enlace que imprime la celda 0.5 ya trae el puerto correcto |
-| `NoCredentialsError` o `ExpiredToken` en la celda 0.2 | No hay credenciales de AWS en esa terminal | En el Code Editor no hace falta ningún perfil; comprueba con `aws sts get-caller-identity`. Fuera del Code Editor define `AWS_PROFILE` |
+| Spark no arranca, se queda esperando o la Spark UI aparece en el puerto 4041 | Ya hay otro Spark abierto (otro notebook o una terminal) | Cierra el otro con `spark.stop()` o reiniciando su kernel (sección 4); el enlace que imprime la Celda 5 ya trae el puerto correcto |
+| `NoCredentialsError` o `ExpiredToken` en la Celda 2 | No hay credenciales de AWS en esa terminal | En el Code Editor no hace falta ningún perfil; comprueba con `aws sts get-caller-identity`. Fuera del Code Editor define `AWS_PROFILE` |
 | La descarga del archivo de enero se corta y queda `fhvhv_tripdata_2024-01.parquet.parcial` | La conexión se interrumpió | Borra el archivo `.parcial` de `~/datos_clase05/bronze/fhvhv/mes=2024-01/` y vuelve a ejecutar la celda |
 | `Could not find connection 'default'` o `Failed to connect to DB` | Falta la conexión de Snowflake o la llave | Ejecuta `cd ~/bigdata && make snowflake-conexion`; es el target que crea la conexión por llave en `~/.snowflake/connections.toml` |
 | `Database 'CURSO' does not exist or not authorized` | No creaste la base `CURSO` en las clases 2 a 4, o usas otro rol | Cambia `SF_BASE` en la celda por una base que puedas usar, o avisa al instructor |

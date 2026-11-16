@@ -9,7 +9,7 @@ AWS_REGION ?= us-east-2
 export PREFIX AWS_REGION
 export PATH := $(CURDIR)/.venv/bin:$(PATH)
 
-.PHONY: help setup config doctor estado test secrets publicar-bootstrap retirar-bootstrap muestra run-local deploy airflow-on airflow-off airflow-local airflow-local-down airflow-local-estado \
+.PHONY: help setup config doctor estado test secrets publicar-bootstrap retirar-bootstrap muestra muestra-solo run-local deploy airflow-on airflow-off airflow-local airflow-local-down airflow-local-estado \
 	airflow-habilitar airflow-deshabilitar snowflake snowflake-secreto snowflake-conexion \
 	airflow-tunel airflow-password desbloquear snowflake-ampliar-cuota destroy limpieza-total
 
@@ -33,6 +33,9 @@ test: ## Ruff y pytest
 
 muestra: ## Glue: bronze del año de prod + muestra para local (una vez por curso)
 	bash scripts/muestra.sh
+
+muestra-solo: ## Glue: solo el paso muestra (si cerraste la terminal de make muestra con el bronze ya terminado)
+	bash scripts/muestra.sh --solo-muestra
 
 secrets: ## Carga AWS_ROLE_ARN y TF_STATE_BUCKET en tu fork (desde el bootstrap, con gh)
 	bash scripts/secrets.sh

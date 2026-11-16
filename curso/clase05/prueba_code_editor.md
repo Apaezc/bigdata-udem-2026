@@ -84,7 +84,8 @@ Abre la copia, elige el kernel **Python (bigdata)** (confirma que la lista tambi
 | 8 join | `Llaves repetidas en zonas: 0`, el mismo número de viajes antes y después, y `Las filas de más son exactamente los viajes de JFK: True` | Los segundos de los `count()` |
 | 9 SQL | `Filas que están en uno y no en el otro: 0` | |
 | 10 y 11 | Cuatro «definir» en milésimas y un `count()`; los cuatro `toPandas`/`collect` con sus tiempos | **Los tiempos del `toPandas` de un millón de filas y del resumen** |
-| 12 depurar | La traza de cada paso sobre la muestra, el mismo código sobre todo enero, el error de `PULocation` resumido y tres errores | Que los tres errores impriman el mensaje resumido y, tras corregirlos con las soluciones, que cada `comprobar` diga `OK` |
+| 12 funciones de columna | Seis ejemplos con salidas pequeñas (`coalesce` y `lit`, `concat_ws`, `sha2`, `concat`, `broadcast`, `dropDuplicates` y `orderBy`), con su «Pruébalo tú» y solución | Que el plan del `broadcast` muestre `BroadcastHashJoin` y que ninguna solución plegable falle |
+| 13 depurar | La traza de cada paso sobre la muestra, el mismo código sobre todo enero, el error de `PULocation` resumido y tres errores | Que los tres errores impriman el mensaje resumido y, tras corregirlos con las soluciones, que cada `comprobar` diga `OK` |
 | Cierre | `Spark cerrado.` | |
 
 ## 3. `02_como_funciona.ipynb`
@@ -96,7 +97,7 @@ Ejecútalo después de cerrar Spark en el notebook 01. Es la versión reducida y
 | 0 preparación | Igual que en el 01 | Segundos de arranque de Spark |
 | 1 particiones | Un número de particiones y una tabla de filas por partición cuya suma es 19 663 930 | Número de particiones |
 | 2.1 pandas | Tres tiempos, DataFrame de unos cientos de MB y pico de memoria | Los tres tiempos y el pico: **es la celda que más riesgo tiene de matar el kernel en 8 GB** |
-| 2.2 todas las columnas | Estimaciones de mes y año en GB | Las dos estimaciones |
+| 2.2 el año completo | La estimación del año con las 3 columnas de la pregunta (unos 32 GB) y las de mes y año con las 24 columnas | Las tres estimaciones |
 | 2.3 Spark | Dos tiempos (SQL y DataFrame) y el mismo número de grupos (8 006) | Los dos tiempos |
 | 2.4 Snowflake | Rol `ACCOUNTADMIN`, warehouse `COMPUTE_WH`, `SELECT 1`, el archivo en el stage, el tiempo de la consulta y el ID | Los tiempos y si el warehouse arrancó de cero |
 | 2.5 comparar | Tabla con 8 006 grupos, 19 663 930 viajes e ingreso 471 132 933.49, y dos líneas `COINCIDEN` | La tabla completa |
@@ -157,7 +158,7 @@ Anota: si el primer comando necesitó `--lake-bucket`, si la muestra local tiene
 4. La lectura de etapas por la API de la Spark UI desde Python (`/api/v1/applications/<id>/stages`).
 5. Que la celda de pandas (pico de memoria) no mate el kernel en 8 GB.
 6. El tiempo de Snowflake desde la cuenta de un estudiante, y que `CURSO` exista con el rol de la conexión `default`.
-7. Que la descarga de la celda 0.3 encuentre el archivo en `bronze/_crudo/...` o en la ruta anterior, según cuál tenga tu lake.
+7. Que la descarga de la Celda 3 encuentre el archivo en `bronze/_crudo/...` o en la ruta anterior, según cuál tenga tu lake.
 8. La claridad del texto: marca cualquier frase que suene a ficha escolar o a promesa de cifra. En especial, la tabla de columnas de los viajes de `01_fundamentos` (¿el diccionario de datos está bien explicado?) y la sección de depuración.
 
 ## 7. Qué pegarme de vuelta
@@ -167,8 +168,8 @@ Anota: si el primer comando necesitó `--lake-bucket`, si la muestra local tiene
 | `nproc`, `free -m`, versión de Python y de Java | Paso 1.2 |
 | Resultado de la instalación, del kernel, de `distutils` y de la conexión de Snowflake | Pasos 1.3 y 1.4 |
 | Si trabajar desde la copia fuera del repositorio funcionó | Paso 1.5 |
-| De qué ruta del bucket bajó cada archivo y los segundos | Celda 0.3 del 01 |
-| Si el enlace de la Spark UI abrió con estilos | Celda 0.5 |
+| De qué ruta del bucket bajó cada archivo y los segundos | Celda 3 del 01 |
+| Si el enlace de la Spark UI abrió con estilos | Celda 5 |
 | Segundos de cada celda con `cronometro` y la tabla de 2.5 | Notebook 02 (o la celda extra de medición) |
 | Pico de memoria del proceso Python y de Java en cada sección | Celda extra y monitor de la segunda terminal |
 | Número de particiones, `defaultParallelism` y la tabla de etapas | Notebook 02, secciones 1 y 4 |

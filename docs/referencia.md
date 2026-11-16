@@ -182,6 +182,7 @@ Ejecuta `make help` para ver la lista actualizada. La columna **Paso** dice dón
 | `make estado` | Estado de Airflow, últimos job runs de Glue, warehouse y costos | [Apagar](cada-sesion.md#apagar) |
 | `make test` | `ruff check`, `ruff format --check`, `pytest` (y tests de DAGs si Airflow está instalado) | — |
 | `make muestra` | Glue: bronze del año de prod + muestra para local (una vez por curso) | [Paso 12](guia.md#paso-12) |
+| `make muestra-solo` | Glue: lanza solo el paso `muestra` (job `bigdata-medium`, entorno prod) y espera a que termine. Para quien cerró la terminal de `make muestra` con el bronze del año ya terminado | [Paso 12](guia.md#paso-12) |
 | `make run-local` | Pipeline en local sobre la muestra (`STEP=silver\|gold\|all`, `MES=YYYY-MM`, `LIMITE=N`). Sin `LIMITE` procesa toda la muestra | [Paso 13](guia.md#paso-13) |
 | `make airflow-local` / `-down` / `-estado` | Airflow de dev dentro del Code Editor (entorno dev; `computo` se elige al lanzar el DAG) | [Paso 13](guia.md#paso-13) · [Apagar](cada-sesion.md#apagar) (`-down`) |
 | `make deploy` | `terraform apply` de `infra/aws` (con la guardia de destrucción) y sincronización de código, DAGs y framework a S3 | [Paso 10](guia.md#paso-10) |
@@ -231,6 +232,7 @@ Conexión de Airflow a Snowflake: no hay nada que hacer a mano. `make snowflake`
 - Glue baja el año de **FHVHV** (los viajes de Uber/Lyft de NYC publicados por la NYC TLC) a `bronze/_crudo/` (~5.4 GB). Si ya los tenías en la ruta anterior de `bronze/`, los mueve en lugar de descargarlos otra vez.
 - **Bronze** guarda cada archivo tal como llegó y además lo convierte a Parquet con metadatos (hash de cada fila, fecha de ingesta, lote). Detalle: [Bronze: ingesta con metadatos](#bronze).
 - Genera la **muestra** en `muestra/`: un subconjunto pequeño de los datos, con la misma estructura de bronze, para trabajar en local.
+- Si cerraste la terminal a mitad de camino, `make muestra-solo` lanza únicamente este último paso, sin repetir el bronze del año. Ver [Cerré la terminal mientras corría `make muestra`](problemas.md#p-cerre-terminal-muestra).
 
 ---
 

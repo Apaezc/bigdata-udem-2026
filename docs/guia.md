@@ -704,7 +704,15 @@ Apply complete! Resources: 0 added, 1 changed, 0 destroyed.
 ==> Muestra lista en s3://bigdata-lake-123456789012-us-east-2/muestra. En local: make run-local (la descarga la primera vez).
 ```
 
-**❌ Si falla:** [`TIMEOUT`](problemas.md#p-timeout-muestra) (repite `make muestra`; retoma desde lo que ya descargó) · [`ModuleNotFoundError: pipeline`](problemas.md#p-modulenotfound) · [`AccessDenied` al lanzar jobs Glue](problemas.md#p-accessdenied-presupuesto)
+> [!TIP]
+> Si cierras la terminal mientras `make muestra` espera, Glue sigue trabajando, pero el script se detiene y la muestra nunca se lanza. No repitas `make muestra`: volvería a crear el bronze del año. Cuando `make estado` muestre el job `bigdata-large` en `SUCCEEDED`, lanza solo la muestra:
+> ```bash
+> cd ~/bigdata
+> make muestra-solo
+> ```
+> Verás las mismas dos últimas líneas de la salida de arriba (`==> Glue bigdata-medium --step muestra (run jr_...)` y `==> muestra OK`), sin el paso de bronze.
+
+**❌ Si falla:** [`TIMEOUT`](problemas.md#p-timeout-muestra) (repite `make muestra`; retoma desde lo que ya descargó) · [Cerré la terminal mientras corría `make muestra`](problemas.md#p-cerre-terminal-muestra) (usa `make muestra-solo`) · [`ModuleNotFoundError: pipeline`](problemas.md#p-modulenotfound) · [`AccessDenied` al lanzar jobs Glue](problemas.md#p-accessdenied-presupuesto)
 
 **Siguiente:** [Paso 13](#paso-13)
 
