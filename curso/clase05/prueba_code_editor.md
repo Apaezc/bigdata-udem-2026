@@ -112,7 +112,7 @@ cd ~/bigdata && PYTHONPATH=src .venv/bin/python -m pipeline.run --step silver --
 cd ~/bigdata && PYTHONPATH=src .venv/bin/python -m pipeline.run --step gold --env local --engine local --mes 2024-01
 cd ~/bigdata && make -n run-local STEP=silver MES=2024-01
 cd ~/bigdata && make run-local STEP=silver MES=2024-01
-cd ~/bigdata && .venv/bin/pytest tests/test_silver.py
+cd ~/bigdata && .venv/bin/python -m pytest tests/test_silver.py
 cd ~/bigdata && .venv/bin/ruff check src
 cd ~/bigdata && make test
 ```
