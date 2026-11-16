@@ -894,7 +894,20 @@ def marca_notebook(nombre):
     x, y, alto = ML + 72, 22, 32
     return [
         R(x, y, ancho, alto, fill=tinte("acento", 0.13), line=color("acento"), lw=1.5, r=4),
-        T(x, y, ancho, alto, texto, size=TAM_MARCA, col="acento", bold=True, align="c", anchor="m", lh=1.2, cuenta=False),
+        T(
+            x,
+            y,
+            ancho,
+            alto,
+            texto,
+            size=TAM_MARCA,
+            col="acento",
+            bold=True,
+            align="c",
+            anchor="m",
+            lh=1.2,
+            cuenta=False,
+        ),
     ]
 
 
