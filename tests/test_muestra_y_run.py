@@ -1,8 +1,11 @@
 from __future__ import annotations
 
+import shutil
 from argparse import Namespace
+from pathlib import Path
 
 import pytest
+from botocore.exceptions import ClientError
 
 from pipeline import gold, io, muestra, silver
 from pipeline.bronze import COLUMNAS_METADATOS
@@ -135,3 +138,146 @@ def test_muestra_local_de_la_version_anterior_no_es_vigente(tmp_path):
     (zonas / "lote=20260115T143005Z_a3f9c1").mkdir()
     assert muestra.muestra_local_vigente(tmp_path) is True
     assert muestra.muestra_local_vigente(tmp_path / "no_existe") is False
+
+
+# --- sincronizar: de dónde se toma la muestra local (sin red: buckets simulados con carpetas) ---
+
+
+class ClienteS3Falso:
+    """Imita lo mínimo de boto3 (listar y descargar) leyendo carpetas locales como buckets."""
+
+    def __init__(self, raiz, buckets_con_error=()):
+        self.raiz = raiz
+        self.buckets_con_error = buckets_con_error
+
+    def get_paginator(self, nombre):
+        return self
+
+    def paginate(self, Bucket, Prefix):
+        if Bucket in self.buckets_con_error:
+            error = {"Error": {"Code": "AccessDenied", "Message": "sin permiso"}}
+            raise ClientError(error, "ListObjectsV2")
+        contenidos = []
+        for archivo in sorted((self.raiz / Bucket).rglob("*")):
+            if archivo.is_file():
+                clave = archivo.relative_to(self.raiz / Bucket).as_posix()
+                if clave.startswith(Prefix):
+                    contenidos.append({"Key": clave})
+        return [{"Contents": contenidos}]
+
+    def download_file(self, bucket, clave, destino):
+        shutil.copy(self.raiz / bucket / clave, destino)
+
+
+def _armar_muestra_en(carpeta, formato_nuevo, id_lote):
+    """Deja en `carpeta` una muestra mínima; con formato nuevo trae el marcador _LOTE_COMPLETO."""
+    lote_zonas = carpeta / "taxi_zones" / f"lote={id_lote}"
+    lote_viajes = carpeta / "fhvhv" / "mes=2024-01" / f"lote={id_lote}"
+    for lote in (lote_zonas, lote_viajes):
+        lote.mkdir(parents=True)
+        (lote / "part-0.parquet").write_text("datos")
+        if formato_nuevo:
+            (lote / io.MARCA_LOTE_COMPLETO).write_text("ok")
+
+
+@pytest.fixture
+def entorno_sync(tmp_path, monkeypatch):
+    """Dos buckets simulados (propio y público), una config local y un cliente falso."""
+    raiz = tmp_path / "s3"
+    cfg = {
+        "rutas": {"bronze": str(tmp_path / "lake" / "muestra")},
+        "muestra": {
+            "sincronizar_desde": "muestra",
+            "publica": {"bucket": "publico", "prefijo": "paquete/muestra", "region": "us-east-2"},
+        },
+    }
+    monkeypatch.setenv("LAKE_BUCKET", "propio")
+    clientes_pedidos = []
+
+    def crear_cliente_falso(anonimo, region=None):
+        clientes_pedidos.append("anonimo" if anonimo else "con credenciales")
+        return ClienteS3Falso(raiz)
+
+    monkeypatch.setattr(muestra, "crear_cliente_s3", crear_cliente_falso)
+    return Namespace(
+        raiz=raiz, cfg=cfg, local=Path(cfg["rutas"]["bronze"]), clientes=clientes_pedidos
+    )
+
+
+def test_sincronizar_no_hace_nada_si_la_muestra_local_es_vigente(entorno_sync):
+    _armar_muestra_en(entorno_sync.local, formato_nuevo=True, id_lote="local")
+    muestra.sincronizar(entorno_sync.cfg)
+    assert entorno_sync.clientes == []  # ni siquiera se abrió un cliente de S3
+
+
+def test_sincronizar_prefiere_el_bucket_propio_si_tiene_el_formato_nuevo(entorno_sync, caplog):
+    _armar_muestra_en(entorno_sync.raiz / "propio" / "muestra", True, "propio")
+    _armar_muestra_en(entorno_sync.raiz / "publico" / "paquete" / "muestra", True, "publico")
+    with caplog.at_level("INFO"):
+        muestra.sincronizar(entorno_sync.cfg)
+    assert (entorno_sync.local / "taxi_zones" / "lote=propio" / io.MARCA_LOTE_COMPLETO).exists()
+    assert not (entorno_sync.local / "taxi_zones" / "lote=publico").exists()
+    assert "tu bucket" in caplog.text
+
+
+def test_sincronizar_va_al_publico_si_el_propio_tiene_el_formato_anterior(entorno_sync, caplog):
+    # el bucket propio tiene lotes, pero sin _LOTE_COMPLETO: es la versión anterior
+    _armar_muestra_en(entorno_sync.raiz / "propio" / "muestra", False, "viejo")
+    _armar_muestra_en(entorno_sync.raiz / "publico" / "paquete" / "muestra", True, "publico")
+    # y en el disco hay una muestra de la versión anterior que debe reemplazarse
+    zonas_viejas = entorno_sync.local / "taxi_zones"
+    zonas_viejas.mkdir(parents=True)
+    (zonas_viejas / "taxi_zone_lookup.csv").write_text("LocationID\n1\n")
+
+    with caplog.at_level("INFO"):
+        muestra.sincronizar(entorno_sync.cfg)
+
+    assert not (zonas_viejas / "taxi_zone_lookup.csv").exists()
+    assert (zonas_viejas / "lote=publico" / io.MARCA_LOTE_COMPLETO).exists()
+    assert "el bucket público del curso" in caplog.text
+    assert entorno_sync.clientes == ["con credenciales", "anonimo"]
+    assert not entorno_sync.local.with_name("muestra.descarga").exists()
+
+
+def test_sincronizar_va_al_publico_si_no_hay_lake_bucket_o_el_propio_falla(
+    entorno_sync, monkeypatch
+):
+    _armar_muestra_en(entorno_sync.raiz / "publico" / "paquete" / "muestra", True, "publico")
+
+    # sin LAKE_BUCKET: ni se intenta el bucket propio
+    monkeypatch.delenv("LAKE_BUCKET")
+    muestra.sincronizar(entorno_sync.cfg)
+    assert entorno_sync.clientes == ["anonimo"]
+    assert muestra.muestra_local_vigente(entorno_sync.local)
+
+    # con LAKE_BUCKET pero sin permiso sobre ese bucket: se sigue con el público
+    shutil.rmtree(entorno_sync.local)
+    monkeypatch.setenv("LAKE_BUCKET", "propio")
+    monkeypatch.setattr(
+        muestra,
+        "crear_cliente_s3",
+        lambda anonimo, region=None: ClienteS3Falso(
+            entorno_sync.raiz, buckets_con_error=() if anonimo else ("propio",)
+        ),
+    )
+    muestra.sincronizar(entorno_sync.cfg)
+    assert muestra.muestra_local_vigente(entorno_sync.local)
+
+
+def test_sincronizar_falla_con_un_mensaje_claro_si_ningun_origen_sirve(entorno_sync):
+    _armar_muestra_en(entorno_sync.raiz / "propio" / "muestra", False, "viejo")  # formato anterior
+    (entorno_sync.raiz / "publico").mkdir()  # el público está vacío
+    with pytest.raises(muestra.MuestraError, match="ni en tu bucket ni en el bucket público"):
+        muestra.sincronizar(entorno_sync.cfg)
+    assert not entorno_sync.local.exists()
+
+
+def test_la_configuracion_local_define_el_bucket_publico_de_la_muestra():
+    from pipeline.settings import cargar
+
+    publica = cargar("local")["muestra"]["publica"]
+    assert publica == {
+        "bucket": "bigdata-udem-2026-publico",
+        "prefijo": "paquete/muestra",
+        "region": "us-east-2",
+    }

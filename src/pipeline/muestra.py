@@ -5,8 +5,10 @@
   escribe en muestra.destino con el mismo layout que bronze: <fuente>/mes=.../lote=<id>/, con
   el mismo id de lote y las columnas de metadatos (_hash_fila...) intactas. Zonas y clima se
   copian completos (son pequeños). La muestra no incluye _crudo/: no hace falta para leerla.
-- sincronizar (env local): copia s3://<lake>/<muestra.sincronizar_desde> a rutas.bronze si
-  todavía no está en el disco del Code Editor, o si es de la versión anterior (sin lotes).
+- sincronizar (env local): copia la muestra a rutas.bronze si todavía no está en el disco del
+  Code Editor, o si es de la versión anterior (sin lotes). La busca primero en el bucket propio
+  (s3://<lake>/<muestra.sincronizar_desde>) y, si ahí no hay lotes completos, en el bucket
+  público del curso (muestra.publica), con acceso anónimo.
 - aplicar_muestra: recorte adicional (--limite o muestra.max_rows) para pruebas rapidísimas.
   Toda fuente nueva debe pasar por aquí en lugar de usar un .limit() fijo en la transformación.
 """
@@ -96,36 +98,138 @@ def muestra_local_vigente(local: Path) -> bool:
     return False
 
 
-def sincronizar(cfg: dict) -> None:
-    """Descarga la muestra de S3 a rutas.bronze (local) si todavía no está."""
-    prefijo = (cfg.get("muestra") or {}).get("sincronizar_desde")
-    local = Path(cfg["rutas"]["bronze"])
-    if not prefijo or muestra_local_vigente(local):
-        return
-    bucket = os.environ.get("LAKE_BUCKET")
-    if not bucket:
-        raise MuestraError(
-            f"No hay muestra en {local} y falta LAKE_BUCKET para descargarla de "
-            f"s3://<lake>/{prefijo}. Genera la muestra (--step muestra en Glue) y define "
-            "LAKE_BUCKET."
-        )
-    import boto3  # import perezoso
+def crear_cliente_s3(anonimo: bool, region: str | None = None) -> Any:
+    """Cliente de S3. Anónimo = sin firmar las peticiones (sirve para el bucket público)."""
+    import boto3  # imports perezosos: solo se necesitan al sincronizar
+    from botocore import UNSIGNED
+    from botocore.config import Config
 
-    s3 = boto3.client("s3")
+    if anonimo:
+        return boto3.client("s3", region_name=region, config=Config(signature_version=UNSIGNED))
+    return boto3.client("s3")
+
+
+def listar_claves(s3: Any, bucket: str, prefijo: str) -> list[str]:
+    """Claves de todos los archivos bajo s3://bucket/prefijo/ (sin las 'carpetas' vacías)."""
+    claves = []
     paginas = s3.get_paginator("list_objects_v2").paginate(Bucket=bucket, Prefix=f"{prefijo}/")
-    claves = [
-        o["Key"] for p in paginas for o in p.get("Contents", []) if not o["Key"].endswith("/")
-    ]
-    if not claves:
-        raise MuestraError(f"s3://{bucket}/{prefijo}/ está vacío: genera la muestra primero.")
-    if local.exists():
-        # Muestra de la versión anterior (sin lotes): se borra justo antes de descargar la nueva.
-        log.info("La muestra de %s es de la versión anterior; se descarga de nuevo", local)
-        shutil.rmtree(local)
+    for pagina in paginas:
+        for objeto in pagina.get("Contents", []):
+            if not objeto["Key"].endswith("/"):
+                claves.append(objeto["Key"])
+    return claves
+
+
+def tiene_lote_completo(claves: list[str]) -> bool:
+    """True si alguna clave es un marcador _LOTE_COMPLETO: es lo que distingue el formato nuevo."""
     for clave in claves:
-        destino = local / clave[len(prefijo) + 1 :]
+        if clave.endswith(f"/{io.MARCA_LOTE_COMPLETO}"):
+            return True
+    return False
+
+
+def buscar_muestra(origenes: list[dict]) -> dict | None:
+    """Devuelve el primer origen que tiene una muestra con el formato nuevo, o None.
+
+    Cada origen es un dict con: nombre (para el log), bucket, prefijo y cliente (de S3).
+    Si un origen falla (sin permisos, sin red, bucket inexistente) se registra y se sigue
+    con el siguiente: el bucket público es el plan B.
+    """
+    from botocore.exceptions import BotoCoreError, ClientError
+
+    for origen in origenes:
+        destino_s3 = f"s3://{origen['bucket']}/{origen['prefijo']}"
+        try:
+            claves = listar_claves(origen["cliente"], origen["bucket"], origen["prefijo"])
+        except (BotoCoreError, ClientError) as error:
+            log.warning(
+                "No se pudo leer la muestra de %s (%s): %s", origen["nombre"], destino_s3, error
+            )
+            continue
+        if tiene_lote_completo(claves):
+            origen["claves"] = claves
+            return origen
+        log.info(
+            "En %s (%s) no hay lotes completos; se prueba con el siguiente",
+            origen["nombre"],
+            destino_s3,
+        )
+    return None
+
+
+def descargar_muestra(origen: dict, local: Path) -> None:
+    """Descarga la muestra a una carpeta temporal y recién al final reemplaza la de `local`.
+
+    Así, si la descarga se corta a la mitad, no queda en el disco una muestra incompleta que
+    después parezca vigente.
+    """
+    prefijo = origen["prefijo"]
+    temporal = local.with_name(local.name + ".descarga")
+    if temporal.exists():
+        shutil.rmtree(temporal)
+    for clave in origen["claves"]:
+        destino = temporal / clave[len(prefijo) + 1 :]
         destino.parent.mkdir(parents=True, exist_ok=True)
-        s3.download_file(bucket, clave, str(destino))
+        origen["cliente"].download_file(origen["bucket"], clave, str(destino))
+    if local.exists():
+        # Muestra de la versión anterior (sin lotes): se borra justo antes de dejar la nueva.
+        log.info("La muestra de %s es de la versión anterior; se reemplaza", local)
+        shutil.rmtree(local)
+    temporal.rename(local)
+
+
+def armar_origenes(cfg: dict) -> list[dict]:
+    """Orden de búsqueda: primero el bucket propio (si hay LAKE_BUCKET) y luego el público."""
+    config_muestra = cfg.get("muestra") or {}
+    origenes = []
+
+    bucket_propio = os.environ.get("LAKE_BUCKET")
+    prefijo_propio = config_muestra.get("sincronizar_desde")
+    if bucket_propio and prefijo_propio:
+        origenes.append(
+            {
+                "nombre": "tu bucket",
+                "bucket": bucket_propio,
+                "prefijo": prefijo_propio,
+                "cliente": crear_cliente_s3(anonimo=False),
+            }
+        )
+    else:
+        log.info("No hay LAKE_BUCKET: se salta tu bucket y se va al público del curso")
+
+    publica = config_muestra.get("publica")
+    if publica:
+        origenes.append(
+            {
+                "nombre": "el bucket público del curso",
+                "bucket": publica["bucket"],
+                "prefijo": publica["prefijo"],
+                "cliente": crear_cliente_s3(anonimo=True, region=publica.get("region")),
+            }
+        )
+    return origenes
+
+
+def sincronizar(cfg: dict) -> None:
+    """Deja la muestra en rutas.bronze (local): del bucket propio o, si no, del público."""
+    local = Path(cfg["rutas"]["bronze"])
+    if not (cfg.get("muestra") or {}).get("sincronizar_desde") or muestra_local_vigente(local):
+        return
+
+    origen = buscar_muestra(armar_origenes(cfg))
+    if origen is None:
+        raise MuestraError(
+            f"No hay muestra en {local} y no se encontró una con el formato nuevo ni en tu "
+            "bucket ni en el bucket público del curso. Revisa tu conexión a internet y "
+            "vuelve a correr; si sigue igual, avisa al instructor."
+        )
+
+    descargar_muestra(origen, local)
     log.info(
-        "Muestra descargada de s3://%s/%s a %s (%d archivos)", bucket, prefijo, local, len(claves)
+        "Muestra descargada (origen: %s, s3://%s/%s) a %s (%d archivos)",
+        origen["nombre"],
+        origen["bucket"],
+        origen["prefijo"],
+        local,
+        len(origen["claves"]),
     )

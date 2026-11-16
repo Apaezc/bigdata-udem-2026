@@ -171,9 +171,9 @@ Busca tu mensaje con **Ctrl+F**. Cada entrada muestra el mensaje exacto, su caus
 <a id="p-sin-muestra"></a>
 ### No hay muestra para correr en local
 
-- **Síntoma:** `make run-local`: "No hay muestra ... falta LAKE_BUCKET"
-- **Causa:** todavía no se generó la muestra.
-- **Qué hacer:** corre `cd ~/bigdata && make muestra` primero (una vez).
+- **Síntoma:** `make run-local`: "No hay muestra ... ni en tu bucket ni en el bucket público del curso".
+- **Causa:** la muestra se descarga sola la primera vez, pero no se pudo leer ni tu bucket ni el bucket público (por ejemplo, sin internet).
+- **Qué hacer:** revisa tu conexión y vuelve a correr `cd ~/bigdata && make run-local`. Si sigue igual, borra `~/bigdata/lake/muestra` y avisa al instructor.
 - [Volver al paso 13.1](guia.md#paso-13-1)
 
 ## Pipeline local (Java)

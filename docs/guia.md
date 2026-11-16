@@ -677,7 +677,10 @@ Apply complete! Resources: 0 added, 1 changed, 0 destroyed.
 <a id="paso-12"></a>
 ### Paso 12 de 14 · Prepara los datos (una vez)
 
-**Para qué:** bajar los datos del año, dejarlos en bronze con sus metadatos y generar la muestra con la que trabajarás en local.
+**Para qué:** bajar los datos del año y dejarlos en bronze con sus metadatos, y generar la muestra en tu bucket.
+
+> [!NOTE]
+> Para correr el pipeline en local ya no necesitas este paso: `make run-local` descarga la muestra sola la primera vez, de tu bucket o, si ahí no hay una con el formato nuevo, del bucket público del curso. Este paso sirve para tener el bronze del año en tu bucket y la muestra propia.
 
 **Tiempo:** ~5 min · **Costo:** ~US$0.15 <!-- AUTOR: tiempo y costo medidos antes de la ingesta con metadatos; bronze ahora usa Glue `large` y calcula un hash por fila: validar en Glue -->
 
@@ -728,7 +731,7 @@ Apply complete! Resources: 0 added, 1 changed, 0 destroyed.
 
 **Costo:** `glue_small` cuesta centavos.
 
-**Antes:** haber terminado el [Paso 12](#paso-12) (la muestra ya está en S3).
+**Antes:** nada especial para el modo local: la muestra se descarga sola la primera vez. El [Paso 12](#paso-12) solo hace falta para la nube.
 
 **Ventanas:** 💻 **Terminal del Code Editor** · 🧭 **Navegador** (UI de Airflow) · ❄️ **Snowsight** (solo en 13.2)
 
@@ -753,14 +756,14 @@ Son dos comandos distintos: `make run-local` termina solo; `make airflow-local` 
 
 **✅ Debes ver:** el final de `make run-local LIMITE=100` (tarda ~30 s):
 ```text
-INFO Muestra descargada de s3://.../muestra a /home/sagemaker-user/bigdata/lake/muestra (25 archivos)   <- solo la primera vez
+INFO Muestra descargada (origen: el bucket público del curso, s3://.../muestra) a /home/sagemaker-user/bigdata/lake/muestra (50 archivos)   <- solo la primera vez
 INFO Paso=silver env=local engine=local meses=2024-01
 INFO Calidad OK [silver]: 100 filas
 INFO Paso=gold env=local engine=local meses=2024-01
 INFO Calidad OK [gold]: 79 filas
 ```
 
-**❌ Si falla:** [`No hay muestra ... falta LAKE_BUCKET`](problemas.md#p-sin-muestra) · [`make test` o `make run-local` fallan por Java](problemas.md#p-java)
+**❌ Si falla:** [`No hay muestra ... ni en tu bucket ni en el bucket público`](problemas.md#p-sin-muestra) · [`make test` o `make run-local` fallan por Java](problemas.md#p-java)
 
 <a id="paso-13-1-airflow"></a>
 ##### B · `make airflow-local` (queda corriendo; la terminal sigue libre)

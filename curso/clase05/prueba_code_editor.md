@@ -148,7 +148,7 @@ cd ~/bigdata && make test
 
 Salida esperada, en orden: las cuatro líneas de registro del paso silver (`Paso=silver`, `Lectura viajes`, `Limpieza ... -> ...` y `Calidad OK [silver]`); lo mismo para gold sin `Lectura`; `STEP=silver MES=2024-01 LIMITE= bash scripts/run-local.sh`; lo mismo que el primer comando precedido de `==> Pipeline local: ...`; `passed` de pytest; `All checks passed!` de ruff; y las tres etapas de `make test`. Usa `.venv/bin/python -m pytest` y no `.venv/bin/pytest`: el segundo tiene el shebang roto.
 
-Anota: si el primer comando necesitó `--lake-bucket`, si la muestra local tiene el diseño de lotes (si dice `No hay ningún lote completo`, hay que regenerar la muestra con `make muestra`), si falló con `ModuleNotFoundError` sin `PYTHONPATH=src`, los segundos de cada comando y las cifras de la línea `Limpieza`.
+Anota: si el primer comando necesitó `--lake-bucket`, de dónde tomó la muestra local (tu bucket o el público, lo dice la línea `Muestra descargada`) y si bajó 50 archivos, si falló con `ModuleNotFoundError` sin `PYTHONPATH=src`, los segundos de cada comando y las cifras de la línea `Limpieza`.
 
 ## 6. Lo que quiero que mires con ojo crítico
 

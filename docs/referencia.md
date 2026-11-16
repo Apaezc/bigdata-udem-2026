@@ -128,7 +128,7 @@ La versión anterior guardaba el archivo descargado directamente en `bronze/<fue
 
 ### En local
 
-El modo local no tiene bronze: lee la **muestra** (`make muestra` la genera en `s3://<LAKE>/muestra`). La muestra tiene la misma estructura que bronze (carpetas `lote=`, con el mismo identificador del lote del que salió) y conserva las cinco columnas de metadatos; no incluye `_crudo/`. Si en tu Code Editor quedó una muestra de la versión anterior, `make run-local` la detecta, la borra y descarga la nueva (después de haber ejecutado `make muestra` otra vez).
+El modo local no tiene bronze: lee la **muestra**. No necesitas generarla: `make run-local` la descarga sola la primera vez. La busca primero en tu bucket (`s3://<LAKE>/muestra`, que genera `make muestra`) y, si ahí no hay una muestra con lotes completos (`_LOTE_COMPLETO`), la baja del bucket público del curso, con acceso anónimo y sin credenciales. La ubicación pública está en `muestra.publica` de `src/pipeline/config/local.yaml`, y el log dice de cuál bucket salió. La muestra tiene la misma estructura que bronze (carpetas `lote=`, con el mismo identificador del lote del que salió) y conserva las cinco columnas de metadatos; no incluye `_crudo/`. Si en tu Code Editor quedó una muestra de la versión anterior, `make run-local` la detecta, la borra y descarga la nueva (de tu bucket si ya la tiene en el formato nuevo, y si no del bucket público).
 
 ---
 
@@ -181,9 +181,9 @@ Ejecuta `make help` para ver la lista actualizada. La columna **Paso** dice dón
 | `make doctor` | Diagnóstico: versiones, AWS, Snowflake, Terraform, OIDC | [Paso 9](guia.md#paso-9) |
 | `make estado` | Estado de Airflow, últimos job runs de Glue, warehouse y costos | [Apagar](cada-sesion.md#apagar) |
 | `make test` | `ruff check`, `ruff format --check`, `pytest` (y tests de DAGs si Airflow está instalado) | — |
-| `make muestra` | Glue: bronze del año de prod + muestra para local (una vez por curso) | [Paso 12](guia.md#paso-12) |
+| `make muestra` | Glue: bronze del año de prod + muestra en tu bucket (una vez por curso). El modo local ya no la necesita | [Paso 12](guia.md#paso-12) |
 | `make muestra-solo` | Glue: lanza solo el paso `muestra` (job `bigdata-medium`, entorno prod) y espera a que termine. Para quien cerró la terminal de `make muestra` con el bronze del año ya terminado | [Paso 12](guia.md#paso-12) |
-| `make run-local` | Pipeline en local sobre la muestra (`STEP=silver\|gold\|all`, `MES=YYYY-MM`, `LIMITE=N`). Sin `LIMITE` procesa toda la muestra | [Paso 13](guia.md#paso-13) |
+| `make run-local` | Pipeline en local sobre la muestra, que descarga sola la primera vez (`STEP=silver\|gold\|all`, `MES=YYYY-MM`, `LIMITE=N`). Sin `LIMITE` procesa toda la muestra | [Paso 13](guia.md#paso-13) |
 | `make airflow-local` / `-down` / `-estado` | Airflow de dev dentro del Code Editor (entorno dev; `computo` se elige al lanzar el DAG) | [Paso 13](guia.md#paso-13) · [Apagar](cada-sesion.md#apagar) (`-down`) |
 | `make deploy` | `terraform apply` de `infra/aws` (con la guardia de destrucción) y sincronización de código, DAGs y framework a S3 | [Paso 10](guia.md#paso-10) |
 | `make snowflake` | `terraform init` y `apply` de `infra/snowflake` (crea `AIRFLOW_SVC`), guarda sus outputs en S3, aplica la fase 2 de AWS y escribe la conexión de Airflow (`SIN_DEPLOY=true` omite el deploy) | [Paso 11](guia.md#paso-11) |
@@ -231,7 +231,7 @@ Conexión de Airflow a Snowflake: no hay nada que hacer a mano. `make snowflake`
 
 - Glue baja el año de **FHVHV** (los viajes de Uber/Lyft de NYC publicados por la NYC TLC) a `bronze/_crudo/` (~5.4 GB). Si ya los tenías en la ruta anterior de `bronze/`, los mueve en lugar de descargarlos otra vez.
 - **Bronze** guarda cada archivo tal como llegó y además lo convierte a Parquet con metadatos (hash de cada fila, fecha de ingesta, lote). Detalle: [Bronze: ingesta con metadatos](#bronze).
-- Genera la **muestra** en `muestra/`: un subconjunto pequeño de los datos, con la misma estructura de bronze, para trabajar en local.
+- Genera la **muestra** en `muestra/` de tu bucket: un subconjunto pequeño de los datos, con la misma estructura de bronze. Para trabajar en local no hace falta: sin ella, `make run-local` usa la del bucket público del curso.
 - Si cerraste la terminal a mitad de camino, `make muestra-solo` lanza únicamente este último paso, sin repetir el bronze del año. Ver [Cerré la terminal mientras corría `make muestra`](problemas.md#p-cerre-terminal-muestra).
 
 ---

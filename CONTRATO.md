@@ -41,7 +41,7 @@ Provider `snowflakedb/snowflake` ~> 2.x, auth `SNOWFLAKE_JWT`. Backend S3 key `s
 
 ## Pipeline (`src/pipeline/`)
 - `run.py --step {bronze,muestra,silver,gold,all} --env {local,dev,prod} --engine {local,glue} [--mes YYYY-MM] [--limite N]`. Sin `--mes`, todos los meses del entorno en una pasada; `all` en local = silver + gold.
-- Entornos (`config/<env>.yaml`): local lee `./lake/muestra` (descargada de `s3://<lake>/muestra`) y escribe en `./lake`; dev = 1 mes, prod = 12 meses; bronze compartido, silver/gold bajo `dev/` o `prod/`.
+- Entornos (`config/<env>.yaml`): local lee `./lake/muestra` (descargada sola la primera vez de `s3://<lake>/muestra` o, si ahí no hay lotes con `_LOTE_COMPLETO`, del bucket público definido en `muestra.publica`) y escribe en `./lake`; dev = 1 mes, prod = 12 meses; bronze compartido, silver/gold bajo `dev/` o `prod/`.
 - `muestra.py`: `--step muestra` (Glue, sample reproducible ~100 k filas de todos los meses), `sincronizar` (local) y `aplicar_muestra` (recorte con `--limite`/`muestra.max_rows`).
 - `engine.py` crea la SparkSession (`local`, `glue`; `snowpark_connect` solo para el laboratorio de motores); `io.py` define rutas y lectura/escritura.
 - `bronze.py`, `silver.py`, `gold.py`: funciones puras `DataFrame -> DataFrame` + `main(spark, cfg, args)`. `quality.py` con chequeos.

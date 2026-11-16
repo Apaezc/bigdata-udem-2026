@@ -110,7 +110,7 @@ Las cifras no están escritas aquí a propósito: las produce cada celda en tu m
 | El ejercicio 1b dice `REVISAR  Primero resuelve el ejercicio 1a` | La ingesta usa tu función de huella y esa todavía no dice `OK` | Resuelve y verifica el 1a antes |
 | El ejercicio 1b falla con `HTTP Error 429` o `URLError` | Open-Meteo limita las peticiones o no hay red | Espera un minuto y vuelve a ejecutar la celda de la prueba |
 | `ModuleNotFoundError: No module named 'pipeline'` al correr un comando de la terminal | Falta `PYTHONPATH=src` | Escríbelo antes de `.venv/bin/python`, o usa `make` |
-| `No hay muestra en ... y falta LAKE_BUCKET` o `No hay ningún lote completo` al correr el pipeline en local | La muestra todavía no está descargada o no se generó con el diseño de lotes | Agrega `--lake-bucket <tu bucket>` al comando a mano (con `make` se calcula solo). Si dice que no hay lote, pide al instructor que genere la muestra (`make muestra`) |
+| `No hay muestra en ... ni en tu bucket ni en el bucket público` o `No hay ningún lote completo` al correr el pipeline en local | La muestra se descarga sola la primera vez, de tu bucket o del bucket público del curso. Este error aparece si ninguno de los dos se pudo leer (por ejemplo, sin internet) o si quedó una muestra a medias | Revisa tu conexión y vuelve a correr el comando: lo intenta de nuevo. Si sigue igual, borra `~/bigdata/lake/muestra` y avisa al instructor |
 | `No rule to make target 'run-local'` | Ejecutaste `make` fuera de `~/bigdata` | Empieza siempre con `cd ~/bigdata &&` |
 
 ## 7. Después de la clase
