@@ -74,7 +74,7 @@ Hay tres entornos. Usan el mismo código con distinta configuración.
 | Pieza | Dónde | Qué hace |
 |---|---|---|
 | **Bootstrap** | `bootstrap/` | Plantilla de CloudFormation. Crea tu entorno de trabajo (SageMaker Code Editor), el acceso de GitHub Actions a AWS por OIDC (sin claves), el bucket de state de Terraform y un presupuesto con alertas. Incluye un script SQL para Snowflake. |
-| **Infraestructura** | `infra/aws`, `infra/snowflake` | Terraform. AWS: lake S3, catálogo Glue y Athena, jobs Glue, VM de Airflow opcional y guardrails de costo. Snowflake: warehouse XS, base `BIGDATA` (BRONZE/SILVER/GOLD para SQL; DEV/PROD para el pipeline), rol `BIGDATA_DEV` y stages externos sobre `gold/`, `dev/gold/` y `prod/gold/`. |
+| **Infraestructura** | `infra/aws`, `infra/snowflake` | Terraform. AWS: lake S3, catálogo Glue y Athena, jobs Glue, VM de Airflow opcional y guardrails de costo. Snowflake: warehouse XS, base `BIGDATA` (BRONZE/SILVER/GOLD para SQL; DEV/PROD para el pipeline; CONTROL con la tabla `WATERMARK` de la ingesta), rol `BIGDATA_DEV` y stages externos sobre `gold/`, `dev/gold/` y `prod/gold/`. |
 | **Pipeline** | `src/pipeline` | bronze (descarga el archivo intacto y lo convierte a Parquet con metadatos) -> silver (limpieza y enriquecimiento) -> gold (métricas diarias por zona y empresa), más el paso `muestra`. Corre con Spark local o en Glue. La configuración de cada entorno está en `src/pipeline/config/<entorno>.yaml`, donde `<entorno>` es local, dev o prod. |
 | **Orquestación** | `airflow/` | DAG `pipeline_taxi` con un camino por entorno (local, dev, prod). Snowpark Connect se compara aparte, en el laboratorio de la sesión 7. |
 | **Automatización** | `Makefile`, `scripts/`, `.github/workflows/` | Comandos de `make`, sus scripts y los workflows de GitHub Actions. |
@@ -221,7 +221,7 @@ Usa tu conexión de `snow` y los outputs del Paso 10, así que no hay que copiar
 
 - El script genera la llave de `TERRAFORM_SVC` en `~/.snowflake/keys/` y ejecuta `bootstrap/snowflake/01_admin.sql` (**resource monitor** `BIGDATA_RM`, límite de consumo de Snowflake; `TERRAFORM_ROLE`, un **rol** o conjunto de permisos; usuario `TERRAFORM_SVC`).
 - El script escribe `infra/snowflake/terraform.tfvars` y `backend.hcl` (si no existen) con tu cuenta, el lake y tu usuario en `dev_users`.
-- El script aplica `infra/snowflake` (warehouse `BIGDATA_WH`, base `BIGDATA`, roles, **stages** —lugares desde donde Snowflake lee archivos— y el usuario `AIRFLOW_SVC`).
+- El script aplica `infra/snowflake` (warehouse `BIGDATA_WH`, base `BIGDATA` con el esquema `CONTROL` y su tabla `WATERMARK`, roles, **stages** —lugares desde donde Snowflake lee archivos— y el usuario `AIRFLOW_SVC`).
 - El script aplica la fase 2 de AWS, con la **trust policy** de Snowflake (la regla de AWS que dice quién puede usar el rol), y guarda la conexión de Airflow en el secreto `bigdata/snowflake`.
 
 Conexión de Airflow a Snowflake: no hay nada que hacer a mano. `make snowflake` crea el usuario `AIRFLOW_SVC` en Snowflake (genera su llave en `~/.snowflake/keys/airflow_svc_rsa_key.p8`), aplica la fase 2 de AWS y guarda la conexión en el secreto `bigdata/snowflake`, que usan el Airflow de dev y el de prod.

@@ -651,7 +651,7 @@ upload: build/pipeline.zip to s3://.../code/pipeline.zip
 ==> Snowflake listo para Terraform:
 ...
 Do you want to perform these actions?  Enter a value: yes      <- escribe yes
-Apply complete! Resources: 39 added, 0 changed, 0 destroyed.  <- Snowflake creado
+Apply complete! Resources: 47 added, 0 changed, 0 destroyed.  <- Snowflake creado
 ==> Fase 2 de AWS: deploy.sh con la trust policy de Snowflake
 Plan: 0 to add, 1 to change, 0 to destroy.                   <- solo cambia el rol bigdata-snowflake-s3
 Apply complete! Resources: 0 added, 1 changed, 0 destroyed.
@@ -664,13 +664,20 @@ Apply complete! Resources: 0 added, 1 changed, 0 destroyed.
 >
 > **Conexión de Airflow a Snowflake: no hay nada que hacer a mano.** `make snowflake` la crea y la guarda en el secreto `bigdata/snowflake`, que usan el Airflow de dev y el de prod ([detalle](referencia.md#make-snowflake)).
 
+> [!IMPORTANT]
+> Este paso también crea el esquema `BIGDATA.CONTROL` y la tabla `BIGDATA.CONTROL.WATERMARK`, la tabla de control de la ingesta de la clase 5. **Al inicio de la clase 5**, antes de abrir los notebooks, corre otra vez en la terminal del Code Editor:
+> ```bash
+> cd ~/bigdata && git pull && make snowflake
+> ```
+> Si ya hiciste este paso con una versión anterior del repositorio, esta ejecución solo agrega la tabla de control (el plan dice `0 to destroy`). Escribe `yes` cuando pida confirmar. Si no lo haces, la tabla de control falla: [`No se encontró la tabla BIGDATA.CONTROL.WATERMARK`](problemas.md#p-control-watermark).
+
 - **Solo si** Airflow de dev ya estaba encendido, reinícialo: `make airflow-local-down && make airflow-local`.
 - **Solo si** Airflow de prod ya estaba encendido, reinícialo: `make airflow-off && make airflow-on`.
 - **(Opcional)** Para repetir solo la conexión de Airflow: `make snowflake-secreto`.
 
 **Referencia (no necesaria para empezar):** [infra/snowflake/README.md](../infra/snowflake/README.md)
 
-**❌ Si falla:** [`JWT token is invalid`](problemas.md#p-jwt-llave) · [`El plan destruye recursos`](problemas.md#p-plan-destruye) (avanzado) · [`Error acquiring the state lock`](problemas.md#p-state-lock) (avanzado)
+**❌ Si falla:** [`JWT token is invalid`](problemas.md#p-jwt-llave) · [`No se encontró la tabla BIGDATA.CONTROL.WATERMARK`](problemas.md#p-control-watermark) · [`El plan destruye recursos`](problemas.md#p-plan-destruye) (avanzado) · [`Error acquiring the state lock`](problemas.md#p-state-lock) (avanzado)
 
 **Siguiente:** [Paso 12](#paso-12)
 

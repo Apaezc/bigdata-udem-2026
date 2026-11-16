@@ -27,10 +27,10 @@ variable de entorno WATERMARK_CONNECTION. Se usa desde el Code Editor de SageMak
 para la clase 6: dentro de Glue no existe ese archivo, así que hay que resolver de dónde sale la
 conexión (por ejemplo, un secreto de AWS Secrets Manager con la llave de Snowflake).
 
-La tabla se crea sola con CREATE SCHEMA / CREATE TABLE IF NOT EXISTS. Eso exige que ACCOUNTADMIN
-pueda crear esquemas en la base BIGDATA; si no puede, la conexión falla con un mensaje que dice
-qué debe otorgar un administrador. Para probar sin tocar la tabla real, la variable de entorno
-WATERMARK_DATABASE cambia la base (por defecto BIGDATA).
+El esquema CONTROL y la tabla los crea Terraform (infra/snowflake/main.tf), no este módulo: la
+base BIGDATA es de TERRAFORM_ROLE y ACCOUNTADMIN no puede crear esquemas dentro de ella. Terraform
+también da a ACCOUNTADMIN y a BIGDATA_DEV (el rol de AIRFLOW_SVC) permiso para consultar, insertar
+y borrar filas. Si la tabla no existe o el rol no la ve, falta correr `make snowflake`.
 """
 
 from __future__ import annotations
@@ -40,10 +40,7 @@ import os
 from datetime import UTC, datetime
 from typing import Any
 
-VARIABLE_BASE_DATOS = "WATERMARK_DATABASE"
-# La base del curso. La variable de entorno WATERMARK_DATABASE permite apuntar a otra base, por
-# ejemplo para probar sin tocar la tabla real.
-BASE_DATOS = os.environ.get(VARIABLE_BASE_DATOS, "BIGDATA")
+BASE_DATOS = "BIGDATA"
 ESQUEMA = "CONTROL"
 TABLA_CONTROL = f"{BASE_DATOS}.{ESQUEMA}.WATERMARK"
 
@@ -62,25 +59,11 @@ PREFIJOS_DE_PRUEBA = ("demo", "prueba")
 
 COLUMNAS = ["FUENTE", "CAPA", "TABLA", "MES", "FILAS", "INICIO", "REPROCESAR"]
 
-SQL_CREAR_ESQUEMA = f"CREATE SCHEMA IF NOT EXISTS {BASE_DATOS}.{ESQUEMA}"
-SQL_CREAR_TABLA = f"""
-    CREATE TABLE IF NOT EXISTS {TABLA_CONTROL} (
-        FUENTE     VARCHAR,
-        CAPA       VARCHAR,
-        TABLA      VARCHAR,
-        MES        VARCHAR,
-        FILAS      NUMBER,
-        INICIO     TIMESTAMP_NTZ,
-        REPROCESAR BOOLEAN
-    )
-"""
-# Código de error de Snowflake cuando el rol no tiene el privilegio pedido.
-ERRNO_SIN_PERMISO = 3001
-MENSAJE_SIN_PERMISO = (
-    f"{ROL} no tiene permiso para crear el esquema {ESQUEMA} en la base {BASE_DATOS} (la base la "
-    f"creó otro rol, por ejemplo TERRAFORM_ROLE). Un administrador debe otorgarlo una sola vez "
-    f"(GRANT CREATE SCHEMA ON DATABASE {BASE_DATOS} TO ROLE {ROL}) o crear el esquema {ESQUEMA} "
-    f"con permisos de uso y creación de tablas para {ROL}."
+# Código de error de Snowflake cuando el objeto no existe o el rol no tiene permiso para verlo.
+ERRNO_TABLA_NO_VISIBLE = 2003
+MENSAJE_TABLA_NO_VISIBLE = (
+    f"No se encontró la tabla {TABLA_CONTROL}, o el rol {ROL} no tiene permiso sobre ella. La crea "
+    f"Terraform: corre `cd ~/bigdata && git pull && make snowflake` y vuelve a intentar."
 )
 SQL_CONSULTAR = f"""
     SELECT {", ".join(COLUMNAS)}
@@ -115,30 +98,29 @@ def _nombre_de_conexion(connection_name: str | None) -> str:
 def _conectar(connection_name: str | None) -> Any:
     """Abre la conexión y fija rol y warehouse.
 
-    La conexión por llave no trae warehouse, por eso se indican siempre. Después se asegura que
-    la tabla exista: CREATE ... IF NOT EXISTS no hace nada si ya está.
-
-    La base BIGDATA la crea Terraform con otro rol. Si ACCOUNTADMIN todavía no tiene permiso para
-    crear el esquema CONTROL, falla con un mensaje que dice qué debe otorgar el administrador;
-    esta función nunca se otorga permisos a sí misma.
+    La conexión por llave no trae warehouse, por eso se indican siempre. La tabla ya debe existir:
+    la crea Terraform, esta función no crea ni otorga nada.
     """
     conexion = _abrir_conexion(_nombre_de_conexion(connection_name))
     try:
         cursor = conexion.cursor()
         cursor.execute(f"USE ROLE {ROL}")
         cursor.execute(f"USE WAREHOUSE {WAREHOUSE}")
-        try:
-            cursor.execute(SQL_CREAR_ESQUEMA)
-            cursor.execute(SQL_CREAR_TABLA)
-        except Exception as error:
-            if getattr(error, "errno", None) == ERRNO_SIN_PERMISO:
-                raise RuntimeError(MENSAJE_SIN_PERMISO) from error
-            raise
     except Exception:
         # Si algo falla al preparar la sesión, no se deja la conexión abierta.
         conexion.close()
         raise
     return conexion
+
+
+def _ejecutar(cursor: Any, sql: str, valores: tuple) -> None:
+    """Ejecuta una sentencia sobre la tabla de control y explica el error más común."""
+    try:
+        cursor.execute(sql, valores)
+    except Exception as error:
+        if getattr(error, "errno", None) == ERRNO_TABLA_NO_VISIBLE:
+            raise RuntimeError(MENSAJE_TABLA_NO_VISIBLE) from error
+        raise
 
 
 # --- conversión de valores ---------------------------------------------------------------------
@@ -180,7 +162,7 @@ def consultar_watermark(tabla: str, capa: str, mes: str, connection_name: str | 
     conexion = _conectar(connection_name)
     try:
         cursor = conexion.cursor()
-        cursor.execute(SQL_CONSULTAR, (tabla, capa, mes))
+        _ejecutar(cursor, SQL_CONSULTAR, (tabla, capa, mes))
         registros = []
         for fila in cursor.fetchall():
             registros.append(_registro_a_diccionario(fila))
@@ -203,7 +185,7 @@ def registrar_watermark(
     valores = (fuente, capa, tabla, mes, int(filas), _inicio_en_utc(inicio), bool(reprocesar))
     conexion = _conectar(connection_name)
     try:
-        conexion.cursor().execute(SQL_REGISTRAR, valores)
+        _ejecutar(conexion.cursor(), SQL_REGISTRAR, valores)
     finally:
         conexion.close()
 
@@ -222,7 +204,7 @@ def borrar_registros_de_prueba(tabla: str, connection_name: str | None = None) -
     conexion = _conectar(connection_name)
     try:
         cursor = conexion.cursor()
-        cursor.execute(SQL_BORRAR, (tabla,))
+        _ejecutar(cursor, SQL_BORRAR, (tabla,))
         borradas = cursor.rowcount
     finally:
         conexion.close()

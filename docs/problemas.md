@@ -285,6 +285,14 @@ Busca tu mensaje con **Ctrl+F**. Cada entrada muestra el mensaje exacto, su caus
 - **Causa:** todavía no se ha suspendido: se suspende solo a los 60 s sin consultas.
 - **Qué hacer:** espera un minuto.
 
+<a id="p-control-watermark"></a>
+### No se encontró la tabla BIGDATA.CONTROL.WATERMARK
+
+- **Síntoma:** al consultar o registrar en la tabla de control (`consultar_watermark`, `registrar_watermark`, o una prueba del lab de la clase 5) sale `No se encontró la tabla BIGDATA.CONTROL.WATERMARK, o el rol ACCOUNTADMIN no tiene permiso sobre ella`. Si usas una versión anterior del repositorio, puede salir `Insufficient privileges to operate on database 'BIGDATA'`.
+- **Causa:** la base `BIGDATA` es del rol `TERRAFORM_ROLE`, y `ACCOUNTADMIN` no puede crear esquemas dentro de ella. Por eso el esquema `CONTROL`, la tabla y los permisos de `ACCOUNTADMIN` y `BIGDATA_DEV` los crea Terraform, y todavía no los has aplicado.
+- **Qué hacer:** `cd ~/bigdata && git pull && make snowflake` y escribe `yes` cuando pida confirmar el plan. Solo agrega recursos nuevos; después repite la celda.
+- [Volver al paso 11](guia.md#paso-11)
+
 <a id="avanzado"></a>
 ## Avanzado
 

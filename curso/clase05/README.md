@@ -12,7 +12,7 @@ Pregunta de la clase: ¿cómo llegan al lake, sin repetirse, los datos de tres f
 
 Los datos de la clase son los de enero de 2024: 19 663 930 viajes FHVHV, las 265 zonas de la ciudad y el clima diario de Open-Meteo. Los notebooks 01 y 02 leen el archivo de viajes desde tu propio bucket `bigdata-lake-<CUENTA>-us-east-2` y lo guardan una sola vez en `~/datos_clase05`, fuera del repositorio, para que nunca llegue a un commit. El lab 03 descarga desde las fuentes originales (la TLC y Open-Meteo) y escribe su bronze en `~/datos_clase05/bronze_alumno`; en el modo de prueba de los viajes baja otra vez el archivo de unos 450 MiB, así que conviene tener ese espacio libre en disco.
 
-La tabla de control de la ingesta vive en Snowflake, en `BIGDATA.CONTROL.WATERMARK`. Los métodos `consultar_watermark` y `registrar_watermark` ya están hechos en `src/pipeline/watermark.py` y se crean la tabla y el esquema solos. Usan la conexión `default` de `~/.snowflake/connections.toml` (el lab tiene una variable `CONEXION_SNOWFLAKE` por si la tuya se llama distinto) con el rol `ACCOUNTADMIN` y el warehouse `COMPUTE_WH`.
+La tabla de control de la ingesta vive en Snowflake, en `BIGDATA.CONTROL.WATERMARK`. Los métodos `consultar_watermark` y `registrar_watermark` ya están hechos en `src/pipeline/watermark.py`. El esquema `CONTROL` y la tabla los crea Terraform: **al inicio de la clase**, corre `cd ~/bigdata && git pull && make snowflake` (confirma el plan con `yes`; solo agrega recursos nuevos). Usan la conexión `default` de `~/.snowflake/connections.toml` (el lab tiene una variable `CONEXION_SNOWFLAKE` por si la tuya se llama distinto) con el rol `ACCOUNTADMIN` y el warehouse `COMPUTE_WH`.
 
 ## 1. Instalar (una sola vez)
 
@@ -40,7 +40,7 @@ java -version
 cd ~/bigdata && .venv/bin/python -c "import snowflake.connector as s; c = s.connect(connection_name='default'); print(c.cursor().execute('select current_user()').fetchone()); c.close()"
 ```
 
-Salida esperada: `librerias ok`; una versión de Java que empieza por `openjdk version "17`; y una tupla con tu usuario de Snowflake, por ejemplo `('TU_USUARIO',)`. Esta última comprobación es la que necesita el lab 03: si falla, la tabla de control no podrá consultarse. Si `java -version` no encuentra Java, no te preocupes todavía: la primera celda de cada notebook busca el Java que instaló `make setup` en `~/.local/opt/java17`.
+Salida esperada: `librerias ok`; una versión de Java que empieza por `openjdk version "17`; y una tupla con tu usuario de Snowflake, por ejemplo `('TU_USUARIO',)`. Esta última comprobación es la que necesita el lab 03: si falla, la tabla de control no podrá consultarse. Antes de seguir, corre también `cd ~/bigdata && git pull && make snowflake`: crea la tabla `BIGDATA.CONTROL.WATERMARK` y los permisos de `ACCOUNTADMIN` sobre ella. Si `java -version` no encuentra Java, no te preocupes todavía: la primera celda de cada notebook busca el Java que instaló `make setup` en `~/.local/opt/java17`.
 
 ## 2. Trabajar sobre una copia del notebook
 
@@ -107,6 +107,7 @@ Las cifras no están escritas aquí a propósito: las produce cada celda en tu m
 | `NoCredentialsError` o `ExpiredToken` en la Celda 2 | No hay credenciales de AWS en esa terminal | En el Code Editor no hace falta ningún perfil; comprueba con `aws sts get-caller-identity`. Fuera del Code Editor define `AWS_PROFILE` |
 | La descarga del archivo de enero se corta y queda `fhvhv_tripdata_2024-01.parquet.parcial` | La conexión se interrumpió | Borra el archivo `.parcial` de `~/datos_clase05/bronze/fhvhv/mes=2024-01/` y vuelve a ejecutar la celda |
 | `Could not find connection 'default'` o `Failed to connect to DB` | Falta la conexión de Snowflake o la llave | Ejecuta `cd ~/bigdata && make snowflake-conexion`; es el target que crea la conexión por llave en `~/.snowflake/connections.toml` |
+| `No se encontró la tabla BIGDATA.CONTROL.WATERMARK` (o `Insufficient privileges to operate on database 'BIGDATA'`) | La tabla de control la crea Terraform y todavía no la aplicaste: `ACCOUNTADMIN` no puede crear esquemas en `BIGDATA`, que es de `TERRAFORM_ROLE` | Ejecuta `cd ~/bigdata && git pull && make snowflake`, escribe `yes` y repite la celda ([detalle](../../docs/problemas.md#p-control-watermark)) |
 | `Database 'CURSO' does not exist or not authorized` | No creaste la base `CURSO` en las clases 2 a 4, o usas otro rol | Cambia `SF_BASE` en la celda por una base que puedas usar, o avisa al instructor |
 | La consulta de Snowflake tarda mucho más de lo esperado | Se quitó `USE_VECTORIZED_SCANNER = TRUE` del formato del stage | Déjala: sin ella Snowflake interpreta cada fila del Parquet como un valor semiestructurado |
 | Una prueba del lab dice `PENDIENTE` aunque escribiste código | Quedó la línea `...  # TU CÓDIGO AQUÍ` | Reemplaza los tres puntos por tu código (el comentario puede quedarse) y ejecuta la celda de la función otra vez |

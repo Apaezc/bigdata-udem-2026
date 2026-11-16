@@ -59,32 +59,28 @@ def textos(conexion):
     return [sql for sql, _ in conexion.sentencias]
 
 
-def test_conectar_fija_rol_y_warehouse_y_crea_la_tabla(conexion):
+def test_conectar_fija_rol_y_warehouse_y_no_crea_nada(conexion):
     watermark.consultar_watermark("clima", "bronze", "2024-01")
     sentencias = textos(conexion)
     assert sentencias[0] == "USE ROLE ACCOUNTADMIN"
     assert sentencias[1] == "USE WAREHOUSE COMPUTE_WH"
-    assert sentencias[2] == "CREATE SCHEMA IF NOT EXISTS BIGDATA.CONTROL"
-    assert sentencias[3].startswith("CREATE TABLE IF NOT EXISTS BIGDATA.CONTROL.WATERMARK (")
-    for columna in watermark.COLUMNAS:
-        assert columna in sentencias[3]
+    # El esquema y la tabla los crea Terraform: el módulo no ejecuta DDL ni otorga permisos.
+    assert not any(sql.startswith(("CREATE", "GRANT")) for sql in sentencias)
 
 
-def test_sin_permiso_para_crear_el_esquema_explica_que_debe_otorgar_el_administrador(conexion):
-    class SinPermiso(Exception):
-        errno = 3001
+def test_tabla_inexistente_o_sin_permiso_explica_que_hay_que_correr_make_snowflake(conexion):
+    class ObjetoNoExiste(Exception):
+        errno = 2003
 
-    class CursorSinPermiso(CursorFalso):
+    class CursorSinTabla(CursorFalso):
         def execute(self, sql, valores=None):
-            if sql.startswith("CREATE SCHEMA"):
-                raise SinPermiso("Insufficient privileges")
+            if "BIGDATA.CONTROL.WATERMARK" in sql:
+                raise ObjetoNoExiste("does not exist or not authorized")
             super().execute(sql, valores)
 
-    conexion.cursor = lambda: CursorSinPermiso(conexion)
-    with pytest.raises(RuntimeError, match="GRANT CREATE SCHEMA ON DATABASE BIGDATA"):
+    conexion.cursor = lambda: CursorSinTabla(conexion)
+    with pytest.raises(RuntimeError, match="make snowflake"):
         watermark.consultar_watermark("clima", "bronze", "2024-01")
-    # La función no se otorga permisos a sí misma y deja la conexión cerrada.
-    assert not any(sql.startswith("GRANT") for sql in textos(conexion))
     assert conexion.cerrada
 
 
