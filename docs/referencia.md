@@ -118,7 +118,7 @@ El clima llega como un JSON con listas por día. En bronze se convierte a una fi
 
 ### Qué lote lee silver
 
-Silver y la muestra leen, **para cada mes, el lote más reciente**: el de mayor `lote=`. Como el identificador empieza con la fecha, el mayor es también el más nuevo. Un lote que no tiene el archivo `_SUCCESS` (porque la ingesta falló mientras lo escribía) se ignora y se usa el anterior. Con los mismos datos, silver da el mismo resultado que antes de agregar los metadatos.
+Silver y la muestra leen, **para cada mes, el lote más reciente**: el de mayor `lote=`. Como el identificador empieza con la fecha, el mayor es también el más nuevo. Cuando bronze termina de escribir un lote, publica en su carpeta el archivo `_LOTE_COMPLETO`. Un lote que no lo tiene (porque la ingesta falló mientras lo escribía) se ignora y se usa el anterior. Se usa un marcador propio porque Glue no escribe `_SUCCESS` en S3. Con los mismos datos, silver da el mismo resultado que antes de agregar los metadatos.
 
 Reingestar un mes (`--step bronze --mes 2024-01`) crea un lote nuevo sin tocar los anteriores. Como el crudo ya existe, no se vuelve a descargar. Para volver a descargar un archivo hay que borrar su archivo de `_crudo/` (con `aws s3 rm`).
 

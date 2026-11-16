@@ -50,7 +50,7 @@ def copiar_lote(spark: Any, base: str, destino: str, fuente: str, mes: str | Non
     """Copia completo el lote más reciente de una fuente pequeña (zonas o clima) a la muestra."""
     id_lote = io.lote_mas_reciente(base, fuente, mes)
     lote = spark.read.parquet(io.dir_lote(base, fuente, id_lote, mes))
-    lote.coalesce(1).write.mode("overwrite").parquet(io.dir_lote(destino, fuente, id_lote, mes))
+    io.escribir_lote(lote, io.dir_lote(destino, fuente, id_lote, mes), archivos=1)
 
 
 def muestrear_viajes(spark: Any, base: str, destino: str, mes: str, fraccion: float) -> None:
@@ -58,9 +58,7 @@ def muestrear_viajes(spark: Any, base: str, destino: str, mes: str, fraccion: fl
     id_lote = io.lote_mas_reciente(base, io.VIAJES, mes)
     lote = spark.read.parquet(io.dir_lote(base, io.VIAJES, id_lote, mes))
     muestra = lote.sample(withReplacement=False, fraction=fraccion, seed=SEMILLA)
-    muestra.coalesce(1).write.mode("overwrite").parquet(
-        io.dir_lote(destino, io.VIAJES, id_lote, mes)
-    )
+    io.escribir_lote(muestra, io.dir_lote(destino, io.VIAJES, id_lote, mes), archivos=1)
 
 
 def main(spark: Any, cfg: dict, args: Any) -> None:

@@ -170,11 +170,8 @@ def clima_a_filas(clima_raw: DataFrame) -> DataFrame:
 
 
 def escribir_lote(df: DataFrame, carpeta_lote: str, archivos: int | None = None) -> None:
-    """Escribe el lote en Parquet. Con `archivos` se junta en esa cantidad (fuentes pequeñas)."""
-    salida = df
-    if archivos:
-        salida = df.coalesce(archivos)
-    salida.write.mode("overwrite").parquet(carpeta_lote)
+    """Escribe el lote (Parquet + marcador de lote completo) y lo anota en el log."""
+    io.escribir_lote(df, carpeta_lote, archivos)
     log.info("Lote escrito en %s", carpeta_lote)
 
 

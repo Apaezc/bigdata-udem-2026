@@ -19,6 +19,7 @@ pasada de Spark.
 from __future__ import annotations
 
 import shutil
+import tempfile
 from pathlib import Path
 
 from pyspark.sql import DataFrame, SparkSession
@@ -43,7 +44,9 @@ CLIMA = "clima"
 NOMBRE_ZONAS = "taxi_zone_lookup.csv"
 CARPETA_CRUDO = "_crudo"
 PREFIJO_LOTE = "lote="
-MARCA_LOTE_COMPLETO = "_SUCCESS"  # Spark la escribe al terminar de escribir todo el lote
+# Marcador propio: se publica cuando el lote ya se escribió completo. No se usa _SUCCESS porque
+# Glue no siempre lo escribe en S3.
+MARCA_LOTE_COMPLETO = "_LOTE_COMPLETO"
 
 
 class LoteNoEncontrado(RuntimeError):
@@ -116,8 +119,8 @@ def lote_mas_reciente(base: str, fuente: str, mes: str | None = None) -> str:
     """Id del lote completo más reciente de la fuente (y el mes).
 
     El id empieza con la fecha (AAAAMMDDTHHMMSSZ_...), así que ordenar los nombres como texto
-    equivale a ordenarlos por fecha. Un lote sin _SUCCESS quedó a medias (la ingesta falló al
-    escribirlo): se ignora y se usa el anterior.
+    equivale a ordenarlos por fecha. Un lote sin el marcador _LOTE_COMPLETO quedó a medias (la
+    ingesta falló al escribirlo): se ignora y se usa el anterior.
     """
     carpeta = dir_fuente(base, fuente, mes)
     lotes = []
@@ -135,6 +138,26 @@ def lote_mas_reciente(base: str, fuente: str, mes: str | None = None) -> str:
 
 def dir_lote_reciente(base: str, fuente: str, mes: str | None = None) -> str:
     return dir_lote(base, fuente, lote_mas_reciente(base, fuente, mes), mes)
+
+
+def marcar_lote_completo(carpeta_lote: str) -> None:
+    """Publica el marcador que dice que el lote se escribió completo (local o s3://)."""
+    with tempfile.TemporaryDirectory(prefix="marca-") as tmp:
+        marca = Path(tmp) / MARCA_LOTE_COMPLETO
+        marca.write_text("lote completo\n", encoding="utf-8")
+        publicar(marca, unir(carpeta_lote, MARCA_LOTE_COMPLETO))
+
+
+def escribir_lote(df: DataFrame, carpeta_lote: str, archivos: int | None = None) -> None:
+    """Escribe un lote en Parquet y, solo si la escritura terminó bien, publica el marcador.
+
+    Con `archivos` el lote se junta en esa cantidad de archivos (fuentes pequeñas).
+    """
+    salida = df
+    if archivos:
+        salida = df.coalesce(archivos)
+    salida.write.mode("overwrite").parquet(carpeta_lote)
+    marcar_lote_completo(carpeta_lote)
 
 
 # --- lectura ----------------------------------------------------------------------------------

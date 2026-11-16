@@ -100,7 +100,7 @@ def _crear_lote(base: Path, fuente: str, id_lote: str, mes: str | None, completo
     carpeta.mkdir(parents=True)
     (carpeta / "part-0.parquet").write_text("datos")
     if completo:
-        (carpeta / "_SUCCESS").write_text("")
+        (carpeta / io.MARCA_LOTE_COMPLETO).write_text("")
 
 
 def test_lote_mas_reciente_elige_el_mayor(tmp_path):
@@ -124,10 +124,25 @@ def test_lote_mas_reciente_de_zonas_no_usa_mes(tmp_path):
 
 
 def test_lote_a_medias_se_ignora(tmp_path):
-    # la ingesta del lote más nuevo falló al escribir: no tiene _SUCCESS
+    # la ingesta del lote más nuevo falló al escribir: no tiene el marcador _LOTE_COMPLETO
     _crear_lote(tmp_path, io.VIAJES, LOTE_VIEJO, MES)
     _crear_lote(tmp_path, io.VIAJES, LOTE_NUEVO, MES, completo=False)
     assert io.lote_mas_reciente(str(tmp_path), io.VIAJES, MES) == LOTE_VIEJO
+
+
+def test_el_marcador_propio_manda_aunque_no_haya_success(tmp_path):
+    # Glue no escribe _SUCCESS en S3: lo que cuenta es nuestro marcador
+    _crear_lote(tmp_path, io.VIAJES, LOTE_VIEJO, MES)
+    carpeta = Path(io.dir_lote(str(tmp_path), io.VIAJES, LOTE_NUEVO, MES))
+    carpeta.mkdir(parents=True)
+    (carpeta / "_SUCCESS").write_text("")  # tiene _SUCCESS pero no el marcador: a medias
+    assert io.lote_mas_reciente(str(tmp_path), io.VIAJES, MES) == LOTE_VIEJO
+
+
+def test_marcar_lote_completo_publica_el_marcador(tmp_path):
+    carpeta = tmp_path / "lote"
+    io.marcar_lote_completo(str(carpeta))
+    assert (carpeta / io.MARCA_LOTE_COMPLETO).is_file()
 
 
 def test_sin_lotes_el_error_dice_que_hacer(tmp_path):
@@ -317,6 +332,9 @@ def test_main_escribe_un_lote_por_fuente_con_el_mismo_id(spark, tmp_path, armar_
     id_clima = io.lote_mas_reciente(str(base), io.CLIMA, MES)
     id_zonas = io.lote_mas_reciente(str(base), io.ZONAS)
     assert id_viajes == id_clima == id_zonas
+    for fuente, mes in ((io.VIAJES, MES), (io.CLIMA, MES), (io.ZONAS, None)):
+        lote = Path(io.dir_lote(str(base), fuente, id_viajes, mes))
+        assert (lote / io.MARCA_LOTE_COMPLETO).is_file()
     assert re.fullmatch(r"\d{8}T\d{6}Z_[0-9a-f]{6}", id_viajes)
 
     viajes = io.leer_viajes(spark, str(base), [MES])
@@ -422,7 +440,7 @@ def test_leer_viajes_usa_el_lote_mas_reciente(spark, tmp_path):
     base = tmp_path / "bronze"
     for id_lote, filas in ((LOTE_VIEJO, 3), (LOTE_NUEVO, 7), (LOTE_NUEVISIMO, 5)):
         df = spark.range(filas).withColumn("lote", F.lit(id_lote))
-        df.write.parquet(io.dir_lote(str(base), io.VIAJES, id_lote, MES))
+        io.escribir_lote(df, io.dir_lote(str(base), io.VIAJES, id_lote, MES))
     # un lote todavía más nuevo pero a medias no debe usarse
     _crear_lote(base, io.VIAJES, "20260401T000000Z_dddddd", MES, completo=False)
 
