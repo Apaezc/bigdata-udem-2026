@@ -1,40 +1,48 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 520" font-family="Helvetica Neue, Arial, sans-serif">
-<title>Join normal con shuffle frente a broadcast de la tabla pequeña</title>
-<desc>Arriba, dos tablas que viajan por un Exchange antes del join. Abajo, la tabla pequeña se copia a cada ejecutor y los viajes no se mueven.</desc>
-<defs><marker id="m_acento" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#2340D8"/></marker><marker id="m_gris" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#5F6672"/></marker><marker id="m_ink" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#15171C"/></marker></defs>
-<text x="40" y="34" font-size="22" fill="#15171C" font-weight="700">Join normal · SortMergeJoin · 8.27 s</text>
-<rect x="40" y="56" width="230" height="56" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
-<text x="155" y="90" font-size="20" fill="#15171C" text-anchor="middle">viajes · 4 particiones</text>
-<rect x="40" y="136" width="230" height="56" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
-<text x="155" y="170" font-size="20" fill="#15171C" text-anchor="middle">zonas · 265 filas</text>
-<rect x="340" y="66" width="270" height="116" rx="6" fill="#F0EEE7" stroke="#2340D8" stroke-width="3" stroke-dasharray="8 6"/>
-<text x="475" y="118" font-size="20" fill="#15171C" text-anchor="middle">Exchange por</text>
-<text x="475" y="144" font-size="20" fill="#15171C" text-anchor="middle">PULocationID</text>
-<line x1="270" y1="84" x2="340" y2="100" stroke="#5F6672" stroke-width="2" marker-end="url(#m_gris)"/>
-<line x1="270" y1="164" x2="340" y2="148" stroke="#5F6672" stroke-width="2" marker-end="url(#m_gris)"/>
-<line x1="610" y1="124" x2="680" y2="124" stroke="#5F6672" stroke-width="2" marker-end="url(#m_gris)"/>
-<rect x="680" y="94" width="120" height="60" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
-<text x="740" y="130" font-size="20" fill="#15171C" text-anchor="middle">join</text>
-<line x1="800" y1="124" x2="840" y2="124" stroke="#5F6672" stroke-width="2" marker-end="url(#m_gris)"/>
-<rect x="840" y="94" width="320" height="60" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
-<text x="1000" y="130" font-size="20" fill="#15171C" text-anchor="middle">resultado</text>
-<text x="40" y="214" font-size="20" fill="#5F6672">los dos lados viajan por el shuffle</text>
-<text x="40" y="262" font-size="22" fill="#15171C" font-weight="700">Broadcast · BroadcastHashJoin · 2.96 s</text>
-<rect x="40" y="290" width="230" height="56" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
-<text x="155" y="324" font-size="20" fill="#15171C" text-anchor="middle">zonas · 265 filas</text>
-<line x1="270" y1="318" x2="340" y2="318" stroke="#2340D8" stroke-width="2.5" marker-end="url(#m_acento)"/>
-<text x="305" y="306" font-size="20" fill="#2340D8" text-anchor="middle">copia</text>
-<rect x="340" y="282" width="270" height="72" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
-<text x="475" y="310" font-size="20" fill="#15171C" text-anchor="middle">partición de viajes</text>
-<text x="475" y="336" font-size="20" fill="#15171C" text-anchor="middle">+ copia de zonas</text>
-<line x1="610" y1="318" x2="680" y2="318" stroke="#5F6672" stroke-width="2" marker-end="url(#m_gris)"/>
-<rect x="680" y="288" width="120" height="60" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
-<text x="740" y="324" font-size="20" fill="#15171C" text-anchor="middle">join local</text>
-<line x1="800" y1="318" x2="840" y2="318" stroke="#5F6672" stroke-width="2" marker-end="url(#m_gris)"/>
-<rect x="840" y="288" width="320" height="60" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
-<text x="1000" y="324" font-size="20" fill="#15171C" text-anchor="middle">resultado</text>
-<text x="40" y="396" font-size="20" fill="#5F6672">solo viaja la tabla pequeña; los viajes no se mueven</text>
-<rect x="40" y="420" width="1120" height="66" rx="6" fill="#F0EEE7" stroke="none"/>
-<text x="56" y="448" font-size="20" fill="#15171C">Medido con 25 % de enero y un groupBy por distrito: resultados iguales.</text>
-<text x="56" y="476" font-size="20" fill="#15171C">Spark lo hace solo por debajo de 10 MB; la tabla pequeña debe caber en el driver y en cada ejecutor.</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 480" font-family="Helvetica Neue, Arial, sans-serif">
+<title>Join normal frente a broadcast</title><desc>Izquierda: los viajes de cada ejecutor cruzan al otro para encontrarse con su zona. Derecha: la tabla de zonas se copia a cada ejecutor y los viajes no se mueven.</desc>
+<defs><marker id="m_a" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#2340D8"/></marker><marker id="m_g" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#5F6672"/></marker><marker id="m_b" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#B4622F"/></marker></defs>
+<text x="40" y="34" font-size="22" fill="#15171C" text-anchor="start" font-weight="700">Join normal: se mueven los viajes</text>
+<text x="560" y="34" font-size="22" fill="#B4622F" text-anchor="end" font-weight="700">8.27 s</text>
+<rect x="40" y="60" width="240" height="160" rx="6" fill="#FFFFFF" stroke="#5F6672" stroke-width="1.5"/>
+<text x="160" y="88" font-size="19" fill="#15171C" text-anchor="middle" font-weight="700">ejecutor A</text>
+<rect x="56" y="102" width="208" height="44" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
+<text x="160" y="131" font-size="17" fill="#15171C" text-anchor="middle">viajes de todas las zonas</text>
+<rect x="56" y="156" width="208" height="44" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
+<text x="160" y="185" font-size="17" fill="#15171C" text-anchor="middle">parte de las zonas</text>
+<rect x="320" y="60" width="240" height="160" rx="6" fill="#FFFFFF" stroke="#5F6672" stroke-width="1.5"/>
+<text x="440" y="88" font-size="19" fill="#15171C" text-anchor="middle" font-weight="700">ejecutor B</text>
+<rect x="336" y="102" width="208" height="44" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
+<text x="440" y="131" font-size="17" fill="#15171C" text-anchor="middle">viajes de todas las zonas</text>
+<rect x="336" y="156" width="208" height="44" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
+<text x="440" y="185" font-size="17" fill="#15171C" text-anchor="middle">parte de las zonas</text>
+<line x1="282" y1="112" x2="318" y2="112" stroke="#B4622F" stroke-width="4" marker-end="url(#m_b)"/>
+<line x1="318" y1="132" x2="282" y2="132" stroke="#B4622F" stroke-width="4" marker-end="url(#m_b)"/>
+<text x="300" y="98" font-size="15" fill="#B4622F" text-anchor="middle" font-weight="700">shuffle</text>
+<rect x="40" y="240" width="520" height="92" rx="6" fill="#F6E9E0" stroke="none"/>
+<text x="56" y="272" font-size="19" fill="#15171C" text-anchor="start">Cada viaje viaja al ejecutor que tiene su zona:</text>
+<text x="56" y="300" font-size="19" fill="#15171C" text-anchor="start">se reparten por la red millones de filas</text>
+<text x="56" y="322" font-size="19" fill="#15171C" text-anchor="start">para encontrar el nombre de 265 zonas.</text>
+<text x="640" y="34" font-size="22" fill="#15171C" text-anchor="start" font-weight="700">Broadcast: se copia la tabla pequeña</text>
+<text x="1160" y="34" font-size="22" fill="#2340D8" text-anchor="end" font-weight="700">2.96 s</text>
+<rect x="820" y="52" width="160" height="44" rx="6" fill="#E3E6F6" stroke="#2340D8" stroke-width="2"/>
+<text x="900" y="81" font-size="17" fill="#2340D8" text-anchor="middle" font-weight="700">zonas · 265 filas</text>
+<line x1="900" y1="98" x2="760" y2="128" stroke="#2340D8" stroke-width="2.5" marker-end="url(#m_a)"/>
+<rect x="640" y="130" width="240" height="160" rx="6" fill="#FFFFFF" stroke="#5F6672" stroke-width="1.5"/>
+<text x="760" y="158" font-size="19" fill="#15171C" text-anchor="middle" font-weight="700">ejecutor A</text>
+<rect x="656" y="172" width="208" height="44" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
+<text x="760" y="201" font-size="17" fill="#15171C" text-anchor="middle">sus viajes, quietos</text>
+<rect x="656" y="226" width="208" height="44" rx="6" fill="#E3E6F6" stroke="#2340D8" stroke-width="1.5"/>
+<text x="760" y="255" font-size="17" fill="#2340D8" text-anchor="middle">copia de las zonas</text>
+<line x1="900" y1="98" x2="1040" y2="128" stroke="#2340D8" stroke-width="2.5" marker-end="url(#m_a)"/>
+<rect x="920" y="130" width="240" height="160" rx="6" fill="#FFFFFF" stroke="#5F6672" stroke-width="1.5"/>
+<text x="1040" y="158" font-size="19" fill="#15171C" text-anchor="middle" font-weight="700">ejecutor B</text>
+<rect x="936" y="172" width="208" height="44" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
+<text x="1040" y="201" font-size="17" fill="#15171C" text-anchor="middle">sus viajes, quietos</text>
+<rect x="936" y="226" width="208" height="44" rx="6" fill="#E3E6F6" stroke="#2340D8" stroke-width="1.5"/>
+<text x="1040" y="255" font-size="17" fill="#2340D8" text-anchor="middle">copia de las zonas</text>
+<text x="900" y="322" font-size="19" fill="#5F6672" text-anchor="middle">cada ejecutor une localmente</text>
+<rect x="40" y="360" width="1120" height="110" rx="6" fill="#F0EEE7" stroke="none"/>
+<text x="60" y="396" font-size="21" fill="#15171C" text-anchor="start">Como fotocopiar el directorio de zonas para cada oficina, en vez de mandar</text>
+<text x="60" y="424" font-size="21" fill="#15171C" text-anchor="start">a cada viajero a la oficina que tiene su zona.</text>
+<text x="60" y="454" font-size="18" fill="#5F6672" text-anchor="start">Spark lo hace solo si la tabla pequeña mide menos de 10 MB; debe caber en cada ejecutor.</text>
 </svg>

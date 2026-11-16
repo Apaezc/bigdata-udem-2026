@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 480" font-family="Helvetica Neue, Arial, sans-serif">
+<title>Consultar y registrar en la tabla de control</title><desc>Tres momentos: consultar un mes que no existe devuelve una lista vacía; registrar enero agrega una fila; reprocesar enero agrega otra fila sin borrar la primera.</desc>
+<defs><marker id="m_a" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#2340D8"/></marker><marker id="m_g" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#5F6672"/></marker><marker id="m_b" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#B4622F"/></marker></defs>
+<circle cx="55" cy="22" r="15" fill="#2340D8"/>
+<text x="55" y="28" font-size="17" fill="#FFFFFF" text-anchor="middle" font-weight="700">1</text>
+<text x="80" y="29" font-size="18" fill="#15171C" text-anchor="start" font-weight="700">Consultar un mes que nunca llegó</text>
+<rect x="40" y="50" width="360" height="70" rx="6" fill="#F0EEE7" stroke="none"/>
+<text x="52" y="78" font-size="14" fill="#15171C" text-anchor="start" font-family="SF Mono, Menlo, Consolas, monospace">consultar_watermark("demo",</text>
+<text x="52" y="102" font-size="14" fill="#15171C" text-anchor="start" font-family="SF Mono, Menlo, Consolas, monospace">  "bronze", "2099-12")</text>
+<text x="220" y="152" font-size="15" fill="#5F6672" text-anchor="middle">tabla CONTROL.WATERMARK</text>
+<rect x="40" y="162" width="360" height="32" rx="6" fill="#E3E6F6" stroke="none"/>
+<text x="54" y="184" font-size="15" fill="#15171C" text-anchor="start" font-weight="700">mes</text>
+<text x="180" y="184" font-size="15" fill="#15171C" text-anchor="start" font-weight="700">filas</text>
+<text x="290" y="184" font-size="15" fill="#15171C" text-anchor="start" font-weight="700">reprocesar</text>
+<text x="220" y="222" font-size="16" fill="#5F6672" text-anchor="middle">(vacía)</text>
+<rect x="40" y="268" width="360" height="40" rx="6" fill="#FFFFFF" stroke="#D9D6CC" stroke-width="1.5"/>
+<text x="54" y="294" font-size="16" fill="#5F6672" text-anchor="start">consultar devuelve:</text>
+<text x="386" y="294" font-size="16" fill="#15171C" text-anchor="end" font-weight="700" font-family="SF Mono, Menlo, Consolas, monospace">'[]'</text>
+<line x1="402" y1="30" x2="418" y2="30" stroke="#5F6672" stroke-width="2" marker-end="url(#m_g)"/>
+<circle cx="435" cy="22" r="15" fill="#2340D8"/>
+<text x="435" y="28" font-size="17" fill="#FFFFFF" text-anchor="middle" font-weight="700">2</text>
+<text x="460" y="29" font-size="18" fill="#15171C" text-anchor="start" font-weight="700">Registrar enero (reprocesar=False)</text>
+<rect x="420" y="50" width="360" height="70" rx="6" fill="#F0EEE7" stroke="none"/>
+<text x="432" y="78" font-size="14" fill="#15171C" text-anchor="start" font-family="SF Mono, Menlo, Consolas, monospace">registrar_watermark(url, "bronze",</text>
+<text x="432" y="102" font-size="14" fill="#15171C" text-anchor="start" font-family="SF Mono, Menlo, Consolas, monospace">  "demo", "2024-01", 31, inicio, False)</text>
+<text x="600" y="152" font-size="15" fill="#5F6672" text-anchor="middle">tabla CONTROL.WATERMARK</text>
+<rect x="420" y="162" width="360" height="32" rx="6" fill="#E3E6F6" stroke="none"/>
+<text x="434" y="184" font-size="15" fill="#15171C" text-anchor="start" font-weight="700">mes</text>
+<text x="560" y="184" font-size="15" fill="#15171C" text-anchor="start" font-weight="700">filas</text>
+<text x="670" y="184" font-size="15" fill="#15171C" text-anchor="start" font-weight="700">reprocesar</text>
+<text x="434" y="222" font-size="16" fill="#2340D8" text-anchor="start" font-weight="700" font-family="SF Mono, Menlo, Consolas, monospace">2024-01</text>
+<text x="560" y="222" font-size="16" fill="#2340D8" text-anchor="start" font-weight="700" font-family="SF Mono, Menlo, Consolas, monospace">31</text>
+<text x="670" y="222" font-size="16" fill="#2340D8" text-anchor="start" font-weight="700" font-family="SF Mono, Menlo, Consolas, monospace">False</text>
+<rect x="420" y="268" width="360" height="40" rx="6" fill="#FFFFFF" stroke="#D9D6CC" stroke-width="1.5"/>
+<text x="434" y="294" font-size="16" fill="#5F6672" text-anchor="start">consultar devuelve:</text>
+<text x="766" y="294" font-size="16" fill="#15171C" text-anchor="end" font-weight="700" font-family="SF Mono, Menlo, Consolas, monospace">1 registro</text>
+<line x1="782" y1="30" x2="798" y2="30" stroke="#5F6672" stroke-width="2" marker-end="url(#m_g)"/>
+<circle cx="815" cy="22" r="15" fill="#2340D8"/>
+<text x="815" y="28" font-size="17" fill="#FFFFFF" text-anchor="middle" font-weight="700">3</text>
+<text x="840" y="29" font-size="18" fill="#15171C" text-anchor="start" font-weight="700">Reprocesar enero (reprocesar=True)</text>
+<rect x="800" y="50" width="360" height="70" rx="6" fill="#F0EEE7" stroke="none"/>
+<text x="812" y="78" font-size="14" fill="#15171C" text-anchor="start" font-family="SF Mono, Menlo, Consolas, monospace">registrar_watermark(url, "bronze",</text>
+<text x="812" y="102" font-size="14" fill="#15171C" text-anchor="start" font-family="SF Mono, Menlo, Consolas, monospace">  "demo", "2024-01", 31, inicio, True)</text>
+<text x="980" y="152" font-size="15" fill="#5F6672" text-anchor="middle">tabla CONTROL.WATERMARK</text>
+<rect x="800" y="162" width="360" height="32" rx="6" fill="#E3E6F6" stroke="none"/>
+<text x="814" y="184" font-size="15" fill="#15171C" text-anchor="start" font-weight="700">mes</text>
+<text x="940" y="184" font-size="15" fill="#15171C" text-anchor="start" font-weight="700">filas</text>
+<text x="1050" y="184" font-size="15" fill="#15171C" text-anchor="start" font-weight="700">reprocesar</text>
+<text x="814" y="222" font-size="16" fill="#15171C" text-anchor="start" font-family="SF Mono, Menlo, Consolas, monospace">2024-01</text>
+<text x="940" y="222" font-size="16" fill="#15171C" text-anchor="start" font-family="SF Mono, Menlo, Consolas, monospace">31</text>
+<text x="1050" y="222" font-size="16" fill="#15171C" text-anchor="start" font-family="SF Mono, Menlo, Consolas, monospace">False</text>
+<text x="814" y="252" font-size="16" fill="#2340D8" text-anchor="start" font-weight="700" font-family="SF Mono, Menlo, Consolas, monospace">2024-01</text>
+<text x="940" y="252" font-size="16" fill="#2340D8" text-anchor="start" font-weight="700" font-family="SF Mono, Menlo, Consolas, monospace">31</text>
+<text x="1050" y="252" font-size="16" fill="#2340D8" text-anchor="start" font-weight="700" font-family="SF Mono, Menlo, Consolas, monospace">True</text>
+<rect x="800" y="268" width="360" height="40" rx="6" fill="#FFFFFF" stroke="#D9D6CC" stroke-width="1.5"/>
+<text x="814" y="294" font-size="16" fill="#5F6672" text-anchor="start">consultar devuelve:</text>
+<text x="1146" y="294" font-size="16" fill="#15171C" text-anchor="end" font-weight="700" font-family="SF Mono, Menlo, Consolas, monospace">2 registros</text>
+<rect x="40" y="330" width="1120" height="140" rx="6" fill="#F0EEE7" stroke="none"/>
+<text x="60" y="362" font-size="19" fill="#15171C" text-anchor="start" font-weight="700">Lo que decide tu ingesta con esa respuesta:</text>
+<text x="60" y="394" font-size="19" fill="#15171C" text-anchor="start">• lista vacía → descarga, escribe un lote nuevo y registra</text>
+<text x="60" y="424" font-size="19" fill="#15171C" text-anchor="start">• hay registro y reprocesar=False → no hace nada y avisa por qué</text>
+<text x="60" y="454" font-size="19" fill="#15171C" text-anchor="start">• hay registro y reprocesar=True → lote nuevo y una fila más; las anteriores no se tocan</text>
+</svg>
