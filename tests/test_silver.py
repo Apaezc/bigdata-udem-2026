@@ -106,8 +106,8 @@ def test_limpiar_viajes_muestra_csv(muestra_viajes):
     assert {r["empresa"] for r in limpio.select("empresa").distinct().collect()} == {"Uber", "Lyft"}
 
 
-def test_clima_diario_aplana_daily(muestra_clima_raw):
-    clima = clima_diario(muestra_clima_raw)
+def test_clima_diario_renombra_y_tipa_el_clima_de_bronze(muestra_clima):
+    clima = clima_diario(muestra_clima)
 
     assert clima.columns == ["fecha", "lluvia_mm", "temp_media_c"]
     assert clima.count() == 31
@@ -115,10 +115,10 @@ def test_clima_diario_aplana_daily(muestra_clima_raw):
 
 
 def test_enriquecer_conserva_filas_y_asigna_zona_y_lluvia(
-    muestra_viajes, muestra_zonas, muestra_clima_raw
+    muestra_viajes, muestra_zonas, muestra_clima
 ):
     trips = limpiar_viajes(muestra_viajes, MESES)
-    clima = clima_diario(muestra_clima_raw)
+    clima = clima_diario(muestra_clima)
 
     silver = enriquecer(trips, muestra_zonas, clima)
 

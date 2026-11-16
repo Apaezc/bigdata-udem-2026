@@ -159,6 +159,113 @@ resource "snowflake_grant_privileges_to_account_role" "dev_stage_entorno" {
   }
 }
 
+# ---------- Tabla de control de la ingesta: BIGDATA.CONTROL.WATERMARK ----------
+# La usa src/pipeline/watermark.py: registra qué mes de cada fuente ya se ingestó. El esquema y la
+# tabla los crea Terraform porque la base BIGDATA es de TERRAFORM_ROLE y ACCOUNTADMIN no puede
+# crear esquemas dentro de ella. Los roles de abajo solo reciben permisos sobre lo que ya existe.
+
+resource "snowflake_schema" "control" {
+  database = snowflake_database.bigdata.name
+  name     = "CONTROL"
+  comment  = "Tablas de control de la ingesta (watermark)"
+}
+
+resource "snowflake_table" "watermark" {
+  database = snowflake_database.bigdata.name
+  schema   = snowflake_schema.control.name
+  name     = "WATERMARK"
+  comment  = "Una fila por ingesta terminada: fuente, capa, tabla, mes, filas e inicio"
+
+  column {
+    name = "FUENTE"
+    type = "VARCHAR"
+  }
+  column {
+    name = "CAPA"
+    type = "VARCHAR"
+  }
+  column {
+    name = "TABLA"
+    type = "VARCHAR"
+  }
+  column {
+    name = "MES"
+    type = "VARCHAR"
+  }
+  column {
+    name = "FILAS"
+    type = "NUMBER(38,0)"
+  }
+  column {
+    name = "INICIO"
+    type = "TIMESTAMP_NTZ(9)"
+  }
+  column {
+    name = "REPROCESAR"
+    type = "BOOLEAN"
+  }
+}
+
+# Quién escribe en la tabla de control: ACCOUNTADMIN (el rol que usa watermark.py desde el Code
+# Editor) y BIGDATA_DEV (el rol de AIRFLOW_SVC, que ingesta desde Airflow).
+locals {
+  roles_control = toset(["ACCOUNTADMIN", snowflake_account_role.dev.name])
+}
+
+# USAGE en la base (BIGDATA_DEV ya lo tiene en dev_database; ACCOUNTADMIN no) y en el esquema.
+resource "snowflake_grant_privileges_to_account_role" "control_database" {
+  account_role_name = "ACCOUNTADMIN"
+  privileges        = ["USAGE"]
+
+  on_account_object {
+    object_type = "DATABASE"
+    object_name = snowflake_database.bigdata.name
+  }
+}
+
+resource "snowflake_grant_privileges_to_account_role" "control_schema" {
+  for_each = local.roles_control
+
+  account_role_name = each.key
+  privileges        = ["USAGE"]
+
+  on_schema {
+    schema_name = snowflake_schema.control.fully_qualified_name
+  }
+}
+
+# SELECT, INSERT y DELETE (DELETE lo usa borrar_registros_de_prueba) sobre las tablas que ya hay
+# en CONTROL y sobre las que se creen después.
+resource "snowflake_grant_privileges_to_account_role" "control_tablas" {
+  for_each = local.roles_control
+
+  account_role_name = each.key
+  privileges        = ["SELECT", "INSERT", "DELETE"]
+
+  on_schema_object {
+    all {
+      object_type_plural = "TABLES"
+      in_schema          = snowflake_schema.control.fully_qualified_name
+    }
+  }
+
+  depends_on = [snowflake_table.watermark]
+}
+
+resource "snowflake_grant_privileges_to_account_role" "control_tablas_futuras" {
+  for_each = local.roles_control
+
+  account_role_name = each.key
+  privileges        = ["SELECT", "INSERT", "DELETE"]
+
+  on_schema_object {
+    future {
+      object_type_plural = "TABLES"
+      in_schema          = snowflake_schema.control.fully_qualified_name
+    }
+  }
+}
+
 # ---------- Integración con S3 y stage externo sobre gold/ ----------
 # Dos fases: aquí se crea la integración con el rol de infra/aws (trust placeholder).
 # Snowflake genera STORAGE_AWS_IAM_USER_ARN y STORAGE_AWS_EXTERNAL_ID (outputs de este stack);

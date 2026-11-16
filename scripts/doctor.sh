@@ -20,6 +20,8 @@ for cmd in python3 java aws terraform snow jq zip; do
     esac
     if [[ "$cmd" == java && "$version" != *version* ]]; then
       fallo "java no funciona (¿falta instalar Java 17?): $version"
+    elif [[ "$cmd" == snow ]] && ! snow --version >/dev/null 2>&1; then
+      fallo "snow está instalado pero no funciona (¿cambió el Python de la imagen?): corre make reparar-entorno"
     else
       ok "$cmd: $version"
     fi
@@ -31,6 +33,20 @@ if command -v session-manager-plugin >/dev/null 2>&1; then
   ok "session-manager-plugin instalado"
 else
   info "session-manager-plugin no instalado (solo para make airflow-tunel)"
+fi
+
+msg "Entorno de Python (.venv)"
+if [[ ! -x "$VENV_DIR/bin/python" ]]; then
+  fallo ".venv no existe: corre make reparar-entorno"
+else
+  VENV_VERSION="$("$VENV_DIR/bin/python" -c 'import platform; print(platform.python_version())' 2>/dev/null || true)"
+  if [[ "$VENV_VERSION" != "$VENV_PYTHON_VERSION".* ]]; then
+    fallo ".venv usa Python ${VENV_VERSION:-desconocido} y debe usar $VENV_PYTHON_VERSION: corre make reparar-entorno"
+  elif "$VENV_DIR/bin/python" -c 'import pyspark, pandas, snowflake.connector' >/dev/null 2>&1; then
+    ok ".venv usa Python $VENV_VERSION e importa pyspark, pandas y snowflake.connector"
+  else
+    fallo ".venv usa Python $VENV_VERSION pero no importa pyspark, pandas o snowflake.connector: corre make reparar-entorno"
+  fi
 fi
 
 msg "Configuración"

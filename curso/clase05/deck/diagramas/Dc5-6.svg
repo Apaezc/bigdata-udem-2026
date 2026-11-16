@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 520" font-family="Helvetica Neue, Arial, sans-serif">
+<title>Flujo de una ingesta con la tabla de control y la decisión de reprocesar</title>
+<desc>Arriba, la tabla de control y la decisión: si hay registro y reprocesar es falso, no hace nada. Si no, descarga, escribe el lote, registra y termina con una fila nueva.</desc>
+<defs><marker id="m_acento" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#2340D8"/></marker><marker id="m_gris" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#5F6672"/></marker><marker id="m_ink" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#15171C"/></marker></defs>
+<rect x="40" y="40" width="340" height="110" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
+<text x="56" y="74" font-size="22" fill="#15171C" font-weight="700">Tabla de control</text>
+<text x="56" y="104" font-size="20" fill="#15171C" font-family="JetBrains Mono, SF Mono, Menlo, Consolas, Courier New, monospace">BIGDATA.CONTROL.WATERMARK</text>
+<text x="56" y="132" font-size="20" fill="#5F6672">en Snowflake</text>
+<line x1="380" y1="95" x2="500" y2="95" stroke="#5F6672" stroke-width="2" marker-end="url(#m_gris)"/>
+<text x="440" y="84" font-size="20" fill="#15171C" text-anchor="middle">1 · consulta</text>
+<rect x="500" y="40" width="320" height="110" rx="6" fill="#2340D8" stroke="none"/>
+<text x="660" y="86" font-size="20" fill="#FFFFFF" text-anchor="middle">¿Hay registro del mes y</text>
+<text x="660" y="114" font-size="20" fill="#FFFFFF" text-anchor="middle">reprocesar es falso?</text>
+<line x1="820" y1="95" x2="880" y2="95" stroke="#5F6672" stroke-width="2" marker-end="url(#m_gris)"/>
+<text x="850" y="84" font-size="20" fill="#15171C" text-anchor="middle">sí</text>
+<rect x="880" y="40" width="280" height="110" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
+<text x="1020" y="86" font-size="20" fill="#15171C" text-anchor="middle">No hace nada: imprime</text>
+<text x="1020" y="114" font-size="20" fill="#15171C" text-anchor="middle">por qué y termina</text>
+<path d="M660,150 V196 H140 V238" fill="none" stroke="#5F6672" stroke-width="2" marker-end="url(#m_gris)"/>
+<text x="676" y="182" font-size="20" fill="#15171C">no, o reprocesar es verdadero</text>
+<rect x="40" y="240" width="200" height="130" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
+<text x="50" y="268" font-size="20" fill="#15171C">2 · Descarga el</text>
+<text x="50" y="294" font-size="20" fill="#15171C">archivo y guarda el</text>
+<text x="50" y="320" font-size="20" fill="#15171C">crudo en su lote</text>
+<line x1="240" y1="305" x2="270" y2="305" stroke="#5F6672" stroke-width="2" marker-end="url(#m_gris)"/>
+<rect x="270" y="240" width="200" height="130" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
+<text x="280" y="268" font-size="20" fill="#15171C">3 · Spark lee el</text>
+<text x="280" y="294" font-size="20" fill="#15171C">crudo y agrega los</text>
+<text x="280" y="320" font-size="20" fill="#15171C">cinco metadatos</text>
+<line x1="470" y1="305" x2="500" y2="305" stroke="#5F6672" stroke-width="2" marker-end="url(#m_gris)"/>
+<rect x="500" y="240" width="200" height="130" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
+<text x="510" y="268" font-size="20" fill="#15171C">4 · Escribe el lote</text>
+<text x="510" y="294" font-size="20" fill="#15171C">en Parquet y el</text>
+<text x="510" y="320" font-size="20" fill="#15171C">marcador</text>
+<text x="510" y="346" font-size="20" fill="#15171C" font-family="JetBrains Mono, SF Mono, Menlo, Consolas, Courier New, monospace">_LOTE_COMPLETO</text>
+<line x1="700" y1="305" x2="730" y2="305" stroke="#5F6672" stroke-width="2" marker-end="url(#m_gris)"/>
+<rect x="730" y="240" width="200" height="130" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
+<text x="740" y="268" font-size="20" fill="#15171C">5 · Registra, solo</text>
+<text x="740" y="294" font-size="20" fill="#15171C">si todo salió bien</text>
+<line x1="930" y1="305" x2="960" y2="305" stroke="#5F6672" stroke-width="2" marker-end="url(#m_gris)"/>
+<rect x="960" y="240" width="200" height="130" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
+<text x="1060" y="298" font-size="20" fill="#15171C" text-anchor="middle">Tabla de control:</text>
+<text x="1060" y="324" font-size="20" fill="#15171C" text-anchor="middle">una fila nueva</text>
+<text x="945" y="230" font-size="20" fill="#15171C" text-anchor="middle">registra</text>
+<rect x="40" y="398" width="1120" height="80" rx="6" fill="#F0EEE7" stroke="none"/>
+<text x="56" y="432" font-size="20" fill="#15171C">Con reprocesar verdadero no hay «sí»: siempre descarga, escribe un lote nuevo y registra una fila nueva.</text>
+<text x="56" y="462" font-size="20" fill="#15171C">Los lotes y los registros anteriores se conservan; silver lee el lote completo más reciente.</text>
+</svg>

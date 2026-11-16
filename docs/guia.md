@@ -464,12 +464,18 @@ Cuando la hayas ejecutado, pulsa Enter para probar la conexión...
 > [!NOTE]
 > **Terraform** es la herramienta que crea recursos en la nube desde archivos de configuración. La configuración se guarda en un **bucket**: la carpeta de nivel superior de S3, el servicio de AWS para guardar archivos. Qué hace `make setup`: [detalle](referencia.md#make-setup).
 
+> [!TIP]
+> `make setup` crea el entorno de Python del proyecto (`.venv`) siempre con **Python 3.12**, sin importar qué versión traiga el Code Editor. Si más adelante, después de reiniciar el Code Editor, ves `No module named 'snowflake'` o `No module named 'snowflake.cli'`, la imagen cambió de versión de Python y basta con correr `cd ~/bigdata && make reparar-entorno` ([qué hacer](problemas.md#p-venv-roto)).
+
 En la salida puede aparecer una línea `AVISO` sobre `gh`: es normal la primera vez y se resuelve en el [Paso 9](#paso-9). Si `gh` ya está autenticado en tu Code Editor, no hay `AVISO`: `make setup` carga los secrets del fork en este mismo paso.
 
 **✅ Debes ver:** una salida como esta (la primera vez; tu cuenta y tu correo serán otros):
 ```text
 ==> Verificando herramientas
 ==> Entorno virtual y dependencias de desarrollo
+==> Creando .venv con Python 3.12 (uv)
+==> Instalando dependencias de requirements-dev.txt
+==> Registrando el kernel «Python (bigdata)»
 ==> Validando región de Snowflake (snow sql)
 ==> Región de Snowflake: AWS_US_EAST_2 -> us-east-2
 ==> Configuración guardada en .env (PREFIX=bigdata, AWS_REGION=us-east-2)
@@ -489,7 +495,7 @@ Si `gh` ya estaba autenticado, la salida cambia al final: en lugar del `AVISO`, 
 ==> Setup completado. Siguiente paso: make doctor
 ```
 
-**❌ Si falla:** [`make setup` dice que Snowflake no está en AWS](problemas.md#p-sin-region-aws) (si la región no es `AWS_US_EAST_2`, vuelve al [Paso 1](#paso-1)) · [`make setup` dice que no hay conexión de `snow`](problemas.md#p-snow-sin-conexion) <!-- AUTOR: qué de los pasos 7 y 8 se rehace si la cuenta de Snowflake cambia -->
+**❌ Si falla:** [`make setup` dice que Snowflake no está en AWS](problemas.md#p-sin-region-aws) (si la región no es `AWS_US_EAST_2`, vuelve al [Paso 1](#paso-1)) · [`make setup` dice que no hay conexión de `snow`](problemas.md#p-snow-sin-conexion) · [`No module named 'snowflake'` o `'pip'` en `.venv`](problemas.md#p-venv-roto) · [`No module named 'snowflake.cli'` al usar `snow`](problemas.md#p-snow-cli) <!-- AUTOR: qué de los pasos 7 y 8 se rehace si la cuenta de Snowflake cambia -->
 
 **Siguiente:** [Paso 9](#paso-9)
 
@@ -565,6 +571,8 @@ Press Enter to open https://github.com/login/device in your browser...
 [OK]     terraform: Terraform v1.17.0
 [OK]     snow: Snowflake CLI version: 3.x
 [OK]     jq / zip / session-manager-plugin
+==> Entorno de Python (.venv)
+[OK]     .venv usa Python 3.12.x e importa pyspark, pandas y snowflake.connector
 ==> AWS
 [OK]     aws sts get-caller-identity: cuenta 123456789012
 [OK]     Bucket de estado de Terraform accesible
@@ -579,7 +587,7 @@ Press Enter to open https://github.com/login/device in your browser...
 ==> Diagnóstico sin fallos
 ```
 
-**❌ Si falla:** una línea `[FALLO]` dice qué revisar. Si `ci.yml` o `deploy.yml` fallan pidiendo `AWS_ROLE_ARN` o `TF_STATE_BUCKET`, ve a [esta fila](problemas.md#p-ci-secrets).
+**❌ Si falla:** una línea `[FALLO]` dice qué revisar. Si el fallo es de `.venv` o de `snow`, corre `cd ~/bigdata && make reparar-entorno` ([detalle](problemas.md#p-venv-roto)). Si `ci.yml` o `deploy.yml` fallan pidiendo `AWS_ROLE_ARN` o `TF_STATE_BUCKET`, ve a [esta fila](problemas.md#p-ci-secrets).
 
 **Siguiente:** [Paso 10](#paso-10)
 
@@ -651,7 +659,7 @@ upload: build/pipeline.zip to s3://.../code/pipeline.zip
 ==> Snowflake listo para Terraform:
 ...
 Do you want to perform these actions?  Enter a value: yes      <- escribe yes
-Apply complete! Resources: 39 added, 0 changed, 0 destroyed.  <- Snowflake creado
+Apply complete! Resources: 47 added, 0 changed, 0 destroyed.  <- Snowflake creado
 ==> Fase 2 de AWS: deploy.sh con la trust policy de Snowflake
 Plan: 0 to add, 1 to change, 0 to destroy.                   <- solo cambia el rol bigdata-snowflake-s3
 Apply complete! Resources: 0 added, 1 changed, 0 destroyed.
@@ -664,22 +672,32 @@ Apply complete! Resources: 0 added, 1 changed, 0 destroyed.
 >
 > **Conexión de Airflow a Snowflake: no hay nada que hacer a mano.** `make snowflake` la crea y la guarda en el secreto `bigdata/snowflake`, que usan el Airflow de dev y el de prod ([detalle](referencia.md#make-snowflake)).
 
+> [!IMPORTANT]
+> Este paso también crea el esquema `BIGDATA.CONTROL` y la tabla `BIGDATA.CONTROL.WATERMARK`, la tabla de control de la ingesta de la clase 5. **Al inicio de la clase 5**, antes de abrir los notebooks, corre otra vez en la terminal del Code Editor:
+> ```bash
+> cd ~/bigdata && git pull && make snowflake
+> ```
+> Si ya hiciste este paso con una versión anterior del repositorio, esta ejecución solo agrega la tabla de control (el plan dice `0 to destroy`). Escribe `yes` cuando pida confirmar. Si no lo haces, la tabla de control falla: [`No se encontró la tabla BIGDATA.CONTROL.WATERMARK`](problemas.md#p-control-watermark).
+
 - **Solo si** Airflow de dev ya estaba encendido, reinícialo: `make airflow-local-down && make airflow-local`.
 - **Solo si** Airflow de prod ya estaba encendido, reinícialo: `make airflow-off && make airflow-on`.
 - **(Opcional)** Para repetir solo la conexión de Airflow: `make snowflake-secreto`.
 
 **Referencia (no necesaria para empezar):** [infra/snowflake/README.md](../infra/snowflake/README.md)
 
-**❌ Si falla:** [`JWT token is invalid`](problemas.md#p-jwt-llave) · [`El plan destruye recursos`](problemas.md#p-plan-destruye) (avanzado) · [`Error acquiring the state lock`](problemas.md#p-state-lock) (avanzado)
+**❌ Si falla:** [`JWT token is invalid`](problemas.md#p-jwt-llave) · [`No se encontró la tabla BIGDATA.CONTROL.WATERMARK`](problemas.md#p-control-watermark) · [`El plan destruye recursos`](problemas.md#p-plan-destruye) (avanzado) · [`Error acquiring the state lock`](problemas.md#p-state-lock) (avanzado)
 
 **Siguiente:** [Paso 12](#paso-12)
 
 <a id="paso-12"></a>
 ### Paso 12 de 14 · Prepara los datos (una vez)
 
-**Para qué:** bajar los datos del año y generar la muestra con la que trabajarás en local.
+**Para qué:** bajar los datos del año y dejarlos en bronze con sus metadatos, y generar la muestra en tu bucket.
 
-**Tiempo:** ~5 min · **Costo:** ~US$0.15
+> [!NOTE]
+> Para correr el pipeline en local ya no necesitas este paso: `make run-local` descarga la muestra sola la primera vez, de tu bucket o, si ahí no hay una con el formato nuevo, del bucket público del curso. Este paso sirve para tener el bronze del año en tu bucket y la muestra propia.
+
+**Tiempo:** ~5 min · **Costo:** ~US$0.15 <!-- AUTOR: tiempo y costo medidos antes de la ingesta con metadatos; bronze ahora usa Glue `large` y calcula un hash por fila: validar en Glue -->
 
 > [!IMPORTANT]
 > La terminal se queda quieta varios minutos entre líneas mientras Glue trabaja. Es normal: no la cierres.
@@ -693,18 +711,26 @@ Apply complete! Resources: 0 added, 1 changed, 0 destroyed.
    ```
 
 > [!NOTE]
-> **FHVHV** son los viajes de Uber/Lyft de NYC publicados por la NYC TLC. **Bronze** son los datos crudos tal como llegan. La **muestra** es un subconjunto pequeño de los datos para trabajar en local. Qué hace `make muestra`: [detalle](referencia.md#make-muestra).
+> **FHVHV** son los viajes de Uber/Lyft de NYC publicados por la NYC TLC. **Bronze** guarda cada archivo tal como llega (en `_crudo/`) y una copia en Parquet con columnas extra que dicen de dónde y cuándo vino cada fila. La **muestra** es un subconjunto pequeño de los datos para trabajar en local. Qué hace `make muestra`: [detalle](referencia.md#make-muestra).
 
 **✅ Debes ver:** estas líneas (los ids de **run**, una ejecución de Glue, serán otros):
 ```text
-==> Glue bigdata-small --step bronze (run jr_...)
+==> Glue bigdata-large --step bronze (run jr_...)
 ==> bronze OK
 ==> Glue bigdata-medium --step muestra (run jr_...)
 ==> muestra OK
 ==> Muestra lista en s3://bigdata-lake-123456789012-us-east-2/muestra. En local: make run-local (la descarga la primera vez).
 ```
 
-**❌ Si falla:** [`TIMEOUT`](problemas.md#p-timeout-muestra) (repite `make muestra`; retoma desde lo que ya descargó) · [`ModuleNotFoundError: pipeline`](problemas.md#p-modulenotfound) · [`AccessDenied` al lanzar jobs Glue](problemas.md#p-accessdenied-presupuesto)
+> [!TIP]
+> Si cierras la terminal mientras `make muestra` espera, Glue sigue trabajando, pero el script se detiene y la muestra nunca se lanza. No repitas `make muestra`: volvería a crear el bronze del año. Cuando `make estado` muestre el job `bigdata-large` en `SUCCEEDED`, lanza solo la muestra:
+> ```bash
+> cd ~/bigdata
+> make muestra-solo
+> ```
+> Verás las mismas dos últimas líneas de la salida de arriba (`==> Glue bigdata-medium --step muestra (run jr_...)` y `==> muestra OK`), sin el paso de bronze.
+
+**❌ Si falla:** [`TIMEOUT`](problemas.md#p-timeout-muestra) (repite `make muestra`; retoma desde lo que ya descargó) · [Cerré la terminal mientras corría `make muestra`](problemas.md#p-cerre-terminal-muestra) (usa `make muestra-solo`) · [`ModuleNotFoundError: pipeline`](problemas.md#p-modulenotfound) · [`AccessDenied` al lanzar jobs Glue](problemas.md#p-accessdenied-presupuesto)
 
 **Siguiente:** [Paso 13](#paso-13)
 
@@ -720,7 +746,7 @@ Apply complete! Resources: 0 added, 1 changed, 0 destroyed.
 
 **Costo:** `glue_small` cuesta centavos.
 
-**Antes:** haber terminado el [Paso 12](#paso-12) (la muestra ya está en S3).
+**Antes:** nada especial para el modo local: la muestra se descarga sola la primera vez. El [Paso 12](#paso-12) solo hace falta para la nube.
 
 **Ventanas:** 💻 **Terminal del Code Editor** · 🧭 **Navegador** (UI de Airflow) · ❄️ **Snowsight** (solo en 13.2)
 
@@ -745,14 +771,14 @@ Son dos comandos distintos: `make run-local` termina solo; `make airflow-local` 
 
 **✅ Debes ver:** el final de `make run-local LIMITE=100` (tarda ~30 s):
 ```text
-INFO Muestra descargada de s3://.../muestra a /home/sagemaker-user/bigdata/lake/muestra (25 archivos)   <- solo la primera vez
+INFO Muestra descargada (origen: el bucket público del curso, s3://.../muestra) a /home/sagemaker-user/bigdata/lake/muestra (50 archivos)   <- solo la primera vez
 INFO Paso=silver env=local engine=local meses=2024-01
 INFO Calidad OK [silver]: 100 filas
 INFO Paso=gold env=local engine=local meses=2024-01
 INFO Calidad OK [gold]: 79 filas
 ```
 
-**❌ Si falla:** [`No hay muestra ... falta LAKE_BUCKET`](problemas.md#p-sin-muestra) · [`make test` o `make run-local` fallan por Java](problemas.md#p-java)
+**❌ Si falla:** [`No hay muestra ... ni en tu bucket ni en el bucket público`](problemas.md#p-sin-muestra) · [`make test` o `make run-local` fallan por Java](problemas.md#p-java)
 
 <a id="paso-13-1-airflow"></a>
 ##### B · `make airflow-local` (queda corriendo; la terminal sigue libre)

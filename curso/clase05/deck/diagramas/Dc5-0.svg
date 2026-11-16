@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 520" font-family="Helvetica Neue, Arial, sans-serif">
+<title>Arquitectura de la ingesta de la clase: fuentes, tu función, la tabla de control y tu bronze</title>
+<desc>De izquierda a derecha: tres fuentes originales (viajes, zonas y clima) llegan a tu función de ingesta en el Code Editor, que escribe el crudo y el lote en tu bronze. Arriba, la tabla de control en Snowflake: la función le pregunta si ya trajo el mes y, al terminar, registra. Abajo, la clase 6, donde el DAG de Airflow llama a esa misma función cada mes.</desc>
+<defs><marker id="m_acento" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#2340D8"/></marker><marker id="m_gris" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#5F6672"/></marker><marker id="m_ink" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#15171C"/></marker></defs>
+<text x="20" y="96" font-size="22" fill="#15171C" font-weight="700">Fuentes originales</text>
+<text x="20" y="124" font-size="20" fill="#5F6672">(en internet)</text>
+<rect x="20" y="150" width="300" height="86" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
+<text x="34" y="186" font-size="22" fill="#15171C" font-weight="700">Viajes TLC</text>
+<text x="34" y="216" font-size="20" fill="#15171C">Parquet, un archivo por mes</text>
+<line x1="320" y1="193" x2="358" y2="193" stroke="#5F6672" stroke-width="2" marker-end="url(#m_gris)"/>
+<rect x="20" y="256" width="300" height="86" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
+<text x="34" y="292" font-size="22" fill="#15171C" font-weight="700">Zonas TLC</text>
+<text x="34" y="322" font-size="20" fill="#15171C">CSV, un solo archivo</text>
+<line x1="320" y1="299" x2="358" y2="299" stroke="#5F6672" stroke-width="2" marker-end="url(#m_gris)"/>
+<rect x="20" y="362" width="300" height="86" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
+<text x="34" y="398" font-size="22" fill="#15171C" font-weight="700">Clima Open-Meteo</text>
+<text x="34" y="428" font-size="20" fill="#15171C">JSON, por rango de fechas</text>
+<line x1="320" y1="405" x2="358" y2="405" stroke="#5F6672" stroke-width="2" marker-end="url(#m_gris)"/>
+<rect x="360" y="10" width="460" height="70" rx="6" fill="#F0EEE7" stroke="#2340D8" stroke-width="3"/>
+<text x="376" y="40" font-size="22" fill="#15171C" font-weight="700">Tabla de control en Snowflake</text>
+<text x="376" y="68" font-size="20" fill="#15171C" font-family="JetBrains Mono, SF Mono, Menlo, Consolas, Courier New, monospace">BIGDATA.CONTROL.WATERMARK</text>
+<line x1="500" y1="150" x2="500" y2="80" stroke="#5F6672" stroke-width="2" marker-end="url(#m_gris)"/>
+<circle cx="500" cy="114" r="13" fill="#2340D8"/>
+<text x="500" y="121" font-size="20" fill="#FFFFFF" font-weight="700" text-anchor="middle">1</text>
+<text x="484" y="108" font-size="20" fill="#15171C" text-anchor="end">¿ya lo traje?</text>
+<text x="484" y="132" font-size="20" fill="#5F6672" text-anchor="end">consulta</text>
+<line x1="680" y1="150" x2="680" y2="80" stroke="#5F6672" stroke-width="2" marker-end="url(#m_gris)"/>
+<circle cx="680" cy="114" r="13" fill="#2340D8"/>
+<text x="680" y="121" font-size="20" fill="#FFFFFF" font-weight="700" text-anchor="middle">4</text>
+<text x="698" y="108" font-size="20" fill="#15171C">lo traje</text>
+<text x="698" y="132" font-size="20" fill="#5F6672">registra</text>
+<text x="844" y="40" font-size="22" fill="#2340D8" font-weight="700">Si ya está y reprocesar</text>
+<text x="844" y="68" font-size="22" fill="#2340D8" font-weight="700">es falso, no hace nada</text>
+<rect x="360" y="150" width="460" height="298" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2"/>
+<text x="376" y="184" font-size="22" fill="#15171C" font-weight="700">Tu función de ingesta</text>
+<text x="376" y="214" font-size="20" fill="#15171C" font-family="JetBrains Mono, SF Mono, Menlo, Consolas, Courier New, monospace">ingestar_&lt;fuente&gt;(mes, reprocesar)</text>
+<text x="376" y="240" font-size="20" fill="#5F6672">en el Code Editor, con Spark</text>
+<circle cx="390" cy="273" r="13" fill="#2340D8"/>
+<text x="390" y="280" font-size="20" fill="#FFFFFF" font-weight="700" text-anchor="middle">1</text>
+<text x="414" y="280" font-size="20" fill="#15171C">pregunta a la tabla de control</text>
+<circle cx="390" cy="313" r="13" fill="#2340D8"/>
+<text x="390" y="320" font-size="20" fill="#FFFFFF" font-weight="700" text-anchor="middle">2</text>
+<text x="414" y="320" font-size="20" fill="#15171C">descarga de la fuente</text>
+<circle cx="390" cy="353" r="13" fill="#2340D8"/>
+<text x="390" y="360" font-size="20" fill="#FFFFFF" font-weight="700" text-anchor="middle">3</text>
+<text x="414" y="360" font-size="20" fill="#15171C">guarda el crudo y el lote</text>
+<text x="414" y="386" font-size="20" fill="#15171C">con metadatos</text>
+<circle cx="390" cy="419" r="13" fill="#2340D8"/>
+<text x="390" y="426" font-size="20" fill="#FFFFFF" font-weight="700" text-anchor="middle">4</text>
+<text x="414" y="426" font-size="20" fill="#15171C">registra en la tabla de control</text>
+<rect x="860" y="150" width="320" height="298" rx="6" fill="#B4622F" stroke="none"/>
+<text x="876" y="184" font-size="22" fill="#FFFFFF" font-weight="700">Tu bronze</text>
+<text x="876" y="212" font-size="20" fill="#FFFFFF">lake en S3; en clase,</text>
+<text x="876" y="236" font-size="20" fill="#FFFFFF">una carpeta del Code Editor</text>
+<text x="876" y="284" font-size="20" fill="#FFFFFF" font-weight="700" font-family="JetBrains Mono, SF Mono, Menlo, Consolas, Courier New, monospace">_crudo/</text>
+<text x="876" y="310" font-size="20" fill="#FFFFFF">el original, intacto, por lote</text>
+<text x="876" y="360" font-size="20" fill="#FFFFFF" font-weight="700" font-family="JetBrains Mono, SF Mono, Menlo, Consolas, Courier New, monospace">&lt;tabla&gt;/mes=…/lote=…/</text>
+<text x="876" y="386" font-size="20" fill="#FFFFFF">Parquet con 5 columnas</text>
+<text x="876" y="410" font-size="20" fill="#FFFFFF">de metadatos</text>
+<line x1="820" y1="352" x2="858" y2="352" stroke="#5F6672" stroke-width="2" marker-end="url(#m_gris)"/>
+<rect x="20" y="472" width="1160" height="40" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2" stroke-dasharray="8 6"/>
+<text x="600" y="499" font-size="20" fill="#15171C" text-anchor="middle">Clase 6: el DAG de Airflow llama a esta misma función cada mes → silver → gold</text>
+<line x1="590" y1="472" x2="590" y2="448" stroke="#5F6672" stroke-width="2" stroke-dasharray="8 6" marker-end="url(#m_gris)"/>
+</svg>

@@ -5,7 +5,8 @@
 
 - Sin --mes se procesan todos los meses de config/<env>.yaml, en UNA pasada de Spark por paso.
 - all = bronze + silver + gold (en local: silver + gold sobre la muestra; no hay bronze).
-- muestra solo en dev/prod (lee bronze en la nube); --limite recorta aún más los viajes.
+- bronze y muestra solo en dev/prod (en la nube). bronze descarga el crudo y crea un lote nuevo
+  con metadatos; no usa --limite. muestra lee bronze; --limite recorta aún más los viajes.
 Requiere PYTHONPATH=src (o ejecutar desde el paquete instalado).
 """
 
@@ -66,7 +67,8 @@ def main(argv: list[str] | None = None) -> int:
     if args.env == "local":
         muestra.sincronizar(cfg)
 
-    spark = engine.get_spark(args.engine) if any(p != "bronze" for p in pasos) else None
+    # Todos los pasos usan Spark, también bronze (convierte lo descargado a Parquet con metadatos).
+    spark = engine.get_spark(args.engine)
     ns = argparse.Namespace(env=args.env, engine=args.engine, meses=meses, limite=args.limite)
     for paso in pasos:
         log.info("Paso=%s env=%s engine=%s meses=%s", paso, args.env, args.engine, ",".join(meses))

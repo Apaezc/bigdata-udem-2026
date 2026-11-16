@@ -107,6 +107,24 @@ Busca tu mensaje con **Ctrl+F**. Cada entrada muestra el mensaje exacto, su caus
 - **Qué hacer:** `cd ~/bigdata && make snowflake-conexion` (el [paso 7](guia.md#paso-7)).
 - [Volver al paso 8](guia.md#paso-8)
 
+## Entorno de Python (después de actualizar el Code Editor)
+
+<a id="p-venv-roto"></a>
+### `No module named 'snowflake'` o `No module named 'pip'` en `.venv` tras reiniciar el Code Editor
+
+- **Síntoma:** al reiniciar el Code Editor, el notebook o la terminal dicen `ModuleNotFoundError: No module named 'snowflake'` (o `'pandas'`, `'pyspark'`), o `.venv/bin/python -m pip` responde `No module named pip`. `make doctor` marca `.venv` en `[FALLO]`.
+- **Causa:** SageMaker actualiza la imagen del Code Editor y cambia la versión de Python del sistema (`/opt/conda/bin/python3` pasó de 3.12 a 3.13). Tu `.venv` era solo un enlace a ese Python, así que ahora apunta a otra versión y deja de ver las librerías que instalaste. Con Python 3.13 tampoco sirve reinstalar a ciegas: `numpy 1.26.4` se compila desde el código fuente y PySpark 3.5 no es compatible.
+- **Qué hacer:** `cd ~/bigdata && make reparar-entorno`. El comando borra `.venv`, lo crea de nuevo con Python 3.12 (con `uv`), reinstala `requirements-dev.txt`, registra el kernel **Python (bigdata)** y revisa `snow`. Termina con `Entorno reparado: Python 3.12.x, snow OK`. Después elige de nuevo el kernel en tu notebook y reinícialo.
+- [Volver al paso 8](guia.md#paso-8)
+
+<a id="p-snow-cli"></a>
+### `No module named 'snowflake.cli'` al usar `snow`
+
+- **Síntoma:** cualquier comando `snow` (`snow --version`, `snow sql`, `make snowflake`) termina con `ModuleNotFoundError: No module named 'snowflake.cli'`.
+- **Causa:** `snow` se instaló con `pip install --user` sobre el Python de conda de la imagen anterior (3.12). Al actualizarse la imagen, ese Python cambió a 3.13 y las librerías del usuario de 3.12 ya no se ven.
+- **Qué hacer:** `cd ~/bigdata && make reparar-entorno` también comprueba `snow` y lo reinstala si falla. Si prefieres hacerlo a mano: `/opt/conda/bin/python3 -m pip install --user snowflake-cli` y luego `snow --version`.
+- [Volver al paso 8](guia.md#paso-8)
+
 ## Paso 9 · Secrets del fork
 
 <a id="p-ci-secrets"></a>
@@ -153,12 +171,27 @@ Busca tu mensaje con **Ctrl+F**. Cada entrada muestra el mensaje exacto, su caus
 - **Qué hacer:** repítelo con `cd ~/bigdata && make muestra`. Retoma desde lo que ya descargó.
 - [Volver al paso 12](guia.md#paso-12)
 
+<a id="p-cerre-terminal-muestra"></a>
+### Cerré la terminal mientras corría `make muestra`
+
+- **Síntoma:** cerraste la terminal (o se cortó la conexión) mientras `make muestra` esperaba a Glue, y la salida nunca llegó a `==> muestra OK`. Con `cd ~/bigdata && make estado` ves el último run de `bigdata-large` en `SUCCEEDED`, pero no hay ningún run de `bigdata-medium` con el paso `muestra`.
+- **Causa:** `make muestra` lanza los dos pasos uno detrás de otro desde tu terminal. El job de bronze sigue corriendo en Glue aunque la cierres, pero el segundo paso solo lo lanza el script, y el script terminó con la terminal.
+- **Qué hacer:** lanza solo el paso que falta, cuando el bronze ya esté en `SUCCEEDED`:
+  ```bash
+  cd ~/bigdata
+  make muestra-solo
+  ```
+  Verás `==> Glue bigdata-medium --step muestra (run jr_...)` y, al terminar, `==> muestra OK`.
+- **Qué no hacer:** repetir `make muestra`. Cada ejecución del paso bronze crea otro lote completo del año en tu bucket, con su costo de almacenamiento y de Glue.
+- **Si `make muestra-solo` falla:** `No se pudo lanzar bigdata-medium` significa que hay otro run en curso o que el presupuesto bloqueó Glue (corre `make desbloquear` solo si fue el presupuesto). `muestra terminó en FAILED` significa que el job falló: abre los logs en CloudWatch (`/aws-glue/jobs/bigdata`).
+- [Volver al paso 12](guia.md#paso-12)
+
 <a id="p-sin-muestra"></a>
 ### No hay muestra para correr en local
 
-- **Síntoma:** `make run-local`: "No hay muestra ... falta LAKE_BUCKET"
-- **Causa:** todavía no se generó la muestra.
-- **Qué hacer:** corre `cd ~/bigdata && make muestra` primero (una vez).
+- **Síntoma:** `make run-local`: "No hay muestra ... ni en tu bucket ni en el bucket público del curso".
+- **Causa:** la muestra se descarga sola la primera vez, pero no se pudo leer ni tu bucket ni el bucket público (por ejemplo, sin internet).
+- **Qué hacer:** revisa tu conexión y vuelve a correr `cd ~/bigdata && make run-local`. Si sigue igual, borra `~/bigdata/lake/muestra` y avisa al instructor.
 - [Volver al paso 13.1](guia.md#paso-13-1)
 
 ## Pipeline local (Java)
@@ -269,6 +302,14 @@ Busca tu mensaje con **Ctrl+F**. Cada entrada muestra el mensaje exacto, su caus
 - **Síntoma:** `BIGDATA_WH: estado=STARTED` en `make estado`.
 - **Causa:** todavía no se ha suspendido: se suspende solo a los 60 s sin consultas.
 - **Qué hacer:** espera un minuto.
+
+<a id="p-control-watermark"></a>
+### No se encontró la tabla BIGDATA.CONTROL.WATERMARK
+
+- **Síntoma:** al consultar o registrar en la tabla de control (`consultar_watermark`, `registrar_watermark`, o una prueba del lab de la clase 5) sale `No se encontró la tabla BIGDATA.CONTROL.WATERMARK, o el rol ACCOUNTADMIN no tiene permiso sobre ella`. Si usas una versión anterior del repositorio, puede salir `Insufficient privileges to operate on database 'BIGDATA'`.
+- **Causa:** la base `BIGDATA` es del rol `TERRAFORM_ROLE`, y `ACCOUNTADMIN` no puede crear esquemas dentro de ella. Por eso el esquema `CONTROL`, la tabla y los permisos de `ACCOUNTADMIN` y `BIGDATA_DEV` los crea Terraform, y todavía no los has aplicado.
+- **Qué hacer:** `cd ~/bigdata && git pull && make snowflake` y escribe `yes` cuando pida confirmar el plan. Solo agrega recursos nuevos; después repite la celda.
+- [Volver al paso 11](guia.md#paso-11)
 
 <a id="avanzado"></a>
 ## Avanzado

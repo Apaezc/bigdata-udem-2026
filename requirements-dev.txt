@@ -3,3 +3,15 @@ pytest
 ruff
 pyyaml
 boto3
+# Clase 5 (notebook): pandas, pyarrow, Snowflake y kernel de Jupyter. Versiones compatibles con
+# Python 3.12 y pyspark 3.5.6. pyOpenSSL y cryptography van fijados porque sin eso pip instala un
+# cryptography demasiado nuevo para snowflake-connector-python 3.12 y el import falla.
+numpy==1.26.4
+pandas==2.2.3
+pyarrow==17.0.0
+snowflake-connector-python[pandas]==3.12.4
+pyOpenSSL==24.2.1
+cryptography==43.0.3
+ipykernel==6.29.5
+# PySpark 3.5 usa distutils en toPandas(); Python 3.12 lo eliminó. setuptools trae su reemplazo.
+setuptools==75.8.0

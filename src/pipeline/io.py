@@ -1,19 +1,25 @@
 """Rutas y lectura/escritura de las capas (archivos locales o s3://, según config/<env>.yaml).
 
 Layout (igual en bronze y en la muestra, para que local lea la muestra con el mismo código):
-    <bronze>/fhvhv/mes=YYYY-MM/            viajes FHVHV (Parquet; en bronze, el archivo original)
-    <bronze>/taxi_zones/taxi_zone_lookup.csv
-    <bronze>/clima/mes=YYYY-MM/open_meteo_YYYY-MM.json
+    <bronze>/_crudo/fhvhv/mes=YYYY-MM/fhvhv_tripdata_YYYY-MM.parquet   archivo tal como se descargó
+    <bronze>/_crudo/clima/mes=YYYY-MM/open_meteo_YYYY-MM.json
+    <bronze>/_crudo/taxi_zones/taxi_zone_lookup.csv
+    <bronze>/fhvhv/mes=YYYY-MM/lote=<id_lote>/      Parquet + columnas de metadatos (_hash_fila...)
+    <bronze>/clima/mes=YYYY-MM/lote=<id_lote>/      una fila por día
+    <bronze>/taxi_zones/lote=<id_lote>/
     <silver>/fhvhv_trips/pickup_date=.../  particionado por día (overwrite dinámico)
     <gold>/daily_zone_metrics/mes=YYYY-MM/ particionado por mes; la columna `fecha` queda dentro
                                            de los Parquet porque Snowflake los carga con
                                            MATCH_BY_COLUMN_NAME (airflow/dags/sql/copy_gold.sql).
-Los pasos leen y escriben todos los meses del rango en una sola pasada de Spark.
+Cada ingesta de bronze crea un lote nuevo; silver y gold leen siempre el lote más reciente de
+cada mes (ver lote_mas_reciente). Los pasos leen y escriben todos los meses del rango en una sola
+pasada de Spark.
 """
 
 from __future__ import annotations
 
 import shutil
+import tempfile
 from pathlib import Path
 
 from pyspark.sql import DataFrame, SparkSession
@@ -30,38 +36,151 @@ def unir(base: str, *partes: str) -> str:
 
 # --- rutas bronze / muestra ------------------------------------------------------------------
 
+# Carpeta de cada fuente dentro de bronze.
+VIAJES = "fhvhv"
+ZONAS = "taxi_zones"
+CLIMA = "clima"
 
-def dir_viajes(base: str, mes: str) -> str:
-    return unir(base, "fhvhv", f"mes={mes}")
+NOMBRE_ZONAS = "taxi_zone_lookup.csv"
+CARPETA_CRUDO = "_crudo"
+PREFIJO_LOTE = "lote="
+# Marcador propio: se publica cuando el lote ya se escribió completo. No se usa _SUCCESS porque
+# Glue no siempre lo escribe en S3.
+MARCA_LOTE_COMPLETO = "_LOTE_COMPLETO"
 
 
-def ruta_bronze_viajes(cfg: dict, mes: str) -> str:
-    return unir(dir_viajes(cfg["rutas"]["bronze"], mes), f"fhvhv_tripdata_{mes}.parquet")
+class LoteNoEncontrado(RuntimeError):
+    """No hay ningún lote completo de bronze para la fuente (y el mes) pedidos."""
 
 
-def ruta_zonas(base: str) -> str:
-    return unir(base, "taxi_zones", "taxi_zone_lookup.csv")
+def nombre_viajes(mes: str) -> str:
+    return f"fhvhv_tripdata_{mes}.parquet"
 
 
-def ruta_clima(base: str, mes: str) -> str:
-    return unir(base, "clima", f"mes={mes}", f"open_meteo_{mes}.json")
+def nombre_clima(mes: str) -> str:
+    return f"open_meteo_{mes}.json"
+
+
+def dir_fuente(base: str, fuente: str, mes: str | None = None) -> str:
+    """Carpeta de una fuente; las fuentes con meses (viajes, clima) llevan una por mes."""
+    if mes is None:
+        return unir(base, fuente)
+    return unir(base, fuente, f"mes={mes}")
+
+
+def dir_crudo(base: str, fuente: str, mes: str | None = None) -> str:
+    """Carpeta del archivo descargado tal cual: <bronze>/_crudo/<fuente>[/mes=AAAA-MM]."""
+    return dir_fuente(unir(base, CARPETA_CRUDO), fuente, mes)
+
+
+def ruta_crudo(base: str, fuente: str, nombre: str, mes: str | None = None) -> str:
+    return unir(dir_crudo(base, fuente, mes), nombre)
+
+
+def ruta_anterior(base: str, fuente: str, nombre: str, mes: str | None = None) -> str:
+    """Dónde guardaba el archivo la versión anterior del pipeline (sin _crudo ni lote)."""
+    return unir(dir_fuente(base, fuente, mes), nombre)
+
+
+def dir_lote(base: str, fuente: str, id_lote: str, mes: str | None = None) -> str:
+    return unir(dir_fuente(base, fuente, mes), f"{PREFIJO_LOTE}{id_lote}")
+
+
+# --- lotes ------------------------------------------------------------------------------------
+
+
+def listar_subcarpetas(ruta: str) -> list[str]:
+    """Nombres de las carpetas que cuelgan directamente de `ruta` (local o s3://)."""
+    nombres = []
+    if ruta.startswith("s3://"):
+        import boto3
+
+        bucket, _, prefijo = ruta[len("s3://") :].partition("/")
+        prefijo = prefijo.rstrip("/") + "/"
+        paginas = (
+            boto3.client("s3")
+            .get_paginator("list_objects_v2")
+            .paginate(Bucket=bucket, Prefix=prefijo, Delimiter="/")
+        )
+        for pagina in paginas:
+            for carpeta in pagina.get("CommonPrefixes", []):
+                nombres.append(carpeta["Prefix"][len(prefijo) :].rstrip("/"))
+        return nombres
+    raiz = Path(ruta)
+    if not raiz.is_dir():
+        return nombres
+    for hijo in raiz.iterdir():
+        if hijo.is_dir():
+            nombres.append(hijo.name)
+    return nombres
+
+
+def lote_mas_reciente(base: str, fuente: str, mes: str | None = None) -> str:
+    """Id del lote completo más reciente de la fuente (y el mes).
+
+    El id empieza con la fecha (AAAAMMDDTHHMMSSZ_...), así que ordenar los nombres como texto
+    equivale a ordenarlos por fecha. Un lote sin el marcador _LOTE_COMPLETO quedó a medias (la
+    ingesta falló al escribirlo): se ignora y se usa el anterior.
+    """
+    carpeta = dir_fuente(base, fuente, mes)
+    lotes = []
+    for nombre in listar_subcarpetas(carpeta):
+        if nombre.startswith(PREFIJO_LOTE):
+            lotes.append(nombre)
+    for nombre in sorted(lotes, reverse=True):
+        if existe(unir(carpeta, nombre, MARCA_LOTE_COMPLETO)):
+            return nombre[len(PREFIJO_LOTE) :]
+    raise LoteNoEncontrado(
+        f"No hay ningún lote completo en {carpeta}. Ejecuta primero --step bronze "
+        "(en la nube) o, si trabajas en local, vuelve a generar la muestra con make muestra."
+    )
+
+
+def dir_lote_reciente(base: str, fuente: str, mes: str | None = None) -> str:
+    return dir_lote(base, fuente, lote_mas_reciente(base, fuente, mes), mes)
+
+
+def marcar_lote_completo(carpeta_lote: str) -> None:
+    """Publica el marcador que dice que el lote se escribió completo (local o s3://)."""
+    with tempfile.TemporaryDirectory(prefix="marca-") as tmp:
+        marca = Path(tmp) / MARCA_LOTE_COMPLETO
+        marca.write_text("lote completo\n", encoding="utf-8")
+        publicar(marca, unir(carpeta_lote, MARCA_LOTE_COMPLETO))
+
+
+def escribir_lote(df: DataFrame, carpeta_lote: str, archivos: int | None = None) -> None:
+    """Escribe un lote en Parquet y, solo si la escritura terminó bien, publica el marcador.
+
+    Con `archivos` el lote se junta en esa cantidad de archivos (fuentes pequeñas).
+    """
+    salida = df
+    if archivos:
+        salida = df.coalesce(archivos)
+    salida.write.mode("overwrite").parquet(carpeta_lote)
+    marcar_lote_completo(carpeta_lote)
 
 
 # --- lectura ----------------------------------------------------------------------------------
 
 
 def leer_viajes(spark: SparkSession, base: str, meses: list[str]) -> DataFrame:
-    """Viajes de todos los meses (una carpeta por mes; sirve para bronze y para la muestra)."""
-    return spark.read.parquet(*[dir_viajes(base, m) for m in meses])
+    """Viajes de todos los meses, cada uno desde su lote más reciente (bronze y muestra)."""
+    carpetas = []
+    for mes in meses:
+        carpetas.append(dir_lote_reciente(base, VIAJES, mes))
+    return spark.read.parquet(*carpetas)
 
 
 def leer_zonas(spark: SparkSession, base: str) -> DataFrame:
-    return spark.read.option("header", True).csv(ruta_zonas(base))
+    return spark.read.parquet(dir_lote_reciente(base, ZONAS))
 
 
 def leer_clima(spark: SparkSession, base: str, meses: list[str]) -> DataFrame:
-    """JSON crudo de Open-Meteo (un objeto con bloque 'daily' por mes)."""
-    return spark.read.option("multiLine", True).json([ruta_clima(base, m) for m in meses])
+    """Clima diario (una fila por día) de todos los meses, desde su lote más reciente."""
+    carpetas = []
+    for mes in meses:
+        carpetas.append(dir_lote_reciente(base, CLIMA, mes))
+    return spark.read.parquet(*carpetas)
 
 
 def leer_fuente(
@@ -208,3 +327,20 @@ def copiar(origen: str, destino: str) -> None:
     else:
         Path(destino).parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(origen, destino)
+
+
+def borrar(ruta: str) -> None:
+    """Borra un archivo (local o s3://)."""
+    if ruta.startswith("s3://"):
+        import boto3
+
+        bucket, _, key = ruta[len("s3://") :].partition("/")
+        boto3.client("s3").delete_object(Bucket=bucket, Key=key)
+    else:
+        Path(ruta).unlink()
+
+
+def mover(origen: str, destino: str) -> None:
+    """Mueve un archivo: lo copia y solo borra el original si la copia terminó bien."""
+    copiar(origen, destino)
+    borrar(origen)

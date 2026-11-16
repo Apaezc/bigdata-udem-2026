@@ -80,8 +80,9 @@ with DAG(
         gold_local = pipeline_local_task("gold_spark_local", step="gold")
         elegir >> silver_local >> gold_local
 
-    # bronze solo descarga (y omite lo que ya existe): siempre en el perfil más chico.
-    bronze = glue_task("bronze", step="bronze", env=ENTORNO, profile="small")
+    # bronze descarga lo que falta y convierte a Parquet con metadatos (hash de cada fila): usa el
+    # mismo perfil de cómputo que silver y gold.
+    bronze = glue_task("bronze", step="bronze", env=ENTORNO)
     silver = glue_task("silver", step="silver", env=ENTORNO)
     gold = glue_task("gold", step="gold", env=ENTORNO)
     cargar = snowflake_task(

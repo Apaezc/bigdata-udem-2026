@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
-# Prepara los datos en la nube con Glue: (1) bronze del año de prod (solo descarga lo que falta)
-# y (2) la muestra en s3://<lake>/muestra que usa el entorno local. Una vez por curso.
+# Prepara los datos en la nube con Glue: (1) bronze del año de prod (descarga solo lo que falta,
+# reutiliza lo que ya estaba en la ruta anterior y escribe un lote nuevo con metadatos) y (2) la
+# muestra en s3://<lake>/muestra que usa el entorno local. Una vez por curso.
+# Con --solo-muestra lanza únicamente el segundo paso (target `make muestra-solo`): sirve cuando se
+# cerró la terminal con el bronze del año ya terminado y la muestra nunca se lanzó.
 # shellcheck source=lib.sh
 source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
 
@@ -24,6 +27,11 @@ correr() {
   done
 }
 
-correr small bronze
-correr medium muestra
+if [[ "${1:-}" == "--solo-muestra" ]]; then
+  # No se repite bronze: volver a correrlo crearía otro lote completo del año (más almacenamiento y más costo).
+  correr medium muestra
+else
+  correr large bronze  # convierte el año a Parquet con hash por fila
+  correr medium muestra
+fi
 msg "Muestra lista en s3://$(lake_bucket)/muestra. En local: make run-local (la descarga la primera vez)."

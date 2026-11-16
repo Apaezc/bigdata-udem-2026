@@ -180,3 +180,4 @@ Cada mensaje tiene su entrada completa, con causa y solución, en los [problemas
 | `La instancia está 'stopped'. Ejecuta 'make airflow-on' primero.` | [p-vm-stopped](problemas.md#p-vm-stopped) |
 | `No existe la instancia bigdata-airflow` | [p-vm-inexistente](problemas.md#p-vm-inexistente) |
 | `AccessDenied` al encender la VM o lanzar Glue | [p-accessdenied-presupuesto](problemas.md#p-accessdenied-presupuesto) |
+| `No module named 'snowflake'` o `'pip'` en `.venv`, o `No module named 'snowflake.cli'` al usar `snow` | [p-venv-roto](problemas.md#p-venv-roto) y [p-snow-cli](problemas.md#p-snow-cli) |
