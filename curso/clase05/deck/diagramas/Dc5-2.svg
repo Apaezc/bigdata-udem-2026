@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 520" font-family="Helvetica Neue, Arial, sans-serif">
+<title>Archivo de enero partido en cuatro particiones y cuatro tareas</title>
+<desc>Una barra con cuatro particiones de tamaños proporcionales a sus filas. Dos hilos corren las cuatro tareas de dos en dos, en orden ilustrativo.</desc>
+<defs><marker id="m_acento" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#2340D8"/></marker><marker id="m_gris" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#5F6672"/></marker><marker id="m_ink" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#15171C"/></marker></defs>
+<text x="40" y="30" font-size="22" fill="#15171C" font-weight="700">Archivo de enero: 451 MiB · 19 663 930 filas</text>
+<rect x="40" y="44" width="1120" height="72" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
+<text x="189.3" y="88" font-size="20" fill="#15171C" font-weight="700" text-anchor="middle">partición 0</text>
+<text x="189.3" y="146" font-size="20" fill="#15171C" text-anchor="middle">5 242 880</text>
+<line x1="338.6" y1="44" x2="338.6" y2="116" stroke="#5F6672" stroke-width="1.5"/>
+<text x="517.8" y="88" font-size="20" fill="#15171C" font-weight="700" text-anchor="middle">partición 1</text>
+<text x="517.8" y="146" font-size="20" fill="#15171C" text-anchor="middle">6 291 456</text>
+<line x1="697.0" y1="44" x2="697.0" y2="116" stroke="#5F6672" stroke-width="1.5"/>
+<text x="846.3" y="88" font-size="20" fill="#15171C" font-weight="700" text-anchor="middle">partición 2</text>
+<text x="846.3" y="146" font-size="20" fill="#15171C" text-anchor="middle">5 242 880</text>
+<line x1="995.6" y1="44" x2="995.6" y2="116" stroke="#5F6672" stroke-width="1.5"/>
+<text x="1077.8" y="88" font-size="20" fill="#15171C" font-weight="700" text-anchor="middle">partición 3</text>
+<text x="1077.8" y="146" font-size="20" fill="#15171C" text-anchor="middle">2 886 714</text>
+<path d="M40,160 V170 H1160 V160" fill="none" stroke="#2340D8" stroke-width="2"/>
+<text x="600" y="198" font-size="20" fill="#2340D8" text-anchor="middle">suman 19 663 930 filas</text>
+<text x="40" y="258" font-size="20" fill="#15171C">hilo 1</text>
+<text x="40" y="326" font-size="20" fill="#15171C">hilo 2</text>
+<rect x="150" y="230" width="420" height="44" rx="4" fill="#2340D8" stroke="none"/>
+<text x="360" y="260" font-size="20" fill="#FFFFFF" font-weight="700" text-anchor="middle">tarea 0</text>
+<rect x="600" y="230" width="420" height="44" rx="4" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
+<text x="810" y="260" font-size="20" fill="#15171C" text-anchor="middle">tarea 2</text>
+<rect x="150" y="298" width="420" height="44" rx="4" fill="#2340D8" stroke="none"/>
+<text x="360" y="328" font-size="20" fill="#FFFFFF" font-weight="700" text-anchor="middle">tarea 1</text>
+<rect x="600" y="298" width="420" height="44" rx="4" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
+<text x="810" y="328" font-size="20" fill="#15171C" text-anchor="middle">tarea 3</text>
+<line x1="150" y1="366" x2="1060" y2="366" stroke="#5F6672" stroke-width="2" marker-end="url(#m_gris)"/>
+<text x="1074" y="373" font-size="20" fill="#5F6672">tiempo</text>
+<text x="150" y="398" font-size="20" fill="#5F6672">orden ilustrativo: la Spark UI muestra el real</text>
+<text x="40" y="432" font-size="20" fill="#15171C"><tspan font-weight="700">Partición:</tspan> un trozo de las filas del archivo.</text>
+<text x="40" y="460" font-size="20" fill="#15171C"><tspan font-weight="700">Tarea:</tspan> el trabajo de un hilo sobre una partición.</text>
+<text x="40" y="488" font-size="20" fill="#15171C">Con 4 particiones y 2 hilos, las tareas corren de dos en dos.</text>
+</svg>

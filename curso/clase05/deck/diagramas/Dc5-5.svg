@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 520" font-family="Helvetica Neue, Arial, sans-serif">
+<title>Las tres capas y el árbol de bronze con el crudo y el lote</title>
+<desc>Tres capas en fila: bronze, silver y gold. Debajo, el árbol de bronze con el crudo y el lote bajo el mismo identificador, y las cinco columnas de metadatos.</desc>
+<defs><marker id="m_acento" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#2340D8"/></marker><marker id="m_gris" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#5F6672"/></marker><marker id="m_ink" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#15171C"/></marker></defs>
+<text x="40" y="22" font-size="20" fill="#5F6672">Medallion: arquitectura en tres capas, según cuánto se transformó el dato</text>
+<rect x="40" y="34" width="340" height="96" rx="6" fill="#B4622F" stroke="none"/>
+<text x="56" y="66" font-size="22" fill="#FFFFFF" font-weight="700">bronze</text>
+<text x="56" y="94" font-size="20" fill="#FFFFFF">guarda cada fuente</text>
+<text x="56" y="118" font-size="20" fill="#FFFFFF">tal como llega</text>
+<rect x="430" y="34" width="340" height="96" rx="6" fill="#6E7F94" stroke="none"/>
+<text x="446" y="66" font-size="22" fill="#FFFFFF" font-weight="700">silver</text>
+<text x="446" y="94" font-size="20" fill="#FFFFFF">limpia, tipa y une</text>
+<text x="446" y="118" font-size="20" fill="#FFFFFF">zonas y clima</text>
+<rect x="820" y="34" width="340" height="96" rx="6" fill="#B07F0E" stroke="none"/>
+<text x="836" y="66" font-size="22" fill="#FFFFFF" font-weight="700">gold</text>
+<text x="836" y="94" font-size="20" fill="#FFFFFF">resume por día, zona</text>
+<text x="836" y="118" font-size="20" fill="#FFFFFF">y empresa</text>
+<line x1="382" y1="82" x2="428" y2="82" stroke="#5F6672" stroke-width="2" marker-end="url(#m_gris)"/>
+<line x1="772" y1="82" x2="818" y2="82" stroke="#5F6672" stroke-width="2" marker-end="url(#m_gris)"/>
+<rect x="40" y="152" width="560" height="256" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
+<text x="60" y="182" font-size="20" fill="#15171C" xml:space="preserve" font-family="JetBrains Mono, SF Mono, Menlo, Consolas, Courier New, monospace">bronze/</text>
+<text x="60" y="208" font-size="20" fill="#15171C" xml:space="preserve" font-family="JetBrains Mono, SF Mono, Menlo, Consolas, Courier New, monospace">  _crudo/clima/mes=2024-01/</text>
+<text x="60" y="234" font-size="20" fill="#15171C" xml:space="preserve" font-family="JetBrains Mono, SF Mono, Menlo, Consolas, Courier New, monospace">    lote=20260117T143005Z_a3f9c1/</text>
+<text x="60" y="260" font-size="20" fill="#15171C" xml:space="preserve" font-family="JetBrains Mono, SF Mono, Menlo, Consolas, Courier New, monospace">      open_meteo_2024-01.json</text>
+<circle cx="540" cy="253" r="13" fill="#2340D8"/>
+<text x="540" y="260" font-size="20" fill="#FFFFFF" font-weight="700" text-anchor="middle">1</text>
+<text x="60" y="286" font-size="20" fill="#15171C" xml:space="preserve" font-family="JetBrains Mono, SF Mono, Menlo, Consolas, Courier New, monospace">  clima/mes=2024-01/</text>
+<text x="60" y="312" font-size="20" fill="#15171C" xml:space="preserve" font-family="JetBrains Mono, SF Mono, Menlo, Consolas, Courier New, monospace">    lote=20260117T143005Z_a3f9c1/</text>
+<circle cx="540" cy="305" r="13" fill="#2340D8"/>
+<text x="540" y="312" font-size="20" fill="#FFFFFF" font-weight="700" text-anchor="middle">2</text>
+<text x="60" y="338" font-size="20" fill="#15171C" xml:space="preserve" font-family="JetBrains Mono, SF Mono, Menlo, Consolas, Courier New, monospace">      part-….parquet</text>
+<text x="60" y="364" font-size="20" fill="#15171C" xml:space="preserve" font-family="JetBrains Mono, SF Mono, Menlo, Consolas, Courier New, monospace">      _LOTE_COMPLETO</text>
+<circle cx="540" cy="357" r="13" fill="#2340D8"/>
+<text x="540" y="364" font-size="20" fill="#FFFFFF" font-weight="700" text-anchor="middle">3</text>
+<text x="60" y="390" font-size="20" fill="#15171C" xml:space="preserve" font-family="JetBrains Mono, SF Mono, Menlo, Consolas, Courier New, monospace">    lote=20260118T091210Z_07be44/</text>
+<text x="476" y="390" font-size="20" fill="#5F6672">otra ingesta</text>
+<rect x="620" y="152" width="540" height="256" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
+<text x="640" y="184" font-size="22" fill="#15171C" font-weight="700">Cinco columnas de metadatos</text>
+<text x="640" y="220" font-size="20" fill="#15171C" font-family="JetBrains Mono, SF Mono, Menlo, Consolas, Courier New, monospace">_fecha_ingesta</text>
+<text x="840" y="220" font-size="20" fill="#5F6672">cuándo se ingestó</text>
+<text x="640" y="254" font-size="20" fill="#15171C" font-family="JetBrains Mono, SF Mono, Menlo, Consolas, Courier New, monospace">_id_lote</text>
+<text x="840" y="254" font-size="20" fill="#5F6672">fecha y hora de la ingesta,</text>
+<text x="840" y="278" font-size="20" fill="#5F6672">más 6 caracteres</text>
+<text x="640" y="310" font-size="20" fill="#15171C" font-family="JetBrains Mono, SF Mono, Menlo, Consolas, Courier New, monospace">_hash_fila</text>
+<text x="840" y="310" font-size="20" fill="#5F6672">SHA-256 de la fila:</text>
+<text x="840" y="334" font-size="20" fill="#5F6672">huella de 64 caracteres</text>
+<text x="640" y="368" font-size="20" fill="#15171C" font-family="JetBrains Mono, SF Mono, Menlo, Consolas, Courier New, monospace">_fuente</text>
+<text x="840" y="368" font-size="20" fill="#5F6672">la URL de origen</text>
+<text x="640" y="402" font-size="20" fill="#15171C" font-family="JetBrains Mono, SF Mono, Menlo, Consolas, Courier New, monospace">_archivo_origen</text>
+<text x="840" y="402" font-size="20" fill="#5F6672">el archivo crudo</text>
+<circle cx="53" cy="437" r="13" fill="#2340D8"/>
+<text x="53" y="444" font-size="20" fill="#FFFFFF" font-weight="700" text-anchor="middle">1</text>
+<text x="76" y="444" font-size="20" fill="#15171C">El archivo crudo, tal como se descargó, dentro de la carpeta de su lote.</text>
+<circle cx="53" cy="463" r="13" fill="#2340D8"/>
+<text x="53" y="470" font-size="20" fill="#FFFFFF" font-weight="700" text-anchor="middle">2</text>
+<text x="76" y="470" font-size="20" fill="#15171C">Un lote es la carpeta que crea cada ingesta; la anterior no se borra.</text>
+<circle cx="53" cy="489" r="13" fill="#2340D8"/>
+<text x="53" y="496" font-size="20" fill="#FFFFFF" font-weight="700" text-anchor="middle">3</text>
+<text x="76" y="496" font-size="20" fill="#15171C">Marca de que la escritura terminó; silver lee el lote completo más reciente.</text>
+</svg>

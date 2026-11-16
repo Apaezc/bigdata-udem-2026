@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 520" font-family="Helvetica Neue, Arial, sans-serif">
+<title>Join normal con shuffle frente a broadcast de la tabla pequeña</title>
+<desc>Arriba, dos tablas que viajan por un Exchange antes del join. Abajo, la tabla pequeña se copia a cada ejecutor y los viajes no se mueven.</desc>
+<defs><marker id="m_acento" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#2340D8"/></marker><marker id="m_gris" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#5F6672"/></marker><marker id="m_ink" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#15171C"/></marker></defs>
+<text x="40" y="34" font-size="22" fill="#15171C" font-weight="700">Join normal · SortMergeJoin · 8.27 s</text>
+<rect x="40" y="56" width="230" height="56" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
+<text x="155" y="90" font-size="20" fill="#15171C" text-anchor="middle">viajes · 4 particiones</text>
+<rect x="40" y="136" width="230" height="56" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
+<text x="155" y="170" font-size="20" fill="#15171C" text-anchor="middle">zonas · 265 filas</text>
+<rect x="340" y="66" width="270" height="116" rx="6" fill="#F0EEE7" stroke="#2340D8" stroke-width="3" stroke-dasharray="8 6"/>
+<text x="475" y="118" font-size="20" fill="#15171C" text-anchor="middle">Exchange por</text>
+<text x="475" y="144" font-size="20" fill="#15171C" text-anchor="middle">PULocationID</text>
+<line x1="270" y1="84" x2="340" y2="100" stroke="#5F6672" stroke-width="2" marker-end="url(#m_gris)"/>
+<line x1="270" y1="164" x2="340" y2="148" stroke="#5F6672" stroke-width="2" marker-end="url(#m_gris)"/>
+<line x1="610" y1="124" x2="680" y2="124" stroke="#5F6672" stroke-width="2" marker-end="url(#m_gris)"/>
+<rect x="680" y="94" width="120" height="60" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
+<text x="740" y="130" font-size="20" fill="#15171C" text-anchor="middle">join</text>
+<line x1="800" y1="124" x2="840" y2="124" stroke="#5F6672" stroke-width="2" marker-end="url(#m_gris)"/>
+<rect x="840" y="94" width="320" height="60" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
+<text x="1000" y="130" font-size="20" fill="#15171C" text-anchor="middle">resultado</text>
+<text x="40" y="214" font-size="20" fill="#5F6672">los dos lados viajan por el shuffle</text>
+<text x="40" y="262" font-size="22" fill="#15171C" font-weight="700">Broadcast · BroadcastHashJoin · 2.96 s</text>
+<rect x="40" y="290" width="230" height="56" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
+<text x="155" y="324" font-size="20" fill="#15171C" text-anchor="middle">zonas · 265 filas</text>
+<line x1="270" y1="318" x2="340" y2="318" stroke="#2340D8" stroke-width="2.5" marker-end="url(#m_acento)"/>
+<text x="305" y="306" font-size="20" fill="#2340D8" text-anchor="middle">copia</text>
+<rect x="340" y="282" width="270" height="72" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
+<text x="475" y="310" font-size="20" fill="#15171C" text-anchor="middle">partición de viajes</text>
+<text x="475" y="336" font-size="20" fill="#15171C" text-anchor="middle">+ copia de zonas</text>
+<line x1="610" y1="318" x2="680" y2="318" stroke="#5F6672" stroke-width="2" marker-end="url(#m_gris)"/>
+<rect x="680" y="288" width="120" height="60" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
+<text x="740" y="324" font-size="20" fill="#15171C" text-anchor="middle">join local</text>
+<line x1="800" y1="318" x2="840" y2="318" stroke="#5F6672" stroke-width="2" marker-end="url(#m_gris)"/>
+<rect x="840" y="288" width="320" height="60" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
+<text x="1000" y="324" font-size="20" fill="#15171C" text-anchor="middle">resultado</text>
+<text x="40" y="396" font-size="20" fill="#5F6672">solo viaja la tabla pequeña; los viajes no se mueven</text>
+<rect x="40" y="420" width="1120" height="66" rx="6" fill="#F0EEE7" stroke="none"/>
+<text x="56" y="448" font-size="20" fill="#15171C">Medido con 25 % de enero y un groupBy por distrito: resultados iguales.</text>
+<text x="56" y="476" font-size="20" fill="#15171C">Spark lo hace solo por debajo de 10 MB; la tabla pequeña debe caber en el driver y en cada ejecutor.</text>
+</svg>
