@@ -291,17 +291,17 @@ def dc5_5(ruta):
     pasos = [
         (
             "Guarda el archivo tal como llegó (el crudo)",
-            "bronze/_crudo/clima/mes=2024-01/lote=20260117T143005Z_a3f9c1/open_meteo_2024-01.json",
+            "bronze/_crudo/clima/mes=2024-01/lote=20261117T143005Z_a3f9c1/open_meteo_2024-01.json",
             "Sirve para reprocesar sin volver a pedirlo a la fuente.",
         ),
         (
             "Escribe el Parquet con las 5 columnas de metadatos",
-            "bronze/clima/mes=2024-01/lote=20260117T143005Z_a3f9c1/part-….parquet",
+            "bronze/clima/mes=2024-01/lote=20261117T143005Z_a3f9c1/part-….parquet",
             "Es lo que leen Spark, Athena y silver.",
         ),
         (
             "Al final, escribe un archivo vacío: _LOTE_COMPLETO",
-            "bronze/clima/mes=2024-01/lote=20260117T143005Z_a3f9c1/_LOTE_COMPLETO",
+            "bronze/clima/mes=2024-01/lote=20261117T143005Z_a3f9c1/_LOTE_COMPLETO",
             "Si falta, la ingesta se cortó y silver ignora ese lote.",
         ),
     ]
@@ -315,7 +315,7 @@ def dc5_5(ruta):
     s.text(
         40,
         458,
-        "Otra ingesta del mismo mes crea lote=20260118T091210Z_07be44 al lado; no borra el anterior.",
+        "Otra ingesta del mismo mes crea lote=20261118T091210Z_07be44 al lado; no borra el anterior.",
         size=19,
         col=GRIS,
     )

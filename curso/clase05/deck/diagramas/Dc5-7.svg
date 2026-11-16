@@ -17,26 +17,24 @@
 <rect x="20" y="134" width="170" height="70" rx="6" fill="#6E7F94" stroke="none"/>
 <text x="34" y="176.0" font-size="22" fill="#FFFFFF" font-weight="700">Silver</text>
 <rect x="200" y="134" width="450" height="70" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
-<text x="214" y="163.0" font-size="20" fill="#15171C"><tspan font-family="JetBrains Mono, SF Mono, Menlo, Consolas, Courier New, monospace">&lt;env&gt;/silver/fhvhv_trips/</tspan></text>
 <text x="214" y="189.0" font-size="20" fill="#15171C">vacío: se llena en la clase 6</text>
 <rect x="660" y="134" width="520" height="70" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
 <text x="674" y="163.0" font-size="20" fill="#15171C">Viajes limpios, sin duplicados, con zona</text>
-<text x="674" y="189.0" font-size="20" fill="#15171C">y clima, por día: <tspan font-family="JetBrains Mono, SF Mono, Menlo, Consolas, Courier New, monospace">pickup_date=…</tspan></text>
+<text x="674" y="189.0" font-size="20" fill="#15171C">y el clima del día</text>
 <rect x="20" y="210" width="170" height="96" rx="6" fill="#B07F0E" stroke="none"/>
 <text x="34" y="265.0" font-size="22" fill="#FFFFFF" font-weight="700">Gold</text>
 <rect x="200" y="210" width="450" height="96" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
-<text x="214" y="252.0" font-size="20" fill="#15171C"><tspan font-family="JetBrains Mono, SF Mono, Menlo, Consolas, Courier New, monospace">&lt;env&gt;/gold/daily_zone_metrics/</tspan></text>
 <text x="214" y="278.0" font-size="20" fill="#15171C">vacío: se llena en la clase 6</text>
 <rect x="660" y="210" width="520" height="96" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
 <text x="674" y="239.0" font-size="20" fill="#15171C">Resumen por día, zona y empresa,</text>
-<text x="674" y="265.0" font-size="20" fill="#15171C">por mes: <tspan font-family="JetBrains Mono, SF Mono, Menlo, Consolas, Courier New, monospace">mes=…</tspan></text>
-<text x="674" y="291.0" font-size="20" fill="#15171C">cargado a Snowflake, <tspan font-family="JetBrains Mono, SF Mono, Menlo, Consolas, Courier New, monospace">BIGDATA.PROD</tspan></text>
+<text x="674" y="265.0" font-size="20" fill="#15171C">listo para responder la pregunta,</text>
+<text x="674" y="291.0" font-size="20" fill="#15171C">cargado a Snowflake</text>
 <rect x="20" y="312" width="170" height="70" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
 <text x="34" y="341.0" font-size="22" fill="#15171C" font-weight="700">Tabla de</text>
 <text x="34" y="367.0" font-size="22" fill="#15171C" font-weight="700">control</text>
 <rect x="200" y="312" width="450" height="70" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
-<text x="214" y="341.0" font-size="20" fill="#15171C">Pocas filas, solo de bronze:</text>
-<text x="214" y="367.0" font-size="20" fill="#15171C">las de tus pruebas</text>
+<text x="214" y="341.0" font-size="20" fill="#15171C">Vacía: la última celda del lab</text>
+<text x="214" y="367.0" font-size="20" fill="#15171C">borra tus registros de práctica</text>
 <rect x="660" y="312" width="520" height="70" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
 <text x="674" y="354.0" font-size="20" fill="#15171C">Una fila por fuente, capa y mes</text>
 <rect x="20" y="388" width="170" height="70" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
