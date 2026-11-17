@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 440" font-family="Helvetica Neue, Arial, sans-serif">
+<title>Mapa de la clase 6: de las fuentes a Snowflake, con Athena, el lab y el DAG de Airflow</title><desc>De izquierda a derecha, tres fuentes (viajes, zonas, clima) llegan a la ingesta, que escribe bronze; Athena mira bronze; el lab construye silver y gold; gold se carga a Snowflake. Un marco que envuelve las cinco tareas es el DAG de Airflow. Arriba, la tabla de control en Snowflake, con flechas de consulta y de registro.</desc>
+<defs><marker id="m_a" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#2340D8"/></marker><marker id="m_g" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#5F6672"/></marker><marker id="m_b" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#B4622F"/></marker></defs>
+<rect x="262" y="6" width="596" height="46" rx="6" fill="#E3E6F6" stroke="#2340D8" stroke-width="2.5"/>
+<text x="280" y="37" font-size="22" fill="#2340D8" text-anchor="start" font-weight="700">Tabla de control · BIGDATA.CONTROL.WATERMARK</text>
+<line x1="292" y1="128" x2="292" y2="54" stroke="#2340D8" stroke-width="2.5" marker-end="url(#m_a)"/>
+<line x1="362" y1="128" x2="362" y2="54" stroke="#2340D8" stroke-width="2.5" marker-end="url(#m_a)"/>
+<text x="284" y="92" font-size="22" fill="#2340D8" text-anchor="end">¿ya lo traje?</text>
+<text x="374" y="92" font-size="22" fill="#2340D8" text-anchor="start">lo traje</text>
+<rect x="248" y="104" width="648" height="262" rx="6" fill="none" stroke="#2340D8" stroke-width="2.5" stroke-dasharray="9 6"/>
+<text x="884" y="134" font-size="22" fill="#2340D8" text-anchor="end" font-weight="700">DAG ingesta_mensual de Airflow</text>
+<rect x="8" y="128" width="216" height="64" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
+<text x="116.0" y="154.5" font-size="22" fill="#15171C" text-anchor="middle" font-weight="700">Viajes TLC</text>
+<text x="116.0" y="181.5" font-size="22" fill="#5F6672" text-anchor="middle">Parquet</text>
+<line x1="226" y1="160" x2="260" y2="160" stroke="#5F6672" stroke-width="2.5" marker-end="url(#m_g)"/>
+<rect x="8" y="202" width="216" height="64" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
+<text x="116.0" y="228.5" font-size="22" fill="#15171C" text-anchor="middle" font-weight="700">Zonas TLC</text>
+<text x="116.0" y="255.5" font-size="22" fill="#5F6672" text-anchor="middle">CSV</text>
+<line x1="226" y1="234" x2="260" y2="234" stroke="#5F6672" stroke-width="2.5" marker-end="url(#m_g)"/>
+<rect x="8" y="276" width="216" height="64" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
+<text x="116.0" y="302.5" font-size="22" fill="#15171C" text-anchor="middle" font-weight="700">Clima Open-Meteo</text>
+<text x="116.0" y="329.5" font-size="22" fill="#5F6672" text-anchor="middle">JSON</text>
+<line x1="226" y1="308" x2="260" y2="308" stroke="#5F6672" stroke-width="2.5" marker-end="url(#m_g)"/>
+<rect x="262" y="128" width="130" height="212" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
+<text x="327.0" y="228.5" font-size="22" fill="#15171C" text-anchor="middle" font-weight="700">Ingesta</text>
+<text x="327.0" y="255.5" font-size="22" fill="#5F6672" text-anchor="middle">(clase 5)</text>
+<line x1="394" y1="234" x2="428" y2="234" stroke="#5F6672" stroke-width="2.5" marker-end="url(#m_g)"/>
+<rect x="430" y="194" width="130" height="80" rx="6" fill="#B4622F" stroke="#B4622F" stroke-width="1.5"/>
+<text x="495.0" y="242.0" font-size="22" fill="#FFFFFF" text-anchor="middle" font-weight="700">Bronze</text>
+<line x1="562" y1="234" x2="596" y2="234" stroke="#5F6672" stroke-width="2.5" marker-end="url(#m_g)"/>
+<rect x="598" y="194" width="120" height="80" rx="6" fill="#6E7F94" stroke="#6E7F94" stroke-width="1.5"/>
+<text x="658.0" y="242.0" font-size="22" fill="#FFFFFF" text-anchor="middle" font-weight="700">Silver</text>
+<line x1="720" y1="234" x2="754" y2="234" stroke="#5F6672" stroke-width="2.5" marker-end="url(#m_g)"/>
+<rect x="756" y="194" width="120" height="80" rx="6" fill="#B07F0E" stroke="#B07F0E" stroke-width="1.5"/>
+<text x="816.0" y="242.0" font-size="22" fill="#FFFFFF" text-anchor="middle" font-weight="700">Gold</text>
+<line x1="878" y1="234" x2="928" y2="234" stroke="#5F6672" stroke-width="2.5" marker-end="url(#m_g)"/>
+<rect x="930" y="194" width="182" height="80" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
+<text x="1021.0" y="242.0" font-size="22" fill="#15171C" text-anchor="middle" font-weight="700">Snowflake</text>
+<line x1="598" y1="300" x2="876" y2="300" stroke="#5F6672" stroke-width="2"/>
+<line x1="598" y1="292" x2="598" y2="300" stroke="#5F6672" stroke-width="2"/>
+<line x1="876" y1="292" x2="876" y2="300" stroke="#5F6672" stroke-width="2"/>
+<text x="737" y="330" font-size="22" fill="#15171C" text-anchor="middle" font-weight="700">Lab</text>
+<line x1="495" y1="388" x2="495" y2="277" stroke="#5F6672" stroke-width="2.5" marker-end="url(#m_g)"/>
+<text x="509" y="338" font-size="22" fill="#5F6672" text-anchor="start">solo mirar</text>
+<rect x="400" y="390" width="190" height="46" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
+<text x="495.0" y="421.0" font-size="22" fill="#15171C" text-anchor="middle" font-weight="700">Athena</text>
+</svg>
