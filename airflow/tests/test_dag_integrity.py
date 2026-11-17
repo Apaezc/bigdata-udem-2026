@@ -172,3 +172,46 @@ def test_ingesta_mensual_mes_y_reprocesar_vienen_de_params(dag_mensual):
     )
     reprocesar = jinja2.Template(dag_mensual.get_task("silver").op_kwargs["reprocesar"])
     assert reprocesar.render(params={"reprocesar": True}) == "True"
+
+
+# --- DAG hola_airflow (clase 6): saludar -> esperar -> reintentar -------------------------------
+
+DAG_HOLA = "hola_airflow"
+CADENA_HOLA = ["saludar", "esperar", "reintentar"]
+
+
+@pytest.fixture(scope="module")
+def dag_hola(dag_bag):
+    return dag_bag.dags[DAG_HOLA]
+
+
+def test_hola_airflow_carga_sin_errores(dag_bag):
+    assert dag_bag.import_errors == {}, dag_bag.import_errors
+    assert DAG_HOLA in dag_bag.dags
+
+
+def test_hola_airflow_tres_tareas_en_orden(dag_hola):
+    assert sorted(dag_hola.task_ids) == sorted(CADENA_HOLA)
+    assert dag_hola.get_task("saludar").upstream_task_ids == set()
+    for anterior, siguiente in zip(CADENA_HOLA, CADENA_HOLA[1:], strict=False):
+        assert dag_hola.get_task(siguiente).upstream_task_ids == {anterior}
+    assert dag_hola.get_task("reintentar").downstream_task_ids == set()
+
+
+def test_hola_airflow_reintenta_una_vez_con_espera_de_10_segundos(dag_hola):
+    for tarea in dag_hola.tasks:
+        assert tarea.retries == 1, tarea.task_id
+        assert tarea.retry_delay.total_seconds() == 10, tarea.task_id
+
+
+def test_hola_airflow_param_mes_y_disparo_manual(dag_hola):
+    assert set(dag_hola.params) == {"mes"}
+    assert dag_hola.params["mes"] == "2024-02"
+    assert dag_hola.catchup is False
+    assert type(dag_hola.timetable).__name__ == "NullTimetable"
+
+
+def test_hola_airflow_interruptor_del_reto_apagado():
+    # El archivo se entrega con FALLAR_SIEMPRE = False: con True la tarea nunca pasa.
+    texto = (DAGS_DIR / "hola_airflow.py").read_text(encoding="utf-8")
+    assert "\nFALLAR_SIEMPRE = False\n" in texto

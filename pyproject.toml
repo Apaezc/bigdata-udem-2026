@@ -10,7 +10,8 @@ line-length = 100
 target-version = "py311"
 src = ["src", "tests"]
 # Los notebooks de clase se escriben para leerse (líneas largas, huecos «...» a propósito): ruff no los revisa.
-extend-exclude = ["curso/**/*.ipynb"]
+# ingesta_alumno.py recibe el código que cada estudiante pega desde su lab: no se le exige el estilo del repo.
+extend-exclude = ["curso/**/*.ipynb", "src/pipeline/ingesta_alumno.py"]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "B", "UP"]

@@ -135,7 +135,7 @@ En GitHub (navegador), en el repositorio del equipo:
 1. Pulsa **Compare & pull request** en el aviso amarillo que aparece tras el push.
 2. Comprueba que **base repository** sea el fork del equipo y que la base sea `main`. En un fork, GitHub a veces propone como destino el repositorio original del curso; si es así, cámbialo.
 3. Escribe un título y una descripción de dos o tres frases: qué cambia y por qué lo necesita la pregunta. Pulsa **Create pull request**.
-4. Espera a que terminen los **checks** (el CI: la verificación automática). Deben quedar en verde los tres: *Ruff y pytest*, *Integridad de los DAGs de Airflow* y *Terraform fmt y validate*.
+4. Espera a que terminen los **checks** (el CI: la verificación automática). Deben quedar en verde los cinco: *Ruff y pytest*, *Integridad de los DAGs de Airflow*, *Terraform fmt y validate* (infra/aws), *Terraform fmt y validate* (infra/snowflake) y *Terraform plan* (infra/aws).
 
 Si un check sale en rojo, abre **Details**, lee el error, corrígelo en tu rama, repite 7.2, 7.3 y haz `git push` (el PR se actualiza solo). No avances hasta que estén en verde.
 
@@ -196,7 +196,7 @@ Total: 100 puntos. Cada criterio tiene cuatro niveles: sobresaliente (100 % de l
 |---|---|---|---|---|---|---|
 | 1 | Pregunta y contrato (`contrato.md`) | 10 | Pregunta específica y medible, cambio justificado por la pregunta, riesgos reales | Pregunta clara; la relación con el cambio es correcta pero se explica poco | Pregunta vaga o cambio que no la afecta | No hay contrato |
 | 2 | Transformación propia en silver o gold | 20 | Cambio correcto, legible, con decisiones (umbrales, nulos) escritas; produce la columna o regla esperada en el Glue | Correcto y legible; faltan decisiones por escribir | Funciona solo en parte (por ejemplo, falla con nulos) | No hay cambio, o no corre |
-| 3 | Pruebas y CI | 15 | Al menos tres pruebas (caso normal, caso límite y caso con datos malos), PR fusionado con los tres checks en verde y revisado por otro integrante | Pruebas correctas pero sin caso con datos malos, o sin revisión de otro integrante | Pruebas que no fallarían si el cambio estuviera mal; checks en verde | Sin pruebas, o merge con CI en rojo |
+| 3 | Pruebas y CI | 15 | Al menos tres pruebas (caso normal, caso límite y caso con datos malos), PR fusionado con los cinco checks en verde y revisado por otro integrante | Pruebas correctas pero sin caso con datos malos, o sin revisión de otro integrante | Pruebas que no fallarían si el cambio estuviera mal; checks en verde | Sin pruebas, o merge con CI en rojo |
 | 4 | Pipeline en Glue desde Airflow | 20 | Run completo con todas las tareas en `success`, con el cambio propio, parámetros (`computo`, `mes`) anotados y evidencia | Run completo con el cambio, evidencia parcial | Corre en Glue pero sin el cambio propio, o con tareas fallidas | No hay corrida en Glue |
 | 5 | Conciliación y respuesta en Snowflake | 20 | Tres cruces (bronze a silver, silver a gold, gold a Snowflake) que cuadran o con diferencias explicadas; la consulta responde la pregunta y la cifra se interpreta | Dos cruces correctos; la consulta responde la pregunta | Un cruce, o cifras que no cuadran sin explicación | No hay conciliación o la consulta no responde |
 | 6 | Costo y calidad | 15 | Créditos y tiempo medidos, comparación de configuración, reglas de calidad con lo que detectaron y una decisión justificada | Costo medido y reglas descritas; falta la comparación o la decisión | Cifras sin medir (estimadas) | No hay informe |

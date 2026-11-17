@@ -43,7 +43,7 @@ Qué esperan encontrar y por qué. Una hipótesis que puede resultar falsa es me
 
 - **Pruebas con pytest** (mínimo tres): un caso normal, un caso límite (por ejemplo, justo en el umbral) y un caso con datos malos (nulos o valores imposibles). Describe cada una en una línea con su entrada y su resultado esperado.
 - **Archivo de pruebas:** <`tests/test_silver.py` u otro>
-- **CI:** el PR debe tener los tres checks en verde antes del merge. Revisor: <integrante distinto de quien escribe el cambio>
+- **CI:** el PR debe tener los cinco checks en verde antes del merge. Revisor: <integrante distinto de quien escribe el cambio>
 - **Corrida en Glue:** parámetros previstos (`computo`, `mes`): <valores>
 
 ## 6. Qué cifra responderá la pregunta
