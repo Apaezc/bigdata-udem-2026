@@ -1,6 +1,6 @@
 # Taller 2 · Tu propia pregunta sobre la lluvia y los viajes de NYC, respondida con tu pipeline
 
-Big Data e Ingeniería de Datos (UdeM) · Se presenta en la clase 6, el 18 de noviembre de 2026 · **Entrega final: domingo 29 de noviembre de 2026, 23:59 (hora de Colombia) (propuesta, confirmar con el profesor)** · Mismos equipos del Taller 1
+Big Data e Ingeniería de Datos (UdeM) · Se presenta en la clase 6, el 18 de noviembre de 2026 · **Entrega final: domingo 29 de noviembre de 2026, 23:59 (hora de Colombia)** · Mismos equipos del Taller 1
 
 El Taller 2 vale 100 puntos y, junto con el Taller 1, forma la nota de talleres, 50 % cada uno. Se trabaja solo con GitHub, el Code Editor, AWS y Snowflake. La única ayuda es el instructor.
 
@@ -157,7 +157,7 @@ Cuando todo esté en `main`, el anfitrión crea el **release**, que fija una eti
 
 ## 8. Qué se entrega exactamente y dónde
 
-Todo en la rama `main` del fork del anfitrión, y lo que no es código en una carpeta `taller2/` en la raíz del repositorio (propuesta, confirmar con el profesor).
+Todo en la rama `main` del fork del anfitrión, y lo que no es código en una carpeta `taller2/` en la raíz del repositorio.
 
 | Archivo | Contenido |
 |---|---|
@@ -190,7 +190,7 @@ Una consulta de conciliación sin interpretación vale poco: escribe en un comen
 
 ## 11. Rúbrica
 
-Total: 100 puntos. Cada criterio tiene cuatro niveles: sobresaliente (100 % de los puntos del criterio), logrado (75 %), en proceso (40 %) y no logrado (0 %). Aprobar (60 o más) exige que existan los cinco entregables aunque sea de forma básica. **Pesos y niveles son una propuesta, confirmar con el profesor.**
+Total: 100 puntos. Cada criterio tiene cuatro niveles: sobresaliente (100 % de los puntos del criterio), logrado (75 %), en proceso (40 %) y no logrado (0 %). Aprobar (60 o más) exige que existan los cinco entregables aunque sea de forma básica. 
 
 | # | Criterio | Pts | Sobresaliente | Logrado | En proceso | No logrado |
 |---|---|---|---|---|---|---|
@@ -203,9 +203,9 @@ Total: 100 puntos. Cada criterio tiene cuatro niveles: sobresaliente (100 % de l
 
 **Cómo se mide cada cosa.** «Checks en verde» se ve en el PR; «todas las tareas en `success`» se ve en la cuadrícula del DAG en Airflow; «cuadra» significa que las dos cifras son iguales o que la diferencia está explicada fila por fila (descartes contados por tipo). Quien califica abre el release `t2-entrega` y verifica estos puntos con la evidencia y con lo que hay en el repositorio.
 
-**Participación (propuesta, confirmar con el profesor).** La nota del equipo se multiplica por un factor de entre 0.7 y 1.0 según la coevaluación y el historial de commits de cada integrante.
+**Participación.** La nota del equipo se multiplica por un factor de entre 0.7 y 1.0 según la coevaluación y el historial de commits de cada integrante.
 
-**Entrega tardía (propuesta, confirmar con el profesor).** Un release publicado después del límite descuenta 10 puntos por cada día de retraso, hasta un máximo de 30.
+**Entrega tardía.** Un release publicado después del límite descuenta 10 puntos por cada día de retraso, hasta un máximo de 30.
 
 ## 12. Costo: apagar y respetar el límite
 
@@ -214,7 +214,7 @@ Mientras trabajan, esto cuesta dinero cuando está encendido: el **Code Editor**
 - **Al terminar cada sesión, apaguen.** Sigan [Apagar y encender](../../docs/cada-sesion.md): cierran el túnel (Ctrl+C), `make airflow-off`, `make airflow-local-down` y comprueban con `make estado` que Airflow diga `stopped`, que ningún job de Glue esté en `RUNNING` y que el warehouse esté `SUSPENDED`.
 - **El límite de AWS.** El presupuesto mensual es de 50 USD por defecto. Al 60 % del gasto real AWS impide iniciar jobs de Glue y máquinas virtuales, y detiene la VM de Airflow de prod. Si les pasa, `make desbloquear` lo revierte, pero eso significa que ya gastaron mucho más de lo previsto: revisen qué quedó corriendo.
 - **El límite de Snowflake.** El resource monitor de su cuenta corta el uso al llegar a su cuota de créditos. Se amplía con `make snowflake-ampliar-cuota CUOTA=<créditos>` solo si de verdad lo necesitan, y se anota en el informe.
-- **Corran lo mínimo necesario.** Prueben con un mes (por ejemplo, `mes=2024-01`) antes de lanzar más. Un año completo cuesta y toma mucho más tiempo, y no es necesario para el taller (propuesta, confirmar con el profesor).
+- **Corran lo mínimo necesario.** Prueben con un mes (por ejemplo, `mes=2024-01`) antes de lanzar más. Un año completo cuesta y toma mucho más tiempo, y no es necesario para el taller.
 - **La prueba de Snowflake vence el 3 de diciembre.** Después de entregar, siguen las instrucciones de la clase 8 para apagar las cuentas y no pagar.
 
 ## 13. Errores comunes
@@ -230,4 +230,4 @@ Mientras trabajan, esto cuesta dinero cuando está encendido: el **Code Editor**
 
 ## 14. Si algo no está claro
 
-Pregunten en clase o por el canal del curso antes de decidir por su cuenta algo que cambie el alcance. Lo que el enunciado marca como «(propuesta, confirmar con el profesor)» puede cambiar; el instructor lo confirma en la clase 6.
+Pregunten en clase o por el canal del curso antes de decidir por su cuenta algo que cambie el alcance. 
