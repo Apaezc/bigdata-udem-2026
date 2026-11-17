@@ -88,3 +88,4 @@ curso/*/deck/partes/
 curso/_deck/muestra/png/
 __pycache__/
 .DS_Store
+lake/

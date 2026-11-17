@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 520" font-family="Helvetica Neue, Arial, sans-serif">
+<title>Tu lake al terminar la clase 5 frente al lake en producción</title>
+<desc>Dos columnas, «Al terminar la clase 5» y «En producción, funcionando solo», con cinco filas: bronze, silver, gold, tabla de control y quién lo ejecuta. Hoy solo bronze tiene un par de lotes de prueba y lo ejecutas tú a mano; en producción las tres capas se llenan cada mes y lo ejecuta el DAG de Airflow.</desc>
+<defs><marker id="m_acento" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#2340D8"/></marker><marker id="m_gris" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#5F6672"/></marker><marker id="m_ink" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#15171C"/></marker></defs>
+<rect x="200" y="8" width="450" height="42" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
+<text x="214" y="37" font-size="22" fill="#15171C" font-weight="700">Al terminar la clase 5</text>
+<rect x="660" y="8" width="520" height="42" rx="6" fill="#2340D8" stroke="none"/>
+<text x="674" y="37" font-size="22" fill="#FFFFFF" font-weight="700">En producción, funcionando solo</text>
+<rect x="20" y="58" width="170" height="70" rx="6" fill="#B4622F" stroke="none"/>
+<text x="34" y="100.0" font-size="22" fill="#FFFFFF" font-weight="700">Bronze</text>
+<rect x="200" y="58" width="450" height="70" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
+<text x="214" y="87.0" font-size="20" fill="#15171C"><tspan font-family="JetBrains Mono, SF Mono, Menlo, Consolas, Courier New, monospace">bronze/</tspan>: <tspan font-family="JetBrains Mono, SF Mono, Menlo, Consolas, Courier New, monospace">_crudo/</tspan>, clima, taxi_zones,</text>
+<text x="214" y="113.0" font-size="20" fill="#15171C">fhvhv; 1 o 2 lotes de prueba de enero</text>
+<rect x="660" y="58" width="520" height="70" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
+<text x="674" y="87.0" font-size="20" fill="#15171C">Todos los meses, un lote por mes</text>
+<text x="674" y="113.0" font-size="20" fill="#15171C">y otro solo si se reprocesa</text>
+<rect x="20" y="134" width="170" height="70" rx="6" fill="#6E7F94" stroke="none"/>
+<text x="34" y="176.0" font-size="22" fill="#FFFFFF" font-weight="700">Silver</text>
+<rect x="200" y="134" width="450" height="70" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
+<text x="214" y="189.0" font-size="20" fill="#15171C">vacío: se llena en la clase 6</text>
+<rect x="660" y="134" width="520" height="70" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
+<text x="674" y="163.0" font-size="20" fill="#15171C">Viajes limpios, sin duplicados, con zona</text>
+<text x="674" y="189.0" font-size="20" fill="#15171C">y el clima del día</text>
+<rect x="20" y="210" width="170" height="96" rx="6" fill="#B07F0E" stroke="none"/>
+<text x="34" y="265.0" font-size="22" fill="#FFFFFF" font-weight="700">Gold</text>
+<rect x="200" y="210" width="450" height="96" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
+<text x="214" y="278.0" font-size="20" fill="#15171C">vacío: se llena en la clase 6</text>
+<rect x="660" y="210" width="520" height="96" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
+<text x="674" y="239.0" font-size="20" fill="#15171C">Resumen por día, zona y empresa,</text>
+<text x="674" y="265.0" font-size="20" fill="#15171C">listo para responder la pregunta,</text>
+<text x="674" y="291.0" font-size="20" fill="#15171C">cargado a Snowflake</text>
+<rect x="20" y="312" width="170" height="70" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
+<text x="34" y="341.0" font-size="22" fill="#15171C" font-weight="700">Tabla de</text>
+<text x="34" y="367.0" font-size="22" fill="#15171C" font-weight="700">control</text>
+<rect x="200" y="312" width="450" height="70" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
+<text x="214" y="341.0" font-size="20" fill="#15171C">Vacía: la última celda del lab</text>
+<text x="214" y="367.0" font-size="20" fill="#15171C">borra tus registros de práctica</text>
+<rect x="660" y="312" width="520" height="70" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
+<text x="674" y="354.0" font-size="20" fill="#15171C">Una fila por fuente, capa y mes</text>
+<rect x="20" y="388" width="170" height="70" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
+<text x="34" y="417.0" font-size="22" fill="#15171C" font-weight="700">Quién lo</text>
+<text x="34" y="443.0" font-size="22" fill="#15171C" font-weight="700">ejecuta</text>
+<rect x="200" y="388" width="450" height="70" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
+<text x="214" y="430.0" font-size="20" fill="#15171C">Tú, a mano, en el notebook</text>
+<rect x="660" y="388" width="520" height="70" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
+<text x="674" y="417.0" font-size="20" fill="#15171C">El DAG de Airflow, una vez al mes, en Glue;</text>
+<text x="674" y="443.0" font-size="20" fill="#15171C">con reprocesar falso, solo lo que falta</text>
+<text x="20" y="490" font-size="20" fill="#15171C" font-weight="700">La función que escribes hoy es la que el DAG ejecuta cada mes en producción;</text>
+<text x="20" y="514" font-size="20" fill="#15171C" font-weight="700">cambia quién la llama y dónde corre.</text>
+</svg>

@@ -9,6 +9,8 @@ dependencies = ["pyyaml>=6.0"]
 line-length = 100
 target-version = "py311"
 src = ["src", "tests"]
+# Los notebooks de clase se escriben para leerse (líneas largas, huecos «...» a propósito): ruff no los revisa.
+extend-exclude = ["curso/**/*.ipynb"]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "B", "UP"]
@@ -20,3 +22,5 @@ pythonpath = ["src"]
 [tool.ruff.lint.per-file-ignores]
 # Generador de slides: plantillas HTML/CSS/JS embebidas y geometría en una línea.
 "curso/_deck/*.py" = ["E501", "E741"]
+# Diagramas SVG de los decks: etiquetas SVG y textos de las figuras en una línea.
+"curso/*/deck/diagramas/*.py" = ["E501"]

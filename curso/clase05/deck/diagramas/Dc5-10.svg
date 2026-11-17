@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 470" font-family="Helvetica Neue, Arial, sans-serif">
+<title>Cómo se pide cada fuente</title><desc>Tres tarjetas: viajes con un archivo por mes, zonas con un archivo único y clima con una consulta por rango de fechas; en cada URL se resalta lo que cambia con el mes.</desc>
+<defs><marker id="m_a" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#2340D8"/></marker><marker id="m_g" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#5F6672"/></marker><marker id="m_b" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#B4622F"/></marker></defs>
+<rect x="40" y="0" width="1120" height="96" rx="6" fill="#F0EEE7" stroke="none"/>
+<rect x="40" y="0" width="8" height="96" rx="0" fill="#2340D8" stroke="none"/>
+<text x="70" y="34" font-size="23" fill="#15171C" text-anchor="start" font-weight="700">Viajes</text>
+<text x="190" y="34" font-size="19" fill="#5F6672" text-anchor="start">Parquet · un archivo por mes</text>
+<text x="1140" y="34" font-size="18" fill="#5F6672" text-anchor="end">450.9 MiB por mes</text>
+<text x="70" y="68" font-size="16" text-anchor="start" font-family="SF Mono, Menlo, Consolas, monospace" xml:space="preserve"><tspan fill="#15171C">https://d37ci6vzurychx.cloudfront.net/trip-data/fhvhv_tripdata_</tspan><tspan fill="#2340D8" font-weight="700">2024-02</tspan><tspan fill="#15171C">.parquet</tspan></text>
+<rect x="40" y="114" width="1120" height="96" rx="6" fill="#F0EEE7" stroke="none"/>
+<rect x="40" y="114" width="8" height="96" rx="0" fill="#2340D8" stroke="none"/>
+<text x="70" y="148" font-size="23" fill="#15171C" text-anchor="start" font-weight="700">Zonas</text>
+<text x="190" y="148" font-size="19" fill="#5F6672" text-anchor="start">CSV · un solo archivo</text>
+<text x="1140" y="148" font-size="18" fill="#5F6672" text-anchor="end">265 filas</text>
+<text x="70" y="182" font-size="16" text-anchor="start" font-family="SF Mono, Menlo, Consolas, monospace" xml:space="preserve"><tspan fill="#15171C">https://d37ci6vzurychx.cloudfront.net/misc/taxi_zone_lookup.csv</tspan></text>
+<rect x="40" y="228" width="1120" height="124" rx="6" fill="#F0EEE7" stroke="none"/>
+<rect x="40" y="228" width="8" height="124" rx="0" fill="#2340D8" stroke="none"/>
+<text x="70" y="262" font-size="23" fill="#15171C" text-anchor="start" font-weight="700">Clima</text>
+<text x="190" y="262" font-size="19" fill="#5F6672" text-anchor="start">JSON · una consulta a una API</text>
+<text x="1140" y="262" font-size="18" fill="#5F6672" text-anchor="end">febrero de 2024 tiene 29 días</text>
+<text x="70" y="296" font-size="16" text-anchor="start" font-family="SF Mono, Menlo, Consolas, monospace" xml:space="preserve"><tspan fill="#15171C">https://archive-api.open-meteo.com/v1/archive?latitude=40.71&amp;longitude=-74.01</tspan></text>
+<text x="70" y="324" font-size="16" text-anchor="start" font-family="SF Mono, Menlo, Consolas, monospace" xml:space="preserve"><tspan fill="#15171C">&amp;start_date=</tspan><tspan fill="#2340D8" font-weight="700">2024-02-01</tspan><tspan fill="#15171C">&amp;end_date=</tspan><tspan fill="#2340D8" font-weight="700">2024-02-29</tspan><tspan fill="#15171C">&amp;daily=precipitation_sum,…</tspan></text>
+<rect x="40" y="372" width="1120" height="56" rx="6" fill="#FFFFFF" stroke="#D9D6CC" stroke-width="1.5"/>
+<text x="60" y="406" font-size="19" fill="#15171C" text-anchor="start">En azul, lo que cambia con el parámetro mes. Zonas no lo usa: por eso su carpeta no lleva mes=.</text>
+</svg>

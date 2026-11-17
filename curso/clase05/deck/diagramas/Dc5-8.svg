@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 480" font-family="Helvetica Neue, Arial, sans-serif">
+<title>GROUP BY en dos fases</title><desc>Cuatro particiones cuentan sus viajes por zona; solo los resúmenes viajan por el shuffle y se suman al final.</desc>
+<defs><marker id="m_a" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#2340D8"/></marker><marker id="m_g" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#5F6672"/></marker><marker id="m_b" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#B4622F"/></marker></defs>
+<circle cx="55" cy="30" r="15" fill="#2340D8"/>
+<text x="55" y="36" font-size="17" fill="#FFFFFF" text-anchor="middle" font-weight="700">1</text>
+<text x="80" y="37" font-size="22" fill="#15171C" text-anchor="start" font-weight="700">Cada partición cuenta sus viajes</text>
+<circle cx="505" cy="30" r="15" fill="#2340D8"/>
+<text x="505" y="36" font-size="17" fill="#FFFFFF" text-anchor="middle" font-weight="700">2</text>
+<text x="530" y="37" font-size="22" fill="#15171C" text-anchor="start" font-weight="700">Viajan los resúmenes</text>
+<circle cx="855" cy="30" r="15" fill="#2340D8"/>
+<text x="855" y="36" font-size="17" fill="#FFFFFF" text-anchor="middle" font-weight="700">3</text>
+<text x="880" y="37" font-size="22" fill="#15171C" text-anchor="start" font-weight="700">Se suman por zona</text>
+<rect x="40" y="64" width="190" height="68" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
+<text x="135" y="94" font-size="19" fill="#15171C" text-anchor="middle" font-weight="700">partición 1</text>
+<text x="135" y="119" font-size="18" fill="#5F6672" text-anchor="middle">≈ 4.9 M viajes</text>
+<line x1="232" y1="98" x2="272" y2="98" stroke="#5F6672" stroke-width="2" marker-end="url(#m_g)"/>
+<rect x="276" y="68" width="190" height="60" rx="6" fill="#FFFFFF" stroke="#2340D8" stroke-width="1.5"/>
+<text x="371" y="94" font-size="19" fill="#2340D8" text-anchor="middle" font-weight="700">≤ 262 filas</text>
+<text x="371" y="117" font-size="17" fill="#5F6672" text-anchor="middle">una por zona</text>
+<line x1="468" y1="98" x2="556" y2="210" stroke="#2340D8" stroke-width="2" marker-end="url(#m_a)"/>
+<rect x="40" y="148" width="190" height="68" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
+<text x="135" y="178" font-size="19" fill="#15171C" text-anchor="middle" font-weight="700">partición 2</text>
+<text x="135" y="203" font-size="18" fill="#5F6672" text-anchor="middle">≈ 4.9 M viajes</text>
+<line x1="232" y1="182" x2="272" y2="182" stroke="#5F6672" stroke-width="2" marker-end="url(#m_g)"/>
+<rect x="276" y="152" width="190" height="60" rx="6" fill="#FFFFFF" stroke="#2340D8" stroke-width="1.5"/>
+<text x="371" y="178" font-size="19" fill="#2340D8" text-anchor="middle" font-weight="700">≤ 262 filas</text>
+<text x="371" y="201" font-size="17" fill="#5F6672" text-anchor="middle">una por zona</text>
+<line x1="468" y1="182" x2="556" y2="210" stroke="#2340D8" stroke-width="2" marker-end="url(#m_a)"/>
+<rect x="40" y="232" width="190" height="68" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
+<text x="135" y="262" font-size="19" fill="#15171C" text-anchor="middle" font-weight="700">partición 3</text>
+<text x="135" y="287" font-size="18" fill="#5F6672" text-anchor="middle">≈ 4.9 M viajes</text>
+<line x1="232" y1="266" x2="272" y2="266" stroke="#5F6672" stroke-width="2" marker-end="url(#m_g)"/>
+<rect x="276" y="236" width="190" height="60" rx="6" fill="#FFFFFF" stroke="#2340D8" stroke-width="1.5"/>
+<text x="371" y="262" font-size="19" fill="#2340D8" text-anchor="middle" font-weight="700">≤ 262 filas</text>
+<text x="371" y="285" font-size="17" fill="#5F6672" text-anchor="middle">una por zona</text>
+<line x1="468" y1="266" x2="556" y2="210" stroke="#2340D8" stroke-width="2" marker-end="url(#m_a)"/>
+<rect x="40" y="316" width="190" height="68" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
+<text x="135" y="346" font-size="19" fill="#15171C" text-anchor="middle" font-weight="700">partición 4</text>
+<text x="135" y="371" font-size="18" fill="#5F6672" text-anchor="middle">≈ 4.9 M viajes</text>
+<line x1="232" y1="350" x2="272" y2="350" stroke="#5F6672" stroke-width="2" marker-end="url(#m_g)"/>
+<rect x="276" y="320" width="190" height="60" rx="6" fill="#FFFFFF" stroke="#2340D8" stroke-width="1.5"/>
+<text x="371" y="346" font-size="19" fill="#2340D8" text-anchor="middle" font-weight="700">≤ 262 filas</text>
+<text x="371" y="369" font-size="17" fill="#5F6672" text-anchor="middle">una por zona</text>
+<line x1="468" y1="350" x2="556" y2="210" stroke="#2340D8" stroke-width="2" marker-end="url(#m_a)"/>
+<rect x="560" y="150" width="250" height="120" rx="6" fill="#E3E6F6" stroke="#2340D8" stroke-width="2.5" stroke-dasharray="8 6"/>
+<text x="685" y="188" font-size="20" fill="#5F6672" text-anchor="middle">shuffle</text>
+<text x="685" y="222" font-size="26" fill="#2340D8" text-anchor="middle" font-weight="700">1 041 filas</text>
+<text x="685" y="252" font-size="19" fill="#15171C" text-anchor="middle">no 19 663 930</text>
+<line x1="812" y1="210" x2="850" y2="210" stroke="#2340D8" stroke-width="2" marker-end="url(#m_a)"/>
+<rect x="854" y="80" width="306" height="260" rx="6" fill="#FFFFFF" stroke="#5F6672" stroke-width="1.5"/>
+<text x="872" y="114" font-size="19" fill="#15171C" text-anchor="start" font-weight="700">Ejemplo: zona 132 (JFK)</text>
+<text x="872" y="150" font-size="19" fill="#5F6672" text-anchor="start">partición 1</text>
+<text x="1140" y="150" font-size="19" fill="#15171C" text-anchor="end" font-family="SF Mono, Menlo, Consolas, monospace">120</text>
+<text x="872" y="182" font-size="19" fill="#5F6672" text-anchor="start">partición 2</text>
+<text x="1140" y="182" font-size="19" fill="#15171C" text-anchor="end" font-family="SF Mono, Menlo, Consolas, monospace">95</text>
+<text x="872" y="214" font-size="19" fill="#5F6672" text-anchor="start">partición 3</text>
+<text x="1140" y="214" font-size="19" fill="#15171C" text-anchor="end" font-family="SF Mono, Menlo, Consolas, monospace">110</text>
+<text x="872" y="246" font-size="19" fill="#5F6672" text-anchor="start">partición 4</text>
+<text x="1140" y="246" font-size="19" fill="#15171C" text-anchor="end" font-family="SF Mono, Menlo, Consolas, monospace">101</text>
+<line x1="872" y1="278" x2="1140" y2="278" stroke="#15171C" stroke-width="1.5"/>
+<text x="872" y="308" font-size="19" fill="#15171C" text-anchor="start" font-weight="700">total de la zona</text>
+<text x="1140" y="308" font-size="19" fill="#15171C" text-anchor="end" font-weight="700" font-family="SF Mono, Menlo, Consolas, monospace">426</text>
+<text x="872" y="334" font-size="16" fill="#5F6672" text-anchor="start">cifras de ejemplo</text>
+<rect x="40" y="404" width="1120" height="66" rx="6" fill="#F0EEE7" stroke="none"/>
+<text x="60" y="445" font-size="21" fill="#15171C" text-anchor="start">Como en unas elecciones: cada mesa cuenta sus votos y solo viaja el acta, no las papeletas.</text>
+</svg>

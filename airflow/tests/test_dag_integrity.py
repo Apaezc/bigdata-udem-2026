@@ -76,15 +76,13 @@ def test_dag_es_manual_con_computo(dag):
 
 
 def test_glue_toma_el_perfil_de_computo(dag):
-    for step in ("silver", "gold"):
+    for step in ("bronze", "silver", "gold"):
         tarea = dag.get_task(step)
         assert "params.computo" in tarea.job_name
         assert "params.computo" in str(tarea.run_job_kwargs["NumberOfWorkers"])
         assert tarea.run_job_kwargs["WorkerType"] == "G.1X"
         assert tarea.script_args["--env"] == "dev"
         assert tarea.verbose is True
-    bronze = dag.get_task("bronze")
-    assert bronze.job_name.endswith("-small") and bronze.run_job_kwargs["NumberOfWorkers"] == 2
 
 
 def test_perfil_por_computo_se_renderiza_a_entero():

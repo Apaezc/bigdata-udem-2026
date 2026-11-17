@@ -887,6 +887,30 @@ TIPOS = {
 
 
 # --------------------------------------------------------------- validaciones
+def marca_notebook(nombre):
+    """Etiqueta arriba a la izquierda: en qué notebook se ejecutan las celdas de la slide."""
+    texto = f"NOTEBOOK  {nombre}"
+    ancho = ancho_texto(texto, TAM_MARCA) * 1.12 + 28
+    x, y, alto = ML + 72, 22, 32
+    return [
+        R(x, y, ancho, alto, fill=tinte("acento", 0.13), line=color("acento"), lw=1.5, r=4),
+        T(
+            x,
+            y,
+            ancho,
+            alto,
+            texto,
+            size=TAM_MARCA,
+            col="acento",
+            bold=True,
+            align="c",
+            anchor="m",
+            lh=1.2,
+            cuenta=False,
+        ),
+    ]
+
+
 def validar(prims, n, tipo):
     palabras = 0
     for p in prims:
@@ -1234,6 +1258,8 @@ def main():
             fondo, prims = TIPOS[t](s, n, ctx)
         except KeyError as e:
             sys.exit(f"slide {n} ({t}): falta el campo {e}")
+        if s.get("notebook"):
+            prims = prims + marca_notebook(s["notebook"])
         validar(prims, n, t)
         if t not in ("portada", "seccion", "pregunta") and len(s.get("titulo", "").split()) > 18:
             aviso(n, t, "el título supera 18 palabras")

@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 480" font-family="Helvetica Neue, Arial, sans-serif">
+<title>Función de ventana con y sin PARTITION BY</title><desc>A la izquierda, viajes numerados por hora dentro de cada zona. A la derecha, sin PARTITION BY todas las particiones van a una sola tarea; con PARTITION BY se reparten por zona.</desc>
+<defs><marker id="m_a" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#2340D8"/></marker><marker id="m_g" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#5F6672"/></marker><marker id="m_b" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#B4622F"/></marker></defs>
+<text x="40" y="32" font-size="22" fill="#15171C" text-anchor="start" font-weight="700">Qué hace: numera dentro de cada grupo</text>
+<text x="40" y="64" font-size="15" text-anchor="start" font-family="SF Mono, Menlo, Consolas, monospace" xml:space="preserve"><tspan fill="#15171C">ROW_NUMBER() OVER (</tspan><tspan fill="#2340D8" font-weight="700">PARTITION BY zona</tspan><tspan fill="#15171C"> ORDER BY hora)</tspan></text>
+<rect x="40" y="80" width="420" height="36" rx="6" fill="#F0EEE7" stroke="none"/>
+<text x="60" y="105" font-size="19" fill="#15171C" text-anchor="start" font-weight="700">zona</text>
+<text x="200" y="105" font-size="19" fill="#15171C" text-anchor="start" font-weight="700">hora</text>
+<text x="340" y="105" font-size="19" fill="#15171C" text-anchor="start" font-weight="700">n</text>
+<text x="60" y="146" font-size="19" fill="#15171C" text-anchor="start" font-family="SF Mono, Menlo, Consolas, monospace">132</text>
+<text x="200" y="146" font-size="19" fill="#15171C" text-anchor="start" font-family="SF Mono, Menlo, Consolas, monospace">08:00</text>
+<text x="340" y="146" font-size="19" fill="#2340D8" text-anchor="start" font-weight="700" font-family="SF Mono, Menlo, Consolas, monospace">1</text>
+<text x="60" y="180" font-size="19" fill="#15171C" text-anchor="start" font-family="SF Mono, Menlo, Consolas, monospace">132</text>
+<text x="200" y="180" font-size="19" fill="#15171C" text-anchor="start" font-family="SF Mono, Menlo, Consolas, monospace">08:05</text>
+<text x="340" y="180" font-size="19" fill="#2340D8" text-anchor="start" font-weight="700" font-family="SF Mono, Menlo, Consolas, monospace">2</text>
+<text x="60" y="214" font-size="19" fill="#15171C" text-anchor="start" font-family="SF Mono, Menlo, Consolas, monospace">132</text>
+<text x="200" y="214" font-size="19" fill="#15171C" text-anchor="start" font-family="SF Mono, Menlo, Consolas, monospace">09:10</text>
+<text x="340" y="214" font-size="19" fill="#2340D8" text-anchor="start" font-weight="700" font-family="SF Mono, Menlo, Consolas, monospace">3</text>
+<line x1="40" y1="224" x2="460" y2="224" stroke="#5F6672" stroke-width="1.5" stroke-dasharray="5 4"/>
+<text x="60" y="248" font-size="19" fill="#15171C" text-anchor="start" font-family="SF Mono, Menlo, Consolas, monospace">161</text>
+<text x="200" y="248" font-size="19" fill="#15171C" text-anchor="start" font-family="SF Mono, Menlo, Consolas, monospace">07:30</text>
+<text x="340" y="248" font-size="19" fill="#2340D8" text-anchor="start" font-weight="700" font-family="SF Mono, Menlo, Consolas, monospace">1</text>
+<text x="60" y="282" font-size="19" fill="#15171C" text-anchor="start" font-family="SF Mono, Menlo, Consolas, monospace">161</text>
+<text x="200" y="282" font-size="19" fill="#15171C" text-anchor="start" font-family="SF Mono, Menlo, Consolas, monospace">08:20</text>
+<text x="340" y="282" font-size="19" fill="#2340D8" text-anchor="start" font-weight="700" font-family="SF Mono, Menlo, Consolas, monospace">2</text>
+<text x="40" y="334" font-size="19" fill="#5F6672" text-anchor="start">La cuenta vuelve a 1 en cada zona.</text>
+<text x="40" y="360" font-size="19" fill="#5F6672" text-anchor="start">Sirve para «el primer viaje de cada zona».</text>
+<text x="540" y="32" font-size="22" fill="#15171C" text-anchor="start" font-weight="700">Cómo lo ejecuta Spark (5 % de enero)</text>
+<text x="540" y="72" font-size="19" fill="#B4622F" text-anchor="start" font-weight="700">Sin PARTITION BY</text>
+<rect x="540" y="86" width="56" height="40" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
+<text x="568" y="112" font-size="16" fill="#15171C" text-anchor="middle">p1</text>
+<line x1="568" y1="128" x2="568" y2="146" stroke="#B4622F" stroke-width="2"/>
+<rect x="610" y="86" width="56" height="40" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
+<text x="638" y="112" font-size="16" fill="#15171C" text-anchor="middle">p2</text>
+<line x1="638" y1="128" x2="638" y2="146" stroke="#B4622F" stroke-width="2"/>
+<rect x="680" y="86" width="56" height="40" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
+<text x="708" y="112" font-size="16" fill="#15171C" text-anchor="middle">p3</text>
+<line x1="708" y1="128" x2="708" y2="146" stroke="#B4622F" stroke-width="2"/>
+<rect x="750" y="86" width="56" height="40" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
+<text x="778" y="112" font-size="16" fill="#15171C" text-anchor="middle">p4</text>
+<line x1="778" y1="128" x2="778" y2="146" stroke="#B4622F" stroke-width="2"/>
+<line x1="568" y1="146" x2="778" y2="146" stroke="#B4622F" stroke-width="2"/>
+<line x1="778" y1="146" x2="856" y2="146" stroke="#B4622F" stroke-width="2" marker-end="url(#m_b)"/>
+<rect x="860" y="116" width="300" height="62" rx="6" fill="#F6E9E0" stroke="#B4622F" stroke-width="2"/>
+<text x="1010" y="142" font-size="19" fill="#B4622F" text-anchor="middle" font-weight="700">1 tarea</text>
+<text x="1010" y="167" font-size="17" fill="#15171C" text-anchor="middle">983 931 filas juntas</text>
+<text x="540" y="222" font-size="19" fill="#2340D8" text-anchor="start" font-weight="700">Con PARTITION BY zona</text>
+<rect x="540" y="236" width="56" height="40" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
+<text x="568" y="262" font-size="16" fill="#15171C" text-anchor="middle">p1</text>
+<rect x="610" y="236" width="56" height="40" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
+<text x="638" y="262" font-size="16" fill="#15171C" text-anchor="middle">p2</text>
+<rect x="680" y="236" width="56" height="40" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
+<text x="708" y="262" font-size="16" fill="#15171C" text-anchor="middle">p3</text>
+<rect x="750" y="236" width="56" height="40" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
+<text x="778" y="262" font-size="16" fill="#15171C" text-anchor="middle">p4</text>
+<line x1="830" y1="256" x2="856" y2="256" stroke="#2340D8" stroke-width="2" marker-end="url(#m_a)"/>
+<rect x="860" y="236" width="64" height="40" rx="6" fill="#E3E6F6" stroke="#2340D8" stroke-width="1.5"/>
+<text x="892" y="262" font-size="15" fill="#15171C" text-anchor="middle">tarea</text>
+<rect x="936" y="236" width="64" height="40" rx="6" fill="#E3E6F6" stroke="#2340D8" stroke-width="1.5"/>
+<text x="968" y="262" font-size="15" fill="#15171C" text-anchor="middle">tarea</text>
+<rect x="1012" y="236" width="64" height="40" rx="6" fill="#E3E6F6" stroke="#2340D8" stroke-width="1.5"/>
+<text x="1044" y="262" font-size="15" fill="#15171C" text-anchor="middle">tarea</text>
+<rect x="1088" y="236" width="64" height="40" rx="6" fill="#E3E6F6" stroke="#2340D8" stroke-width="1.5"/>
+<text x="1120" y="262" font-size="15" fill="#15171C" text-anchor="middle">tarea</text>
+<text x="860" y="302" font-size="17" fill="#5F6672" text-anchor="start">una por grupo de zonas;</text>
+<text x="860" y="324" font-size="17" fill="#5F6672" text-anchor="start">la mayor zona: 18 784 filas</text>
+<rect x="40" y="392" width="1120" height="78" rx="6" fill="#F0EEE7" stroke="none"/>
+<text x="60" y="424" font-size="20" fill="#15171C" text-anchor="start">Con todo el año, una sola tarea tendría que sostener todas las filas en un solo ejecutor.</text>
+<text x="60" y="452" font-size="20" fill="#15171C" text-anchor="start" font-weight="700">Regla: a una ventana siempre se le da un PARTITION BY.</text>
+</svg>

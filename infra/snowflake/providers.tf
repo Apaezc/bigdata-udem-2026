@@ -19,4 +19,8 @@ provider "snowflake" {
   role              = "TERRAFORM_ROLE"
   authenticator     = "SNOWFLAKE_JWT"
   private_key       = var.private_key
+
+  # snowflake_table (la tabla de control BIGDATA.CONTROL.WATERMARK) es una función en vista previa
+  # del proveedor: hay que activarla explícitamente o el apply falla.
+  preview_features_enabled = ["snowflake_table_resource"]
 }

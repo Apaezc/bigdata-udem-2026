@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 470" font-family="Helvetica Neue, Arial, sans-serif">
+<title>Medallion y los tres pasos de una ingesta</title><desc>Las tres capas; debajo, lo que escribe una ingesta en bronze en tres pasos: crudo, Parquet con metadatos y marcador de lote completo.</desc>
+<defs><marker id="m_a" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#2340D8"/></marker><marker id="m_g" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#5F6672"/></marker><marker id="m_b" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#B4622F"/></marker></defs>
+<rect x="40" y="10" width="340" height="66" rx="4" fill="#B4622F" stroke="none"/>
+<text x="56" y="38" font-size="21" fill="#FFFFFF" text-anchor="start" font-weight="700">bronze</text>
+<text x="56" y="64" font-size="18" fill="#FFFFFF" text-anchor="start">guarda cada fuente tal como llega</text>
+<rect x="430" y="10" width="340" height="66" rx="4" fill="#6E7F94" stroke="none"/>
+<text x="446" y="38" font-size="21" fill="#FFFFFF" text-anchor="start" font-weight="700">silver</text>
+<text x="446" y="64" font-size="18" fill="#FFFFFF" text-anchor="start">limpia, tipa y une zonas y clima</text>
+<rect x="820" y="10" width="340" height="66" rx="4" fill="#B07F0E" stroke="none"/>
+<text x="836" y="38" font-size="21" fill="#FFFFFF" text-anchor="start" font-weight="700">gold</text>
+<text x="836" y="64" font-size="18" fill="#FFFFFF" text-anchor="start">resume por día, zona y empresa</text>
+<line x1="382" y1="43" x2="426" y2="43" stroke="#5F6672" stroke-width="2" marker-end="url(#m_g)"/>
+<line x1="772" y1="43" x2="816" y2="43" stroke="#5F6672" stroke-width="2" marker-end="url(#m_g)"/>
+<text x="40" y="116" font-size="21" fill="#15171C" text-anchor="start" font-weight="700">Una ingesta de clima de enero escribe en bronze, en este orden:</text>
+<rect x="40" y="140" width="1120" height="84" rx="6" fill="#F0EEE7" stroke="none"/>
+<circle cx="68" cy="168" r="15" fill="#2340D8"/>
+<text x="68" y="174" font-size="17" fill="#FFFFFF" text-anchor="middle" font-weight="700">1</text>
+<text x="96" y="175" font-size="20" fill="#15171C" text-anchor="start" font-weight="700">Guarda el archivo tal como llegó (el crudo)</text>
+<text x="690" y="175" font-size="17" fill="#5F6672" text-anchor="start">Sirve para reprocesar sin volver a pedirlo a la fuente.</text>
+<text x="96" y="206" font-size="16" fill="#B4622F" text-anchor="start" font-family="SF Mono, Menlo, Consolas, monospace">bronze/_crudo/clima/mes=2024-01/lote=20261117T143005Z_a3f9c1/open_meteo_2024-01.json</text>
+<rect x="40" y="236" width="1120" height="84" rx="6" fill="#F0EEE7" stroke="none"/>
+<circle cx="68" cy="264" r="15" fill="#2340D8"/>
+<text x="68" y="270" font-size="17" fill="#FFFFFF" text-anchor="middle" font-weight="700">2</text>
+<text x="96" y="271" font-size="20" fill="#15171C" text-anchor="start" font-weight="700">Escribe el Parquet con las 5 columnas de metadatos</text>
+<text x="690" y="271" font-size="17" fill="#5F6672" text-anchor="start">Es lo que leen Spark, Athena y silver.</text>
+<text x="96" y="302" font-size="16" fill="#B4622F" text-anchor="start" font-family="SF Mono, Menlo, Consolas, monospace">bronze/clima/mes=2024-01/lote=20261117T143005Z_a3f9c1/part-….parquet</text>
+<rect x="40" y="332" width="1120" height="84" rx="6" fill="#F0EEE7" stroke="none"/>
+<circle cx="68" cy="360" r="15" fill="#2340D8"/>
+<text x="68" y="366" font-size="17" fill="#FFFFFF" text-anchor="middle" font-weight="700">3</text>
+<text x="96" y="367" font-size="20" fill="#15171C" text-anchor="start" font-weight="700">Al final, escribe un archivo vacío: _LOTE_COMPLETO</text>
+<text x="690" y="367" font-size="17" fill="#5F6672" text-anchor="start">Si falta, la ingesta se cortó y silver ignora ese lote.</text>
+<text x="96" y="398" font-size="16" fill="#B4622F" text-anchor="start" font-family="SF Mono, Menlo, Consolas, monospace">bronze/clima/mes=2024-01/lote=20261117T143005Z_a3f9c1/_LOTE_COMPLETO</text>
+<text x="40" y="458" font-size="19" fill="#5F6672" text-anchor="start">Otra ingesta del mismo mes crea lote=20261118T091210Z_07be44 al lado; no borra el anterior.</text>
+</svg>

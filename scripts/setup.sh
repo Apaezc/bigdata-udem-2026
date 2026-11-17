@@ -7,8 +7,10 @@ source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
 msg "Verificando herramientas"
 requerir python3 aws terraform snow jq zip
 
-python3 -c 'import sys; sys.exit(0 if sys.version_info[:2] >= (3, 11) else 1)' \
-  || error "Se requiere Python 3.11 o superior (python3 --version)."
+# 'snow' se instala con pip --user sobre el Python de conda: si conda cambia de versión, deja de funcionar.
+if ! snow --version >/dev/null 2>&1; then
+  error "'snow' está instalado pero no funciona. Corre: make reparar-entorno"
+fi
 
 if ! java -version 2>&1 | head -1 | grep -q '"17'; then
   aviso "Se recomienda Java 17 para PySpark 3.5 (java -version)."
@@ -19,15 +21,17 @@ if ! command -v session-manager-plugin >/dev/null 2>&1; then
 fi
 
 msg "Entorno virtual y dependencias de desarrollo"
-if [[ ! -d "$ROOT_DIR/.venv" ]]; then
-  python3 -m venv "$ROOT_DIR/.venv"
-fi
-if [[ -f "$ROOT_DIR/requirements-dev.txt" ]]; then
-  "$ROOT_DIR/.venv/bin/python" -m pip install --quiet --upgrade pip
-  "$ROOT_DIR/.venv/bin/python" -m pip install --quiet -r "$ROOT_DIR/requirements-dev.txt"
+# .venv siempre usa Python 3.12. Si existe pero quedó roto (otro Python, sin pip o sin pyspark), se recrea.
+if venv_sano; then
+  msg ".venv ya usa Python $VENV_PYTHON_VERSION; solo se actualizan las dependencias"
 else
-  aviso "No existe requirements-dev.txt; se omite la instalación de dependencias."
+  if [[ -d "$VENV_DIR" ]]; then
+    aviso ".venv está roto o no usa Python $VENV_PYTHON_VERSION; se recrea."
+  fi
+  crear_venv
 fi
+instalar_dependencias_venv
+registrar_kernel
 
 msg "Validando región de Snowflake (snow sql)"
 consultar_region_snow() {

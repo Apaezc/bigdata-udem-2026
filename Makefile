@@ -9,7 +9,7 @@ AWS_REGION ?= us-east-2
 export PREFIX AWS_REGION
 export PATH := $(CURDIR)/.venv/bin:$(PATH)
 
-.PHONY: help setup config doctor estado test secrets publicar-bootstrap retirar-bootstrap muestra run-local deploy airflow-on airflow-off airflow-local airflow-local-down airflow-local-estado \
+.PHONY: help setup reparar-entorno config doctor estado test secrets publicar-bootstrap retirar-bootstrap muestra muestra-solo run-local deploy airflow-on airflow-off airflow-local airflow-local-down airflow-local-estado \
 	airflow-habilitar airflow-deshabilitar snowflake snowflake-secreto snowflake-conexion \
 	airflow-tunel airflow-password desbloquear snowflake-ampliar-cuota destroy limpieza-total
 
@@ -19,10 +19,13 @@ help: ## Muestra los targets disponibles
 setup: ## Verifica herramientas, alinea AWS_REGION y crea la configuración de AWS en S3 si no existe
 	bash scripts/setup.sh
 
+reparar-entorno: ## Recrea .venv con Python 3.12, reinstala dependencias, registra el kernel y repara snow
+	bash scripts/reparar-entorno.sh
+
 config: ## Muestra la configuración de AWS guardada en S3 (config/aws.tfvars)
 	bash scripts/config.sh
 
-doctor: ## Diagnóstico: versiones, AWS, Snowflake, Terraform y estado OIDC
+doctor: ## Diagnóstico: versiones, entorno de Python, AWS, Snowflake, Terraform y estado OIDC
 	bash scripts/doctor.sh
 
 estado: ## Airflow (on/off + URL), últimos job runs de Glue, warehouse y costos
@@ -33,6 +36,9 @@ test: ## Ruff y pytest
 
 muestra: ## Glue: bronze del año de prod + muestra para local (una vez por curso)
 	bash scripts/muestra.sh
+
+muestra-solo: ## Glue: solo el paso muestra (si cerraste la terminal de make muestra con el bronze ya terminado)
+	bash scripts/muestra.sh --solo-muestra
 
 secrets: ## Carga AWS_ROLE_ARN y TF_STATE_BUCKET en tu fork (desde el bootstrap, con gh)
 	bash scripts/secrets.sh

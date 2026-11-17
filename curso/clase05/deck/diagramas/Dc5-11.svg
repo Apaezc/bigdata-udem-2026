@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 480" font-family="Helvetica Neue, Arial, sans-serif">
+<title>Cómo se calcula el hash de una fila y cómo se deduplica</title><desc>Cuatro pasos para calcular la huella de una fila de clima, y un quinto que deja una sola fila por huella.</desc>
+<defs><marker id="m_a" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#2340D8"/></marker><marker id="m_g" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#5F6672"/></marker><marker id="m_b" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#B4622F"/></marker></defs>
+<text x="40" y="28" font-size="21" fill="#15171C" text-anchor="start" font-weight="700">Calcular la huella de una fila (al ingestar)</text>
+<rect x="40" y="48" width="680" height="50" rx="6" fill="#F0EEE7" stroke="none"/>
+<circle cx="66" cy="73" r="15" fill="#2340D8"/>
+<text x="66" y="79" font-size="17" fill="#FFFFFF" text-anchor="middle" font-weight="700">1</text>
+<text x="92" y="70" font-size="17" fill="#15171C" text-anchor="start" font-weight="700">Toma solo las columnas originales</text>
+<text x="92" y="91" font-size="16" text-anchor="start" font-family="SF Mono, Menlo, Consolas, monospace" xml:space="preserve"><tspan fill="#15171C">fecha=2024-01-01  lluvia_mm=0.0  temp=</tspan><tspan fill="#B4622F" font-weight="700">null</tspan></text>
+<rect x="40" y="106" width="680" height="50" rx="6" fill="#F0EEE7" stroke="none"/>
+<circle cx="66" cy="131" r="15" fill="#2340D8"/>
+<text x="66" y="137" font-size="17" fill="#FFFFFF" text-anchor="middle" font-weight="700">2</text>
+<text x="92" y="128" font-size="17" fill="#15171C" text-anchor="start" font-weight="700">Pasa cada valor a texto; el nulo se vuelve &lt;nulo&gt;</text>
+<text x="92" y="149" font-size="16" text-anchor="start" font-family="SF Mono, Menlo, Consolas, monospace" xml:space="preserve"><tspan fill="#15171C">"2024-01-01"  "0.0"  </tspan><tspan fill="#B4622F" font-weight="700">"&lt;nulo&gt;"</tspan></text>
+<rect x="40" y="164" width="680" height="50" rx="6" fill="#F0EEE7" stroke="none"/>
+<circle cx="66" cy="189" r="15" fill="#2340D8"/>
+<text x="66" y="195" font-size="17" fill="#FFFFFF" text-anchor="middle" font-weight="700">3</text>
+<text x="92" y="186" font-size="17" fill="#15171C" text-anchor="start" font-weight="700">Une los textos con el separador ||</text>
+<text x="92" y="207" font-size="16" text-anchor="start" font-family="SF Mono, Menlo, Consolas, monospace" xml:space="preserve"><tspan fill="#15171C">"2024-01-01||0.0||&lt;nulo&gt;"</tspan></text>
+<rect x="40" y="222" width="680" height="50" rx="6" fill="#F0EEE7" stroke="none"/>
+<circle cx="66" cy="247" r="15" fill="#2340D8"/>
+<text x="66" y="253" font-size="17" fill="#FFFFFF" text-anchor="middle" font-weight="700">4</text>
+<text x="92" y="244" font-size="17" fill="#15171C" text-anchor="start" font-weight="700">Aplica SHA-256: 64 caracteres</text>
+<text x="92" y="265" font-size="16" text-anchor="start" font-family="SF Mono, Menlo, Consolas, monospace" xml:space="preserve"><tspan fill="#2340D8" font-weight="700">1baf1e0ef58639edffd09ba9236bdd36…</tspan></text>
+<text x="40" y="300" font-size="17" fill="#5F6672" text-anchor="start">Por qué &lt;nulo&gt; y ||: sin ellos, un nulo y un texto vacío darían igual,</text>
+<text x="40" y="322" font-size="17" fill="#5F6672" text-anchor="start">y «1»+«23» se confundiría con «12»+«3».</text>
+<text x="760" y="28" font-size="21" fill="#15171C" text-anchor="start" font-weight="700">Deduplicar (silver, clase 6)</text>
+<circle cx="774" cy="66" r="15" fill="#2340D8"/>
+<text x="774" y="72" font-size="17" fill="#FFFFFF" text-anchor="middle" font-weight="700">5</text>
+<text x="798" y="72" font-size="18" fill="#15171C" text-anchor="start" font-weight="700">Una fila por cada huella</text>
+<rect x="760" y="96" width="400" height="34" rx="6" fill="#F0EEE7" stroke="none"/>
+<text x="774" y="119" font-size="16" fill="#15171C" text-anchor="start" font-weight="700">fecha</text>
+<text x="920" y="119" font-size="16" fill="#15171C" text-anchor="start" font-weight="700">_hash_fila</text>
+<text x="1060" y="119" font-size="16" fill="#15171C" text-anchor="start" font-weight="700">_id_lote</text>
+<text x="774" y="158" font-size="16" fill="#15171C" text-anchor="start" font-family="SF Mono, Menlo, Consolas, monospace">2024-01-01</text>
+<text x="920" y="158" font-size="16" fill="#B4622F" text-anchor="start" font-family="SF Mono, Menlo, Consolas, monospace">1baf…</text>
+<text x="1060" y="158" font-size="16" fill="#15171C" text-anchor="start" font-family="SF Mono, Menlo, Consolas, monospace">lote 1</text>
+<text x="774" y="190" font-size="16" fill="#5F6672" text-anchor="start" font-family="SF Mono, Menlo, Consolas, monospace">2024-01-01</text>
+<text x="920" y="190" font-size="16" fill="#B4622F" text-anchor="start" font-family="SF Mono, Menlo, Consolas, monospace">1baf…</text>
+<text x="1060" y="190" font-size="16" fill="#5F6672" text-anchor="start" font-family="SF Mono, Menlo, Consolas, monospace">lote 2</text>
+<line x1="770" y1="184" x2="1150" y2="184" stroke="#B4622F" stroke-width="2"/>
+<text x="774" y="222" font-size="16" fill="#15171C" text-anchor="start" font-family="SF Mono, Menlo, Consolas, monospace">2024-01-02</text>
+<text x="920" y="222" font-size="16" fill="#15171C" text-anchor="start" font-family="SF Mono, Menlo, Consolas, monospace">a2b6…</text>
+<text x="1060" y="222" font-size="16" fill="#15171C" text-anchor="start" font-family="SF Mono, Menlo, Consolas, monospace">lote 1</text>
+<text x="760" y="272" font-size="17" fill="#15171C" text-anchor="start">3 filas → 2: misma huella, mismo dato.</text>
+<text x="760" y="304" font-size="17" text-anchor="start" font-family="SF Mono, Menlo, Consolas, monospace" xml:space="preserve"><tspan fill="#2340D8" font-weight="700">dropDuplicates(["_hash_fila"])</tspan></text>
+<rect x="40" y="356" width="1120" height="114" rx="6" fill="#FFFFFF" stroke="#D9D6CC" stroke-width="1.5"/>
+<text x="60" y="388" font-size="19" fill="#15171C" text-anchor="start">Cambia un solo valor y cambia toda la huella: comparar filas es comparar un texto.</text>
+<text x="60" y="416" font-size="19" fill="#15171C" text-anchor="start">Para reunir las filas con la misma huella, Spark hace un shuffle.</text>
+<text x="60" y="444" font-size="19" fill="#5F6672" text-anchor="start">La huella detecta filas idénticas, no parecidas: eso lo limpia silver.</text>
+</svg>

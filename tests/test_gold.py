@@ -17,10 +17,10 @@ ESQUEMA_SILVER = (
 LLAVES_GOLD = ("fecha", "zona", "empresa")
 
 
-def _gold_de_muestra(muestra_viajes, muestra_zonas, muestra_clima_raw):
+def _gold_de_muestra(muestra_viajes, muestra_zonas, muestra_clima):
     return metricas_diarias_zona(
         enriquecer(
-            limpiar_viajes(muestra_viajes, MESES), muestra_zonas, clima_diario(muestra_clima_raw)
+            limpiar_viajes(muestra_viajes, MESES), muestra_zonas, clima_diario(muestra_clima)
         )
     )
 
@@ -73,8 +73,8 @@ def test_metricas_pasan_calidad_y_clave_unica(spark):
     assert gold.count() == 1
 
 
-def test_pipeline_muestra_de_punta_a_punta(muestra_viajes, muestra_zonas, muestra_clima_raw):
-    gold = _gold_de_muestra(muestra_viajes, muestra_zonas, muestra_clima_raw)
+def test_pipeline_muestra_de_punta_a_punta(muestra_viajes, muestra_zonas, muestra_clima):
+    gold = _gold_de_muestra(muestra_viajes, muestra_zonas, muestra_clima)
 
     assert gold.columns == COLUMNAS
     assert gold.agg({"viajes": "sum"}).first()[0] == 90
@@ -88,8 +88,8 @@ def test_pipeline_muestra_de_punta_a_punta(muestra_viajes, muestra_zonas, muestr
 
 
 @pytest.mark.parametrize("columna", LLAVES_GOLD)
-def test_llaves_gold_no_nulas_en_muestra(muestra_viajes, muestra_zonas, muestra_clima_raw, columna):
-    gold = _gold_de_muestra(muestra_viajes, muestra_zonas, muestra_clima_raw)
+def test_llaves_gold_no_nulas_en_muestra(muestra_viajes, muestra_zonas, muestra_clima, columna):
+    gold = _gold_de_muestra(muestra_viajes, muestra_zonas, muestra_clima)
     assert gold.where(f"{columna} IS NULL").count() == 0
 
 

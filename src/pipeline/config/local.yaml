@@ -1,6 +1,7 @@
 # Entorno local: Spark en el Code Editor sobre la MUESTRA (pocas filas, todos los meses).
-# La muestra se genera en la nube (--step muestra --env prod) en s3://<lake>/muestra y se copia
-# a ./lake/muestra la primera vez (necesita LAKE_BUCKET). Salida en ./lake (disco del Code Editor).
+# La muestra se copia a ./lake/muestra la primera vez, sola. Primero se busca en tu bucket
+# (s3://<lake>/muestra, la genera --step muestra --env prod) y, si ahí no hay una muestra con el
+# formato nuevo, se descarga la del bucket público del curso. Salida en ./lake (disco del Code Editor).
 entorno: local
 rutas:
   bronze: ./lake/muestra
@@ -9,6 +10,12 @@ rutas:
 muestra:
   # Prefijo de la muestra dentro del bucket del lake (se descarga a rutas.bronze si falta).
   sincronizar_desde: muestra
+  # Bucket público del curso (lectura anónima, sin credenciales) con la misma muestra, por si la
+  # de tu bucket no existe o es de la versión anterior.
+  publica:
+    bucket: bigdata-udem-2026-publico
+    prefijo: paquete/muestra
+    region: us-east-2
   # Recorte adicional de filas de viajes (null = toda la muestra). --limite lo reemplaza.
   max_rows: null
 limites:

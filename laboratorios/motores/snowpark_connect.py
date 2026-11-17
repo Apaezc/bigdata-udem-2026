@@ -25,6 +25,7 @@ RAIZ = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(RAIZ / "src"))
 
 from pipeline import quality  # noqa: E402
+from pipeline.bronze import clima_a_filas  # noqa: E402
 from pipeline.engine import get_spark  # noqa: E402
 from pipeline.gold import metricas_diarias_zona  # noqa: E402
 from pipeline.silver import clima_diario, enriquecer, limpiar_viajes  # noqa: E402
@@ -69,9 +70,10 @@ def main() -> int:
     t = time.time()
     viajes = spark.table(tabla_viajes)
     zonas = spark.read.option("header", True).csv(str(datos / "taxi_zone_lookup.csv"))
-    clima = clima_diario(
-        spark.read.option("multiLine", True).json(str(datos / f"open_meteo_{args.mes}.json"))
+    clima_json = spark.read.option("multiLine", True).json(
+        str(datos / f"open_meteo_{args.mes}.json")
     )
+    clima = clima_diario(clima_a_filas(clima_json))
     silver = enriquecer(limpiar_viajes(viajes, [args.mes]), zonas, clima)
     gold = metricas_diarias_zona(silver)
     gold.write.mode("overwrite").saveAsTable("LAB_GOLD_SNOWPARK")
