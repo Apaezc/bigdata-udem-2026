@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 440" font-family="Helvetica Neue, Arial, sans-serif">
+<title>Athena consulta el lake: catálogo, carpetas por mes y workgroup</title><desc>A la izquierda, una consulta SQL entra a Athena. Athena consulta un catálogo (base bigdata_lake) que dice dónde están los archivos y qué columnas tienen, y lee en S3 solo las carpetas mes= que el filtro pide. Abajo, el workgroup bigdata-wg con su tope de 1 GB leído por consulta.</desc>
+<defs><marker id="m_a" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#2340D8"/></marker><marker id="m_g" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#5F6672"/></marker><marker id="m_b" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#B4622F"/></marker><marker id="m_y" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#FFC83D"/></marker></defs>
+<rect x="8" y="170" width="312" height="100" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
+<text x="164" y="206" font-size="22" fill="#15171C" text-anchor="middle" font-weight="700">Consulta SQL</text>
+<text x="164" y="246" font-size="22" fill="#15171C" text-anchor="middle" font-family="SF Mono, Menlo, Consolas, monospace">WHERE mes = '2024-01'</text>
+<line x1="322" y1="220" x2="362" y2="220" stroke="#5F6672" stroke-width="2.5" marker-end="url(#m_g)"/>
+<rect x="364" y="170" width="170" height="100" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
+<text x="449.0" y="228.0" font-size="22" fill="#15171C" text-anchor="middle" font-weight="700">Athena</text>
+<rect x="316" y="6" width="290" height="112" rx="6" fill="#FFFFFF" stroke="#5F6672" stroke-width="1.5"/>
+<text x="461" y="36" font-size="22" fill="#15171C" text-anchor="middle" font-weight="700">Catálogo bigdata_lake</text>
+<text x="461" y="66" font-size="22" fill="#15171C" text-anchor="middle">dónde están los archivos</text>
+<text x="461" y="93" font-size="22" fill="#15171C" text-anchor="middle">y qué columnas tienen</text>
+<line x1="449" y1="168" x2="449" y2="120" stroke="#5F6672" stroke-width="2.5" marker-end="url(#m_g)" marker-start="url(#m_g)"/>
+<rect x="646" y="6" width="466" height="368" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
+<text x="666" y="38" font-size="22" fill="#15171C" text-anchor="start" font-weight="700">S3 · bronze/fhvhv/</text>
+<rect x="666" y="56" width="200" height="36" rx="6" fill="#F6E9E0" stroke="#B4622F" stroke-width="3"/>
+<text x="766" y="82" font-size="22" fill="#B4622F" text-anchor="middle" font-weight="700" font-family="SF Mono, Menlo, Consolas, monospace">mes=2024-01</text>
+<rect x="666" y="100" width="200" height="36" rx="6" fill="#F8F7F3" stroke="#D9D6CC" stroke-width="1.5"/>
+<text x="766" y="126" font-size="22" fill="#5F6672" text-anchor="middle" font-family="SF Mono, Menlo, Consolas, monospace">mes=2024-02</text>
+<rect x="666" y="144" width="200" height="36" rx="6" fill="#F8F7F3" stroke="#D9D6CC" stroke-width="1.5"/>
+<text x="766" y="170" font-size="22" fill="#5F6672" text-anchor="middle" font-family="SF Mono, Menlo, Consolas, monospace">mes=2024-03</text>
+<rect x="666" y="188" width="200" height="36" rx="6" fill="#F8F7F3" stroke="#D9D6CC" stroke-width="1.5"/>
+<text x="766" y="214" font-size="22" fill="#5F6672" text-anchor="middle" font-family="SF Mono, Menlo, Consolas, monospace">mes=2024-04</text>
+<rect x="666" y="232" width="200" height="36" rx="6" fill="#F8F7F3" stroke="#D9D6CC" stroke-width="1.5"/>
+<text x="766" y="258" font-size="22" fill="#5F6672" text-anchor="middle" font-family="SF Mono, Menlo, Consolas, monospace">mes=2024-05</text>
+<rect x="666" y="276" width="200" height="36" rx="6" fill="#F8F7F3" stroke="#D9D6CC" stroke-width="1.5"/>
+<text x="766" y="302" font-size="22" fill="#5F6672" text-anchor="middle" font-family="SF Mono, Menlo, Consolas, monospace">mes=2024-06</text>
+<rect x="884" y="56" width="200" height="36" rx="6" fill="#F8F7F3" stroke="#D9D6CC" stroke-width="1.5"/>
+<text x="984" y="82" font-size="22" fill="#5F6672" text-anchor="middle" font-family="SF Mono, Menlo, Consolas, monospace">mes=2024-07</text>
+<rect x="884" y="100" width="200" height="36" rx="6" fill="#F8F7F3" stroke="#D9D6CC" stroke-width="1.5"/>
+<text x="984" y="126" font-size="22" fill="#5F6672" text-anchor="middle" font-family="SF Mono, Menlo, Consolas, monospace">mes=2024-08</text>
+<rect x="884" y="144" width="200" height="36" rx="6" fill="#F8F7F3" stroke="#D9D6CC" stroke-width="1.5"/>
+<text x="984" y="170" font-size="22" fill="#5F6672" text-anchor="middle" font-family="SF Mono, Menlo, Consolas, monospace">mes=2024-09</text>
+<rect x="884" y="188" width="200" height="36" rx="6" fill="#F8F7F3" stroke="#D9D6CC" stroke-width="1.5"/>
+<text x="984" y="214" font-size="22" fill="#5F6672" text-anchor="middle" font-family="SF Mono, Menlo, Consolas, monospace">mes=2024-10</text>
+<rect x="884" y="232" width="200" height="36" rx="6" fill="#F8F7F3" stroke="#D9D6CC" stroke-width="1.5"/>
+<text x="984" y="258" font-size="22" fill="#5F6672" text-anchor="middle" font-family="SF Mono, Menlo, Consolas, monospace">mes=2024-11</text>
+<rect x="884" y="276" width="200" height="36" rx="6" fill="#F8F7F3" stroke="#D9D6CC" stroke-width="1.5"/>
+<text x="984" y="302" font-size="22" fill="#5F6672" text-anchor="middle" font-family="SF Mono, Menlo, Consolas, monospace">mes=2024-12</text>
+<text x="666" y="346" font-size="22" fill="#5F6672" text-anchor="start">Las otras once carpetas no se abren.</text>
+<line x1="536" y1="214" x2="662" y2="78" stroke="#B4622F" stroke-width="3" marker-end="url(#m_b)"/>
+<text x="580" y="210" font-size="22" fill="#B4622F" text-anchor="start" font-weight="700">se lee</text>
+<text x="8" y="308" font-size="22" fill="#5F6672" text-anchor="start">Una sola columna, pickup_datetime:</text>
+<text x="8" y="340" font-size="22" fill="#B4622F" text-anchor="start" font-weight="700">Con filtro de mes lee una carpeta: 53 MB</text>
+<text x="8" y="372" font-size="22" fill="#15171C" text-anchor="start" font-weight="700">Sin filtro abre las doce: 641 MB</text>
+<rect x="8" y="390" width="1104" height="46" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
+<text x="560" y="421" font-size="22" fill="#15171C" text-anchor="middle" font-weight="700">Workgroup bigdata-wg · tope de 1 GB leído por consulta · resultados en S3</text>
+</svg>

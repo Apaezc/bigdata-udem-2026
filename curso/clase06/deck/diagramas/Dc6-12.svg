@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 440" font-family="Helvetica Neue, Arial, sans-serif">
+<title>Qué datos leemos hoy y dónde se guardan</title><desc>Tres carriles de izquierda a derecha, con un rótulo común a la izquierda: los mismos archivos de la TLC y Open-Meteo. Clase 4: make muestra, un job de Glue, descargó el año a S3 bronze, 239 470 448 viajes, y hoy lo lee Athena. Hoy: tus funciones y el DAG en el Code Editor escriben en el disco del Code Editor, bronze_alumno con 1 000 viajes, silver con 1 000 filas y gold con 281; una flecha punteada va a la tabla de control de Snowflake, y un rótulo dice que nada de eso llega a S3. Clase 7, en línea punteada: tus funciones en Glue escriben bronze, silver y gold del mes completo en S3, y Athena lee tu bronze y lo concilia con la tabla de control.</desc>
+<defs><marker id="m_a" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#2340D8"/></marker><marker id="m_g" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#5F6672"/></marker><marker id="m_b" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#B4622F"/></marker><marker id="m_y" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#FFC83D"/></marker></defs>
+<rect x="6" y="7" width="150" height="426" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
+<text x="81" y="160" font-size="22" fill="#15171C" text-anchor="middle" font-weight="700">Las fuentes:</text>
+<text x="81" y="200" font-size="22" fill="#15171C" text-anchor="middle">los mismos</text>
+<text x="81" y="227" font-size="22" fill="#15171C" text-anchor="middle">archivos de</text>
+<text x="81" y="254" font-size="22" fill="#15171C" text-anchor="middle">la TLC y</text>
+<text x="81" y="281" font-size="22" fill="#15171C" text-anchor="middle">Open-Meteo</text>
+<rect x="164" y="7" width="950" height="112" rx="6" fill="#FFFFFF" stroke="#5F6672" stroke-width="1.5"/>
+<text x="180" y="38" font-size="22" fill="#15171C" text-anchor="start" font-weight="700">Clase 4 · ya hecho</text>
+<line x1="158" y1="81" x2="188" y2="81" stroke="#5F6672" stroke-width="3" marker-end="url(#m_g)"/>
+<rect x="164" y="125" width="950" height="190" rx="6" fill="#FFFFFF" stroke="#15171C" stroke-width="2.5"/>
+<text x="180" y="156" font-size="22" fill="#15171C" text-anchor="start" font-weight="700">Hoy · clases 5 y 6</text>
+<line x1="158" y1="199" x2="188" y2="199" stroke="#5F6672" stroke-width="3" marker-end="url(#m_g)"/>
+<rect x="164" y="321" width="950" height="112" rx="6" fill="#FFFFFF" stroke="#5F6672" stroke-width="1.5" stroke-dasharray="9 6"/>
+<text x="180" y="352" font-size="22" fill="#5F6672" text-anchor="start" font-weight="700">Clase 7 · la próxima</text>
+<line x1="158" y1="395" x2="188" y2="395" stroke="#5F6672" stroke-width="3" marker-end="url(#m_g)"/>
+<rect x="190" y="49" width="230" height="62" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
+<text x="305.0" y="74.5" font-size="22" fill="#15171C" text-anchor="middle" font-weight="700">make muestra</text>
+<text x="305.0" y="101.5" font-size="22" fill="#5F6672" text-anchor="middle">(job de Glue)</text>
+<rect x="460" y="49" width="300" height="62" rx="6" fill="#B4622F" stroke="#B4622F" stroke-width="1.5"/>
+<text x="610.0" y="74.5" font-size="22" fill="#FFFFFF" text-anchor="middle" font-weight="700">S3: bronze del año</text>
+<text x="610.0" y="101.5" font-size="22" fill="#FFFFFF" text-anchor="middle">239 470 448 viajes</text>
+<rect x="800" y="49" width="300" height="62" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
+<text x="950.0" y="74.5" font-size="22" fill="#15171C" text-anchor="middle" font-weight="700">Athena</text>
+<text x="950.0" y="101.5" font-size="22" fill="#5F6672" text-anchor="middle">hoy lee este bronze</text>
+<line x1="420" y1="80" x2="458" y2="80" stroke="#5F6672" stroke-width="3" marker-end="url(#m_g)"/>
+<line x1="760" y1="80" x2="798" y2="80" stroke="#5F6672" stroke-width="3" marker-end="url(#m_g)"/>
+<rect x="190" y="165" width="230" height="68" rx="6" fill="#F0EEE7" stroke="#15171C" stroke-width="2"/>
+<text x="305.0" y="193.5" font-size="22" fill="#15171C" text-anchor="middle" font-weight="700">Tus funciones y DAG</text>
+<text x="305.0" y="220.5" font-size="22" fill="#5F6672" text-anchor="middle">(Code Editor)</text>
+<line x1="420" y1="199" x2="438" y2="199" stroke="#5F6672" stroke-width="3" marker-end="url(#m_g)"/>
+<rect x="440" y="165" width="190" height="68" rx="6" fill="#B4622F" stroke="#B4622F" stroke-width="1.5"/>
+<text x="535.0" y="193.5" font-size="22" fill="#FFFFFF" text-anchor="middle" font-weight="700" font-family="SF Mono, Menlo, Consolas, monospace">bronze_alumno</text>
+<text x="535.0" y="220.5" font-size="22" fill="#FFFFFF" text-anchor="middle">viajes: 1 000</text>
+<rect x="675" y="165" width="190" height="68" rx="6" fill="#6E7F94" stroke="#6E7F94" stroke-width="1.5"/>
+<text x="770.0" y="193.5" font-size="22" fill="#FFFFFF" text-anchor="middle" font-weight="700" font-family="SF Mono, Menlo, Consolas, monospace">silver_alumno</text>
+<text x="770.0" y="220.5" font-size="22" fill="#FFFFFF" text-anchor="middle">1 000 filas</text>
+<rect x="910" y="165" width="190" height="68" rx="6" fill="#B07F0E" stroke="#B07F0E" stroke-width="1.5"/>
+<text x="1005.0" y="193.5" font-size="22" fill="#FFFFFF" text-anchor="middle" font-weight="700" font-family="SF Mono, Menlo, Consolas, monospace">gold_alumno</text>
+<text x="1005.0" y="220.5" font-size="22" fill="#FFFFFF" text-anchor="middle">281 filas</text>
+<line x1="630" y1="199" x2="673" y2="199" stroke="#5F6672" stroke-width="3" marker-end="url(#m_g)"/>
+<line x1="865" y1="199" x2="908" y2="199" stroke="#5F6672" stroke-width="3" marker-end="url(#m_g)"/>
+<line x1="440" y1="245" x2="1100" y2="245" stroke="#B3261E" stroke-width="3"/>
+<text x="770" y="283" font-size="22" fill="#B3261E" text-anchor="middle" font-weight="700">Disco del Code Editor: no llega a S3</text>
+<rect x="190" y="261" width="230" height="46" rx="6" fill="#E3E6F6" stroke="#2340D8" stroke-width="2.5"/>
+<text x="305.0" y="292.0" font-size="22" fill="#2340D8" text-anchor="middle" font-weight="700">Control en Snowflake</text>
+<line x1="240" y1="235" x2="240" y2="259" stroke="#2340D8" stroke-width="2.5" stroke-dasharray="7 6" marker-end="url(#m_a)" marker-start="url(#m_a)"/>
+<text x="256" y="252" font-size="22" fill="#2340D8" text-anchor="start">consulta y registra</text>
+<rect x="190" y="363" width="230" height="62" rx="6" fill="#FFFFFF" stroke="#5F6672" stroke-width="1.5" stroke-dasharray="9 6"/>
+<text x="305.0" y="388.5" font-size="22" fill="#5F6672" text-anchor="middle" font-weight="700">Tus funciones</text>
+<text x="305.0" y="415.5" font-size="22" fill="#5F6672" text-anchor="middle">corren en Glue</text>
+<rect x="460" y="363" width="300" height="62" rx="6" fill="#FFFFFF" stroke="#5F6672" stroke-width="1.5" stroke-dasharray="9 6"/>
+<text x="610.0" y="388.5" font-size="22" fill="#5F6672" text-anchor="middle" font-weight="700">S3: bronze, silver, gold</text>
+<text x="610.0" y="415.5" font-size="22" fill="#5F6672" text-anchor="middle">del mes completo</text>
+<rect x="800" y="363" width="300" height="62" rx="6" fill="#FFFFFF" stroke="#5F6672" stroke-width="1.5" stroke-dasharray="9 6"/>
+<text x="950.0" y="388.5" font-size="22" fill="#5F6672" text-anchor="middle" font-weight="700">Athena lee tu bronze</text>
+<text x="950.0" y="415.5" font-size="22" fill="#5F6672" text-anchor="middle">y concilia con el control</text>
+<line x1="420" y1="394" x2="458" y2="394" stroke="#5F6672" stroke-width="3" stroke-dasharray="9 6" marker-end="url(#m_g)"/>
+<line x1="760" y1="394" x2="798" y2="394" stroke="#5F6672" stroke-width="3" stroke-dasharray="9 6" marker-end="url(#m_g)"/>
+</svg>
