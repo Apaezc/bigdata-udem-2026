@@ -1,4 +1,4 @@
-"""Genera los cinco diagramas de la clase 6 (Dc6-0 a Dc6-4).
+"""Genera los diagramas de la clase 6 (Dc6-0 a Dc6-11; Dc6-7 a Dc6-11 envuelven capturas reales de Airflow).
 
 Uso:  cd /Users/diegomanzur/Documents/udem/bigdata/bigdata-udem-2026/curso/clase06/deck/diagramas && python3 generar_diagramas.py
 
@@ -7,6 +7,7 @@ bronze, el gris azulado de silver y el ocre de gold; el acento (azul) es solo de
 control y de las flechas de consulta y registro, y del marco del DAG.
 """
 
+import base64
 from pathlib import Path
 from xml.sax.saxutils import escape
 
@@ -20,6 +21,7 @@ INK, GRIS, PANEL, ACENTO, REGLA, BLANCO = (
     "#D9D6CC",
     "#FFFFFF",
 )
+AMARILLO, ROJO, T_ROJO = "#FFC83D", "#B3261E", "#F8E0DC"  # llamadas sobre capturas; error
 BRONZE, SILVER, GOLD = "#B4622F", "#6E7F94", "#B07F0E"
 T_BRONZE, T_SILVER, T_GOLD, T_ACENTO = "#F6E9E0", "#E4E8EE", "#F4EBD2", "#E3E6F6"
 FONT = "Helvetica Neue, Arial, sans-serif"
@@ -51,15 +53,16 @@ def ancho(t, size=22, bold=False, mono=False):
     return _fuente(bold, mono, size).getlength(t)
 
 
-MARCAS = {"a": ACENTO, "g": GRIS, "b": BRONZE}
+MARCAS = {"a": ACENTO, "g": GRIS, "b": BRONZE, "y": AMARILLO}
 
 
 class S:
-    def __init__(s, nombre, titulo, desc):
+    def __init__(s, nombre, titulo, desc, w=W, h=H):
         s.nombre = nombre
+        s.w, s.h = w, h
         s.avisos = []
         s.o = [
-            f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {W} {H}" font-family="{FONT}">',
+            f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {w} {h}" font-family="{FONT}">',
             f"<title>{escape(titulo)}</title><desc>{escape(desc)}</desc>",
             "<defs>"
             + "".join(
@@ -76,7 +79,7 @@ class S:
         s.o.append(
             f'<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="{r}" fill="{fill}"{st}{d}/>'
         )
-        if x < 0 or y < 0 or x + w > W or y + h > H:
+        if x < 0 or y < 0 or x + w > s.w or y + h > s.h:
             s.avisos.append(f"rect fuera del lienzo ({x},{y},{w},{h})")
 
     def text(s, x, y, t, size=22, col=INK, bold=False, anchor="start", mono=False, maxw=None):
@@ -87,7 +90,7 @@ class S:
         )
         w = ancho(t, size, bold, mono)
         x0 = x if anchor == "start" else (x - w / 2 if anchor == "middle" else x - w)
-        if x0 < 0 or x0 + w > W:
+        if x0 < 0 or x0 + w > s.w:
             s.avisos.append(f"texto fuera del lienzo: {t!r} ({x0:.0f}..{x0 + w:.0f})")
         if maxw and w > maxw:
             s.avisos.append(f"texto más ancho que su caja: {t!r} ({w:.0f} > {maxw})")
@@ -132,11 +135,12 @@ class S:
                     maxw=w - 8,
                 )
 
-    def flecha(s, x1, y1, x2, y2, col="g", lw=2.5, doble=False):
+    def flecha(s, x1, y1, x2, y2, col="g", lw=2.5, doble=False, dash=None):
         c = MARCAS[col]
         ini = f' marker-start="url(#m_{col})"' if doble else ""
+        d = f' stroke-dasharray="{dash}"' if dash else ""
         s.o.append(
-            f'<line x1="{x1}" y1="{y1}" x2="{x2}" y2="{y2}" stroke="{c}" stroke-width="{lw}" '
+            f'<line x1="{x1}" y1="{y1}" x2="{x2}" y2="{y2}" stroke="{c}" stroke-width="{lw}"{d} '
             f'marker-end="url(#m_{col})"{ini}/>'
         )
 
@@ -156,47 +160,51 @@ class S:
 def dc6_0(ruta):
     s = S(
         "Dc6-0",
-        "Mapa de la clase 6: de las fuentes a Snowflake, con Athena, el lab y el DAG de Airflow",
-        "De izquierda a derecha, tres fuentes (viajes, zonas, clima) llegan a la ingesta, que escribe bronze; Athena mira bronze; "
-        "el lab construye silver y gold; gold se carga a Snowflake. Un marco que envuelve las cinco tareas es el DAG de Airflow. "
-        "Arriba, la tabla de control en Snowflake, con flechas de consulta y de registro.",
+        "Mapa de la clase 6: de las fuentes a gold, con Athena, el lab y el DAG de Airflow",
+        "De izquierda a derecha, tres fuentes (viajes, zonas, clima) entran cada una a su tarea de ingesta (ingestar_viajes, ingestar_zonas, ingestar_clima), que escriben bronze; "
+        "después vienen silver y gold. Un marco que envuelve las cinco tareas es el DAG ingesta_mensual de Airflow; el DAG no carga a Snowflake. Athena mira bronze desde abajo; "
+        "el lab construye silver y gold. Arriba, la tabla de control en Snowflake, con flechas de consulta y de registro.",
     )
     # tabla de control y sus dos flechas
-    s.rect(262, 6, 596, 46, fill=T_ACENTO, line=ACENTO, lw=2.5)
-    s.text(280, 37, "Tabla de control · BIGDATA.CONTROL.WATERMARK", bold=True, col=ACENTO, maxw=570)
-    s.flecha(292, 128, 292, 54, col="a")
-    s.flecha(362, 128, 362, 54, col="a")
-    s.text(284, 92, "¿ya lo traje?", col=ACENTO, anchor="end")
-    s.text(374, 92, "lo traje", col=ACENTO)
+    s.rect(236, 6, 640, 46, fill=T_ACENTO, line=ACENTO, lw=2.5)
+    s.text(254, 37, "Tabla de control · BIGDATA.CONTROL.WATERMARK", bold=True, col=ACENTO, maxw=610)
+    s.flecha(300, 128, 300, 54, col="a")
+    s.flecha(400, 128, 400, 54, col="a")
+    s.text(292, 92, "¿ya lo traje?", col=ACENTO, anchor="end")
+    s.text(412, 92, "lo traje", col=ACENTO)
     # marco del DAG
-    s.rect(248, 104, 648, 262, fill="none", line=ACENTO, lw=2.5, dash="9 6")
-    s.text(884, 134, "DAG ingesta_mensual de Airflow", bold=True, col=ACENTO, anchor="end")
-    # fuentes
-    for i, (a, b) in enumerate(
-        (("Viajes TLC", "Parquet"), ("Zonas TLC", "CSV"), ("Clima Open-Meteo", "JSON"))
+    s.rect(224, 104, 884, 262, fill="none", line=ACENTO, lw=2.5, dash="9 6")
+    s.text(1096, 134, "DAG ingesta_mensual de Airflow", bold=True, col=ACENTO, anchor="end")
+    # fuentes y las tres tareas de ingesta
+    for i, (a, b, tarea) in enumerate(
+        (
+            ("Viajes TLC", "Parquet", "ingestar_viajes"),
+            ("Zonas TLC", "CSV", "ingestar_zonas"),
+            ("Clima Open-Meteo", "JSON", "ingestar_clima"),
+        )
     ):
-        y = 128 + i * 74
-        s.caja(8, y, 216, 64, [a, b])
-        s.flecha(226, y + 32, 260, y + 32)
-    # línea principal
-    s.caja(262, 128, 130, 212, ["Ingesta", "(clase 5)"])
-    s.flecha(394, 234, 428, 234)
-    s.caja(430, 194, 130, 80, ["Bronze"], fill=BRONZE, line=BRONZE, col=BLANCO)
-    s.flecha(562, 234, 596, 234)
-    s.caja(598, 194, 120, 80, ["Silver"], fill=SILVER, line=SILVER, col=BLANCO)
-    s.flecha(720, 234, 754, 234)
-    s.caja(756, 194, 120, 80, ["Gold"], fill=GOLD, line=GOLD, col=BLANCO)
-    s.flecha(878, 234, 928, 234)
-    s.caja(930, 194, 182, 80, ["Snowflake"])
+        y = 154 + i * 70
+        s.caja(6, y, 208, 60, [a, b])
+        s.flecha(216, y + 30, 242, y + 30)
+        s.caja(244, y, 210, 60, [tarea], fill=BLANCO, mono=False)
+    # bronze, silver, gold
+    s.flecha(456, 184, 520, 232)
+    s.flecha(456, 254, 520, 254)
+    s.flecha(456, 324, 520, 276)
+    s.caja(522, 214, 130, 80, ["Bronze"], fill=BRONZE, line=BRONZE, col=BLANCO)
+    s.flecha(654, 254, 708, 254)
+    s.caja(710, 214, 130, 80, ["Silver"], fill=SILVER, line=SILVER, col=BLANCO)
+    s.flecha(842, 254, 896, 254)
+    s.caja(898, 214, 130, 80, ["Gold"], fill=GOLD, line=GOLD, col=BLANCO)
     # lab
-    s.linea(598, 300, 876, 300, col=GRIS, lw=2)
-    s.linea(598, 292, 598, 300, col=GRIS, lw=2)
-    s.linea(876, 292, 876, 300, col=GRIS, lw=2)
-    s.text(737, 330, "Lab", bold=True, anchor="middle")
+    s.linea(710, 304, 1028, 304, col=GRIS, lw=2)
+    s.linea(710, 296, 710, 304, col=GRIS, lw=2)
+    s.linea(1028, 296, 1028, 304, col=GRIS, lw=2)
+    s.text(869, 338, "Lab", bold=True, anchor="middle")
     # athena
-    s.flecha(495, 388, 495, 277, col="g")
-    s.text(509, 338, "solo mirar", col=GRIS)
-    s.caja(400, 390, 190, 46, ["Athena"])
+    s.flecha(587, 388, 587, 297, col="g")
+    s.text(601, 350, "solo mirar", col=GRIS)
+    s.caja(492, 390, 190, 46, ["Athena"])
     s.guardar(ruta)
 
 
@@ -455,6 +463,269 @@ def dc6_4(ruta):
     s.guardar(ruta)
 
 
+# --------------------------------------------------------------------------- Dc6-5
+def dc6_5(ruta):
+    s = S(
+        "Dc6-5",
+        "Dónde vive cada cosa: S3, el disco del Code Editor y Snowflake",
+        "Tres zonas. A la izquierda, el bucket de S3 bigdata-lake-<CUENTA>-us-east-2 con el bronze del año (239 470 448 viajes), que Athena lee. En el centro, el disco del Code Editor: "
+        "~/datos_clase05/ con bronze_alumno, silver_alumno y gold_alumno, que escribe el DAG ingesta_mensual (viajes 1 000 filas, silver 1 000, gold 281), y ~/datos_clase06/lake_lab, que escribe el lab. "
+        "A la derecha, el DAG, el lab y la tabla de control de Snowflake BIGDATA.CONTROL.WATERMARK, con flechas punteadas de consulta y registro desde el DAG y el lab.",
+    )
+    # S3 y Athena
+    s.rect(6, 14, 372, 196, fill=PANEL, line=GRIS)
+    s.text(22, 46, "Bucket de S3", bold=True)
+    s.text(22, 75, "bigdata-lake-<CUENTA>-us-east-2", maxw=344)
+    s.rect(22, 100, 340, 92, fill=BRONZE, line=BRONZE)
+    s.text(192, 134, "bronze del año", bold=True, col=BLANCO, anchor="middle", maxw=320)
+    s.text(192, 168, "239 470 448 viajes", col=BLANCO, anchor="middle", maxw=320)
+    s.flecha(192, 296, 192, 212, col="g")
+    s.text(206, 262, "lee", bold=True)
+    s.caja(92, 298, 200, 56, ["Athena"])
+    # disco del Code Editor
+    s.rect(398, 14, 350, 236, fill=PANEL, line=GRIS)
+    s.text(414, 46, "Disco del Code Editor", bold=True)
+    s.text(414, 75, "~/datos_clase05/", mono=True, maxw=320)
+    for i, (n, c, f) in enumerate(
+        (
+            ("bronze_alumno", BRONZE, "1 000 filas"),
+            ("silver_alumno", SILVER, "1 000 filas"),
+            ("gold_alumno", GOLD, "281 filas"),
+        )
+    ):
+        y = 94 + i * 50
+        s.rect(414, y, 206, 42, fill=c, line=c)
+        s.text(517, y + 29, n, mono=True, bold=True, col=BLANCO, anchor="middle", maxw=198)
+        s.text(634, y + 29, f, maxw=108)
+    s.rect(398, 270, 350, 90, fill=PANEL, line=GRIS)
+    s.text(414, 304, "~/datos_clase06/lake_lab", mono=True, bold=True, maxw=326)
+    s.text(414, 340, "silver y gold del lab", col=GRIS, maxw=326)
+    # DAG, lab y tabla de control
+    s.rect(842, 14, 272, 76, fill=BLANCO, line=ACENTO, lw=2.5, dash="9 6")
+    s.text(978, 46, "DAG", bold=True, col=ACENTO, anchor="middle")
+    s.text(978, 74, "ingesta_mensual", bold=True, col=ACENTO, anchor="middle", maxw=260)
+    s.rect(842, 284, 272, 76, fill=BLANCO, line=GRIS, lw=2)
+    s.text(978, 330, "Lab", bold=True, anchor="middle")
+    s.flecha(840, 52, 750, 52, col="g", lw=3)
+    s.text(795, 38, "escribe", bold=True, anchor="middle", maxw=86)
+    s.flecha(840, 322, 750, 322, col="g", lw=3)
+    s.text(795, 308, "escribe", bold=True, anchor="middle", maxw=86)
+    s.rect(842, 150, 272, 100, fill=T_ACENTO, line=ACENTO, lw=2.5)
+    s.text(978, 176, "Snowflake", bold=True, col=ACENTO, anchor="middle")
+    s.text(978, 206, "BIGDATA.CONTROL.", col=ACENTO, anchor="middle", mono=True, maxw=262)
+    s.text(978, 234, "WATERMARK", col=ACENTO, anchor="middle", mono=True, maxw=262)
+    s.flecha(900, 92, 900, 148, col="a", dash="7 6", doble=True)
+    s.flecha(900, 282, 900, 252, col="a", dash="7 6", doble=True)
+    s.text(912, 126, "consulta / registra", col=ACENTO, maxw=202)
+    s.text(912, 268, "consulta / registra", col=ACENTO, maxw=202)
+    s.guardar(ruta)
+
+
+# --------------------------------------------------------------------------- Dc6-6
+def dc6_6(ruta):
+    s = S(
+        "Dc6-6",
+        "Dos palancas para leer menos: meses y columnas",
+        "Cuadrícula de dos por dos. Con una columna, un mes lee 53 MB y doce meses leen 641 MB. Con siete columnas, un mes lee 141 MB y doce meses superan 1 GB: "
+        "la consulta queda CANCELLED con el mensaje Bytes scanned limit was exceeded. Abajo, el tope del workgroup: 1 GB por consulta.",
+    )
+    x0, cw, gap = 240, 420, 24
+    xs = [x0, x0 + cw + gap]
+    ys = [60, 214]
+    ch = 142
+    s.text(18, 28, "meses →", bold=True, col=GRIS)
+    s.text(18, 52, "↓ columnas", bold=True, col=GRIS)
+    for x, t in zip(xs, ("1 mes · WHERE mes = '2024-01'", "12 meses · sin filtro"), strict=True):
+        s.text(x + cw / 2, 40, t, bold=True, anchor="middle", maxw=cw)
+    filas = (("1 columna", "pickup_datetime"), ("7 columnas", "las del paso 8"))
+    for y, (a, b) in zip(ys, filas, strict=True):
+        s.text(18, y + ch / 2 - 2, a, bold=True, maxw=216)
+        s.text(18, y + ch / 2 + 28, b, col=GRIS, maxw=216)
+    celdas = (
+        (0, 0, "53 MB", ["una carpeta, 1.1 s"], False),
+        (0, 1, "641 MB", ["doce carpetas: 12 veces más"], False),
+        (1, 0, "141 MB", ["una carpeta, 1.4 s"], False),
+        (1, 1, "más de 1 GB", ["CANCELLED", "Bytes scanned limit was exceeded"], True),
+    )
+    for r, c, cifra, sub, mal in celdas:
+        x, y = xs[c], ys[r]
+        if mal:
+            s.rect(x, y, cw, ch, fill=T_ROJO, line=ROJO, lw=3)
+            s.text(x + cw / 2, y + 62, cifra, size=44, bold=True, col=ROJO, anchor="middle")
+            s.text(x + cw / 2, y + 96, sub[0], bold=True, col=ROJO, anchor="middle", maxw=cw - 16)
+            s.text(x + cw / 2, y + 124, sub[1], col=ROJO, anchor="middle", maxw=cw - 16)
+        else:
+            s.rect(x, y, cw, ch, fill=PANEL, line=GRIS)
+            s.text(x + cw / 2, y + 74, cifra, size=44, bold=True, anchor="middle")
+            s.text(x + cw / 2, y + 114, sub[0], col=GRIS, anchor="middle", maxw=cw - 16)
+    s.rect(6, 374, 1108, 56, fill=BLANCO, line=GRIS)
+    s.text(
+        560,
+        410,
+        "Tope del workgroup: 1 GB leído por consulta (1 073 741 824 bytes)",
+        bold=True,
+        anchor="middle",
+        maxw=1090,
+    )
+    s.guardar(ruta)
+
+
+# --------------------------------------------------------------------------- capturas (Dc6-7 a Dc6-9)
+CAPTURAS = Path(__file__).resolve().parent.parent / "capturas"
+
+
+def _captura(nombre, titulo, desc, png, crop, ancho_lienzo, anotar):
+    """Lienzo con un recorte de la captura. `crop` = (x, y, ancho, alto) en píxeles de la captura;
+    `anotar(s, m)` dibuja llamadas con m(x, y) = punto de la captura en el lienzo."""
+    from PIL import Image
+
+    cx, cy, cw, ch = crop
+    k = ancho_lienzo / cw
+    alto = round(ch * k)
+    ruta_png = CAPTURAS / png
+    iw, ih = Image.open(ruta_png).size
+    b64 = base64.b64encode(ruta_png.read_bytes()).decode("ascii")
+    s = S(nombre, titulo, desc, w=ancho_lienzo, h=alto)
+    s.o.append(
+        f'<clipPath id="rec"><rect x="0" y="0" width="{ancho_lienzo}" height="{alto}"/></clipPath>'
+        f'<image clip-path="url(#rec)" x="{-cx * k:.2f}" y="{-cy * k:.2f}" width="{iw * k:.2f}" '
+        f'height="{ih * k:.2f}" href="data:image/png;base64,{b64}"/>'
+    )
+
+    def m(x, y):
+        return round((x - cx) * k, 1), round((y - cy) * k, 1)
+
+    anotar(s, m, k)
+    s.guardar(CAPTURAS.parent / "diagramas" / f"{nombre}.svg")
+
+
+def _marco(s, m, k, x, y, w, h):
+    x1, y1 = m(x, y)
+    s.rect(x1, y1, round(w * k, 1), round(h * k, 1), fill="none", line=AMARILLO, lw=4, r=4)
+
+
+def _rotulo(s, cx, cy, t, anchor="middle"):
+    """Rótulo amarillo de 22 px con texto negro, centrado verticalmente en cy."""
+    w = ancho(t, 22, True) + 20
+    x = cx - w / 2 if anchor == "middle" else (cx if anchor == "start" else cx - w)
+    s.rect(round(x, 1), round(cy - 21, 1), round(w, 1), 42, fill=AMARILLO, line=None, r=5)
+    s.text(round(x + w / 2, 1), round(cy + 8, 1), t, bold=True, anchor="middle", col=INK)
+
+
+def dc6_7(ruta):
+    def anotar(s, m, k):
+        _marco(s, m, k, 1779, 321, 48, 32)  # interruptor de hola_airflow
+        _marco(s, m, k, 1832, 320, 34, 34)  # ▶ Trigger
+        ax, ay = m(1540, 416)
+        _rotulo(s, ax, ay, "Interruptor")
+        s.flecha(round(ax + 40, 1), round(ay - 22, 1), *m(1782, 356), col="y", lw=3)
+        bx, by = m(1790, 416)
+        _rotulo(s, bx, by, "▶ Trigger")
+        s.flecha(round(bx + 20, 1), round(by - 22, 1), *m(1850, 358), col="y", lw=3)
+
+    _captura(
+        "Dc6-7",
+        "Lista de DAGs de Airflow con el interruptor y el botón ▶ Trigger",
+        "Captura real de la lista de DAGs: hola_airflow, ingesta_mensual y pipeline_taxi. En la fila de hola_airflow, un recuadro amarillo marca el interruptor que activa o pausa el DAG "
+        "y otro marca el botón ▶ Trigger que lo lanza.",
+        "airflow_lista_dags.png",
+        (90, 200, 1910, 690),
+        1120,
+        anotar,
+    )
+
+
+def dc6_8(ruta):
+    def anotar(s, m, k):
+        _marco(s, m, k, 482, 322, 40, 84)  # tres tareas en verde
+        ax, ay = m(250, 255)
+        _rotulo(s, ax, ay, "Tres tareas en verde")
+        s.flecha(round(ax + 110, 1), round(ay + 16, 1), *m(478, 340), col="y", lw=3)
+        _marco(s, m, k, 680, 533, 90, 36)  # total 37 s
+        tx, ty = m(1250, 620)
+        _rotulo(s, tx, ty, "Corrida completa: 37 s")
+        s.flecha(round(tx - 125, 1), ty, *m(776, 568), col="y", lw=3)
+
+    _captura(
+        "Dc6-8",
+        "Cuadrícula de hola_airflow con las tres tareas en verde y 37 s en total",
+        "Captura real de la página de hola_airflow. A la izquierda, la cuadrícula con saludar, esperar y reintentar en verde, marcadas con un recuadro amarillo. "
+        "A la derecha, la gráfica de la última corrida, con un total de 37 segundos, también marcado.",
+        "airflow_hola_cuadricula.png",
+        (0, 0, 2000, 780),
+        1120,
+        anotar,
+    )
+
+
+def dc6_9(ruta):
+    def anotar(s, m, k):
+        _marco(s, m, k, 576, 370, 98, 52)  # intento 1 (rojo)
+        _marco(s, m, k, 676, 370, 98, 52)  # intento 2 (verde)
+        _marco(s, m, k, 570, 272, 76, 46)  # pestaña Logs
+        tx, ty = m(1250, 396)
+        _rotulo(s, tx, ty, "Task Tries: el 1 falló, el 2 pasó")
+        s.flecha(round(tx - 160, 1), ty, *m(782, 396), col="y", lw=3)
+        lx, ly = m(1000, 246)
+        _rotulo(s, lx, ly, "Logs: aquí se lee el error")
+        s.flecha(round(lx - 120, 1), round(ly + 18, 1), *m(650, 280), col="y", lw=3)
+
+    _captura(
+        "Dc6-9",
+        "Tarea reintentar de hola_airflow: la pestaña Logs y los intentos de Task Tries",
+        "Captura real de la tarea reintentar. Debajo de la pestaña Logs, Task Tries muestra el intento 1 con una cruz roja y el intento 2 con una marca verde; "
+        "el registro del intento 1 trae el error FALLO INTENCIONAL. Recuadros amarillos marcan la pestaña Logs y los dos intentos.",
+        "airflow_reintentar_intentos.png",
+        (0, 0, 2000, 880),
+        1000,
+        anotar,
+    )
+
+
+def _anota_ejecucion(duracion_x, duracion_w, duracion_txt, col_x, col_txt, desv=0):
+    def anotar(s, m, k):
+        _marco(s, m, k, duracion_x, 122 + desv, duracion_w, 58)  # Duration
+        _marco(s, m, k, 1048, 458 + desv, 116, 292)  # columna State
+        _marco(s, m, k, col_x, 256, 24, 146)  # primera columna de la cuadrícula
+        dx, dy = m(1560, 262)
+        _rotulo(s, dx, dy, duracion_txt)
+        s.flecha(round(dx + 40, 1), round(dy - 22, 1), *m(1590, 186), col="y", lw=3)
+        sx, sy = m(1100, 830)
+        _rotulo(s, sx, sy, "State: cinco en Success")
+        s.flecha(sx, round(sy - 22, 1), *m(1105, 756), col="y", lw=3)
+        cx, cy = m(250, 215)
+        _rotulo(s, cx, cy, col_txt)
+        s.flecha(round(cx + 60, 1), round(cy + 22, 1), *m(col_x - 4, 262), col="y", lw=3)
+
+    return anotar
+
+
+def dc6_10(ruta):
+    _captura(
+        "Dc6-10",
+        "Ejecución 2 de ingesta_mensual desde la interfaz: 16 segundos y cinco tareas en Success",
+        "Captura real de la ejecución 2 de ingesta_mensual lanzada desde la interfaz. Recuadros amarillos marcan la duración, 16 segundos, la columna State con las cinco tareas en Success "
+        "y la primera columna roja de la cuadrícula, que es la corrida automática fallida.",
+        "airflow_ejecucion2.png",
+        (0, 0, 2000, 880),
+        1000,
+        _anota_ejecucion(1508, 168, "Duración: 16 s", 498, "Corrida automática", desv=-9),
+    )
+
+
+def dc6_11(ruta):
+    _captura(
+        "Dc6-11",
+        "Ejecución 3 de ingesta_mensual con reprocesar: 2 minutos 4 segundos y cinco tareas en Success",
+        "Captura real de la ejecución 3 de ingesta_mensual, con reprocesar. Recuadros amarillos marcan la duración, 2 minutos 4 segundos, la columna State con las cinco tareas en Success "
+        "y la primera columna roja de la cuadrícula, que es la corrida automática fallida.",
+        "airflow_ejecucion3.png",
+        (0, 0, 2000, 880),
+        1000,
+        _anota_ejecucion(1530, 100, "Duración: 2 min 4 s", 478, "Corrida automática"),
+    )
+
+
 if __name__ == "__main__":
     base = Path(__file__).parent
     dc6_0(base / "Dc6-0.svg")
@@ -462,3 +733,10 @@ if __name__ == "__main__":
     dc6_2(base / "Dc6-2.svg")
     dc6_3(base / "Dc6-3.svg")
     dc6_4(base / "Dc6-4.svg")
+    dc6_5(base / "Dc6-5.svg")
+    dc6_6(base / "Dc6-6.svg")
+    dc6_7(base / "Dc6-7.svg")
+    dc6_8(base / "Dc6-8.svg")
+    dc6_9(base / "Dc6-9.svg")
+    dc6_10(base / "Dc6-10.svg")
+    dc6_11(base / "Dc6-11.svg")

@@ -37,10 +37,22 @@ cd ~/bigdata && jq -r '.admin' ~/.airflow-local/home/simple_auth_manager_passwor
 ## 3. Recorrido con `hola_airflow`
 
 1. En la lista de DAGs busca `hola_airflow`. Nace **en pausa**: activa el interruptor de la izquierda para despausarlo.
+
+   ![Lista de DAGs: hola_airflow en pausa, con el interruptor y el botón ▶ Trigger a la derecha de su fila.](deck/capturas/airflow_lista_dags.png)
 2. Haz clic en el nombre y luego en el botón de disparar (**Trigger**). En el formulario aparece el parámetro `mes` con el valor `2024-02`; puedes cambiarlo (el formulario exige el formato AAAA-MM). Confirma.
 3. Abre la vista de **cuadrícula** (Grid): cada columna es una corrida y cada cuadro es una tarea de esa corrida. La corrida completa tarda cerca de 40 segundos (37 s en el ensayo).
+
+   ![Página de hola_airflow: la cuadrícula con saludar, esperar y reintentar en verde, y la gráfica de la última corrida, 37 s.](deck/capturas/airflow_hola_cuadricula.png)
 4. Haz clic en un cuadro y abre la pestaña de **registro** (Logs). Ahí está lo que imprimió la tarea: en `saludar` verás «Mes recibido: 2024-02». En `reintentar` verás dos intentos (pestaña de intentos, Task Tries): el 1 en rojo, con el error «FALLO INTENCIONAL en el intento 1…» (la última línea del error apunta a `hola_airflow.py`, línea 81), y el 2 en verde, con «Intento 2: esta vez sí funciona…».
+
+   ![Tarea reintentar: en Task Tries, el intento 1 en rojo con el error FALLO INTENCIONAL y el intento 2 en verde.](deck/capturas/airflow_reintentar_intentos.png)
 5. Para volver a ejecutar una tarea (o un DAG completo), selecciónala y pulsa **Clear**: Airflow la vuelve a poner en cola y la ejecuta de nuevo.
+
+Con el DAG real, `ingesta_mensual`, así se ven las ejecuciones 2 y 3 de febrero en el ensayo. La primera columna roja de la cuadrícula es una corrida que Airflow lanzó solo al activar el DAG, cuando su calendario mensual todavía estaba activo: falló porque el clima de noviembre de 2026 no existe. Hoy el calendario está comentado y esa corrida no se repite.
+
+![Ejecución 2 de ingesta_mensual desde la interfaz: 16 segundos y las cinco tareas en Success.](deck/capturas/airflow_ejecucion2.png)
+
+![Ejecución 3 de ingesta_mensual con reprocesar: 2 minutos 4 segundos y las cinco tareas en Success.](deck/capturas/airflow_ejecucion3.png)
 
 Qué significa cada color del cuadro:
 
