@@ -11,12 +11,12 @@ Cada bloque empieza con `cd ~/bigdata` para que funcione sin importar dónde est
 ```bash
 cd ~/bigdata && bash scripts/airflow-local.sh up
 ```
-Equivale a `make airflow-local`. Si quieres ver qué haría el `make` sin ejecutarlo: `make -n airflow-local` imprime `bash scripts/airflow-local.sh up`. La primera vez instala Airflow 3.3.2 y tarda unos minutos; las siguientes es mucho más rápido. Al terminar imprime el usuario, la contraseña y la dirección de la interfaz.
+Equivale a `make airflow-local`. Si quieres ver qué haría el `make` sin ejecutarlo: `make -n airflow-local` imprime `bash scripts/airflow-local.sh up`. La primera vez instala Airflow 3.3.2 con Python 3.12 y en el Code Editor tardó 59 segundos; las siguientes es más rápido. Al terminar imprime el usuario, la contraseña y la dirección de la interfaz.
 
 ```bash
 cd ~/bigdata && make airflow-local-estado
 ```
-Muestra la salud (`metadatabase`, `scheduler`, `triggerer` y `dag_processor` deben decir `healthy`) y la memoria. Si Airflow no responde, dice «Airflow no responde en 8080».
+Muestra la salud (`metadatabase`, `scheduler`, `triggerer` y `dag_processor` deben decir `healthy`) y la memoria. Tras arrancar quedan disponibles unos 3.8 GB de 7.8 GB. Ojo: la cifra «Airflow ... MB» que imprime el script suma memoria compartida; no es lo que Airflow consume de verdad. Si Airflow no responde, dice «Airflow no responde en 8080».
 
 ```bash
 cd ~/bigdata && make airflow-local-down
@@ -38,8 +38,8 @@ cd ~/bigdata && jq -r '.admin' ~/.airflow-local/home/simple_auth_manager_passwor
 
 1. En la lista de DAGs busca `hola_airflow`. Nace **en pausa**: activa el interruptor de la izquierda para despausarlo.
 2. Haz clic en el nombre y luego en el botón de disparar (**Trigger**). En el formulario aparece el parámetro `mes` con el valor `2024-02`; puedes cambiarlo (el formulario exige el formato AAAA-MM). Confirma.
-3. Abre la vista de **cuadrícula** (Grid): cada columna es una corrida y cada cuadro es una tarea de esa corrida. La corrida completa tarda cerca de 30 segundos.
-4. Haz clic en un cuadro y abre la pestaña de **registro** (Logs). Ahí está lo que imprimió la tarea: en `saludar` verás «Mes recibido: 2024-02». En `reintentar` verás dos intentos: el primero con el error intencional y el segundo exitoso.
+3. Abre la vista de **cuadrícula** (Grid): cada columna es una corrida y cada cuadro es una tarea de esa corrida. La corrida completa tarda cerca de 40 segundos (37 s en el ensayo).
+4. Haz clic en un cuadro y abre la pestaña de **registro** (Logs). Ahí está lo que imprimió la tarea: en `saludar` verás «Mes recibido: 2024-02». En `reintentar` verás dos intentos (pestaña de intentos, Task Tries): el 1 en rojo, con el error «FALLO INTENCIONAL en el intento 1…» (la última línea del error apunta a `hola_airflow.py`, línea 81), y el 2 en verde, con «Intento 2: esta vez sí funciona…».
 5. Para volver a ejecutar una tarea (o un DAG completo), selecciónala y pulsa **Clear**: Airflow la vuelve a poner en cola y la ejecuta de nuevo.
 
 Qué significa cada color del cuadro:
@@ -97,7 +97,7 @@ Ejecuta **el DAG completo** en orden desde la terminal, incluidos los reintentos
 ## 5. Mini reto: rompe y arregla
 
 1. Abre `airflow/dags/hola_airflow.py` y busca la línea `FALLAR_SIEMPRE = False` (cerca del inicio).
-2. Cámbiala a `FALLAR_SIEMPRE = True` y guarda. Espera unos segundos o corre `airflow dags reserialize`.
+2. Cámbiala a `FALLAR_SIEMPRE = True` y guarda. La interfaz toma el cambio casi de inmediato; si no, corre `airflow dags reserialize`.
 3. Lanza el DAG. `reintentar` pasa por `up_for_retry` y termina en `failed` (rojo). Abre su registro: el mensaje dice qué línea cambiar.
 4. Regresa la línea a `False`, guarda, selecciona `reintentar` y pulsa **Clear**. Ahora debe quedar en `success`.
 
@@ -107,6 +107,7 @@ Ejecuta **el DAG completo** en orden desde la terminal, incluidos los reintentos
 |---|---|---|
 | El DAG no aparece en la lista | Airflow tarda unos minutos en leer archivos nuevos, o el archivo tiene un error | `cd ~/bigdata && airflow dags reserialize`, luego `airflow dags list-import-errors` para ver el error de Python |
 | La página no carga | Airflow o el servidor web no están arriba, o la dirección no lleva la ruta completa | `cd ~/bigdata && make airflow-local-estado`; si no responde, `make airflow-local`; usa la dirección de la línea `UI:` (termina en `/codeeditor/default/ports/8080/`) |
-| Se queda sin memoria (la terminal se cierra o todo va lentísimo) | Airflow y Spark juntos usan mucha memoria del espacio | `cd ~/bigdata && make airflow-local-down`, cierra notebooks que no uses y vuelve a encender |
+| Se queda sin memoria (la terminal se cierra o todo va lentísimo) | Airflow y Spark juntos no caben: durante `ingesta_mensual` la memoria disponible bajó hasta unos 700 MB | `cd ~/bigdata && make airflow-local-down`, cierra los notebooks con Spark (Kernel > Shut Down) antes de lanzar el DAG y vuelve a encender |
 | `database is locked` | Dos procesos escriben a la vez en la base de datos de Airflow (SQLite), por ejemplo un comando de terminal mientras corre una tarea | Espera a que termine la tarea y repite el comando; si persiste, apaga con `make airflow-local-down` y enciende de nuevo |
+| En el registro de cada tarea aparece un `Traceback ... No module named 'pendulum'` | Airflow comprueba si el Python del entorno del curso tiene `pendulum` y lo anuncia con ruido | Nada: es inofensivo, la tarea sigue y termina bien. Fíjate en el estado del cuadro, no en ese texto |
 | La tarea queda en `queued` | Airflow no está procesando: el planificador (scheduler) cayó o no hay espacio para ejecutar | `cd ~/bigdata && make airflow-local-estado` y mira que `scheduler` diga `healthy`; si no, apaga y enciende |
