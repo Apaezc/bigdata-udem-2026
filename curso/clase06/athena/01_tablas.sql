@@ -31,7 +31,7 @@
 --     bronze/clima/mes=AAAA-MM/open_meteo_AAAA-MM.json          clima, JSON original
 --     bronze/taxi_zones/taxi_zone_lookup.csv                    zonas, CSV original
 --   Silver y gold de dev (si ya los construiste con make): dev/silver/ y dev/gold/.
---   OJO: si ya ejecutaste la ingesta nueva de la clase 5 (la que escribe lote=...), esos
+--   OJO: si tu bucket se llenó con la versión nueva de make muestra (la que escribe lote=...), esos
 --   archivos crudos se movieron a bronze/_crudo/<fuente>/... (mismos archivos, mismos bytes).
 --   En ese caso cambia en las tres tablas de bronze "/bronze/<fuente>/" por
 --   "/bronze/_crudo/<fuente>/" en LOCATION y en storage.location.template. No apuntes la tabla

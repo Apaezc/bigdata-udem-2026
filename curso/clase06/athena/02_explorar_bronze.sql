@@ -2,9 +2,17 @@
 -- CLASE 6 · Athena sobre el lake · 02 · Explorar bronze (demo del instructor)
 -- =====================================================================
 --
+-- QUÉ DATOS LEE ESTE ARCHIVO
+--   Athena lee el bronze del año completo (239 470 448 viajes) que `make muestra` dejó en TU
+--   bucket de S3 (bigdata-lake-<CUENTA>-us-east-2/bronze/) en la clase 4. No lee lo que
+--   escriben tus funciones de ingesta: esas escriben en el disco del Code Editor
+--   (~/datos_clase05/bronze_alumno, con solo 1 000 viajes), adonde Athena no llega. Los
+--   archivos son los mismos originales de la TLC que trae tu ingesta; aquí se miran completos.
+--   En la clase 7 tus funciones correrán en Glue y escribirán tu propio bronze en S3.
+--
 -- PROBLEMA
---   La ingesta de la clase 5 copió los archivos tal cual llegaron. "Tal cual" no significa
---   "bueno": antes de construir silver hay que saber qué trae bronze y qué hay que limpiar.
+--   La ingesta de la clase 5 copia los archivos de la fuente tal cual llegaron. "Tal cual" no
+--   significa "bueno": antes de construir silver hay que saber qué trae bronze y qué hay que limpiar.
 --   Esta demo hace seis preguntas a los datos, en orden, y al final choca contra el límite de
 --   1 GB del workgroup para ver por qué conviene filtrar por mes.
 --

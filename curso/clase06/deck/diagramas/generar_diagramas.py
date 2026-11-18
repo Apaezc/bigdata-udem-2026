@@ -1,4 +1,4 @@
-"""Genera los diagramas de la clase 6 (Dc6-0 a Dc6-11; Dc6-7 a Dc6-11 envuelven capturas reales de Airflow).
+"""Genera los diagramas de la clase 6 (Dc6-0 a Dc6-12; Dc6-7 a Dc6-11 envuelven capturas reales de Airflow).
 
 Uso:  cd /Users/diegomanzur/Documents/udem/bigdata/bigdata-udem-2026/curso/clase06/deck/diagramas && python3 generar_diagramas.py
 
@@ -726,6 +726,108 @@ def dc6_11(ruta):
     )
 
 
+# --------------------------------------------------------------------------- Dc6-12
+def dc6_12(ruta):
+    s = S(
+        "Dc6-12",
+        "Qué datos leemos hoy y dónde se guardan",
+        "Tres carriles de izquierda a derecha, con un rótulo común a la izquierda: los mismos archivos de la TLC y Open-Meteo. "
+        "Clase 4: make muestra, un job de Glue, descargó el año a S3 bronze, 239 470 448 viajes, y hoy lo lee Athena. "
+        "Hoy: tus funciones y el DAG en el Code Editor escriben en el disco del Code Editor, bronze_alumno con 1 000 viajes, silver con 1 000 filas y gold con 281; "
+        "una flecha punteada va a la tabla de control de Snowflake, y un rótulo dice que nada de eso llega a S3. "
+        "Clase 7, en línea punteada: tus funciones en Glue escriben bronze, silver y gold del mes completo en S3, y Athena lee tu bronze y lo concilia con la tabla de control.",
+    )
+    s.rect(6, 7, 150, 426, fill=PANEL, line=GRIS)
+    s.text(81, 160, "Las fuentes:", bold=True, anchor="middle", maxw=140)
+    s.lineas(
+        81,
+        200,
+        ["los mismos", "archivos de", "la TLC y", "Open-Meteo"],
+        anchor="middle",
+        maxw=140,
+    )
+    carriles = (
+        # (y, alto, título, discontinuo)
+        (7, 112, "Clase 4 · ya hecho", None),
+        (125, 190, "Hoy · clases 5 y 6", None),
+        (321, 112, "Clase 7 · la próxima", "9 6"),
+    )
+    for (y, h, tit, dash), colt in zip(carriles, (INK, INK, GRIS), strict=True):
+        s.rect(
+            164,
+            y,
+            950,
+            h,
+            fill=BLANCO,
+            line=(INK if y == 125 else GRIS),
+            lw=(2.5 if y == 125 else 1.5),
+            dash=dash,
+        )
+        s.text(180, y + 31, tit, bold=True, col=colt, maxw=420)
+        s.flecha(158, y + 74, 188, y + 74, col="g", lw=3)
+    X = (190, 460, 800)
+    Wd = (230, 300, 300)
+    # Carril a: clase 4
+    ya = 7 + 42
+    cajas_a = (
+        (["make muestra", "(job de Glue)"], PANEL, GRIS, INK),
+        (["S3: bronze del año", "239 470 448 viajes"], BRONZE, BRONZE, BLANCO),
+        (["Athena", "hoy lee este bronze"], PANEL, GRIS, INK),
+    )
+    for x, w, (ts, f, borde, c) in zip(X, Wd, cajas_a, strict=True):
+        s.caja(x, ya, w, 62, ts, fill=f, line=borde, col=c)
+    for x1, x2 in ((420, 458), (760, 798)):
+        s.flecha(x1, ya + 31, x2, ya + 31, col="g", lw=3)
+    # Carril b: hoy
+    yb = 125 + 40
+    s.caja(190, yb, 230, 68, ["Tus funciones y DAG", "(Code Editor)"], fill=PANEL, line=INK, lw=2)
+    s.flecha(420, yb + 34, 438, yb + 34, col="g", lw=3)
+    discos = (
+        (440, "bronze_alumno", "viajes: 1 000", BRONZE),
+        (675, "silver_alumno", "1 000 filas", SILVER),
+        (910, "gold_alumno", "281 filas", GOLD),
+    )
+    for x, n, f, c in discos:
+        s.caja(x, yb, 190, 68, [n, f], fill=c, line=c, col=BLANCO, mono=True)
+    for x1, x2 in ((630, 673), (865, 908)):
+        s.flecha(x1, yb + 34, x2, yb + 34, col="g", lw=3)
+    s.linea(440, yb + 80, 1100, yb + 80, col=ROJO, lw=3)
+    s.text(
+        770,
+        yb + 118,
+        "Disco del Code Editor: no llega a S3",
+        bold=True,
+        col=ROJO,
+        anchor="middle",
+        maxw=640,
+    )
+    s.caja(
+        190,
+        yb + 96,
+        230,
+        46,
+        ["Control en Snowflake"],
+        fill=T_ACENTO,
+        line=ACENTO,
+        lw=2.5,
+        col=ACENTO,
+    )
+    s.flecha(240, yb + 70, 240, yb + 94, col="a", dash="7 6", doble=True, lw=2.5)
+    s.text(256, yb + 87, "consulta y registra", col=ACENTO, maxw=200)
+    # Carril c: clase 7
+    yc = 321 + 42
+    cajas_c = (
+        (["Tus funciones", "corren en Glue"], BLANCO, GRIS, GRIS),
+        (["S3: bronze, silver, gold", "del mes completo"], BLANCO, GRIS, GRIS),
+        (["Athena lee tu bronze", "y concilia con el control"], BLANCO, GRIS, GRIS),
+    )
+    for x, w, (ts, f, borde, c) in zip(X, Wd, cajas_c, strict=True):
+        s.caja(x, yc, w, 62, ts, fill=f, line=borde, col=c, dash="9 6", subcol=GRIS)
+    for x1, x2 in ((420, 458), (760, 798)):
+        s.flecha(x1, yc + 31, x2, yc + 31, col="g", lw=3, dash="9 6")
+    s.guardar(ruta)
+
+
 if __name__ == "__main__":
     base = Path(__file__).parent
     dc6_0(base / "Dc6-0.svg")
@@ -740,3 +842,4 @@ if __name__ == "__main__":
     dc6_9(base / "Dc6-9.svg")
     dc6_10(base / "Dc6-10.svg")
     dc6_11(base / "Dc6-11.svg")
+    dc6_12(base / "Dc6-12.svg")

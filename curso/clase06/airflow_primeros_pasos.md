@@ -67,6 +67,10 @@ Qué significa cada color del cuadro:
 
 Los colores pueden variar un poco según el tema de la interfaz; el nombre del estado aparece al pasar el cursor sobre el cuadro.
 
+## Dónde quedan los datos de `ingesta_mensual`
+
+Hoy el DAG escribe en el disco del Code Editor, no en S3: `~/datos_clase05/bronze_alumno` (zonas y clima completos; viajes, solo 1 000 filas en modo de prueba), `~/datos_clase05/silver_alumno` (1 000 filas) y `~/datos_clase05/gold_alumno` (281 filas). Es lo que cabe en el Code Editor con Airflow encendido, y alcanza para practicar el orden, los reintentos y el no duplicar. Athena no lee esas carpetas: lee el bronze del año completo que `make muestra` dejó en tu bucket de S3 en la clase 4, con los mismos archivos de la TLC que trae tu ingesta. Lo único que sale del Code Editor son los registros de la tabla de control en Snowflake. En la clase 7 las mismas funciones corren en Glue y escriben bronze, silver y gold en S3.
+
 ## 4. Los comandos de la clase
 
 Primero prepara la terminal. Esto se hace una vez por terminal y requiere que `make airflow-local` ya haya instalado Airflow:
