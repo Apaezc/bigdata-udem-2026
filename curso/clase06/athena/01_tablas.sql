@@ -21,7 +21,7 @@
 --
 -- CÓMO REEMPLAZAR EL BUCKET (obligatorio)
 --   El bucket del lake lleva el número de tu cuenta: bigdata-lake-<CUENTA>-us-east-2.
---   Cada LOCATION de este archivo usa el marcador <CUENTA>. Antes de ejecutar, reemplázalo por
+--   Cada LOCATION de este archivo trae un marcador en lugar del número. Antes de ejecutar, reemplázalo por
 --   tu número de cuenta de 12 dígitos (el mismo de `aws sts get-caller-identity`). En el editor
 --   de Athena sirve Ctrl+F / Cmd+F > Reemplazar todo.
 --
@@ -106,11 +106,8 @@ CREATE EXTERNAL TABLE IF NOT EXISTS bigdata_lake.bronze_clima (
   latitude   double,
   longitude  double,
   timezone   string,
-  daily      struct<
-               time:                array<string>,
-               precipitation_sum:   array<double>,
-               temperature_2m_mean: array<double>
-             >
+  -- El tipo struct va en una sola línea y sin espacios: la consola de Athena no acepta saltos dentro de < >.
+  daily      struct<time:array<string>,precipitation_sum:array<double>,temperature_2m_mean:array<double>>
 )
 PARTITIONED BY (mes string)
 ROW FORMAT SERDE 'org.openx.data.jsonserde.JsonSerDe'
