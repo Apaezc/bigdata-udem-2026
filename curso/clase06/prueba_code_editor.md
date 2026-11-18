@@ -15,7 +15,7 @@ Si la versión no es 3.12, ejecuta `cd ~/bigdata && make reparar-entorno` y vuel
 
 **Pega:** la versión de Python.
 
-## 1. Athena sobre tu bronze (slides 9 a 16)
+## 1. Athena sobre tu bronze (slides 11 a 22)
 
 ```bash
 cd ~/bigdata && CUENTA=$(aws sts get-caller-identity --query Account --output text) && aws s3 ls s3://bigdata-lake-$CUENTA-us-east-2/bronze/
@@ -26,7 +26,7 @@ En la consola de Athena (región us-east-2, workgroup `bigdata-wg`), pega y ejec
 
 **Pega:** lo que mostró `aws s3 ls`; y para cada consulta, el resultado, el tiempo y los *Data scanned*. Para el paso 8B, el estado y el mensaje de error.
 
-## 2. Lab de silver y gold (slides 19 a 21)
+## 2. Lab de silver y gold (slides 27 a 32)
 
 ```bash
 mkdir -p ~/clase06_mis_notebooks && cp ~/bigdata/curso/clase06/lab_silver_gold_solucion.ipynb ~/clase06_mis_notebooks/
@@ -36,7 +36,7 @@ Abre la copia, elige el kernel `.venv` y ejecuta todas las celdas en orden (Run 
 
 **Pega:** las líneas de cada prueba (OK, PENDIENTE o REVISAR), la salida de las Celdas 9, 10 y 25, y cuánto tardó el notebook completo. Al terminar, cierra Spark con la Celda 26 y apaga el kernel (Kernel > Shut Down).
 
-## 3. Encender Airflow dev y el primer vuelo (slides 22, 27 y 28)
+## 3. Encender Airflow dev y el primer vuelo (slides 33, 41 y 42 a 50)
 
 ```bash
 cd ~/bigdata && make -n airflow-local
@@ -48,7 +48,7 @@ Abre la interfaz en la ruta que imprime el comando (`/codeeditor/default/ports/8
 
 **Pega:** el tiempo del arranque, la salida de `airflow-local-estado`, y si `reintentar` se vio naranja (reintento) y luego verde. Después cambia `FALLAR_SIEMPRE = True` en `airflow/dags/hola_airflow.py`, guarda, espera unos segundos y lanza otra vez. **Pega:** cuántos segundos tardó la interfaz en tomar el cambio y el mensaje de error del registro. Vuelve a dejar `FALLAR_SIEMPRE = False`.
 
-## 4. El DAG `ingesta_mensual` con funciones resueltas (slides 29 a 36)
+## 4. El DAG `ingesta_mensual` con funciones resueltas (slides 51 a 60)
 
 Para probar sin escribir el lab, se usa la solución de la ingesta guardada en el bucket de la cuenta de prueba. **Esto cambia un archivo del repositorio: el paso 5 lo restaura.**
 
