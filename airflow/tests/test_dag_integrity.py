@@ -140,7 +140,7 @@ def test_ingesta_mensual_params_y_calendario(dag_mensual):
     assert dag_mensual.params["mes"] == ""  # vacío: las tareas exigen el mes al disparar a mano
     assert dag_mensual.catchup is False
     assert dag_mensual.is_paused_upon_creation is True
-    assert type(dag_mensual.timetable).__name__ != "NullTimetable"  # calendario mensual declarado
+    assert type(dag_mensual.timetable).__name__ == "NullTimetable"  # en clase se dispara a mano
 
 
 def test_ingesta_mensual_reintenta_una_vez_con_espera_corta(dag_mensual):

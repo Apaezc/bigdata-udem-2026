@@ -18,8 +18,10 @@ Cómo se lanza (es un DAG de dev, en el Airflow del Code Editor; no hay corridas
 - Parámetro `mes` (AAAA-MM): obligatorio al disparar a mano.
 - Parámetro `reprocesar` (falso por defecto): verdadero ignora la tabla de control y crea un lote
   nuevo (la historia anterior no se borra).
-- El DAG nace en pausa y con catchup=False: el calendario mensual solo está declarado. Una
-  corrida programada procesaría el mes que acaba de terminar; las del curso se disparan a mano.
+- Sin calendario activo: en clase cada corrida se dispara a mano con su mes. La línea del
+  calendario mensual queda comentada en el DAG para que se vea cómo se programaría; si estuviera
+  activa, al encender el DAG Airflow lanzaría solo la corrida del mes en curso y el clima de un
+  mes que no ha terminado falla.
 
 Datos de prueba (para que cada estudiante pueda repetir la clase sin ensuciar nada real)
 - Las tablas se llaman prueba_clima, prueba_taxi_zones, prueba_fhvhv, prueba_fhvhv_trips (silver)
@@ -298,7 +300,9 @@ def tarea_gold(repo_src, base_bronze, base_silver, base_gold, mes, reprocesar, t
 with DAG(
     dag_id="ingesta_mensual",
     description="Ingesta del alumno (zonas, clima, viajes) y silver/gold, mes a mes",
-    schedule="@monthly",
+    # Para correr solo el día 1 de cada mes a medianoche, cambia la línea de abajo por esta:
+    # schedule="0 0 1 * *",
+    schedule=None,
     start_date=datetime(2024, 1, 1),
     catchup=False,
     is_paused_upon_creation=True,

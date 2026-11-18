@@ -60,7 +60,7 @@ cd ~/bigdata && .venv/bin/python -m pytest -q tests/test_ingesta_alumno.py
 Borra los registros de prueba de la tabla de control, exporta las variables de Airflow y ejecuta los comandos a mano:
 
 ```bash
-cd ~/bigdata && .venv/bin/python -c "from pipeline.watermark import borrar_registros_de_prueba as b; [print(t, b(t)) for t in ['prueba_taxi_zones','prueba_clima','prueba_fhvhv','prueba_fhvhv_trips','prueba_daily_zone_metrics']]"
+cd ~/bigdata && PYTHONPATH=src .venv/bin/python -c "from pipeline.watermark import borrar_registros_de_prueba as b; [print(t, b(t)) for t in ['prueba_taxi_zones','prueba_clima','prueba_fhvhv','prueba_fhvhv_trips','prueba_daily_zone_metrics']]"
 export AIRFLOW_HOME="$HOME/.airflow-local/home" PATH="$HOME/.airflow-local/venv/bin:$PATH" AIRFLOW__CORE__DAGS_FOLDER="$HOME/bigdata/airflow/dags" PYTHONPATH="$HOME/bigdata/airflow" AIRFLOW__CORE__LOAD_EXAMPLES=false
 cd ~/bigdata && airflow dags reserialize && airflow dags list && airflow dags list-import-errors
 cd ~/bigdata && time airflow tasks test ingesta_mensual ingestar_zonas 2024-02-03 --task-params '{"mes": "2024-02", "reprocesar": false}'
