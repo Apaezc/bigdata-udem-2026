@@ -34,9 +34,15 @@ def _fuente(bold, mono, size):
     clave = (bold, mono, size)
     if clave not in _F:
         if mono:
-            _F[clave] = ImageFont.truetype("/System/Library/Fonts/Menlo.ttc", size, index=1 if bold else 0)
+            _F[clave] = ImageFont.truetype(
+                "/System/Library/Fonts/Menlo.ttc", size, index=1 if bold else 0
+            )
         else:
-            ruta = "/System/Library/Fonts/Supplemental/Arial Bold.ttf" if bold else "/System/Library/Fonts/Supplemental/Arial.ttf"
+            ruta = (
+                "/System/Library/Fonts/Supplemental/Arial Bold.ttf"
+                if bold
+                else "/System/Library/Fonts/Supplemental/Arial.ttf"
+            )
             _F[clave] = ImageFont.truetype(ruta, size)
     return _F[clave]
 
@@ -67,7 +73,9 @@ class S:
     def rect(s, x, y, w, h, fill=PANEL, line=None, lw=1.5, r=6, dash=None):
         st = f' stroke="{line}" stroke-width="{lw}"' if line else ' stroke="none"'
         d = f' stroke-dasharray="{dash}"' if dash else ""
-        s.o.append(f'<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="{r}" fill="{fill}"{st}{d}/>')
+        s.o.append(
+            f'<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="{r}" fill="{fill}"{st}{d}/>'
+        )
         if x < 0 or y < 0 or x + w > W or y + h > H:
             s.avisos.append(f"rect fuera del lienzo ({x},{y},{w},{h})")
 
@@ -91,7 +99,22 @@ class S:
             s.text(x, y + i * PASO, t, **kw)
         return y + (len(ts) - 1) * PASO
 
-    def caja(s, x, y, w, h, ts, fill=PANEL, line=GRIS, lw=1.5, col=INK, bold=(True,), mono=False, dash=None, subcol=GRIS):
+    def caja(
+        s,
+        x,
+        y,
+        w,
+        h,
+        ts,
+        fill=PANEL,
+        line=GRIS,
+        lw=1.5,
+        col=INK,
+        bold=(True,),
+        mono=False,
+        dash=None,
+        subcol=GRIS,
+    ):
         """Caja con texto centrado; la primera línea va en negrita y las demás, en `subcol`."""
         s.rect(x, y, w, h, fill=fill, line=line, lw=lw, dash=dash)
         n = len(ts)
@@ -100,7 +123,14 @@ class S:
             if i == 0:
                 s.text(x + w / 2, y0, t, bold=True, col=col, anchor="middle", mono=mono, maxw=w - 8)
             else:
-                s.text(x + w / 2, y0 + i * PASO, t, col=(subcol if col == INK else col), anchor="middle", maxw=w - 8)
+                s.text(
+                    x + w / 2,
+                    y0 + i * PASO,
+                    t,
+                    col=(subcol if col == INK else col),
+                    anchor="middle",
+                    maxw=w - 8,
+                )
 
     def flecha(s, x1, y1, x2, y2, col="g", lw=2.5, doble=False):
         c = MARCAS[col]
@@ -112,7 +142,9 @@ class S:
 
     def linea(s, x1, y1, x2, y2, col=GRIS, lw=2.5, dash=None):
         d = f' stroke-dasharray="{dash}"' if dash else ""
-        s.o.append(f'<line x1="{x1}" y1="{y1}" x2="{x2}" y2="{y2}" stroke="{col}" stroke-width="{lw}"{d}/>')
+        s.o.append(
+            f'<line x1="{x1}" y1="{y1}" x2="{x2}" y2="{y2}" stroke="{col}" stroke-width="{lw}"{d}/>'
+        )
 
     def guardar(s, ruta):
         Path(ruta).write_text("\n".join(s.o + ["</svg>"]) + "\n", encoding="utf-8")
@@ -140,7 +172,9 @@ def dc6_0(ruta):
     s.rect(248, 104, 648, 262, fill="none", line=ACENTO, lw=2.5, dash="9 6")
     s.text(884, 134, "DAG ingesta_mensual de Airflow", bold=True, col=ACENTO, anchor="end")
     # fuentes
-    for i, (a, b) in enumerate((("Viajes TLC", "Parquet"), ("Zonas TLC", "CSV"), ("Clima Open-Meteo", "JSON"))):
+    for i, (a, b) in enumerate(
+        (("Viajes TLC", "Parquet"), ("Zonas TLC", "CSV"), ("Clima Open-Meteo", "JSON"))
+    ):
         y = 128 + i * 74
         s.caja(8, y, 216, 64, [a, b])
         s.flecha(226, y + 32, 260, y + 32)
@@ -233,7 +267,15 @@ def dc6_2(ruta):
     s.rect(218, 6, 250, 42, fill=PANEL, line=GRIS, r=21)
     s.text(343, 35, "reprocesar: falso", bold=True, anchor="middle", maxw=240)
     s.rect(540, 6, 572, 46, fill=T_ACENTO, line=ACENTO, lw=2.5)
-    s.text(826, 37, "Tabla de control · BIGDATA.CONTROL.WATERMARK", bold=True, col=ACENTO, anchor="middle", maxw=560)
+    s.text(
+        826,
+        37,
+        "Tabla de control · BIGDATA.CONTROL.WATERMARK",
+        bold=True,
+        col=ACENTO,
+        anchor="middle",
+        maxw=560,
+    )
     # bus de consulta y registro
     xs = [17 + i * 224 for i in range(5)]
     cx = [x + 95 for x in xs]
@@ -245,7 +287,7 @@ def dc6_2(ruta):
     # marco
     s.rect(6, 102, 1108, 332, fill="none", line=ACENTO, lw=2.5, dash="9 6")
     nombres = ["ingestar_zonas", "ingestar_clima", "ingestar_viajes", "silver", "gold"]
-    for i, (x, n) in enumerate(zip(xs, nombres)):
+    for i, (x, n) in enumerate(zip(xs, nombres, strict=True)):
         if i < 3:
             s.caja(x, 146, 190, 80, [n])
         elif i == 3:
@@ -254,11 +296,20 @@ def dc6_2(ruta):
             s.caja(x, 146, 190, 80, [n], fill=GOLD, line=GOLD, col=BLANCO)
         if i < 4:
             s.flecha(x + 192, 186, xs[i + 1] - 2, 186)
-    firmas = [["(reprocesar)"], ["(mes, reprocesar)"], ["(mes, reprocesar,", "limite_filas=1000)"], ["pipeline.silver"], ["pipeline.gold"]]
-    for c, f in zip(cx, firmas):
+    firmas = [
+        ["(reprocesar)"],
+        ["(mes, reprocesar)"],
+        ["(mes, reprocesar,", "limite_filas=1000)"],
+        ["pipeline.silver"],
+        ["pipeline.gold"],
+    ]
+    for c, f in zip(cx, firmas, strict=True):
         s.lineas(c, 262, f, anchor="middle", col=GRIS, maxw=214)
     # corchetes
-    for x1, x2, t in ((xs[0], xs[2] + 190, "tus funciones de ingesta_alumno.py"), (xs[3], xs[4] + 190, "código del repositorio")):
+    for x1, x2, t in (
+        (xs[0], xs[2] + 190, "tus funciones de ingesta_alumno.py"),
+        (xs[3], xs[4] + 190, "código del repositorio"),
+    ):
         s.linea(x1, 330, x2, 330, col=GRIS, lw=2)
         s.linea(x1, 320, x1, 330, col=GRIS, lw=2)
         s.linea(x2, 320, x2, 330, col=GRIS, lw=2)
@@ -278,7 +329,7 @@ def dc6_3(ruta):
         "una tarea que falla a mitad deja un lote sin marcador y ninguna fila en la tabla.",
     )
     cols = [(4, 336), (352, 396), (764, 352)]
-    for (x, w), t in zip(cols, ("Silver y gold", "Bronze", "Tabla de control")):
+    for (x, w), t in zip(cols, ("Silver y gold", "Bronze", "Tabla de control"), strict=True):
         s.rect(x, 4, w, 44, fill=INK, line=None, r=6)
         s.text(x + w / 2, 34, t, bold=True, col=BLANCO, anchor="middle", maxw=w - 10)
     # 1. silver y gold
@@ -288,14 +339,30 @@ def dc6_3(ruta):
     s.text(56, 144, "sobrescribe, no suma", bold=True, maxw=270)
     s.rect(14, 172, 316, 42, fill=T_SILVER, line=SILVER, lw=3)
     s.text(172, 201, "pickup_date=2024-02-05", mono=True, bold=True, anchor="middle", maxw=306)
-    s.lineas(172, 256, ["gold hace lo mismo con", "la carpeta mes=2024-02"], anchor="middle", col=GRIS, maxw=316)
+    s.lineas(
+        172,
+        256,
+        ["gold hace lo mismo con", "la carpeta mes=2024-02"],
+        anchor="middle",
+        col=GRIS,
+        maxw=316,
+    )
     # 2. bronze
     for i in range(3):
         y = 62 + i * 46
         s.rect(366, y, 130, 38, fill=T_BRONZE, line=BRONZE, lw=2)
         s.text(431, y + 27, "lote=…", mono=True, anchor="middle", maxw=120)
     s.rect(506, 62 + 2 * 46, 226, 38, fill=BRONZE, line=BRONZE)
-    s.text(619, 62 + 2 * 46 + 27, "_LOTE_COMPLETO", mono=True, bold=True, col=BLANCO, anchor="middle", maxw=216)
+    s.text(
+        619,
+        62 + 2 * 46 + 27,
+        "_LOTE_COMPLETO",
+        mono=True,
+        bold=True,
+        col=BLANCO,
+        anchor="middle",
+        maxw=216,
+    )
     s.text(506, 232, "↑ silver lee este lote", bold=True, col=BRONZE, maxw=236)
     s.rect(366, 252, 130, 38, fill="#F8F7F3", line=REGLA, lw=2)
     s.text(431, 279, "lote=…", mono=True, col=GRIS, anchor="middle", maxw=120)
@@ -310,7 +377,9 @@ def dc6_3(ruta):
     s.text(796, 190, "bronze · 2024-02", maxw=300)
     s.text(796, 224, "silver · 2024-02", maxw=300)
     s.flecha(940, 272, 940, 234, col="a")
-    s.lineas(940, 298, ["se escribe solo al", "terminar bien"], anchor="middle", col=ACENTO, maxw=346)
+    s.lineas(
+        940, 298, ["se escribe solo al", "terminar bien"], anchor="middle", col=ACENTO, maxw=346
+    )
     # franja
     s.rect(4, 336, 1112, 100, fill=PANEL, line=None)
     s.text(20, 368, "Caso del descanso:", bold=True)
@@ -333,8 +402,22 @@ def dc6_4(ruta):
         "lanza los jobs de Glue sobre el mes completo; debajo, tres comprobaciones: filas de bronze, silver y gold contra la tabla de control, Athena sobre silver y Snowflake sobre gold.",
     )
     filas = [
-        (6, "Hoy", "Code Editor", ["DAG ingesta_mensual"], ["Spark local"], ["viajes de 1 000 filas"]),
-        (118, "Clase 7", "Glue", ["pipeline_taxi", "con el parámetro de cómputo"], ["Jobs de Glue"], ["mes completo", "o el año"]),
+        (
+            6,
+            "Hoy",
+            "Code Editor",
+            ["DAG ingesta_mensual"],
+            ["Spark local"],
+            ["viajes de 1 000 filas"],
+        ),
+        (
+            118,
+            "Clase 7",
+            "Glue",
+            ["pipeline_taxi", "con el parámetro de cómputo"],
+            ["Jobs de Glue"],
+            ["mes completo", "o el año"],
+        ),
     ]
     for y, a, b, c1, c2, c3 in filas:
         s.text(8, y + 28, a, bold=True, col=ACENTO)
@@ -349,11 +432,22 @@ def dc6_4(ruta):
     # comprobaciones de la clase 7
     s.rect(4, 204, 1112, 232, fill=PANEL, line=None)
     s.rect(12, 212, 1096, 44, fill=T_ACENTO, line=ACENTO, lw=2.5)
-    s.text(560, 241, "Filas de bronze, silver y gold contra la tabla de control", bold=True, col=ACENTO, anchor="middle", maxw=1070)
+    s.text(
+        560,
+        241,
+        "Filas de bronze, silver y gold contra la tabla de control",
+        bold=True,
+        col=ACENTO,
+        anchor="middle",
+        maxw=1070,
+    )
     for cxm, c, n in ((360, BRONZE, "Bronze"), (650, SILVER, "Silver"), (940, GOLD, "Gold")):
         s.flecha(cxm, 258, cxm, 284, col="a")
         s.caja(cxm - 90, 286, 180, 42, [n], fill=c, line=c, col=BLANCO)
-    for cxm, ts in ((650, ["Athena sobre silver:", "filas, repetidos, nulos"]), (940, ["Snowflake sobre gold:", "filas y huérfanos"])):
+    for cxm, ts in (
+        (650, ["Athena sobre silver:", "filas, repetidos, nulos"]),
+        (940, ["Snowflake sobre gold:", "filas y huérfanos"]),
+    ):
         s.flecha(cxm, 350, cxm, 330, col="g")
         s.caja(cxm - 140, 352, 280, 76, ts, fill=BLANCO)
     s.text(20, 380, "Tres comprobaciones", bold=True)
