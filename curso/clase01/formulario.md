@@ -81,7 +81,7 @@ Escala común para las preguntas P6 a P9. Cada pregunta es de opción múltiple,
 
 **P10. ¿Qué rol te gustaría hacer en los talleres?**
 - Tipo: opción múltiple. Obligatoria: Sí.
-- Descripción: "Los roles rotan entre el Taller 1 y el Taller 2. Todos los roles se hacen en pareja: uno técnico y uno no técnico."
+- Descripción: "Los roles rotan entre el Taller 1 y el Taller 2."
 - Opciones:
   - **Analista de negocio / cumplimiento**: hace las preguntas, define los términos, valida resultados, escribe el memo y presenta. Rol natural para perfiles legales.
   - **Modelador SQL**: diseña la estrella, escribe consultas y cuida que el grano sea coherente.
@@ -118,10 +118,10 @@ Escala común para las preguntas P6 a P9. Cada pregunta es de opción múltiple,
 - Tipo: opción múltiple. Obligatoria: Sí.
 - Descripción: "Elige el color que describe hoy tu cuenta. El semáforo cambia; nadie se queda fuera del contenido."
 - Opciones:
-  - **Rojo**: cuenta creada, en verificación. Hoy no haces nada en AWS. Sigues con el lab de SQL.
+  - **Rojo**: cuenta creada, en verificación. Espera el correo de verificación de AWS.
   - **Amarillo**: cuenta verificada; cuotas por pedir o pendientes. Revisas el estado de las cuotas. Si sigue pendiente, abres o actualizas el caso de soporte con la plantilla.
-  - **Verde claro**: cuotas aprobadas, bootstrap hecho. Sigues con los pasos 5 a 9 en el bloque de AWS.
-  - **Verde**: pasos 5 a 12 completos (`make doctor` y `make estado` en verde). Ayudas a otra persona o haces retos ★★.
+  - **Verde claro**: cuotas aprobadas, bootstrap hecho. Sigues con los pasos 5 a 9 en la clase 3.
+  - **Verde**: pasos 5 a 12 completos (`make doctor` y `make estado` en verde).
 - Nota para el instructor: si la persona no creó la cuenta de AWS, debe elegir **Rojo**. Anota el motivo en P14.
 
 **P14. Si no creaste tu cuenta de AWS o no eres verde, ¿qué te está frenando?**

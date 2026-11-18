@@ -22,9 +22,9 @@ cd ~/bigdata && CUENTA=$(aws sts get-caller-identity --query Account --output te
 cd ~/bigdata && sed "s/<CUENTA>/$CUENTA/g" curso/clase06/athena/01_tablas.sql > ~/01_tablas_mio.sql && head -40 ~/01_tablas_mio.sql
 ```
 
-En la consola de Athena (región us-east-2, workgroup `bigdata-wg`), pega y ejecuta `~/01_tablas_mio.sql`. Si tu bronze ya tiene la carpeta `_crudo/`, sigue el aviso del encabezado del archivo. Después ejecuta los pasos 1, 2 y 9 de `curso/clase06/athena/02_explorar_bronze.sql`. El paso 9 es la consulta que choca con el límite de 1 GB.
+En la consola de Athena (región us-east-2, workgroup `bigdata-wg`), pega y ejecuta `~/01_tablas_mio.sql`. Si tu bronze ya tiene la carpeta `_crudo/`, sigue el aviso del encabezado del archivo. Después ejecuta los pasos 1, 2, 8B y 9 de `curso/clase06/athena/02_explorar_bronze.sql`. El paso 8B es la consulta que choca con el límite de 1 GB.
 
-**Pega:** lo que mostró `aws s3 ls`; y para cada consulta, el resultado, el tiempo y los *Data scanned*. Para el paso 9, el mensaje de error.
+**Pega:** lo que mostró `aws s3 ls`; y para cada consulta, el resultado, el tiempo y los *Data scanned*. Para el paso 8B, el estado y el mensaje de error.
 
 ## 2. Lab de silver y gold (slides 19 a 21)
 
