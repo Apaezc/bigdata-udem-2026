@@ -137,7 +137,7 @@ LOCATION 's3://bigdata-lake-<CUENTA>-us-east-2/bronze/taxi_zones/'
 TBLPROPERTIES ('skip.header.line.count' = '1');
 
 
--- 4. Silver de dev (viajes limpios, tipados y enriquecidos). Requiere haber corrido silver en dev:
+-- 4. Silver de dev (viajes limpios, con cada columna convertida a su tipo de dato y enriquecidos). Requiere haber corrido silver en dev:
 --    existe si en tu bucket hay dev/silver/fhvhv_trips/. Particionado por día de recogida.
 --    El rango de pickup_date cubre 2024; los días sin carpeta devuelven 0 filas.
 CREATE EXTERNAL TABLE IF NOT EXISTS bigdata_lake.silver_fhvhv_trips (

@@ -44,7 +44,7 @@
         {
           "titulo": "silver",
           "items": [
-            "Tipa columnas y descarta viajes imposibles; en el lab quitas repetidos."
+            "Convierte cada columna a su tipo de dato y descarta viajes imposibles."
           ],
           "capa": "silver"
         },
@@ -292,7 +292,7 @@
         }
       ],
       "min": 2,
-      "notas": "Transición, en voz alta: ahora continuamos con el notebook lab_silver_gold. Vas a ver cinco ejercicios que corresponden a lo que Athena mostró: el 1 tipa las columnas y descarta los viajes imposibles (slide 12); el 2 quita repetidos con la huella (slide 13); el 3 une las zonas con broadcast, que copia la tabla pequeña a cada ejecutor para no mover viajes; el 4 agrega gold por día, zona y empresa con promedios ponderados; y el 5, `procesar_capa`, envuelve silver y gold con la tabla de control. Al terminar, tu cadena sobre una muestra del 1 % de enero produce el mismo gold que el del repositorio, y cada capa queda anotada en la tabla de control. Cada ejercicio responde OK, PENDIENTE o REVISAR. Aviso: al terminar, ejecuta la Celda 26, que apaga Spark; antes del descanso haz además Kernel > Shut Down para liberar la memoria. Tiempo: 2 min. Siguiente: el ejercicio 5.",
+      "notas": "Transición, en voz alta: ahora continuamos con el notebook lab_silver_gold. Vas a ver cinco ejercicios que corresponden a lo que Athena mostró: el 1 convierte cada columna a su tipo de dato y descarta los viajes imposibles (slide 12); el 2 quita repetidos con la huella (slide 13); el 3 une las zonas con broadcast, que copia la tabla pequeña a cada ejecutor para no mover viajes; el 4 agrega gold por día, zona y empresa con promedios ponderados; y el 5, `procesar_capa`, envuelve silver y gold con la tabla de control. Al terminar, tu cadena sobre una muestra del 1 % de enero produce el mismo gold que el del repositorio, y cada capa queda anotada en la tabla de control. Cada ejercicio responde OK, PENDIENTE o REVISAR. Aviso: al terminar, ejecuta la Celda 26, que apaga Spark; antes del descanso haz además Kernel > Shut Down para liberar la memoria. Tiempo: 2 min. Siguiente: el ejercicio 5.",
       "id": "18"
     },
     {
