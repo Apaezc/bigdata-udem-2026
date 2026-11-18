@@ -58,7 +58,8 @@ CREATE DATABASE IF NOT EXISTS bigdata_lake;
 
 -- 1. Viajes FHVHV (Uber, Lyft...) en bronze. Parquet crudo: las columnas son las del archivo
 --    original de NYC TLC, sin transformar. Un archivo de ~470 MB por mes (~19 a 21 millones de filas).
---    EXTERNAL = si se borra la tabla, los archivos quedan.
+--    EXTERNAL = si se borra la tabla, los archivos quedan. trip_time está en segundos.
+--    Dentro de un CREATE no se escriben comentarios con --: la consola de Athena falla con ellos.
 CREATE EXTERNAL TABLE IF NOT EXISTS bigdata_lake.bronze_fhvhv (
   hvfhs_license_num     string,
   dispatching_base_num  string,
@@ -70,7 +71,7 @@ CREATE EXTERNAL TABLE IF NOT EXISTS bigdata_lake.bronze_fhvhv (
   pulocationid          int,
   dolocationid          int,
   trip_miles            double,
-  trip_time             bigint,        -- segundos
+  trip_time             bigint,
   base_passenger_fare   double,
   tolls                 double,
   bcf                   double,
@@ -106,7 +107,6 @@ CREATE EXTERNAL TABLE IF NOT EXISTS bigdata_lake.bronze_clima (
   latitude   double,
   longitude  double,
   timezone   string,
-  -- El tipo struct va en una sola línea y sin espacios: la consola de Athena no acepta saltos dentro de < >.
   daily      struct<time:array<string>,precipitation_sum:array<double>,temperature_2m_mean:array<double>>
 )
 PARTITIONED BY (mes string)
