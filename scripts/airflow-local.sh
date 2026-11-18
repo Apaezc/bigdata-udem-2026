@@ -22,20 +22,45 @@ instalar() {
     msg "Instalando nginx (normalmente lo instala el Lifecycle Config al arrancar el space)"
     sudo apt-get update -qq && sudo apt-get install -y -qq nginx >/dev/null
   fi
-  if [[ ! -x "$VENV/bin/airflow" ]]; then
-    msg "Instalando Airflow $AIRFLOW_VERSION en $VENV (unos minutos, solo la primera vez)"
-    python3 -m venv "$VENV"
-    local py constraints
-    py="$("$VENV/bin/python" -c 'import sys; print("%d.%d" % sys.version_info[:2])')"
-    constraints="https://raw.githubusercontent.com/apache/airflow/constraints-${AIRFLOW_VERSION}/constraints-${py}.txt"
-    "$VENV/bin/pip" install --quiet --upgrade pip
-    "$VENV/bin/pip" install --quiet --constraint "$constraints" \
-      "apache-airflow==$AIRFLOW_VERSION" \
-      apache-airflow-providers-amazon \
-      apache-airflow-providers-snowflake \
-      apache-airflow-providers-common-sql \
-      apache-airflow-providers-standard
+  if airflow_sano; then
+    return 0
   fi
+  # El venv se crea siempre con Python 3.12 y no con el python3 del sistema: SageMaker cambia
+  # la versión de conda (pasó de 3.12 a 3.13) y deja un venv roto o sin constraints de Airflow.
+  msg "Instalando Airflow $AIRFLOW_VERSION en $VENV con Python $VENV_PYTHON_VERSION (unos minutos, solo la primera vez)"
+  rm -rf "$VENV"
+  local uv_bin="" constraints
+  uv_bin="$(buscar_uv)" || uv_bin=""
+  if [[ -n "$uv_bin" ]]; then
+    "$uv_bin" venv --seed --python "$VENV_PYTHON_VERSION" "$VENV"
+  elif command -v "python$VENV_PYTHON_VERSION" >/dev/null 2>&1; then
+    "python$VENV_PYTHON_VERSION" -m venv "$VENV"
+  else
+    error "No hay uv ni python$VENV_PYTHON_VERSION para instalar Airflow. Corre 'make reparar-entorno' y repite."
+  fi
+  constraints="https://raw.githubusercontent.com/apache/airflow/constraints-${AIRFLOW_VERSION}/constraints-${VENV_PYTHON_VERSION}.txt"
+  local paquetes=(
+    "apache-airflow==$AIRFLOW_VERSION"
+    apache-airflow-providers-amazon
+    apache-airflow-providers-snowflake
+    apache-airflow-providers-common-sql
+    apache-airflow-providers-standard
+  )
+  # Sin --quiet: si la instalación falla, el error tiene que verse aquí y no como un Airflow que no arranca.
+  if [[ -n "$uv_bin" ]]; then
+    "$uv_bin" pip install --python "$VENV/bin/python" --constraint "$constraints" "${paquetes[@]}"
+  else
+    "$VENV/bin/python" -m pip install --upgrade pip
+    "$VENV/bin/python" -m pip install --constraint "$constraints" "${paquetes[@]}"
+  fi
+  airflow_sano || error "Airflow no quedó instalado en $VENV: revisa el error de arriba."
+}
+
+airflow_sano() {
+  # 0 si el venv de Airflow existe, es Python 3.12 y el comando airflow responde.
+  [[ -x "$VENV/bin/airflow" ]] || return 1
+  "$VENV/bin/python" -c "import sys; sys.exit(0 if sys.version_info[:2] == (3, 12) else 1)" >/dev/null 2>&1 || return 1
+  "$VENV/bin/airflow" version >/dev/null 2>&1
 }
 
 escribir_nginx() {
