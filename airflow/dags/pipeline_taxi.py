@@ -25,7 +25,7 @@ from airflow.sdk import DAG, Param
 # airflow/ es la raíz del paquete `framework`.
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from framework.tasks import glue_task, pipeline_local_task, preparar_entorno_task, snowflake_task
+from framework.tasks import cargar_gold_task, glue_task, pipeline_local_task, preparar_entorno_task
 
 ENTORNO = os.environ.get("PIPELINE_ENTORNO", "dev")
 if ENTORNO not in ("dev", "prod"):
@@ -85,7 +85,6 @@ with DAG(
     bronze = glue_task("bronze", step="bronze", env=ENTORNO)
     silver = glue_task("silver", step="silver", env=ENTORNO)
     gold = glue_task("gold", step="gold", env=ENTORNO)
-    cargar = snowflake_task(
-        "cargar_gold", sql_file="sql/copy_gold.sql", params={"entorno": ENTORNO}
-    )
+    # Compara las columnas de gold con las de la tabla y reemplaza los datos en una transacción.
+    cargar = cargar_gold_task("cargar_gold", entorno=ENTORNO)
     elegir >> bronze >> silver >> gold >> cargar

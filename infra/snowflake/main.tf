@@ -86,7 +86,7 @@ resource "snowflake_grant_privileges_to_account_role" "dev_schemas" {
 # ---------- Usuario de servicio de Airflow (dev en el Code Editor y prod en la VM) ----------
 # Autentica con key-pair. La llave privada vive solo en ~/.snowflake/keys/airflow_svc_rsa_key.p8;
 # scripts/snowflake.sh la copia al secreto <prefix>/snowflake de Secrets Manager (conexión snowflake_default).
-# Usa BIGDATA_DEV: crea y recarga las tablas de BIGDATA.DEV / BIGDATA.PROD (copy_gold.sql).
+# Usa BIGDATA_DEV: crea y recarga las tablas de BIGDATA.DEV / BIGDATA.PROD (herramientas/bodega.py).
 
 resource "snowflake_service_user" "airflow" {
   count = var.airflow_public_key == null ? 0 : 1
@@ -305,7 +305,7 @@ resource "snowflake_stage_external_s3" "lake_gold" {
 }
 
 # ---------- Stages del pipeline por entorno: BIGDATA.<DEV|PROD>.LAKE_GOLD -> s3://<lake>/<env>/gold/ ----------
-# Los usa airflow/dags/sql/copy_gold.sql (cargar_dev / cargar_prod).
+# Los usa src/pipeline/herramientas/bodega.py (tarea cargar_gold).
 
 resource "snowflake_file_format_parquet" "entorno" {
   for_each = local.entornos

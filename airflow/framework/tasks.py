@@ -19,12 +19,12 @@ from __future__ import annotations
 
 import logging
 import os
+import sys
 from pathlib import Path
 from typing import Any
 
 import yaml
 from airflow.providers.amazon.aws.operators.glue import GlueJobOperator
-from airflow.providers.common.sql.operators.sql import SQLExecuteQueryOperator
 from airflow.providers.standard.operators.bash import BashOperator
 from airflow.providers.standard.operators.python import PythonOperator
 
@@ -149,16 +149,58 @@ def glue_task(
     )
 
 
-def snowflake_task(
-    task_id: str, sql_file: str, params: dict[str, Any] | None = None
-) -> SQLExecuteQueryOperator:
-    """Tarea que ejecuta un archivo SQL (relativo a la carpeta dags/) en Snowflake."""
-    return SQLExecuteQueryOperator(
+# Tabla de la casa: las ocho columnas del contrato de gold (src/pipeline/gold.py, COLUMNAS).
+DDL_DAILY_ZONE_METRICS = """
+CREATE TABLE IF NOT EXISTS {tabla} (
+    FECHA               DATE,
+    ZONA                VARCHAR,
+    EMPRESA             VARCHAR,
+    VIAJES              NUMBER(38, 0),
+    INGRESO_TOTAL       FLOAT,
+    PROPINA_PROMEDIO    FLOAT,
+    DISTANCIA_PROMEDIO  FLOAT,
+    LLUVIA_MM           FLOAT
+)
+"""
+
+
+def _cargar_gold(entorno: str, mes: str | None = None) -> int:
+    """Carga gold a BIGDATA.<DEV|PROD>.DAILY_ZONE_METRICS con la función de la casa.
+
+    Es la misma que usa el estudiante (src/pipeline/herramientas/bodega.py): compara columnas
+    antes de cargar y reemplaza los datos en una transacción.
+    """
+    # En el Code Editor el repo está en disco. El import va aquí y no arriba para que el DAG
+    # se pueda parsear aunque src/ no esté (la VM de prod solo sincroniza dags/ y framework/).
+    if str(REPO_ROOT / "src") not in sys.path:
+        sys.path.insert(0, str(REPO_ROOT / "src"))
+    from airflow.providers.snowflake.hooks.snowflake import SnowflakeHook
+
+    from pipeline.herramientas import cargar_gold_a_snowflake
+
+    esquema = "PROD" if entorno == "prod" else "DEV"
+    tabla = f"BIGDATA.{esquema}.DAILY_ZONE_METRICS"
+    conexion = SnowflakeHook(snowflake_conn_id=SNOWFLAKE_CONN_ID).get_conn()
+    try:
+        return cargar_gold_a_snowflake(
+            tabla,
+            "daily_zone_metrics",
+            mes=mes or None,  # la plantilla entrega "" cuando no hay mes
+            conexion=conexion,
+            crear_si_no_existe=DDL_DAILY_ZONE_METRICS.format(tabla=tabla),
+        )
+    finally:
+        conexion.close()
+
+
+def cargar_gold_task(task_id: str, entorno: str) -> PythonOperator:
+    """Tarea que carga gold a Snowflake (misma lógica que usa el estudiante en su taller)."""
+    if entorno not in ("dev", "prod"):
+        raise ValueError(f"entorno inválido {entorno!r}; válidos: dev, prod")
+    return PythonOperator(
         task_id=task_id,
-        conn_id=SNOWFLAKE_CONN_ID,
-        sql=sql_file,
-        split_statements=True,
-        params=params or {},
+        python_callable=_cargar_gold,
+        op_kwargs={"entorno": entorno, "mes": "{{ params.mes or '' }}"},
     )
 
 
