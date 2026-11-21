@@ -5,9 +5,10 @@ locals {
   lake_arn   = "arn:aws:s3:::${var.lake_bucket}"
   script_s3  = "s3://${var.lake_bucket}/code/run_glue.py"
 
-  # Prefijos de datos del pipeline: bronze compartido, muestra para local, dev/ y prod/ por entorno;
-  # silver/ y gold/ quedan para las sesiones de SQL.
-  datos     = ["bronze", "muestra", "dev", "prod", "silver", "gold"]
+  # Prefijos de datos del pipeline: uno por entorno (dev/ y prod/). Dentro de cada uno van
+  # bronze/, silver/, gold/ y muestra/ (src/pipeline/settings.py, ruta_lake). Ya no hay carpetas
+  # de datos compartidas en la raíz del bucket.
+  datos     = ["dev", "prod"]
   lectura   = concat(["code", "tmp"], local.datos)
   escritura = concat(local.datos, ["tmp", "logs"])
   listables = concat(local.datos, ["code", "tmp", "logs"])

@@ -187,6 +187,16 @@ def _preparar_entorno(entorno: str, **context) -> int | None:
         params.get("mes") or "todos",
     )
     if params["computo"] == "spark_local":
+        log.info("Datos: lee ./lake/muestra y escribe en ./lake/silver y ./lake/gold (disco).")
+    else:
+        bucket = os.environ.get("LAKE_BUCKET", "<tu-bucket>")
+        log.info(
+            "Datos: Glue lee y escribe solo en s3://%s/%s/ (bronze, silver y gold). "
+            "No toca el otro entorno. Las rutas completas salen en el log de cada tarea de Glue.",
+            bucket,
+            entorno,
+        )
+    if params["computo"] == "spark_local":
         log.info(
             "Spark local: cada fuente se lee con máximo %d filas. No pruebes con todos los "
             "datos en local (la memoria del Code Editor es limitada y no aprendes nada nuevo): "

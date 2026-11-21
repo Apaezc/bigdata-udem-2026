@@ -9,7 +9,7 @@ variable "aws_region" {
 }
 
 variable "lake_bucket" {
-  description = "Nombre del bucket del lake (code/, bronze/, silver/, gold/, tmp/, logs/)."
+  description = "Nombre del bucket del lake (dev/, prod/, code/, tmp/, logs/)."
   type        = string
 }
 

@@ -8,7 +8,7 @@ Los comandos, las salidas esperadas y los errores comunes están en [`docs/guia.
 
 1. **Paso 10:** en la terminal del Code Editor, `cd ~/bigdata` y `make deploy`. Debes ver `Apply complete! Resources: 23 added` y, al final, `==> Deploy completado`. Crea el lake, la base de Glue `bigdata_lake` y el workgroup `bigdata-wg` de Athena.
 2. **Paso 11:** `cd ~/bigdata` y `make snowflake`. Cuando veas `Enter a value:`, escribe `yes`. Debes ver `==> Conexión de AIRFLOW_SVC guardada en el secreto bigdata/snowflake.`
-3. **Paso 12:** `cd ~/bigdata` y `make muestra`. La terminal se queda quieta varios minutos mientras Glue trabaja; no la cierres. Debes ver `==> Muestra lista en s3://bigdata-lake-<cuenta>-us-east-2/muestra.`
+3. **Paso 12:** `cd ~/bigdata` y `make muestra`. La terminal se queda quieta varios minutos mientras Glue trabaja; no la cierres. Debes ver `==> Bronze del año en s3://bigdata-lake-<cuenta>-us-east-2/prod/bronze/. Muestra lista en s3://bigdata-lake-<cuenta>-us-east-2/prod/muestra/.`
 
 Sin los pasos 5 a 9 de la clase 3 no hay plan alternativo: quien viene atrasado termina primero el 10 y el 11.
 

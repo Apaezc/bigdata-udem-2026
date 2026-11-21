@@ -194,6 +194,22 @@ Busca tu mensaje con **Ctrl+F**. Cada entrada muestra el mensaje exacto, su caus
 - **Qué hacer:** revisa tu conexión y vuelve a correr `cd ~/bigdata && make run-local`. Si sigue igual, borra `~/bigdata/lake/muestra` y avisa al instructor.
 - [Volver al paso 13.1](guia.md#paso-13-1)
 
+<a id="p-sin-lote-en-dev"></a>
+### `No hay ningún lote completo en s3://.../dev/bronze/...`
+
+- **Síntoma:** un paso `silver` (o `muestra`) falla con `No hay ningún lote completo en s3://<LAKE>/dev/bronze/fhvhv/mes=2024-01`.
+- **Causa:** dev y prod no comparten carpetas. El bronze del año que dejó `make muestra` está en `prod/bronze/`, y dev solo lee `dev/bronze/`, que está vacío hasta que dev corra su propio paso `bronze`.
+- **Qué hacer:** corre el DAG `pipeline_taxi` completo en dev (la tarea `bronze` va primero y descarga enero a `dev/bronze/`). Si solo quieres silver en local, usa `make run-local`: lee la muestra, no el bronze de la nube.
+- **Qué no hacer:** copiar a mano `prod/bronze/` hacia `dev/`: para eso está la tarea `bronze`. Si quieres ahorrar la descarga, los comandos están en [rutas_del_lake.md](rutas_del_lake.md#copiar-crudo-a-dev).
+- [Volver al paso 13.2](guia.md#paso-13-2)
+
+<a id="p-carpetas-antiguas"></a>
+### `Quedan carpetas del diseño anterior` (`make doctor`, `make estado` o `make deploy`)
+
+- **Síntoma:** el aviso lista `s3://<LAKE>/bronze/`, `muestra/`, `silver/` o `gold/` en la raíz del bucket.
+- **Causa:** tu bucket se llenó antes de que cada entorno tuviera su propia carpeta. Ya nadie lee esas carpetas: el pipeline lee y escribe solo bajo `dev/` o `prod/`.
+- **Qué hacer:** muévelas o bórralas con los comandos de [rutas_del_lake.md](rutas_del_lake.md#migrar). No es un error: solo ocupan espacio.
+
 ## Pipeline local (Java)
 
 <a id="p-java"></a>

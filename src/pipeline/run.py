@@ -7,6 +7,8 @@
 - all = bronze + silver + gold (en local: silver + gold sobre la muestra; no hay bronze).
 - bronze y muestra solo en dev/prod (en la nube). bronze descarga el crudo y crea un lote nuevo
   con metadatos; no usa --limite. muestra lee bronze; --limite recorta aún más los viajes.
+- Cada corrida empieza imprimiendo en qué bucket y carpetas lee y escribe (ver
+  settings.describir_rutas). dev solo toca s3://<lake>/dev/; prod solo s3://<lake>/prod/.
 Requiere PYTHONPATH=src (o ejecutar desde el paquete instalado).
 """
 
@@ -18,7 +20,7 @@ import os
 import sys
 
 from pipeline import bronze, engine, gold, muestra, silver
-from pipeline.settings import ENTORNOS, cargar, validar_mes
+from pipeline.settings import ENTORNOS, cargar, describir_rutas, validar_mes
 
 PASOS = {"bronze": bronze, "muestra": muestra, "silver": silver, "gold": gold}
 MOTORES = ("local", "glue")
@@ -61,6 +63,7 @@ def main(argv: list[str] | None = None) -> int:
         os.environ["LAKE_BUCKET"] = args.lake_bucket
 
     cfg = cargar(args.env)
+    log.info("Rutas de esta corrida:\n%s", describir_rutas(args.env))
     meses = [args.mes] if args.mes else list(cfg["meses"])
     pasos = pasos_de(args.step, args.env)
 

@@ -68,6 +68,17 @@ if [[ -n "$CUENTA" ]]; then
   fi
 fi
 
+msg "Rutas del lake"
+if [[ -n "$CUENTA" ]]; then
+  info "Bucket del lake: $(lake_bucket)"
+  info "dev escribe solo en s3://$(lake_bucket)/dev/ y prod solo en s3://$(lake_bucket)/prod/"
+  if avisar_rutas_antiguas_del_lake; then
+    ok "No hay carpetas del diseño anterior en la raíz del bucket"
+  else
+    info "No es un fallo: son restos del diseño anterior y ya nadie los lee"
+  fi
+fi
+
 msg "Snowflake"
 if snow connection test >/dev/null 2>&1; then
   ok "snow connection test"

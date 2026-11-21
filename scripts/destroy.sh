@@ -37,7 +37,7 @@ vaciar_bucket_versionado() {
 }
 
 echo "ATENCIÓN: esto destruirá los recursos del prefijo '${PREFIX}' en AWS y Snowflake:"
-echo "  - bucket del lake s3://${LAKE} (se vacía: bronze, silver, gold, code, dags, logs, tmp)"
+echo "  - bucket del lake s3://${LAKE} (se vacía: dev/, prod/, code/, dags/, logs/, tmp/)"
 echo "  - infra/snowflake (warehouse, base de datos, rol, integración de almacenamiento)"
 echo "  - infra/aws (Glue, Athena, VM de Airflow, roles, secretos, presupuesto)"
 echo "El stack de bootstrap y el bucket de state se tocan solo si lo confirmas después."

@@ -110,7 +110,7 @@ entorno_airflow() {
   export AIRFLOW_CONN_AWS_DEFAULT="{\"conn_type\": \"aws\", \"extra\": {\"region_name\": \"$AWS_REGION\"}}"
   export AWS_DEFAULT_REGION="$AWS_REGION"
   export AIRFLOW_VAR_PREFIX="$PREFIX"
-  # Rama local del DAG: descarga la muestra la primera vez (s3://<lake>/muestra).
+  # Rama local del DAG: descarga la muestra la primera vez (s3://<lake>/prod/muestra).
   LAKE_BUCKET="$(lake_bucket)"
   export LAKE_BUCKET
   export PIPELINE_ENTORNO=dev

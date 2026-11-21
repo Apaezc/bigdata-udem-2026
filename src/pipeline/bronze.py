@@ -16,8 +16,9 @@ La ingesta tiene dos pasos:
    _id_lote, _hash_fila, _fuente, _archivo_origen). Cada ejecución crea un lote nuevo y nunca
    borra los anteriores: silver lee siempre el lote más reciente de cada mes.
 
-Bronze es compartido por dev y prod. En local no hay bronze: se trabaja sobre la muestra
-(ver pipeline/muestra.py).
+Cada entorno tiene su propio bronze: s3://<lake>/dev/bronze y s3://<lake>/prod/bronze (la base
+la arma settings.ruta_lake). Dev nunca lee ni escribe en prod. En local no hay bronze: se trabaja
+sobre la muestra (ver pipeline/muestra.py).
 """
 
 from __future__ import annotations
@@ -85,7 +86,7 @@ def descargar(url: str, destino: str) -> None:
     """Descarga url a un archivo temporal y lo publica en destino (ruta local o s3://)."""
     with tempfile.TemporaryDirectory(prefix="bronze-") as tmp:
         local = Path(tmp) / "archivo"
-        log.info("Descargando %s", url)
+        log.info("Descargando %s -> %s", url, destino)
         with urllib.request.urlopen(url, timeout=TIMEOUT_S) as resp, local.open("wb") as f:
             shutil.copyfileobj(resp, f)
         io.publicar(local, destino)
@@ -227,7 +228,7 @@ def main(spark: Any, cfg: dict, args: Any) -> None:
     # queda con el mismo lote.
     fecha_ingesta = datetime.now(UTC).replace(microsecond=0)
     id_lote = nuevo_id_lote(fecha_ingesta)
-    log.info("Ingesta con lote %s en %s, meses %s", id_lote, base, ",".join(args.meses))
+    log.info("Ingesta con lote %s, escribe en %s, meses %s", id_lote, base, ",".join(args.meses))
 
     ingestar_zonas(spark, base, id_lote, fecha_ingesta)
     # Un mes a la vez: cada mes escribe su propia carpeta lote= y la memoria no crece con el rango.

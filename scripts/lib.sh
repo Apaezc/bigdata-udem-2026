@@ -153,6 +153,55 @@ lake_bucket() {
   echo "${PREFIX}-lake-$(account_id)-${AWS_REGION}"
 }
 
+# --- Rutas del lake ---------------------------------------------------------------------------
+# Misma regla que src/pipeline/settings.py (ruta_lake): s3://<lake>/<entorno>/<capa>/<tabla>/...
+# dev y prod no comparten ningún prefijo. code/, dags/, logs/ y tmp/ son del lake, no de un entorno.
+ENTORNOS_LAKE="dev prod"
+CAPAS_LAKE="bronze muestra silver gold"
+PREFIJOS_ANTIGUOS_LAKE="bronze muestra silver gold"  # diseño anterior: en la raíz del bucket
+
+s3_tiene_objetos() {
+  # Uso: s3_tiene_objetos <bucket> <prefijo>. Éxito si hay al menos un objeto bajo el prefijo.
+  local cuantos
+  cuantos="$(aws s3api list-objects-v2 --bucket "$1" --prefix "$2" --max-keys 1 \
+    --query 'KeyCount' --output text 2>/dev/null || echo 0)"
+  [[ "$cuantos" != "0" && "$cuantos" != "None" ]]
+}
+
+mostrar_rutas_del_lake() {
+  # Uso: mostrar_rutas_del_lake [con-estado]. Imprime el bucket y la carpeta de cada capa por
+  # entorno; con "con-estado" dice si la carpeta ya tiene datos (una consulta a S3 por carpeta).
+  local lake entorno capa estado
+  lake="$(lake_bucket)"
+  echo "  Bucket del lake: $lake"
+  for entorno in $ENTORNOS_LAKE; do
+    for capa in $CAPAS_LAKE; do
+      estado=""
+      if [[ "${1:-}" == "con-estado" ]]; then
+        if s3_tiene_objetos "$lake" "$entorno/$capa/"; then estado="con datos"; else estado="vacía"; fi
+      fi
+      printf "  s3://%s/%s/%s/  %s\n" "$lake" "$entorno" "$capa" "$estado"
+    done
+  done
+  echo "  Del lake, no de un entorno: code/  dags/  logs/  tmp/"
+}
+
+avisar_rutas_antiguas_del_lake() {
+  # Uso: avisar_rutas_antiguas_del_lake. Avisa si en la raíz del bucket quedan carpetas del diseño
+  # anterior (bronze/, muestra/...). Devuelve 1 si encontró alguna.
+  local lake prefijo encontradas=""
+  lake="$(lake_bucket)"
+  for prefijo in $PREFIJOS_ANTIGUOS_LAKE; do
+    if s3_tiene_objetos "$lake" "$prefijo/"; then
+      encontradas="$encontradas s3://$lake/$prefijo/"
+    fi
+  done
+  [[ -z "$encontradas" ]] && return 0
+  aviso "Quedan carpetas del diseño anterior:$encontradas"
+  aviso "Ya nadie las lee. Cómo moverlas o borrarlas: docs/rutas_del_lake.md"
+  return 1
+}
+
 tfstate_bucket() {
   echo "${TF_STATE_BUCKET:-${PREFIX}-tfstate-$(account_id)-${AWS_REGION}}"
 }

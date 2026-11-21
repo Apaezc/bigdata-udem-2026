@@ -29,6 +29,10 @@ else
   done
 fi
 
+msg "Rutas del lake (una carpeta por entorno y capa)"
+mostrar_rutas_del_lake con-estado
+avisar_rutas_antiguas_del_lake || true
+
 msg "Warehouse de Snowflake"
 WH="$(echo "${PREFIX}_WH" | tr "[:lower:]" "[:upper:]")"
 if WH_JSON="$(snow sql -q "SHOW WAREHOUSES LIKE '${WH}'" --format json 2>/dev/null)" && [[ "$(jq 'length' <<< "$WH_JSON" 2>/dev/null || echo 0)" != "0" ]]; then
