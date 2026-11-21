@@ -40,6 +40,8 @@ module "glue" {
   aws_region               = var.aws_region
   lake_bucket              = module.lake.bucket_name
   permissions_boundary_arn = local.permissions_boundary_arn
+  snowflake_secret_arn     = aws_secretsmanager_secret.snowflake.arn
+  snowflake_secret_name    = aws_secretsmanager_secret.snowflake.name
 }
 
 # Secreto con la conexión de Snowflake para Airflow (snowflake_default), siempre creado: lo leen
