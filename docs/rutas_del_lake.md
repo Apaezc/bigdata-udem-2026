@@ -130,7 +130,7 @@ make estado
 | `silver/` y `gold/` en la raíz (vacías) | desaparecen | (las creaba Terraform; ya no) |
 | `code/`, `dags/`, `logs/`, `tmp/` | igual | `make deploy`, Glue, Athena |
 
-Lo que no cambia: las carpetas `dev/silver`, `dev/gold`, `prod/silver` y `prod/gold` ya cumplían la regla, así que los stages de Snowflake (`BIGDATA.DEV.LAKE_GOLD` y `BIGDATA.PROD.LAKE_GOLD`) y `copy_gold.sql` siguen funcionando sin tocarlos.
+Lo que no cambia: las carpetas `dev/silver`, `dev/gold`, `prod/silver` y `prod/gold` ya cumplían la regla, así que los stages de Snowflake (`BIGDATA.DEV.LAKE_GOLD` y `BIGDATA.PROD.LAKE_GOLD`) y la carga de gold (`bodega.py`) siguen funcionando sin tocarlos.
 
 Lo que sí cambia en la infraestructura al hacer `make deploy`:
 

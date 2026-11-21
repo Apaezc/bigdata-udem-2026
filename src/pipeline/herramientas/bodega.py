@@ -16,15 +16,8 @@ la tabla queda como estaba. (TRUNCATE no sirve para esto: en Snowflake es DDL y 
 
 from __future__ import annotations
 
-import os
 import re
 from typing import Any
-
-# Igual que watermark.py: rol y warehouse con los que trabaja el Code Editor.
-ROL = "ACCOUNTADMIN"
-WAREHOUSE = "COMPUTE_WH"
-CONEXION_POR_DEFECTO = "default"
-VARIABLE_CONEXION = "WATERMARK_CONNECTION"
 
 TABLA_TEMPORAL = "CARGA_GOLD_TMP"
 PATRON_MES = re.compile(r"^\d{4}-\d{2}$")
@@ -141,22 +134,6 @@ def _mensaje_de_diferencias(tabla: str, ubicacion: str, diferencias: dict[str, l
     return "\n".join(lineas)
 
 
-def abrir_conexion(connection_name: str | None = None) -> Any:
-    """Abre la conexión a Snowflake con el mismo archivo connections.toml que usa watermark.py."""
-    import snowflake.connector  # import tardío: solo se necesita al hablar con Snowflake
-
-    nombre = connection_name or os.environ.get(VARIABLE_CONEXION, CONEXION_POR_DEFECTO)
-    conexion = snowflake.connector.connect(connection_name=nombre)
-    try:
-        cursor = conexion.cursor()
-        cursor.execute(f"USE ROLE {ROL}")
-        cursor.execute(f"USE WAREHOUSE {WAREHOUSE}")
-    except Exception:
-        conexion.close()
-        raise
-    return conexion
-
-
 def _columnas_de_gold(cursor: Any, ubicacion: str, formato: str) -> dict[str, str]:
     """Columnas y tipos que Snowflake infiere de los Parquet que hay en esa ubicación del stage."""
     try:
@@ -205,8 +182,8 @@ def cargar_gold_a_snowflake(
                      (el stage LAKE_GOLD ya apunta a s3://<lake>/<entorno>/gold/).
     mes              'YYYY-MM': reemplaza solo ese mes (carpeta mes=YYYY-MM/). None: reemplaza
                      toda la tabla.
-    conexion         conexión abierta de Snowflake; si es None se abre con connections.toml y
-                     se cierra al terminar.
+    conexion         conexión abierta de Snowflake; si es None se abre con watermark.abrir_conexion
+                     (connections.toml o secreto) y se cierra al terminar.
     columna_fecha    columna DATE de la tabla; se usa para borrar el mes antes de insertar.
     stage            por defecto @<base>.<esquema>.LAKE_GOLD, tomado del nombre de la tabla.
     formato_archivo  por defecto <base>.<esquema>.PARQUET_FF.
@@ -236,6 +213,11 @@ def cargar_gold_a_snowflake(
 
     cerrar_al_final = conexion is None
     if conexion is None:
+        # Una sola forma de conectarse (watermark.abrir_conexion): connections.toml en el Code
+        # Editor, secreto de Secrets Manager en Glue y en la VM. El import va aquí porque solo
+        # hace falta cuando no llega una conexión.
+        from pipeline.watermark import abrir_conexion
+
         conexion = abrir_conexion()
     try:
         cursor = conexion.cursor()

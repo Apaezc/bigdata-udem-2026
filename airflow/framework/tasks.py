@@ -170,10 +170,12 @@ def _cargar_gold(entorno: str, mes: str | None = None) -> int:
     Es la misma que usa el estudiante (src/pipeline/herramientas/bodega.py): compara columnas
     antes de cargar y reemplaza los datos en una transacción.
     """
-    # En el Code Editor el repo está en disco. El import va aquí y no arriba para que el DAG
-    # se pueda parsear aunque src/ no esté (la VM de prod solo sincroniza dags/ y framework/).
-    if str(REPO_ROOT / "src") not in sys.path:
-        sys.path.insert(0, str(REPO_ROOT / "src"))
+    # En el Code Editor el repo está en disco (REPO_ROOT/src). En la VM de prod no hay repo: el
+    # deploy sube src/pipeline a S3 y la VM lo monta en /opt/airflow/pipeline (ya en PYTHONPATH).
+    # El import va aquí y no arriba para que el DAG se parsee aunque el paquete no esté.
+    src = REPO_ROOT / "src"
+    if src.is_dir() and str(src) not in sys.path:
+        sys.path.insert(0, str(src))
     from airflow.providers.snowflake.hooks.snowflake import SnowflakeHook
 
     from pipeline.herramientas import cargar_gold_a_snowflake

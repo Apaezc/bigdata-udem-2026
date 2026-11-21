@@ -58,6 +58,8 @@ aws s3 sync airflow/dags "s3://$LAKE/dags/" --delete --exclude '*__pycache__*' \
 aws s3 rm "s3://$LAKE/dags/ingesta_mensual.py"
 aws s3 rm "s3://$LAKE/dags/hola_airflow.py"
 aws s3 sync airflow/framework "s3://$LAKE/code/airflow/framework/" --delete --exclude '*__pycache__*'
+# La VM necesita el paquete pipeline (cargar_gold_task importa pipeline.herramientas).
+aws s3 sync src/pipeline "s3://$LAKE/code/airflow/pipeline/" --delete --exclude '*__pycache__*' --exclude '*.pyc'
 aws s3 cp airflow/docker-compose.yaml "s3://$LAKE/code/airflow/docker-compose.yaml"
 
 msg "Rutas del lake (cada entorno solo toca su carpeta; el detalle: docs/rutas_del_lake.md)"

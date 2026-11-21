@@ -55,6 +55,9 @@ x-airflow-common: &airflow-common
     - ./logs:/opt/airflow/logs
     - ./plugins:/opt/airflow/plugins
     - ./framework:/opt/airflow/framework
+    # Paquete pipeline (src/pipeline del repo): cargar_gold_task importa pipeline.herramientas.
+    # Con PYTHONPATH=/opt/airflow, "import pipeline" lo encuentra aquí.
+    - ./pipeline:/opt/airflow/pipeline
     - ./secrets:/opt/airflow/secrets
 
 services:
