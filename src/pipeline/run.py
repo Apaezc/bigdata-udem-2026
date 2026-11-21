@@ -11,6 +11,8 @@
 - En Glue, al terminar bien bronze, silver o gold se registra una fila por mes en la tabla de
   control BIGDATA.CONTROL.WATERMARK (pipeline.watermark). La conexión sale del secreto de
   Secrets Manager que indica --snowflake-secret. En local no se registra nada.
+- Cada corrida empieza imprimiendo en qué bucket y carpetas lee y escribe (ver
+  settings.describir_rutas). dev solo toca s3://<lake>/dev/; prod solo s3://<lake>/prod/.
 Requiere PYTHONPATH=src (o ejecutar desde el paquete instalado).
 """
 
@@ -26,7 +28,7 @@ from typing import Any
 from pyspark.sql import functions as F
 
 from pipeline import bronze, engine, gold, io, muestra, silver, watermark
-from pipeline.settings import ENTORNOS, cargar, validar_mes
+from pipeline.settings import ENTORNOS, cargar, describir_rutas, validar_mes
 
 PASOS = {"bronze": bronze, "muestra": muestra, "silver": silver, "gold": gold}
 MOTORES = ("local", "glue")
@@ -72,15 +74,15 @@ def registrar_paso(spark: Any, cfg: dict, paso: str, meses: list[str], inicio: d
     """Registra en la tabla de control una fila por mes del paso que acaba de terminar bien.
 
     Las filas se cuentan leyendo lo que el paso dejó escrito. La TABLA lleva el entorno como
-    prefijo (dev/fhvhv_trips) para que dev y prod no se confundan; bronze es compartido por los dos
-    entornos y por eso su tabla no lleva prefijo. reprocesar queda en falso: el pipeline de Glue no
-    consulta la tabla antes de correr, cada corrida de bronze crea un lote nuevo.
+    prefijo (dev/fhvhv, dev/fhvhv_trips) para que dev y prod no se confundan: cada entorno tiene
+    su propia carpeta en el lake, también para bronze. reprocesar queda en falso: el pipeline de
+    Glue no consulta la tabla antes de correr, cada corrida de bronze crea un lote nuevo.
     """
     entorno = cfg["entorno"]
     for mes in meses:
         if paso == "bronze":
             fuente = bronze.URL_VIAJES.format(mes=mes)
-            tabla = io.VIAJES
+            tabla = watermark.nombre_de_tabla(entorno, io.VIAJES)
             filas = io.leer_viajes(spark, cfg["rutas"]["bronze"], [mes]).count()
         elif paso == "silver":
             fuente = cfg["rutas"]["bronze"]
@@ -104,6 +106,7 @@ def main(argv: list[str] | None = None) -> int:
         os.environ[watermark.VARIABLE_SECRETO] = args.snowflake_secret
 
     cfg = cargar(args.env)
+    log.info("Rutas de esta corrida:\n%s", describir_rutas(args.env))
     meses = [args.mes] if args.mes else list(cfg["meses"])
     pasos = pasos_de(args.step, args.env)
 

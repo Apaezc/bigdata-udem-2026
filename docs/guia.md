@@ -627,8 +627,16 @@ snowflake_s3_role_arn = "arn:aws:iam::123456789012:role/bigdata-snowflake-s3"
 ==> Subiendo código, DAGs y framework a s3://bigdata-lake-123456789012-us-east-2/
 upload: build/pipeline.zip to s3://.../code/pipeline.zip
 ...
+==> Rutas del lake (cada entorno solo toca su carpeta; el detalle: docs/rutas_del_lake.md)
+  Bucket del lake: bigdata-lake-123456789012-us-east-2
+  s3://bigdata-lake-123456789012-us-east-2/dev/bronze/
+  s3://bigdata-lake-123456789012-us-east-2/dev/muestra/
+  ...
+  s3://bigdata-lake-123456789012-us-east-2/prod/gold/
+  Del lake, no de un entorno: code/  dags/  logs/  tmp/
 ==> Deploy completado
 ```
+<!-- AUTOR: validar en V10 el bloque «Rutas del lake» de la salida de make deploy -->
 
 **❌ Si falla:** [`El plan destruye recursos`](problemas.md#p-plan-destruye) (avanzado) · [`make deploy` se queda colgado](problemas.md#p-deploy-colgado) (avanzado)
 
@@ -692,10 +700,10 @@ Apply complete! Resources: 0 added, 1 changed, 0 destroyed.
 <a id="paso-12"></a>
 ### Paso 12 de 14 · Prepara los datos (una vez)
 
-**Para qué:** bajar los datos del año y dejarlos en bronze con sus metadatos, y generar la muestra en tu bucket.
+**Para qué:** bajar los datos del año y dejarlos en bronze con sus metadatos (en `prod/bronze/` de tu bucket), y generar la muestra (en `prod/muestra/`).
 
 > [!NOTE]
-> Para correr el pipeline en local ya no necesitas este paso: `make run-local` descarga la muestra sola la primera vez, de tu bucket o, si ahí no hay una con el formato nuevo, del bucket público del curso. Este paso sirve para tener el bronze del año en tu bucket y la muestra propia.
+> Para correr el pipeline en local ya no necesitas este paso: `make run-local` descarga la muestra sola la primera vez, de tu bucket o, si ahí no hay una con el formato nuevo, del bucket público del curso. Este paso sirve para tener el bronze del año en tu bucket (carpeta `prod/bronze/`) y la muestra propia (carpeta `prod/muestra/`).
 
 **Tiempo:** ~5 min · **Costo:** ~US$0.15 <!-- AUTOR: tiempo y costo medidos antes de la ingesta con metadatos; bronze ahora usa Glue `large` y calcula un hash por fila: validar en Glue -->
 
@@ -719,8 +727,25 @@ Apply complete! Resources: 0 added, 1 changed, 0 destroyed.
 ==> bronze OK
 ==> Glue bigdata-medium --step muestra (run jr_...)
 ==> muestra OK
-==> Muestra lista en s3://bigdata-lake-123456789012-us-east-2/muestra. En local: make run-local (la descarga la primera vez).
+==> Bucket del lake: s3://bigdata-lake-123456789012-us-east-2
+==> Escribe en s3://bigdata-lake-123456789012-us-east-2/prod/bronze/ y s3://bigdata-lake-123456789012-us-east-2/prod/muestra/ (no toca dev/)
+...
+==> Bronze del año en s3://bigdata-lake-123456789012-us-east-2/prod/bronze/. Muestra lista en s3://bigdata-lake-123456789012-us-east-2/prod/muestra/.
+==> En local: make run-local (la descarga la primera vez).
 ```
+<!-- AUTOR: validar en V10 las líneas nuevas de make muestra (bucket y carpetas) -->
+
+> [!NOTE]
+> **Dónde queda cada dato.** Un solo bucket, y dev y prod no comparten ninguna carpeta: todo cuelga de `s3://<LAKE>/<entorno>/<capa>/<tabla>/` (`<LAKE>` es tu bucket, el `lake_bucket` del [Paso 10](#paso-10)).
+>
+> | Quién escribe | Carpeta |
+> |---|---|
+> | `make muestra` (entorno `prod`) | `prod/bronze/` (el año completo) y `prod/muestra/` |
+> | El Airflow del Code Editor con `glue_*` (entorno `dev`) | `dev/bronze/`, `dev/silver/` y `dev/gold/` |
+> | El Airflow de la VM (entorno `prod`) | `prod/bronze/`, `prod/silver/` y `prod/gold/` |
+> | `make run-local` y `spark_local` (entorno `local`) | el disco: `~/bigdata/lake/` (no escribe en S3) |
+>
+> Cada función de la casa que lee o escribe imprime la ruta completa (`LEE`, `ESCRIBE`, `BORRA`...). Para ver la tabla de tu entorno: `cd ~/bigdata && make rutas ENTORNO=dev` en la terminal, o `pio.donde_estoy("dev")` en un notebook (`from pipeline import io as pio`). Si tu bucket viene del diseño anterior (con `bronze/` y `muestra/` en la raíz), mira [rutas_del_lake.md](rutas_del_lake.md).
 
 > [!TIP]
 > Si cierras la terminal mientras `make muestra` espera, Glue sigue trabajando, pero el script se detiene y la muestra nunca se lanza. No repitas `make muestra`: volvería a crear el bronze del año. Cuando `make estado` muestre el job `bigdata-large` en `SUCCEEDED`, lanza solo la muestra:
@@ -772,11 +797,19 @@ Son dos comandos distintos: `make run-local` termina solo; `make airflow-local` 
 **✅ Debes ver:** el final de `make run-local LIMITE=100` (tarda ~30 s):
 ```text
 INFO Muestra descargada (origen: el bucket público del curso, s3://.../muestra) a /home/sagemaker-user/bigdata/lake/muestra (50 archivos)   <- solo la primera vez
+INFO Rutas de esta corrida: DÓNDE ESTOY | entorno: local | los datos están en el DISCO de esta máquina ...   <- la tabla de dónde lee y escribe cada capa
 INFO Paso=silver env=local engine=local meses=2024-01
+INFO LEE      /home/sagemaker-user/bigdata/lake/muestra/fhvhv/mes=2024-01/lote=<id>  (viajes)
 INFO Calidad OK [silver]: 100 filas
+INFO ESCRIBE  /home/sagemaker-user/bigdata/lake/silver/fhvhv_trips  (silver, meses 2024-01)
 INFO Paso=gold env=local engine=local meses=2024-01
+INFO LEE      /home/sagemaker-user/bigdata/lake/silver/fhvhv_trips  (silver, meses 2024-01)
 INFO Calidad OK [gold]: 79 filas
+INFO ESCRIBE  /home/sagemaker-user/bigdata/lake/gold/daily_zone_metrics  (gold, meses 2024-01)
 ```
+<!-- AUTOR: validar en V10 las líneas LEE y ESCRIBE de make run-local (las rutas de ejemplo son las del Code Editor) -->
+
+Las líneas `LEE` y `ESCRIBE` dicen la ruta completa de cada lectura y escritura: aquí, carpetas de tu disco. En la nube serán `s3://...` con `dev/` o `prod/` en la ruta.
 
 **❌ Si falla:** [`No hay muestra ... ni en tu bucket ni en el bucket público`](problemas.md#p-sin-muestra) · [`make test` o `make run-local` fallan por Java](problemas.md#p-java)
 
@@ -814,7 +847,7 @@ Tarda ~1 min; la instalación solo ocurre la primera vez y tarda unos minutos.
 
 | Parámetro | Qué decide | Valores |
 |---|---|---|
-| `computo` | Con qué recursos se calcula. | `spark_local`: Spark en el Code Editor sobre la muestra (gratis). Como mucho 10 000 filas por fuente. El resultado queda en `./lake` (la carpeta `lake` dentro de `~/bigdata`) y no se carga en Snowflake. · `glue_small`, `glue_medium` o `glue_large`: **workers** (trabajadores de cómputo de Glue): 2, 4 o 6. Escribe en `s3://<LAKE>/dev/` (`<LAKE>` es el bucket `bigdata-lake-<CUENTA>-us-east-2` que el [Paso 10](#paso-10) imprime como `lake_bucket`) y carga en `BIGDATA.DEV`. |
+| `computo` | Con qué recursos se calcula. | `spark_local`: Spark en el Code Editor sobre la muestra (gratis). Como mucho 10 000 filas por fuente. El resultado queda en `./lake` (la carpeta `lake` dentro de `~/bigdata`) y no se carga en Snowflake. · `glue_small`, `glue_medium` o `glue_large`: **workers** (trabajadores de cómputo de Glue): 2, 4 o 6. Escribe en `s3://<LAKE>/dev/` (bronze, silver y gold, cada uno en su carpeta; `<LAKE>` es el bucket `bigdata-lake-<CUENTA>-us-east-2` que el [Paso 10](#paso-10) imprime como `lake_bucket`) y carga en `BIGDATA.DEV`. No toca `prod/`. |
 | `mes` | Qué mes procesar. | Vacío = todos los meses del entorno (en dev, solo `2024-01`), o un mes concreto en formato `YYYY-MM`. |
 | `limite` (opcional) | Máximo de viajes a procesar. | Vacío = sin recorte. |
 
@@ -832,6 +865,9 @@ Tarda ~1 min; la instalación solo ocurre la primera vez y tarda unos minutos.
 3. Elige `computo = glue_small` (con `spark_local` no se modifica la tabla que verificas al final de este paso).
 4. Deja `mes` y `limite` vacíos (qué significa cada uno: [tabla de 13.1](#paso-13-1)).
 5. Pulsa el segundo botón **Trigger** para lanzar el run.
+
+> [!NOTE]
+> Dev tiene su propio bronze: la primera vez, la tarea `bronze` vuelve a descargar enero (unos 450 MB) en `s3://<LAKE>/dev/bronze/`, aunque `make muestra` ya haya dejado el año en `prod/bronze/`. Dev nunca lee ni escribe en `prod/`.
 
 **✅ Debes ver:** en un run exitoso con `glue_small` (10-15 min): `preparar_entorno`, `elegir_computo`, `bronze`, `silver`, `gold` y `cargar_gold` en verde (`success`); `silver_spark_local` y `gold_spark_local` en rosa (`skipped`), porque son la rama de `spark_local`.
 
@@ -982,7 +1018,7 @@ Abres un **pull request (PR)**: una solicitud para revisar tus cambios antes de 
 9. Pulsa el segundo botón **Trigger** para lanzar el run.
 
 > [!NOTE]
-> En prod el entorno es fijo (`prod`, en la VM), solo hay `computo = glue_medium` o `glue_large`, y no hay límite de filas. El DAG no tiene rama local.
+> En prod el entorno es fijo (`prod`, en la VM), solo hay `computo = glue_medium` o `glue_large`, y no hay límite de filas. El DAG no tiene rama local. Escribe en `s3://<LAKE>/prod/` (bronze, silver y gold) y no toca `dev/`.
 >
 > La conexión de Snowflake ya está en el secreto `bigdata/snowflake`, escrito por `make snowflake` (ver [airflow/README.md](../airflow/README.md)).
 

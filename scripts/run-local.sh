@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Ejecuta el pipeline en local (Spark en el Code Editor) sobre la muestra.
 # Variables: STEP (silver|gold|all), MES (YYYY-MM), LIMITE (máximo de viajes; vacío = toda la muestra).
-# La primera vez descarga la muestra a ./lake/muestra, sola: de s3://<lake>/muestra si tu bucket
+# La primera vez descarga la muestra a ./lake/muestra, sola: de s3://<lake>/prod/muestra si tu bucket
 # la tiene con el formato nuevo y, si no, del bucket público del curso (acceso anónimo).
 # shellcheck source=lib.sh
 source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"

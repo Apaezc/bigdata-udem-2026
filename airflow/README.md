@@ -48,6 +48,7 @@ El Dockerfile es inline en el compose; no hay archivo extra.
 
 - **Entorno** (dónde quedan los datos): lo fija cada Airflow con `PIPELINE_ENTORNO` y no se elige al lanzar el DAG.
   El Airflow del Code Editor es `dev` (`s3://<lake>/dev/`, `BIGDATA.DEV`) y la VM es `prod` (`s3://<lake>/prod/`, `BIGDATA.PROD`).
+  Cada uno tiene su propio bronze, silver y gold dentro de su carpeta (`dev/bronze/`, `prod/bronze/`...): no comparten ninguna. Detalle en [docs/rutas_del_lake.md](../docs/rutas_del_lake.md).
 - **Cómputo** (con qué recursos se calcula): el parámetro `computo`.
 
 | `computo` | Recursos | Entornos | Notas |

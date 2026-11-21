@@ -137,7 +137,7 @@ def test_registrar_paso_arma_la_fila_con_el_entorno_en_la_tabla(monkeypatch):
     cfg = {
         "entorno": "prod",
         "rutas": {
-            "bronze": "s3://b/bronze",
+            "bronze": "s3://b/prod/bronze",
             "silver": "s3://b/prod/silver",
             "gold": "s3://b/prod/gold",
         },
@@ -148,8 +148,16 @@ def test_registrar_paso_arma_la_fila_con_el_entorno_en_la_tabla(monkeypatch):
 
     bronze, silver, gold = guardadas
     assert bronze[0].endswith("fhvhv_tripdata_2024-01.parquet")
-    assert bronze[1:] == ("bronze", "fhvhv", "2024-01", 1000, inicio, False)
-    assert silver == ("s3://b/bronze", "silver", "prod/fhvhv_trips", "2024-01", 900, inicio, False)
+    assert bronze[1:] == ("bronze", "prod/fhvhv", "2024-01", 1000, inicio, False)
+    assert silver == (
+        "s3://b/prod/bronze",
+        "silver",
+        "prod/fhvhv_trips",
+        "2024-01",
+        900,
+        inicio,
+        False,
+    )
     assert gold == (
         "s3://b/prod/silver",
         "gold",

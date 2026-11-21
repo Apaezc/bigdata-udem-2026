@@ -1,14 +1,16 @@
 """Muestra de desarrollo: pocas filas de todos los meses para validar la lógica en local.
 
-- main (--step muestra, env dev/prod en Glue): lee el lote más reciente de bronze, toma una
-  muestra aleatoria y reproducible (~objetivo_filas en total, repartida en todos los meses) y la
-  escribe en muestra.destino con el mismo layout que bronze: <fuente>/mes=.../lote=<id>/, con
+- main (--step muestra, env dev/prod en Glue): lee el lote más reciente del bronze DEL MISMO
+  entorno (s3://<lake>/<entorno>/bronze), toma una muestra aleatoria y reproducible
+  (~objetivo_filas en total, repartida en todos los meses) y la escribe en muestra.destino
+  (s3://<lake>/<entorno>/muestra) con el mismo layout que bronze: <fuente>/mes=.../lote=<id>/, con
   el mismo id de lote y las columnas de metadatos (_hash_fila...) intactas. Zonas y clima se
   copian completos (son pequeños). La muestra no incluye _crudo/: no hace falta para leerla.
+  `make muestra` la genera con --env prod: queda en s3://<lake>/prod/muestra.
 - sincronizar (env local): copia la muestra a rutas.bronze si todavía no está en el disco del
   Code Editor, o si es de la versión anterior (sin lotes). La busca primero en el bucket propio
-  (s3://<lake>/<muestra.sincronizar_desde>) y, si ahí no hay lotes completos, en el bucket
-  público del curso (muestra.publica), con acceso anónimo.
+  (s3://<lake>/<muestra.sincronizar_desde>, o sea prod/muestra) y, si ahí no hay lotes completos,
+  en el bucket público del curso (muestra.publica), con acceso anónimo.
 - aplicar_muestra: recorte adicional (--limite o muestra.max_rows) para pruebas rapidísimas.
   Toda fuente nueva debe pasar por aquí en lugar de usar un .limit() fijo en la transformación.
 """
@@ -51,14 +53,18 @@ def aplicar_muestra(df: DataFrame, cfg: dict, limite: int | None = None) -> Data
 def copiar_lote(spark: Any, base: str, destino: str, fuente: str, mes: str | None) -> None:
     """Copia completo el lote más reciente de una fuente pequeña (zonas o clima) a la muestra."""
     id_lote = io.lote_mas_reciente(base, fuente, mes)
-    lote = spark.read.parquet(io.dir_lote(base, fuente, id_lote, mes))
+    origen = io.dir_lote(base, fuente, id_lote, mes)
+    io.anunciar("LEE", origen, f"{fuente}, para la muestra")
+    lote = spark.read.parquet(origen)
     io.escribir_lote(lote, io.dir_lote(destino, fuente, id_lote, mes), archivos=1)
 
 
 def muestrear_viajes(spark: Any, base: str, destino: str, mes: str, fraccion: float) -> None:
     """Escribe una fracción aleatoria (semilla fija) del lote más reciente de viajes del mes."""
     id_lote = io.lote_mas_reciente(base, io.VIAJES, mes)
-    lote = spark.read.parquet(io.dir_lote(base, io.VIAJES, id_lote, mes))
+    origen = io.dir_lote(base, io.VIAJES, id_lote, mes)
+    io.anunciar("LEE", origen, "viajes, para la muestra")
+    lote = spark.read.parquet(origen)
     muestra = lote.sample(withReplacement=False, fraction=fraccion, seed=SEMILLA)
     io.escribir_lote(muestra, io.dir_lote(destino, io.VIAJES, id_lote, mes), archivos=1)
 
@@ -73,6 +79,7 @@ def main(spark: Any, cfg: dict, args: Any) -> None:
     total = io.leer_viajes(spark, base, args.meses).count()
     fraccion = min(1.0, objetivo / total) if total else 1.0
     log.info("Muestra: %d filas en bronze, fracción %.6f (~%d filas)", total, fraccion, objetivo)
+    log.info("Muestra: se lee de %s y se escribe en %s", base, destino)
 
     # Se borra lo anterior de estos meses para que la muestra no mezcle lotes viejos con el nuevo
     # (y para limpiar la muestra de la versión anterior, que no tenía carpetas lote=).

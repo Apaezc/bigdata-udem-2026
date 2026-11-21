@@ -9,7 +9,7 @@ AWS_REGION ?= us-east-2
 export PREFIX AWS_REGION
 export PATH := $(CURDIR)/.venv/bin:$(PATH)
 
-.PHONY: help setup reparar-entorno config doctor estado test secrets publicar-bootstrap retirar-bootstrap muestra muestra-solo run-local deploy airflow-on airflow-off airflow-local airflow-local-down airflow-local-estado \
+.PHONY: help setup reparar-entorno config doctor estado test secrets publicar-bootstrap retirar-bootstrap muestra muestra-solo rutas run-local deploy airflow-on airflow-off airflow-local airflow-local-down airflow-local-estado \
 	airflow-habilitar airflow-deshabilitar snowflake snowflake-secreto snowflake-conexion \
 	airflow-tunel airflow-password desbloquear snowflake-ampliar-cuota destroy limpieza-total
 
@@ -34,11 +34,14 @@ estado: ## Airflow (on/off + URL), últimos job runs de Glue, warehouse y costos
 test: ## Ruff y pytest
 	bash scripts/test.sh
 
-muestra: ## Glue: bronze del año de prod + muestra para local (una vez por curso)
+muestra: ## Glue: bronze del año en prod/bronze + muestra en prod/muestra (una vez por curso)
 	bash scripts/muestra.sh
 
 muestra-solo: ## Glue: solo el paso muestra (si cerraste la terminal de make muestra con el bronze ya terminado)
 	bash scripts/muestra.sh --solo-muestra
+
+rutas: ## Dónde lee y escribe cada entorno: bucket y carpetas (ENTORNO=local|dev|prod; vacío = los tres)
+	bash scripts/rutas.sh $(ENTORNO)
 
 secrets: ## Carga AWS_ROLE_ARN y TF_STATE_BUCKET en tu fork (desde el bootstrap, con gh)
 	bash scripts/secrets.sh

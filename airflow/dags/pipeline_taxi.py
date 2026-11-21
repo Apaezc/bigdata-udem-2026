@@ -4,10 +4,14 @@ Dos conceptos separados:
 - ENTORNO (dónde quedan los datos): lo fija cada Airflow con PIPELINE_ENTORNO y NO se elige
   al lanzar. El Airflow del Code Editor es `dev` (s3://<lake>/dev/, BIGDATA.DEV); la VM es
   `prod` (s3://<lake>/prod/, BIGDATA.PROD) y solo recibe DAGs por CI (merge a main).
+  Cada entorno tiene sus propias carpetas de bronze, silver y gold: s3://<lake>/<entorno>/<capa>/.
+  Dev no lee ni escribe nada de prod/, y prod nada de dev/. Cada job Glue imprime al empezar las
+  rutas completas que usa; aparecen en el log de la tarea (verbose=True).
 - params.computo (con qué recursos se calcula):
     spark_local  -> Spark en el Code Editor sobre la muestra (gratis; solo en dev), en ./lake.
     glue_small | glue_medium | glue_large -> Glue con 2, 4 o 6 workers.
-  En dev se puede probar con recursos de prod (glue_large, varios meses) sin tocar prod.
+  En dev se puede probar con recursos de prod (glue_large, varios meses) sin tocar prod:
+  los datos van a dev/, aunque el cómputo sea el mismo.
 params.mes vacío = todos los meses de config/<entorno>.yaml. preparar_entorno decide el límite
 de filas: spark_local, máximo 10 000 por fuente; Glue, el que pida el desarrollador; prod, ninguno.
 """
@@ -81,7 +85,7 @@ with DAG(
         elegir >> silver_local >> gold_local
 
     # bronze descarga lo que falta y convierte a Parquet con metadatos (hash de cada fila): usa el
-    # mismo perfil de cómputo que silver y gold.
+    # mismo perfil de cómputo que silver y gold. Escribe en s3://<lake>/<entorno>/bronze/.
     bronze = glue_task("bronze", step="bronze", env=ENTORNO)
     silver = glue_task("silver", step="silver", env=ENTORNO)
     gold = glue_task("gold", step="gold", env=ENTORNO)

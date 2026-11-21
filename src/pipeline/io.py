@@ -1,6 +1,16 @@
-"""Rutas y lectura/escritura de las capas (archivos locales o s3://, según config/<env>.yaml).
+"""Lectura y escritura de las capas (archivos locales o s3://) y carpetas de bronze y la muestra.
 
-Layout (igual en bronze y en la muestra, para que local lea la muestra con el mismo código):
+Las rutas base (<bronze>, <silver>, <gold>) las arma settings.ruta_lake() según el entorno; aquí
+solo se arma lo que cuelga de ellas. Cada función de este archivo que lee o escribe dice en voz
+alta la ruta completa (LEE, ESCRIBE, BORRA...): fíjate en la salida para saber dónde estás.
+
+    dev  -> <bronze> = s3://<lake>/dev/bronze     <silver> = s3://<lake>/dev/silver
+    prod -> <bronze> = s3://<lake>/prod/bronze    <silver> = s3://<lake>/prod/silver
+    (la muestra es s3://<lake>/<entorno>/muestra; en local, ./lake/muestra, ./lake/silver...)
+    donde_estoy("dev") imprime la tabla completa de un entorno.
+
+Layout dentro de cada base (igual en bronze y en la muestra, para que local lea la muestra con el
+mismo código):
     <bronze>/_crudo/fhvhv/mes=YYYY-MM/fhvhv_tripdata_YYYY-MM.parquet   archivo tal como se descargó
     <bronze>/_crudo/clima/mes=YYYY-MM/open_meteo_YYYY-MM.json
     <bronze>/_crudo/taxi_zones/taxi_zone_lookup.csv
@@ -18,6 +28,7 @@ pasada de Spark.
 
 from __future__ import annotations
 
+import logging
 import shutil
 import tempfile
 from pathlib import Path
@@ -25,9 +36,39 @@ from pathlib import Path
 from pyspark.sql import DataFrame, SparkSession
 from pyspark.sql import functions as F
 
-from pipeline.settings import rango_meses
+from pipeline.settings import (
+    TABLA_CLIMA,
+    TABLA_GOLD,
+    TABLA_SILVER,
+    TABLA_VIAJES,
+    TABLA_ZONAS,
+    rango_meses,
+)
 
-CARPETA_CAPA = {"silver": "fhvhv_trips", "gold": "daily_zone_metrics"}
+# Las funciones para armar rutas del lake viven en settings; se reexportan aquí para que los
+# notebooks las encuentren con `from pipeline import io as pio` (pio.ruta_lake, pio.donde_estoy).
+from pipeline.settings import describir_rutas as describir_rutas
+from pipeline.settings import donde_estoy as donde_estoy
+from pipeline.settings import prefijo_lake as prefijo_lake
+from pipeline.settings import ruta_lake as ruta_lake
+
+log = logging.getLogger(__name__)
+
+CARPETA_CAPA = {"silver": TABLA_SILVER, "gold": TABLA_GOLD}
+
+
+def anunciar(verbo: str, ruta: str, detalle: str = "") -> None:
+    """Dice en voz alta qué ruta completa se lee, se escribe o se borra.
+
+    Va al log. Si nadie configuró el logging (lo normal en un notebook), se imprime para que
+    el estudiante lo vea en la salida de la celda.
+    """
+    mensaje = f"{verbo:<8} {ruta}"
+    if detalle:
+        mensaje += f"  ({detalle})"
+    log.info(mensaje)
+    if not log.hasHandlers():
+        print(mensaje)
 
 
 def unir(base: str, *partes: str) -> str:
@@ -37,9 +78,9 @@ def unir(base: str, *partes: str) -> str:
 # --- rutas bronze / muestra ------------------------------------------------------------------
 
 # Carpeta de cada fuente dentro de bronze.
-VIAJES = "fhvhv"
-ZONAS = "taxi_zones"
-CLIMA = "clima"
+VIAJES = TABLA_VIAJES
+ZONAS = TABLA_ZONAS
+CLIMA = TABLA_CLIMA
 
 NOMBRE_ZONAS = "taxi_zone_lookup.csv"
 CARPETA_CRUDO = "_crudo"
@@ -156,6 +197,7 @@ def escribir_lote(df: DataFrame, carpeta_lote: str, archivos: int | None = None)
     salida = df
     if archivos:
         salida = df.coalesce(archivos)
+    anunciar("ESCRIBE", carpeta_lote, "lote en Parquet")
     salida.write.mode("overwrite").parquet(carpeta_lote)
     marcar_lote_completo(carpeta_lote)
 
@@ -168,11 +210,15 @@ def leer_viajes(spark: SparkSession, base: str, meses: list[str]) -> DataFrame:
     carpetas = []
     for mes in meses:
         carpetas.append(dir_lote_reciente(base, VIAJES, mes))
+    for carpeta in carpetas:
+        anunciar("LEE", carpeta, "viajes")
     return spark.read.parquet(*carpetas)
 
 
 def leer_zonas(spark: SparkSession, base: str) -> DataFrame:
-    return spark.read.parquet(dir_lote_reciente(base, ZONAS))
+    carpeta = dir_lote_reciente(base, ZONAS)
+    anunciar("LEE", carpeta, "zonas")
+    return spark.read.parquet(carpeta)
 
 
 def leer_clima(spark: SparkSession, base: str, meses: list[str]) -> DataFrame:
@@ -180,6 +226,8 @@ def leer_clima(spark: SparkSession, base: str, meses: list[str]) -> DataFrame:
     carpetas = []
     for mes in meses:
         carpetas.append(dir_lote_reciente(base, CLIMA, mes))
+    for carpeta in carpetas:
+        anunciar("LEE", carpeta, "clima")
     return spark.read.parquet(*carpetas)
 
 
@@ -212,7 +260,9 @@ LECTORES = {
 
 def leer_silver(spark: SparkSession, cfg: dict, meses: list[str]) -> DataFrame:
     """Silver filtrado al rango de meses (partition pruning por pickup_date)."""
-    df = spark.read.parquet(unir(cfg["rutas"]["silver"], CARPETA_CAPA["silver"]))
+    ruta = unir(cfg["rutas"]["silver"], CARPETA_CAPA["silver"])
+    anunciar("LEE", ruta, f"silver, meses {','.join(meses)}")
+    df = spark.read.parquet(ruta)
     inicio, fin = rango_meses(meses)
     return df.where((F.col("pickup_date") >= F.lit(inicio)) & (F.col("pickup_date") < F.lit(fin)))
 
@@ -228,12 +278,14 @@ def escribir_silver(df: DataFrame, cfg: dict, meses: list[str]) -> None:
     """
     ruta = unir(cfg["rutas"]["silver"], CARPETA_CAPA["silver"])
     borrar_particiones(ruta, [f"pickup_date={m}-" for m in meses])
+    anunciar("ESCRIBE", ruta, f"silver, meses {','.join(meses)}")
     df.write.mode("overwrite").partitionBy("pickup_date").parquet(ruta)
 
 
 def escribir_gold(df: DataFrame, cfg: dict, meses: list[str]) -> None:
     ruta = unir(cfg["rutas"]["gold"], CARPETA_CAPA["gold"])
     borrar_particiones(ruta, [f"mes={m}/" for m in meses])
+    anunciar("ESCRIBE", ruta, f"gold, meses {','.join(meses)}")
     df.withColumn("mes", F.date_format("fecha", "yyyy-MM")).write.mode("overwrite").partitionBy(
         "mes"
     ).parquet(ruta)
@@ -241,6 +293,8 @@ def escribir_gold(df: DataFrame, cfg: dict, meses: list[str]) -> None:
 
 def borrar_particiones(ruta: str, prefijos: list[str]) -> None:
     """Borra las carpetas de partición de `ruta` cuyo nombre empieza con alguno de los prefijos."""
+    for prefijo in prefijos:
+        anunciar("BORRA", unir(ruta, prefijo.rstrip("/") + "*"))
     if ruta.startswith("s3://"):
         import boto3
 
@@ -270,6 +324,7 @@ def tamano_mb(rutas: list[str]) -> float:
     """Tamaño total (MB) de los archivos bajo las rutas (carpetas o archivos; locales o s3://)."""
     total = 0
     for ruta in rutas:
+        anunciar("LISTA", ruta, "para sumar el tamaño")
         if ruta.startswith("s3://"):
             import boto3
 
@@ -306,6 +361,7 @@ def existe(ruta: str) -> bool:
 
 def publicar(local: Path, destino: str) -> None:
     """Copia un archivo local a destino (ruta local o s3://)."""
+    anunciar("SUBE", destino, f"desde {local}")
     if destino.startswith("s3://"):
         import boto3
 
@@ -318,6 +374,7 @@ def publicar(local: Path, destino: str) -> None:
 
 def copiar(origen: str, destino: str) -> None:
     """Copia un archivo entre rutas (s3:// -> s3:// del lado del servidor, o locales)."""
+    anunciar("COPIA", destino, f"desde {origen}")
     if origen.startswith("s3://") and destino.startswith("s3://"):
         import boto3
 
@@ -331,6 +388,7 @@ def copiar(origen: str, destino: str) -> None:
 
 def borrar(ruta: str) -> None:
     """Borra un archivo (local o s3://)."""
+    anunciar("BORRA", ruta)
     if ruta.startswith("s3://"):
         import boto3
 

@@ -29,10 +29,10 @@ Material de consulta. No hace falta leerlo para empezar: el recorrido está en l
                                      v              v                v
  +--------------------------------------+    +------------------------------------------+
  | Code Editor (SageMaker, 8 GB)        |    | S3  bigdata-lake-<cuenta>-us-east-2      |
- |  - tu código, tests                  |    |  bronze/  (crudo + lotes, compartido)    |
- |  - Airflow de dev (make airflow-local)|-->|  muestra/ (~100 k filas, para local)     |
- |     computo=spark_local: Spark aquí, |    |  dev/  silver/ gold/                     |
- |       sobre la muestra (gratis)      |    |  prod/ silver/ gold/                     |
+ |  - tu código, tests                  |    |  dev/  bronze silver gold muestra        |
+ |  - Airflow de dev (make airflow-local)|-->|  prod/ bronze silver gold muestra        |
+ |     computo=spark_local: Spark aquí, |    |  (dev y prod no comparten carpetas)      |
+ |       sobre la muestra (gratis)      |    |  code/ dags/ logs/ tmp/: del lake        |
  |     computo=glue_small: 1 mes        |    +----------+-------------------------------+
  +------------------+-------------------+               | COPY INTO
                     | PR -> merge a main                 v
@@ -68,6 +68,24 @@ Hay tres entornos. Usan el mismo código con distinta configuración.
 
 `<LAKE>` es el bucket `bigdata-lake-<CUENTA>-us-east-2` que el [Paso 10](guia.md#paso-10) imprime como `lake_bucket`.
 
+<a id="rutas-del-lake"></a>
+### Dónde queda cada dato
+
+Un solo bucket, y **dev y prod no comparten ninguna carpeta**. La regla es una sola:
+
+```text
+s3://<LAKE>/<entorno>/<capa>/<tabla>/mes=AAAA-MM/      entorno = dev | prod
+                                                       capa = bronze | silver | gold | muestra
+```
+
+- Un job con `--env dev` solo lee y escribe bajo `dev/`; con `--env prod`, solo bajo `prod/`.
+- `code/`, `dags/`, `logs/` y `tmp/` son del lake y no son de ningún entorno.
+- `make muestra` corre en `prod`: deja el año en `prod/bronze/` y la muestra en `prod/muestra/`. `make run-local` baja esa muestra al disco.
+- Las rutas se arman en un solo lugar (`ruta_lake` en `src/pipeline/settings.py`) y cada lectura o escritura de la casa imprime la ruta completa.
+- Para ver la tabla de un entorno: `make rutas ENTORNO=dev`, o `pio.donde_estoy("dev")` en un notebook.
+
+Tabla completa, comandos para mover un bucket del diseño anterior y tablas de Athena: [rutas_del_lake.md](rutas_del_lake.md).
+
 <a id="arquitectura-piezas"></a>
 ### Piezas del repositorio
 
@@ -88,11 +106,11 @@ Bronze guarda los datos tal como llegan de la fuente, pero ahora los guarda **do
 
 ### Los dos pasos
 
-1. **Crudo intacto.** El archivo se descarga y se guarda sin modificar ni un byte, en `bronze/_crudo/`. Si el archivo ya está ahí, no se descarga otra vez.
+1. **Crudo intacto.** El archivo se descarga y se guarda sin modificar ni un byte, en `<entorno>/bronze/_crudo/`. Si el archivo ya está ahí, no se descarga otra vez.
 2. **Bronze en Parquet.** Spark lee el crudo y lo escribe en formato Parquet, con las columnas originales sin transformar más cinco columnas de metadatos. Cada ejecución crea una carpeta nueva, llamada **lote**, y nunca borra las anteriores.
 
 ```text
-bronze/
+<entorno>/bronze/                                    (dev/bronze/ o prod/bronze/)
   _crudo/                                        paso 1: archivos tal como se descargaron
     fhvhv/mes=2024-01/fhvhv_tripdata_2024-01.parquet
     clima/mes=2024-01/open_meteo_2024-01.json
@@ -124,11 +142,11 @@ Reingestar un mes (`--step bronze --mes 2024-01`) crea un lote nuevo sin tocar l
 
 ### Si ya tenías bronze de la versión anterior
 
-La versión anterior guardaba el archivo descargado directamente en `bronze/<fuente>/mes=AAAA-MM/<archivo>`. Al ejecutar `--step bronze` por primera vez, el pipeline **mueve** ese archivo a `_crudo/` en lugar de descargarlo otra vez, así que los ~5.4 GB del año no se bajan de nuevo. Mover es copiar dentro de S3 y borrar el original solo cuando la copia terminó bien: no quedan dos copias y no se paga almacenamiento doble. Después de la migración, en `bronze/<fuente>/mes=.../` solo quedan carpetas `lote=`. No necesitas borrar nada a mano.
+Si tu bucket tiene `bronze/` y `muestra/` en la raíz (antes de que cada entorno tuviera su carpeta), mira [rutas_del_lake.md](rutas_del_lake.md): ahí están los comandos para moverlos a `prod/`. Más atrás, una versión guardaba el archivo descargado directamente en `<bronze>/<fuente>/mes=AAAA-MM/<archivo>`. Al ejecutar `--step bronze` por primera vez, el pipeline **mueve** ese archivo a `_crudo/` en lugar de descargarlo otra vez, así que los ~5.4 GB del año no se bajan de nuevo. Mover es copiar dentro de S3 y borrar el original solo cuando la copia terminó bien: no quedan dos copias y no se paga almacenamiento doble. Después de la migración, en `bronze/<fuente>/mes=.../` solo quedan carpetas `lote=`. No necesitas borrar nada a mano.
 
 ### En local
 
-El modo local no tiene bronze: lee la **muestra**. No necesitas generarla: `make run-local` la descarga sola la primera vez. La busca primero en tu bucket (`s3://<LAKE>/muestra`, que genera `make muestra`) y, si ahí no hay una muestra con lotes completos (`_LOTE_COMPLETO`), la baja del bucket público del curso, con acceso anónimo y sin credenciales. La ubicación pública está en `muestra.publica` de `src/pipeline/config/local.yaml`, y el log dice de cuál bucket salió. La muestra tiene la misma estructura que bronze (carpetas `lote=`, con el mismo identificador del lote del que salió) y conserva las cinco columnas de metadatos; no incluye `_crudo/`. Si en tu Code Editor quedó una muestra de la versión anterior, `make run-local` la detecta, la borra y descarga la nueva (de tu bucket si ya la tiene en el formato nuevo, y si no del bucket público).
+El modo local no tiene bronze: lee la **muestra**. No necesitas generarla: `make run-local` la descarga sola la primera vez. La busca primero en tu bucket (`s3://<LAKE>/prod/muestra`, que genera `make muestra`) y, si ahí no hay una muestra con lotes completos (`_LOTE_COMPLETO`), la baja del bucket público del curso, con acceso anónimo y sin credenciales. La ubicación pública está en `muestra.publica` de `src/pipeline/config/local.yaml`, y el log dice de cuál bucket salió. La muestra tiene la misma estructura que bronze (carpetas `lote=`, con el mismo identificador del lote del que salió) y conserva las cinco columnas de metadatos; no incluye `_crudo/`. Si en tu Code Editor quedó una muestra de la versión anterior, `make run-local` la detecta, la borra y descarga la nueva (de tu bucket si ya la tiene en el formato nuevo, y si no del bucket público).
 
 ---
 
@@ -182,7 +200,8 @@ Ejecuta `make help` para ver la lista actualizada. La columna **Paso** dice dón
 | `make doctor` | Diagnóstico: versiones, entorno de Python (`.venv` con 3.12), AWS, Snowflake, Terraform, OIDC | [Paso 9](guia.md#paso-9) |
 | `make estado` | Estado de Airflow, últimos job runs de Glue, warehouse y costos | [Apagar](cada-sesion.md#apagar) |
 | `make test` | `ruff check`, `ruff format --check`, `pytest` (y tests de DAGs si Airflow está instalado) | — |
-| `make muestra` | Glue: bronze del año de prod + muestra en tu bucket (una vez por curso). El modo local ya no la necesita | [Paso 12](guia.md#paso-12) |
+| `make muestra` | Glue: bronze del año en `prod/bronze/` + muestra en `prod/muestra/` de tu bucket (una vez por curso). El modo local ya no la necesita | [Paso 12](guia.md#paso-12) |
+| `make rutas` | Imprime en qué bucket y carpetas lee y escribe cada entorno (`ENTORNO=local\|dev\|prod`; vacío = los tres) | [Dónde queda cada dato](#rutas-del-lake) |
 | `make muestra-solo` | Glue: lanza solo el paso `muestra` (job `bigdata-medium`, entorno prod) y espera a que termine. Para quien cerró la terminal de `make muestra` con el bronze del año ya terminado | [Paso 12](guia.md#paso-12) |
 | `make run-local` | Pipeline en local sobre la muestra, que descarga sola la primera vez (`STEP=silver\|gold\|all`, `MES=YYYY-MM`, `LIMITE=N`). Sin `LIMITE` procesa toda la muestra | [Paso 13](guia.md#paso-13) |
 | `make airflow-local` / `-down` / `-estado` | Airflow de dev dentro del Code Editor (entorno dev; `computo` se elige al lanzar el DAG) | [Paso 13](guia.md#paso-13) · [Apagar](cada-sesion.md#apagar) (`-down`) |
@@ -235,9 +254,9 @@ Conexión de Airflow a Snowflake: no hay nada que hacer a mano. `make snowflake`
 <a id="make-muestra"></a>
 #### `make muestra` ([Paso 12](guia.md#paso-12))
 
-- Glue baja el año de **FHVHV** (los viajes de Uber/Lyft de NYC publicados por la NYC TLC) a `bronze/_crudo/` (~5.4 GB). Si ya los tenías en la ruta anterior de `bronze/`, los mueve en lugar de descargarlos otra vez.
+- Glue baja el año de **FHVHV** (los viajes de Uber/Lyft de NYC publicados por la NYC TLC) a `prod/bronze/_crudo/` (~5.4 GB). Si ya los tenías en la ruta anterior (sin `_crudo/`), los mueve en lugar de descargarlos otra vez.
 - **Bronze** guarda cada archivo tal como llegó y además lo convierte a Parquet con metadatos (hash de cada fila, fecha de ingesta, lote). Detalle: [Bronze: ingesta con metadatos](#bronze).
-- Genera la **muestra** en `muestra/` de tu bucket: un subconjunto pequeño de los datos, con la misma estructura de bronze. Para trabajar en local no hace falta: sin ella, `make run-local` usa la del bucket público del curso.
+- Genera la **muestra** en `prod/muestra/` de tu bucket: un subconjunto pequeño de los datos, con la misma estructura de bronze. Para trabajar en local no hace falta: sin ella, `make run-local` usa la del bucket público del curso.
 - Si cerraste la terminal a mitad de camino, `make muestra-solo` lanza únicamente este último paso, sin repetir el bronze del año. Ver [Cerré la terminal mientras corría `make muestra`](problemas.md#p-cerre-terminal-muestra).
 
 ---

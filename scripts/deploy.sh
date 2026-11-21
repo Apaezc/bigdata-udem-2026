@@ -60,6 +60,10 @@ aws s3 rm "s3://$LAKE/dags/hola_airflow.py"
 aws s3 sync airflow/framework "s3://$LAKE/code/airflow/framework/" --delete --exclude '*__pycache__*'
 aws s3 cp airflow/docker-compose.yaml "s3://$LAKE/code/airflow/docker-compose.yaml"
 
+msg "Rutas del lake (cada entorno solo toca su carpeta; el detalle: docs/rutas_del_lake.md)"
+mostrar_rutas_del_lake
+avisar_rutas_antiguas_del_lake || true
+
 msg "Deploy completado"
 echo "Si la VM de Airflow ya estaba encendida, se actualiza sola en ~1 min (DAGs y framework)."
 echo "El docker-compose.yaml se aplica al próximo arranque de la VM (make airflow-off && make airflow-on)."

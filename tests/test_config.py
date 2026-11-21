@@ -11,7 +11,7 @@ def test_local_lee_la_muestra_con_rutas_absolutas():
     cfg = cargar("local")
     assert cfg["rutas"]["bronze"].endswith("/lake/muestra")
     assert cfg["rutas"]["bronze"].startswith("/")
-    assert cfg["muestra"]["sincronizar_desde"] == "muestra"
+    assert cfg["muestra"]["sincronizar_desde"] == "prod/muestra"
     assert cfg["muestra"]["max_rows"] is None
     assert cfg["meses"] == ["2024-01"]
 
@@ -23,13 +23,14 @@ def test_dev_exige_lake_bucket(monkeypatch):
 
 
 @pytest.mark.parametrize("env", ["dev", "prod"])
-def test_dev_y_prod_comparten_bronze_y_separan_silver_y_gold(monkeypatch, env):
+def test_dev_y_prod_no_comparten_ninguna_carpeta(monkeypatch, env):
     monkeypatch.setenv("LAKE_BUCKET", "bigdata-lake-test-us-east-2")
     cfg = cargar(env)
-    assert cfg["rutas"]["bronze"] == "s3://bigdata-lake-test-us-east-2/bronze"
-    assert cfg["rutas"]["silver"] == f"s3://bigdata-lake-test-us-east-2/{env}/silver"
-    assert cfg["rutas"]["gold"] == f"s3://bigdata-lake-test-us-east-2/{env}/gold"
-    assert cfg["muestra"]["destino"] == "s3://bigdata-lake-test-us-east-2/muestra"
+    raiz = f"s3://bigdata-lake-test-us-east-2/{env}"
+    assert cfg["rutas"]["bronze"] == f"{raiz}/bronze"
+    assert cfg["rutas"]["silver"] == f"{raiz}/silver"
+    assert cfg["rutas"]["gold"] == f"{raiz}/gold"
+    assert cfg["muestra"]["destino"] == f"{raiz}/muestra"
     assert cfg["muestra"]["max_rows"] is None
 
 
