@@ -178,11 +178,12 @@ resource "aws_instance" "airflow" {
   associate_public_ip_address = true
 
   user_data = templatefile("${path.module}/user_data.sh.tftpl", {
-    region           = local.region
-    prefix           = var.prefix
-    lake_bucket      = var.lake_bucket
-    secret_name      = local.secret_name
-    snowflake_secret = local.snowflake_name
+    region            = local.region
+    prefix            = var.prefix
+    lake_bucket       = var.lake_bucket
+    secret_name       = local.secret_name
+    snowflake_secret  = local.snowflake_name
+    refresh_bootstrap = file("${path.module}/refresh-bootstrap.sh")
   })
 
   metadata_options {

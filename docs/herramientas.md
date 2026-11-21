@@ -22,9 +22,13 @@ Nunca ignora una columna en silencio: antes, una columna nueva en gold desaparec
 ### Paso a paso
 
 1. Agrega tu columna en `gold.py` (en `COLUMNAS` y en el select) y corre gold. Ejemplo: `rango_distancia`.
-2. En Snowflake (Snowsight o Python), crea tu tabla con todas las columnas de gold, en el esquema de tu entorno:
+2. En Snowflake (Snowsight o Python), crea tu tabla con todas las columnas de gold, en el esquema de tu entorno. Primero cambia al rol de los estudiantes: `ACCOUNTADMIN` no tiene permisos sobre los objetos de `BIGDATA.DEV` y el `CREATE TABLE` falla.
 
    ```sql
+   USE ROLE BIGDATA_DEV;
+   USE WAREHOUSE BIGDATA_WH;
+   USE DATABASE BIGDATA;
+
    CREATE TABLE IF NOT EXISTS BIGDATA.DEV.GOLD_ALUMNO (
        FECHA               DATE,
        ZONA                VARCHAR,
@@ -38,17 +42,26 @@ Nunca ignora una columna en silencio: antes, una columna nueva en gold desaparec
    );
    ```
 
-3. Carga desde Python (carpeta de tu tabla dentro de gold, y el mes si quieres reemplazar solo uno):
+3. Carga desde Python (carpeta de tu tabla dentro de gold, y el mes si quieres reemplazar solo uno). La conexión por defecto del Code Editor entra como `ACCOUNTADMIN`, así que abre una con el rol y el warehouse de los estudiantes y pásala con `conexion=`:
 
    ```python
    from pipeline.herramientas import cargar_gold_a_snowflake
+   from pipeline.watermark import abrir_conexion
+
+   conexion = abrir_conexion()
+   cursor = conexion.cursor()
+   cursor.execute("USE ROLE BIGDATA_DEV")
+   cursor.execute("USE WAREHOUSE BIGDATA_WH")
+   cursor.execute("USE DATABASE BIGDATA")
 
    filas = cargar_gold_a_snowflake(
-       "BIGDATA.DEV.GOLD_ALUMNO",  # tu tabla, con base de datos y esquema
+       "BIGDATA.DEV.GOLD_ALUMNO",  # tu tabla: siempre BASE.ESQUEMA.TABLA
        "daily_zone_metrics",  # carpeta dentro de s3://<lake>/dev/gold/
        mes="2024-01",  # None = reemplaza toda la tabla
+       conexion=conexion,
    )
    print(f"Se cargaron {filas} filas")
+   conexion.close()
    ```
 
    Si tu columna de fecha no se llama `FECHA`, indica `columna_fecha="NOMBRE"`.
@@ -75,4 +88,5 @@ El error también avisa de lo contrario (columnas que están en la tabla y gold 
 ### Notas
 
 - Los tipos se comparan por familia (texto, número, decimal, fecha, timestamp), no por precisión: `NUMBER(19,0)` en el Parquet y `NUMBER(38,0)` en la tabla es lo mismo.
-- La conexión sale de `~/.snowflake/connections.toml`, igual que la tabla de control. Si ya tienes una conexión abierta, pásala con `conexion=`.
+- Sin `conexion=`, la función abre la de `~/.snowflake/connections.toml` (rol `ACCOUNTADMIN`), que no sirve para este taller: usa siempre `BIGDATA_DEV` y `BIGDATA_WH` como arriba.
+- Solo mira los archivos `.parquet`: `_SUCCESS` y los marcadores `_$folder$` que dejan Spark y Glue se ignoran.

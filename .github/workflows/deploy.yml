@@ -143,6 +143,9 @@ jobs:
           # La VM necesita el paquete pipeline (cargar_gold_task importa pipeline.herramientas).
           aws s3 sync src/pipeline "s3://${LAKE_BUCKET}/code/airflow/pipeline/" --delete --exclude '*__pycache__*' --exclude '*.pyc'
           aws s3 cp airflow/docker-compose.yaml "s3://${LAKE_BUCKET}/code/airflow/docker-compose.yaml"
+          aws s3 cp airflow/vm/airflow-refresh.sh "s3://${LAKE_BUCKET}/code/airflow/airflow-refresh.sh"
+          aws s3 cp infra/aws/modules/airflow_vm/refresh-bootstrap.sh "s3://${LAKE_BUCKET}/code/airflow/airflow-bootstrap.sh"
+          aws s3 cp airflow/vm/instalar-bootstrap.sh "s3://${LAKE_BUCKET}/code/airflow/instalar-bootstrap.sh"
           echo "Código sincronizado en s3://${LAKE_BUCKET}/"
 
       # Prod se enciende cuando llega a main un cambio del pipeline o de los DAGs (o a mano con

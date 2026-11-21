@@ -134,14 +134,39 @@ def _mensaje_de_diferencias(tabla: str, ubicacion: str, diferencias: dict[str, l
     return "\n".join(lineas)
 
 
-def _columnas_de_gold(cursor: Any, ubicacion: str, formato: str) -> dict[str, str]:
-    """Columnas y tipos que Snowflake infiere de los Parquet que hay en esa ubicación del stage."""
+def _un_parquet_de_gold(cursor: Any, ubicacion: str, carpeta_tabla: str) -> str:
+    """Ruta (relativa a la carpeta de la tabla) de un archivo .parquet de esa ubicación del stage.
+
+    INFER_SCHEMA no acepta PATTERN y, si recorre la carpeta completa, se topa con _SUCCESS y con
+    los marcadores *_$folder$ que dejan Spark y Glue, y falla. Por eso se lista solo lo que
+    termina en .parquet y se infiere el esquema de uno. Se toma el último en orden alfabético
+    (el mes más reciente) y se ignoran los de 0 bytes.
+    """
+    cursor.execute(f"LIST {ubicacion} PATTERN = '.*[.]parquet'")
+    rutas = sorted(fila[0] for fila in cursor.fetchall() if int(fila[1]) > 0)
+    if not rutas:
+        raise RuntimeError(f"No hay archivos Parquet en {ubicacion}: corre gold antes de cargar.")
+    # LIST devuelve la ruta completa (s3://bucket/.../tabla/mes=2024-01/part-0.parquet);
+    # FILES pide la ruta desde la carpeta de la tabla.
+    marca = "/" + carpeta_tabla.split("/", 1)[1]  # '@BASE.ESQ.STAGE/tabla/' -> '/tabla/'
+    return rutas[-1].split(marca, 1)[1]
+
+
+def _columnas_de_gold(
+    cursor: Any, ubicacion: str, carpeta_tabla: str, formato: str
+) -> dict[str, str]:
+    """Columnas y tipos que Snowflake infiere de un Parquet de esa ubicación del stage."""
     try:
+        archivo = _un_parquet_de_gold(cursor, ubicacion, carpeta_tabla)
+        # LOCATION es la carpeta de la tabla (sin mes=): FILES lleva la ruta desde ahí.
         cursor.execute(
-            "SELECT COLUMN_NAME, TYPE FROM TABLE(INFER_SCHEMA(LOCATION => %s, FILE_FORMAT => %s))",
-            (ubicacion, formato),
+            "SELECT COLUMN_NAME, TYPE FROM "
+            "TABLE(INFER_SCHEMA(LOCATION => %s, FILE_FORMAT => %s, FILES => (%s)))",
+            (carpeta_tabla, formato, archivo),
         )
         filas = cursor.fetchall()
+    except RuntimeError:
+        raise
     except Exception as error:
         raise RuntimeError(
             f"No se pudo leer el esquema de los Parquet en {ubicacion}. Revisa que gold haya "
@@ -199,15 +224,17 @@ def cargar_gold_a_snowflake(
         raise ValueError(f"mes debe tener la forma YYYY-MM, por ejemplo 2024-01 (llegó {mes!r})")
 
     partes = tabla_snowflake.split(".")
-    if len(partes) == 3:
-        stage = stage or f"@{partes[0]}.{partes[1]}.LAKE_GOLD"
-        formato_archivo = formato_archivo or f"{partes[0]}.{partes[1]}.PARQUET_FF"
-    if not stage or not formato_archivo:
-        raise ValueError(
-            "Usa el nombre completo BASE.ESQUEMA.TABLA, o indica stage y formato_archivo."
-        )
+    if len(partes) != 3:
+        # La tabla temporal, el stage y el formato se calculan desde BASE.ESQUEMA: la sesión de
+        # Airflow no tiene esquema actual, así que nada puede ir sin calificar.
+        raise ValueError(f"Usa el nombre completo BASE.ESQUEMA.TABLA (llegó {tabla_snowflake!r}).")
+    stage = stage or f"@{partes[0]}.{partes[1]}.LAKE_GOLD"
+    formato_archivo = formato_archivo or f"{partes[0]}.{partes[1]}.PARQUET_FF"
+    # Temporal junto a la tabla destino, en un esquema donde el rol tiene CREATE TABLE.
+    temporal = f"{partes[0]}.{partes[1]}.{TABLA_TEMPORAL}"
 
-    ubicacion = f"{stage}/{carpeta_gold.strip('/')}/"
+    carpeta_tabla = f"{stage}/{carpeta_gold.strip('/')}/"
+    ubicacion = carpeta_tabla
     if mes:
         ubicacion += f"mes={mes}/"
 
@@ -227,7 +254,7 @@ def cargar_gold_a_snowflake(
             cursor.execute(crear_si_no_existe)
 
         # 2. Comparar columnas ANTES de tocar nada.
-        en_s3 = _columnas_de_gold(cursor, ubicacion, formato_archivo)
+        en_s3 = _columnas_de_gold(cursor, ubicacion, carpeta_tabla, formato_archivo)
         en_tabla = _columnas_de_tabla(cursor, tabla_snowflake)
         diferencias = comparar_columnas(en_s3, en_tabla)
         hay_diferencias = (
@@ -247,13 +274,13 @@ def cargar_gold_a_snowflake(
 
         # 3. COPY a una tabla temporal: si falla aquí, la tabla real no se ha tocado.
         #    FORCE = TRUE porque Snowflake recuerda 64 días los archivos ya cargados.
-        cursor.execute(f"CREATE OR REPLACE TEMPORARY TABLE {TABLA_TEMPORAL} LIKE {tabla_snowflake}")
+        cursor.execute(f"CREATE OR REPLACE TEMPORARY TABLE {temporal} LIKE {tabla_snowflake}")
         cursor.execute(
-            f"COPY INTO {TABLA_TEMPORAL} FROM '{ubicacion}' "
+            f"COPY INTO {temporal} FROM '{ubicacion}' "
             "FILE_FORMAT = (TYPE = PARQUET) MATCH_BY_COLUMN_NAME = CASE_INSENSITIVE "
             "PATTERN = '.*[.]parquet' FORCE = TRUE ON_ERROR = ABORT_STATEMENT"
         )
-        cursor.execute(f"SELECT COUNT(*) FROM {TABLA_TEMPORAL}")
+        cursor.execute(f"SELECT COUNT(*) FROM {temporal}")
         filas = int(cursor.fetchone()[0])
         if filas == 0:
             # Borrar lo viejo y no insertar nada dejaría la tabla vacía.
@@ -271,7 +298,7 @@ def cargar_gold_a_snowflake(
                 )
             else:
                 cursor.execute(f"DELETE FROM {tabla_snowflake}")
-            cursor.execute(f"INSERT INTO {tabla_snowflake} SELECT * FROM {TABLA_TEMPORAL}")
+            cursor.execute(f"INSERT INTO {tabla_snowflake} SELECT * FROM {temporal}")
             cursor.execute("COMMIT")
         except Exception:
             cursor.execute("ROLLBACK")

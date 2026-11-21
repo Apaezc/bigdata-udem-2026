@@ -159,6 +159,19 @@ resource "snowflake_grant_privileges_to_account_role" "dev_stage_entorno" {
   }
 }
 
+# INFER_SCHEMA (bodega.py) exige USAGE sobre el formato de archivo, además del stage.
+resource "snowflake_grant_privileges_to_account_role" "dev_file_format_entorno" {
+  for_each = local.entornos
+
+  account_role_name = snowflake_account_role.dev.name
+  privileges        = ["USAGE"]
+
+  on_schema_object {
+    object_type = "FILE FORMAT"
+    object_name = snowflake_file_format_parquet.entorno[each.key].fully_qualified_name
+  }
+}
+
 # ---------- Tabla de control de la ingesta: BIGDATA.CONTROL.WATERMARK ----------
 # La usa src/pipeline/watermark.py: registra qué mes de cada fuente ya se ingestó. El esquema y la
 # tabla los crea Terraform porque la base BIGDATA es de TERRAFORM_ROLE y ACCOUNTADMIN no puede

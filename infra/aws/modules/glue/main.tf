@@ -15,7 +15,9 @@ locals {
 
   # Perfiles del contrato: workers G.1X y timeout en minutos.
   profiles = {
-    small  = { workers = 2, timeout = 10 }
+    # small sube de 10 a 15 min: cada arranque instala snowflake-connector-python (30-90 s) y
+    # bronze, silver y gold de un mes son jobs separados, cada uno con su propia instalación.
+    small  = { workers = 2, timeout = 15 }
     medium = { workers = 4, timeout = 20 }
     large  = { workers = 6, timeout = 30 }
   }

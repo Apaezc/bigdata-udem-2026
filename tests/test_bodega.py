@@ -31,12 +31,20 @@ class CursorFalso:
         self.filas_copiadas = filas_copiadas
         self.sentencias: list[str] = []
         self._respuesta: list = []
+        self.valores_infer: tuple = ()
 
     def execute(self, sql, valores=None):
         self.sentencias.append(sql)
         if self.falla_en and sql.startswith(self.falla_en):
             raise RuntimeError(f"fallo simulado en {self.falla_en}")
-        if "INFER_SCHEMA" in sql:
+        if sql.startswith("LIST"):
+            self._respuesta = [
+                ("s3://lago/dev/gold/daily_zone_metrics/_SUCCESS", 0, "m", "f"),
+                ("s3://lago/dev/gold/daily_zone_metrics/mes=2024-01/part-0.parquet", 99, "m", "f"),
+                ("s3://lago/dev/gold/daily_zone_metrics/mes=2024-02/part-0.parquet", 99, "m", "f"),
+            ]
+        elif "INFER_SCHEMA" in sql:
+            self.valores_infer = valores
             self._respuesta = list(self.en_s3.items())
         elif sql.startswith("DESCRIBE TABLE"):
             self._respuesta = [(nombre, tipo, "COLUMN") for nombre, tipo in self.en_tabla.items()]
@@ -77,12 +85,45 @@ def test_columnas_iguales_carga_y_reemplaza_el_mes():
     filas = _cargar(cursor, mes="2024-01")
 
     assert filas == 42
-    assert cursor.empiezan_con("COPY INTO CARGA_GOLD_TMP")
+    assert cursor.empiezan_con("COPY INTO BIGDATA.DEV.CARGA_GOLD_TMP")
     assert "mes=2024-01/" in cursor.empiezan_con("COPY INTO")[0]
     assert cursor.sentencias[-4:][0] == "BEGIN"
     assert cursor.sentencias[-1] == "COMMIT"
     assert "DELETE FROM BIGDATA.DEV.GOLD_ALUMNO WHERE FECHA >=" in cursor.sentencias[-3]
     assert cursor.sentencias[-2].startswith("INSERT INTO BIGDATA.DEV.GOLD_ALUMNO SELECT")
+
+
+def test_la_tabla_temporal_va_calificada_en_todas_las_sentencias():
+    cursor = CursorFalso(TIPOS_BASE, TABLA_BASE)
+
+    _cargar(cursor)
+
+    con_temporal = [sql for sql in cursor.sentencias if "CARGA_GOLD_TMP" in sql]
+    assert len(con_temporal) == 4  # CREATE, COPY, COUNT, INSERT
+    assert all("BIGDATA.DEV.CARGA_GOLD_TMP" in sql for sql in con_temporal)
+
+
+def test_infer_schema_usa_un_solo_parquet_y_el_copy_filtra_por_patron():
+    cursor = CursorFalso(TIPOS_BASE, TABLA_BASE)
+
+    _cargar(cursor)
+
+    assert "PATTERN = '.*[.]parquet'" in cursor.empiezan_con("LIST")[0]
+    assert "PATTERN = '.*[.]parquet'" in cursor.empiezan_con("COPY INTO")[0]
+    infer = [sql for sql in cursor.sentencias if "INFER_SCHEMA" in sql]
+    assert "FILES =>" in infer[0]
+    assert cursor.valores_infer == (
+        "@BIGDATA.DEV.LAKE_GOLD/daily_zone_metrics/",
+        "BIGDATA.DEV.PARQUET_FF",
+        "mes=2024-02/part-0.parquet",  # el más reciente; _SUCCESS (0 bytes) no cuenta
+    )
+
+
+def test_nombre_de_tabla_sin_base_y_esquema_se_rechaza():
+    with pytest.raises(ValueError, match="BASE.ESQUEMA.TABLA"):
+        cargar_gold_a_snowflake(
+            "GOLD_ALUMNO", "daily_zone_metrics", conexion=ConexionFalsa(CursorFalso({}, {}))
+        )
 
 
 def test_sin_mes_borra_toda_la_tabla_dentro_de_la_transaccion():
