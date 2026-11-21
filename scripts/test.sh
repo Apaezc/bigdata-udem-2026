@@ -30,7 +30,13 @@ msg "Pytest (src)"
 # El Airflow local del Code Editor vive en su propio venv (~/.airflow-local/venv): si existe, se usa.
 PY_AIRFLOW="$PY"
 [[ -x "$HOME/.airflow-local/venv/bin/python" ]] && PY_AIRFLOW="$HOME/.airflow-local/venv/bin/python"
-if "$PY_AIRFLOW" -c 'from airflow.sdk import DAG' >/dev/null 2>&1; then
+# El venv de Airflow local no trae pytest: se instala ahí la primera vez (unos segundos).
+if "$PY_AIRFLOW" -c 'from airflow.sdk import DAG' >/dev/null 2>&1 \
+  && ! "$PY_AIRFLOW" -c 'import pytest' >/dev/null 2>&1; then
+  msg "Instalando pytest en el venv de Airflow local"
+  "$PY_AIRFLOW" -m pip install --quiet pytest || aviso "No se pudo instalar pytest en $PY_AIRFLOW"
+fi
+if "$PY_AIRFLOW" -c 'from airflow.sdk import DAG; import pytest' >/dev/null 2>&1; then
   msg "Pytest (airflow/tests)"
   "$PY_AIRFLOW" -m pytest airflow/tests
 else
