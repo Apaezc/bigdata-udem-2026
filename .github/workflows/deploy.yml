@@ -131,7 +131,14 @@ jobs:
           set -euo pipefail
           aws s3 cp build/pipeline.zip "s3://${LAKE_BUCKET}/code/pipeline.zip"
           aws s3 cp src/pipeline/run_glue.py "s3://${LAKE_BUCKET}/code/run_glue.py"
-          aws s3 sync airflow/dags "s3://${LAKE_BUCKET}/dags/" --delete --exclude '*__pycache__*'
+          # ingesta_mensual.py y hola_airflow.py son ejercicios de la clase 6 para el Airflow local del
+          # Code Editor: no se suben a prod. El --exclude evita subirlos, pero 'sync --delete' no borra
+          # en destino lo excluido; por eso el 'rm' los quita si ya estaban de una sincronización
+          # anterior (la VM los borra en su propio sync con --delete).
+          aws s3 sync airflow/dags "s3://${LAKE_BUCKET}/dags/" --delete --exclude '*__pycache__*' \
+            --exclude 'ingesta_mensual.py' --exclude 'hola_airflow.py'
+          aws s3 rm "s3://${LAKE_BUCKET}/dags/ingesta_mensual.py"
+          aws s3 rm "s3://${LAKE_BUCKET}/dags/hola_airflow.py"
           aws s3 sync airflow/framework "s3://${LAKE_BUCKET}/code/airflow/framework/" --delete --exclude '*__pycache__*'
           aws s3 cp airflow/docker-compose.yaml "s3://${LAKE_BUCKET}/code/airflow/docker-compose.yaml"
           echo "Código sincronizado en s3://${LAKE_BUCKET}/"
