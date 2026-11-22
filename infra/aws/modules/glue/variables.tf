@@ -24,12 +24,12 @@ variable "permissions_boundary_arn" {
   type        = string
 }
 
-variable "snowflake_secret_arn" {
-  description = "ARN del secreto <prefix>/snowflake (conexión de AIRFLOW_SVC). Los jobs lo leen para registrar en BIGDATA.CONTROL.WATERMARK."
-  type        = string
+variable "snowflake_secret_arns" {
+  description = "ARNs de los secretos de Snowflake que pueden leer los jobs: <prefix>/snowflake (dev, BIGDATA_DEV) y <prefix>/snowflake_prod (prod, BIGDATA_PROD). Los usan la tabla de control y la carga a Snowflake."
+  type        = list(string)
 }
 
 variable "snowflake_secret_name" {
-  description = "Nombre del secreto <prefix>/snowflake: se pasa al job como --snowflake-secret."
+  description = "Nombre del secreto <prefix>/snowflake: valor por defecto de --snowflake-secret. El DAG de prod lo reemplaza por <prefix>/snowflake_prod en cada corrida."
   type        = string
 }
