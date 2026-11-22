@@ -19,6 +19,10 @@ fi
 PREFIX="${PREFIX:-bigdata}"
 AWS_REGION="${AWS_REGION:-us-east-2}"
 export PREFIX AWS_REGION
+# Secretos de conexión a Snowflake: dev (rol BIGDATA_DEV) y prod (rol BIGDATA_PROD, solo lo lee la VM
+# de prod y los jobs de Glue que lanza). Los usan snowflake*.sh y la VM (refresh.env).
+export SECRETO_SNOWFLAKE="${PREFIX}/snowflake"
+export SECRETO_SNOWFLAKE_PROD="${PREFIX}/snowflake_prod"
 export AWS_DEFAULT_REGION="$AWS_REGION"
 export TF_VAR_prefix="$PREFIX"
 export TF_VAR_aws_region="$AWS_REGION"
@@ -134,7 +138,7 @@ account_id() {
   aws sts get-caller-identity --query Account --output text
 }
 
-CUENTA_AWS=""
+export CUENTA_AWS=""
 exigir_cuenta() {
   # Verifica la cuenta AWS real antes de cambiar infraestructura. Guarda el ID en CUENTA_AWS.
   local real
@@ -154,10 +158,10 @@ lake_bucket() {
 }
 
 # --- Rutas del lake ---------------------------------------------------------------------------
-# Misma regla que src/pipeline/settings.py (ruta_lake): s3://<lake>/<entorno>/<capa>/<tabla>/...
+# Misma regla que ruta_lake (src/pipeline/settings.py): s3://<lake>/<entorno>/<capa>/<tabla>/...
 # dev y prod no comparten ningún prefijo. code/, dags/, logs/ y tmp/ son del lake, no de un entorno.
 ENTORNOS_LAKE="dev prod"
-CAPAS_LAKE="bronze muestra silver gold"
+CAPAS_LAKE="bronze silver gold"
 PREFIJOS_ANTIGUOS_LAKE="bronze muestra silver gold"  # diseño anterior: en la raíz del bucket
 
 s3_tiene_objetos() {

@@ -51,6 +51,19 @@ fi
 
 msg "Configuración"
 info "PREFIX=$PREFIX  AWS_REGION=$AWS_REGION"
+if [[ "${PIPELINE_ENTORNO:-dev}" == "prod" ]]; then
+  fallo "PIPELINE_ENTORNO=prod en esta terminal: desde el Code Editor el entorno es siempre dev. Corre 'unset PIPELINE_ENTORNO' (o quítalo de tu .env y de ~/.bashrc)."
+else
+  ok "PIPELINE_ENTORNO=${PIPELINE_ENTORNO:-dev} (desde el Code Editor siempre es dev)"
+fi
+
+msg "Jars de Spark para S3 (cómputo code_editor)"
+JARS_DIR="${PIPELINE_JARS_DIR:-$HOME/.spark-jars}"
+if [[ -s "$JARS_DIR/hadoop-aws-3.3.4.jar" && -s "$JARS_DIR/aws-java-sdk-bundle-1.12.262.jar" ]]; then
+  ok "Jars de S3A en $JARS_DIR"
+else
+  fallo "Faltan los jars de S3A en $JARS_DIR: corre 'cd ~/bigdata && make jars-s3a'"
+fi
 
 msg "AWS"
 if CUENTA="$(account_id 2>/dev/null)" && [[ -n "$CUENTA" ]]; then
