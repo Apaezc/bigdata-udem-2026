@@ -23,7 +23,8 @@ msg "Ruff (lint y formato)"
 # Se usa 'python -m pytest' y no el ejecutable 'pytest': en el Code Editor el shebang de
 # .venv/bin/pytest apunta a una ruta que ya no existe y el comando falla.
 msg "Pytest (src)"
-"$PY" -m pytest
+# -rs muestra el motivo de cada prueba omitida (por ejemplo «PENDIENTE: falta deduplicar»).
+"$PY" -m pytest -rs
 
 # Los tests de los DAGs necesitan Airflow (pip install -r airflow/requirements.txt); en CI corren siempre.
 # (no basta 'import airflow': la carpeta airflow/ del repo se importaría como paquete vacío)
