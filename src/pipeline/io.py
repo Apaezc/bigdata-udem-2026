@@ -1,4 +1,4 @@
-"""Lectura y escritura de las capas (archivos locales o s3://) y carpetas de bronze y la muestra.
+"""Lectura y escritura de las capas en el lake (s3://; file:// solo en pruebas) y rutas de bronze.
 
 Las rutas base (<bronze>, <silver>, <gold>) las arma settings.ruta_lake() según el entorno; aquí
 solo se arma lo que cuelga de ellas. Cada función de este archivo que lee o escribe dice en voz
@@ -6,11 +6,9 @@ alta la ruta completa (LEE, ESCRIBE, BORRA...): fíjate en la salida para saber 
 
     dev  -> <bronze> = s3://<lake>/dev/bronze     <silver> = s3://<lake>/dev/silver
     prod -> <bronze> = s3://<lake>/prod/bronze    <silver> = s3://<lake>/prod/silver
-    (la muestra es s3://<lake>/<entorno>/muestra; en local, ./lake/muestra, ./lake/silver...)
     donde_estoy("dev") imprime la tabla completa de un entorno.
 
-Layout dentro de cada base (igual en bronze y en la muestra, para que local lea la muestra con el
-mismo código):
+Layout dentro de cada base:
     <bronze>/_crudo/fhvhv/mes=YYYY-MM/fhvhv_tripdata_YYYY-MM.parquet   archivo tal como se descargó
     <bronze>/_crudo/clima/mes=YYYY-MM/open_meteo_YYYY-MM.json
     <bronze>/_crudo/taxi_zones/taxi_zone_lookup.csv
@@ -21,9 +19,11 @@ mismo código):
     <gold>/daily_zone_metrics/mes=YYYY-MM/ particionado por mes; la columna `fecha` queda dentro
                                            de los Parquet porque Snowflake los carga con
                                            MATCH_BY_COLUMN_NAME (airflow/dags/sql/copy_gold.sql).
-Cada ingesta de bronze crea un lote nuevo; silver y gold leen siempre el lote más reciente de
-cada mes (ver lote_mas_reciente). Los pasos leen y escriben todos los meses del rango en una sola
-pasada de Spark.
+Cada ingesta de bronze crea un lote nuevo (ver lote_mas_reciente).
+
+Las pruebas unitarias usan PIPELINE_RAIZ_LAKE=file://... y no tocan AWS: por eso las funciones de
+archivos de este módulo (existe, publicar, copiar, borrar, listar_subcarpetas...) entienden las
+rutas file:// además de s3://.
 """
 
 from __future__ import annotations
@@ -32,9 +32,7 @@ import logging
 import shutil
 import tempfile
 from pathlib import Path
-
-from pyspark.sql import DataFrame, SparkSession
-from pyspark.sql import functions as F
+from typing import TYPE_CHECKING
 
 from pipeline.settings import (
     TABLA_CLIMA,
@@ -52,7 +50,12 @@ from pipeline.settings import donde_estoy as donde_estoy
 from pipeline.settings import prefijo_lake as prefijo_lake
 from pipeline.settings import ruta_lake as ruta_lake
 
+if TYPE_CHECKING:  # pyspark solo se importa dentro de las funciones que lo usan: la VM no lo tiene
+    from pyspark.sql import DataFrame, SparkSession
+
 log = logging.getLogger(__name__)
+
+PREFIJO_FILE = "file://"
 
 CARPETA_CAPA = {"silver": TABLA_SILVER, "gold": TABLA_GOLD}
 
@@ -75,7 +78,14 @@ def unir(base: str, *partes: str) -> str:
     return "/".join([base.rstrip("/"), *partes])
 
 
-# --- rutas bronze / muestra ------------------------------------------------------------------
+def a_ruta_local(ruta: str) -> Path:
+    """Ruta de disco de algo que no es s3://: quita el prefijo file:// si lo trae."""
+    if ruta.startswith(PREFIJO_FILE):
+        return Path(ruta[len(PREFIJO_FILE) :])
+    return Path(ruta)
+
+
+# --- rutas de bronze ------------------------------------------------------------------
 
 # Carpeta de cada fuente dentro de bronze.
 VIAJES = TABLA_VIAJES
@@ -147,7 +157,7 @@ def listar_subcarpetas(ruta: str) -> list[str]:
             for carpeta in pagina.get("CommonPrefixes", []):
                 nombres.append(carpeta["Prefix"][len(prefijo) :].rstrip("/"))
         return nombres
-    raiz = Path(ruta)
+    raiz = a_ruta_local(ruta)
     if not raiz.is_dir():
         return nombres
     for hijo in raiz.iterdir():
@@ -172,8 +182,8 @@ def lote_mas_reciente(base: str, fuente: str, mes: str | None = None) -> str:
         if existe(unir(carpeta, nombre, MARCA_LOTE_COMPLETO)):
             return nombre[len(PREFIJO_LOTE) :]
     raise LoteNoEncontrado(
-        f"No hay ningún lote completo en {carpeta}. Ejecuta primero --step bronze "
-        "(en la nube) o, si trabajas en local, vuelve a generar la muestra con make muestra."
+        f"No hay ningún lote completo en {carpeta}. Ejecuta primero el paso bronze "
+        "(make correr PASO=bronze)."
     )
 
 
@@ -206,7 +216,7 @@ def escribir_lote(df: DataFrame, carpeta_lote: str, archivos: int | None = None)
 
 
 def leer_viajes(spark: SparkSession, base: str, meses: list[str]) -> DataFrame:
-    """Viajes de todos los meses, cada uno desde su lote más reciente (bronze y muestra)."""
+    """Viajes de todos los meses, cada uno desde su lote más reciente de bronze."""
     carpetas = []
     for mes in meses:
         carpetas.append(dir_lote_reciente(base, VIAJES, mes))
@@ -231,35 +241,10 @@ def leer_clima(spark: SparkSession, base: str, meses: list[str]) -> DataFrame:
     return spark.read.parquet(*carpetas)
 
 
-def leer_fuente(
-    spark: SparkSession, cfg: dict, fuente: str, meses: list[str], limite: int | None = None
-) -> DataFrame:
-    """Puerta única de lectura de fuentes crudas (bronze en dev/prod, la muestra en local).
-
-    Aplica el límite de filas de la corrida (--limite / preparar_entorno del DAG). Toda fuente
-    nueva se agrega a LECTORES y se lee con esta función, nunca con spark.read directo: así el
-    límite de spark_local y el cambio entre entornos funcionan solos.
-    """
-    from pipeline.muestra import aplicar_muestra  # import tardío: muestra importa io
-
-    if fuente not in LECTORES:
-        raise ValueError(
-            f"Fuente desconocida {fuente!r}. Declárala en io.LECTORES: {sorted(LECTORES)}"
-        )
-    df = LECTORES[fuente](spark, cfg["rutas"]["bronze"], meses)
-    return aplicar_muestra(df, cfg, limite)
-
-
-# Fuentes crudas: nombre -> lector(spark, base, meses).
-LECTORES = {
-    "viajes": leer_viajes,
-    "zonas": lambda spark, base, meses: leer_zonas(spark, base),
-    "clima": leer_clima,
-}
-
-
 def leer_silver(spark: SparkSession, cfg: dict, meses: list[str]) -> DataFrame:
     """Silver filtrado al rango de meses (partition pruning por pickup_date)."""
+    from pyspark.sql import functions as F
+
     ruta = unir(cfg["rutas"]["silver"], CARPETA_CAPA["silver"])
     anunciar("LEE", ruta, f"silver, meses {','.join(meses)}")
     df = spark.read.parquet(ruta)
@@ -283,6 +268,8 @@ def escribir_silver(df: DataFrame, cfg: dict, meses: list[str]) -> None:
 
 
 def escribir_gold(df: DataFrame, cfg: dict, meses: list[str]) -> None:
+    from pyspark.sql import functions as F
+
     ruta = unir(cfg["rutas"]["gold"], CARPETA_CAPA["gold"])
     borrar_particiones(ruta, [f"mes={m}/" for m in meses])
     anunciar("ESCRIBE", ruta, f"gold, meses {','.join(meses)}")
@@ -312,7 +299,7 @@ def borrar_particiones(ruta: str, prefijos: list[str]) -> None:
             for i in range(0, len(claves), 1000):
                 s3.delete_objects(Bucket=bucket, Delete={"Objects": claves[i : i + 1000]})
         return
-    carpeta = Path(ruta)
+    carpeta = a_ruta_local(ruta)
     if not carpeta.is_dir():
         return
     for hijo in carpeta.iterdir():
@@ -320,29 +307,32 @@ def borrar_particiones(ruta: str, prefijos: list[str]) -> None:
             shutil.rmtree(hijo)
 
 
-def tamano_mb(rutas: list[str]) -> float:
-    """Tamaño total (MB) de los archivos bajo las rutas (carpetas o archivos; locales o s3://)."""
-    total = 0
-    for ruta in rutas:
-        anunciar("LISTA", ruta, "para sumar el tamaño")
-        if ruta.startswith("s3://"):
-            import boto3
+def borrar_carpeta(ruta: str) -> None:
+    """Borra una carpeta completa y todo lo que tiene adentro (s3:// o file://).
 
-            bucket, _, prefijo = ruta[len("s3://") :].partition("/")
-            paginas = (
-                boto3.client("s3")
-                .get_paginator("list_objects_v2")
-                .paginate(Bucket=bucket, Prefix=prefijo)
-            )
-            total += sum(o["Size"] for p in paginas for o in p.get("Contents", []))
-        else:
-            r = Path(ruta)
-            archivos = [r] if r.is_file() else [f for f in r.rglob("*") if f.is_file()]
-            total += sum(f.stat().st_size for f in archivos)
-    return total / 1_048_576
+    Es lo que usa escribir_capa para reemplazar un mes: primero se borra la carpeta del mes y
+    luego se escribe, así no quedan archivos viejos mezclados con los nuevos.
+    """
+    anunciar("BORRA", unir(ruta, "*"), "carpeta completa")
+    if ruta.startswith("s3://"):
+        import boto3
+
+        bucket, _, prefijo = ruta[len("s3://") :].partition("/")
+        s3 = boto3.client("s3")
+        paginador = s3.get_paginator("list_objects_v2")
+        claves = []
+        for pagina in paginador.paginate(Bucket=bucket, Prefix=prefijo.rstrip("/") + "/"):
+            for objeto in pagina.get("Contents", []):
+                claves.append({"Key": objeto["Key"]})
+        for i in range(0, len(claves), 1000):
+            s3.delete_objects(Bucket=bucket, Delete={"Objects": claves[i : i + 1000]})
+        return
+    carpeta = a_ruta_local(ruta)
+    if carpeta.is_dir():
+        shutil.rmtree(carpeta)
 
 
-# --- archivos (bronze y muestra) -------------------------------------------------------------
+# --- archivos (s3:// o file://) -------------------------------------------------------------
 
 
 def existe(ruta: str) -> bool:
@@ -356,7 +346,7 @@ def existe(ruta: str) -> bool:
         except ClientError:
             return False
         return True
-    return Path(ruta).exists()
+    return a_ruta_local(ruta).exists()
 
 
 def publicar(local: Path, destino: str) -> None:
@@ -368,8 +358,9 @@ def publicar(local: Path, destino: str) -> None:
         bucket, _, key = destino[len("s3://") :].partition("/")
         boto3.client("s3").upload_file(str(local), bucket, key)
     else:
-        Path(destino).parent.mkdir(parents=True, exist_ok=True)
-        shutil.copyfile(local, destino)
+        destino_local = a_ruta_local(destino)
+        destino_local.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(local, destino_local)
 
 
 def copiar(origen: str, destino: str) -> None:
@@ -382,8 +373,9 @@ def copiar(origen: str, destino: str) -> None:
         db, _, dk = destino[len("s3://") :].partition("/")
         boto3.client("s3").copy({"Bucket": ob, "Key": ok}, db, dk)
     else:
-        Path(destino).parent.mkdir(parents=True, exist_ok=True)
-        shutil.copyfile(origen, destino)
+        destino_local = a_ruta_local(destino)
+        destino_local.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(a_ruta_local(origen), destino_local)
 
 
 def borrar(ruta: str) -> None:
@@ -395,7 +387,7 @@ def borrar(ruta: str) -> None:
         bucket, _, key = ruta[len("s3://") :].partition("/")
         boto3.client("s3").delete_object(Bucket=bucket, Key=key)
     else:
-        Path(ruta).unlink()
+        a_ruta_local(ruta).unlink()
 
 
 def mover(origen: str, destino: str) -> None:
