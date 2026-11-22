@@ -243,3 +243,34 @@ def test_si_falta_solo_el_warehouse_se_fija_solo_el_warehouse(conexion):
 def test_nombre_de_tabla_lleva_el_entorno():
     assert watermark.nombre_de_tabla("dev", "fhvhv_trips") == "dev/fhvhv_trips"
     assert watermark.nombre_de_tabla("prod", "daily_zone_metrics") == "prod/daily_zone_metrics"
+
+
+# --- conexión por entorno (la usan control.py y bodega.py) ----------------------------------------
+
+
+def test_el_secreto_por_defecto_de_cada_entorno(monkeypatch):
+    monkeypatch.delenv(watermark.VARIABLE_SECRETO, raising=False)
+    monkeypatch.delenv("PREFIX", raising=False)
+    assert watermark.nombre_del_secreto("dev") == "bigdata/snowflake"
+    assert watermark.nombre_del_secreto("prod") == "bigdata/snowflake_prod"
+
+    monkeypatch.setenv("PREFIX", "curso")
+    assert watermark.nombre_del_secreto("dev") == "curso/snowflake"
+    assert watermark.nombre_del_secreto("prod") == "curso/snowflake_prod"
+
+
+def test_la_variable_del_secreto_gana_sobre_el_defecto(monkeypatch):
+    monkeypatch.setenv(watermark.VARIABLE_SECRETO, "otro/secreto")
+    assert watermark.nombre_del_secreto("prod") == "otro/secreto"
+
+
+def test_la_conexion_de_entorno_usa_el_secreto_y_nunca_connections_toml(monkeypatch):
+    monkeypatch.delenv(watermark.VARIABLE_SECRETO, raising=False)
+    monkeypatch.delenv("PREFIX", raising=False)
+    abiertos = []
+    monkeypatch.setattr(watermark, "_abrir_conexion_con_secreto", lambda n: abiertos.append(n) or n)
+    monkeypatch.setattr(watermark, "_abrir_conexion", lambda n: pytest.fail("connections.toml"))
+
+    assert watermark.abrir_conexion_de_entorno("dev") == "bigdata/snowflake"
+    assert watermark.abrir_conexion_de_entorno("prod") == "bigdata/snowflake_prod"
+    assert abiertos == ["bigdata/snowflake", "bigdata/snowflake_prod"]
