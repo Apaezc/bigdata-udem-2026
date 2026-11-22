@@ -19,6 +19,8 @@ from __future__ import annotations
 import re
 from typing import Any
 
+from pipeline import io
+
 TABLA_TEMPORAL = "CARGA_GOLD_TMP"
 PATRON_MES = re.compile(r"^\d{4}-\d{2}$")
 PATRON_IDENTIFICADOR = re.compile(r"^[A-Za-z0-9_$]+(\.[A-Za-z0-9_$]+)*$")
@@ -36,6 +38,7 @@ FAMILIAS = {
     "INTEGER": "NUMERO",
     "BIGINT": "NUMERO",
     "SMALLINT": "NUMERO",
+    "TINYINT": "NUMERO",
     "FLOAT": "DECIMAL",
     "FLOAT4": "DECIMAL",
     "FLOAT8": "DECIMAL",
@@ -96,8 +99,17 @@ def comparar_columnas(en_s3: dict[str, str], en_snowflake: dict[str, str]) -> di
     }
 
 
-def _mensaje_de_diferencias(tabla: str, ubicacion: str, diferencias: dict[str, list]) -> str:
-    """Arma el error en español: qué sobra, qué falta y qué hacer."""
+def mensaje_de_diferencias(
+    tabla: str,
+    ubicacion: str,
+    diferencias: dict[str, list],
+    tipos_s3: dict[str, str] | None = None,
+) -> str:
+    """Arma el error en español: qué sobra, qué falta y qué hacer.
+
+    `tipos_s3` ({columna: tipo de Snowflake}) permite que el ALTER sugerido lleve el tipo real de
+    la columna nueva; sin él se usa VARCHAR.
+    """
     lineas = [
         f"No se cargó nada: las columnas de gold ({ubicacion}) no coinciden con la tabla {tabla}.",
         "",
@@ -105,6 +117,7 @@ def _mensaje_de_diferencias(tabla: str, ubicacion: str, diferencias: dict[str, l
     solo_s3 = diferencias["solo_s3"]
     solo_snowflake = diferencias["solo_snowflake"]
     tipos = diferencias["tipos_distintos"]
+    tipo_de = {nombre.upper(): tipo for nombre, tipo in (tipos_s3 or {}).items()}
 
     if solo_s3:
         lineas.append(f"  Solo en S3 (gold las trae, la tabla no): {', '.join(solo_s3)}")
@@ -121,7 +134,10 @@ def _mensaje_de_diferencias(tabla: str, ubicacion: str, diferencias: dict[str, l
     lineas.append("Qué hacer:")
     if solo_s3:
         lineas.append("  - Si la columna es nueva a propósito, agrégala a la tabla, por ejemplo:")
-        lineas.append(f"      ALTER TABLE {tabla} ADD COLUMN {solo_s3[0]} VARCHAR;")
+        for nombre in solo_s3:
+            lineas.append(
+                f"      ALTER TABLE {tabla} ADD COLUMN {nombre} {tipo_de.get(nombre, 'VARCHAR')};"
+            )
         lineas.append("    (o vuelve a crear la tabla con tu CREATE TABLE completo).")
     if solo_snowflake:
         lineas.append("  - Si gold debía traer la columna, corrige gold.py (COLUMNAS y el select)")
@@ -190,34 +206,86 @@ def _columnas_de_tabla(cursor: Any, tabla: str) -> dict[str, str]:
     return {fila[0]: fila[1] for fila in filas}
 
 
-def cargar_gold_a_snowflake(
+def _entorno_de_la_tabla(tabla: str) -> str:
+    """'BIGDATA.PROD.X' -> 'prod'. Cualquier otro esquema usa la conexión de dev."""
+    partes = tabla.split(".")
+    return "prod" if len(partes) == 3 and partes[1].upper() == "PROD" else "dev"
+
+
+def _abrir_conexion_para(tabla: str) -> Any:
+    """Conexión por secreto, con el rol del entorno de la tabla (nunca connections.toml)."""
+    from pipeline.watermark import abrir_conexion_de_entorno
+
+    return abrir_conexion_de_entorno(_entorno_de_la_tabla(tabla))
+
+
+def crear_tabla(ddl: str, conexion: Any = None) -> None:
+    """Ejecuta tu CREATE TABLE en Snowflake (mejor con IF NOT EXISTS).
+
+    `CREATE OR REPLACE` se rechaza a propósito: borraría la tabla con sus datos.
+    """
+    texto = " ".join(ddl.split())
+    if not re.match(r"CREATE TABLE ", texto, re.IGNORECASE):
+        raise ValueError(
+            "crear_tabla solo ejecuta un CREATE TABLE (sin OR REPLACE), por ejemplo "
+            f"'CREATE TABLE IF NOT EXISTS BIGDATA.DEV.MI_TABLA (...)'. Llegó: {texto[:60]!r}"
+        )
+    io.anunciar("CREA", texto.split("(")[0].strip(), "tabla en Snowflake si no existe")
+    cerrar_al_final = conexion is None
+    if conexion is None:
+        nombre = re.search(r"(?:IF NOT EXISTS\s+)?([A-Za-z0-9_$.]+)\s*\(", texto)
+        conexion = _abrir_conexion_para(nombre.group(1) if nombre else "")
+    try:
+        conexion.cursor().execute(ddl)
+    finally:
+        if cerrar_al_final:
+            conexion.close()
+
+
+def esquema_de_tabla(tabla: str, conexion: Any = None) -> dict[str, str]:
+    """{columna: tipo} de una tabla de Snowflake. Falla con un mensaje claro si no existe."""
+    if not PATRON_IDENTIFICADOR.match(tabla):
+        raise ValueError(f"Nombre de tabla inválido: {tabla!r}")
+    cerrar_al_final = conexion is None
+    if conexion is None:
+        conexion = _abrir_conexion_para(tabla)
+    try:
+        return _columnas_de_tabla(conexion.cursor(), tabla)
+    finally:
+        if cerrar_al_final:
+            conexion.close()
+
+
+def cargar_gold(
     tabla_snowflake: str,
     carpeta_gold: str,
     mes: str | None = None,
     conexion: Any = None,
     columna_fecha: str = "FECHA",
-    stage: str | None = None,
-    formato_archivo: str | None = None,
-    crear_si_no_existe: str | None = None,
+    **opciones: Any,
 ) -> int:
     """Carga gold desde S3 a una tabla de Snowflake. Devuelve cuántas filas cargó.
 
-    tabla_snowflake  nombre completo, por ejemplo 'BIGDATA.DEV.DAILY_ZONE_METRICS'.
-    carpeta_gold     carpeta de la tabla dentro de gold, por ejemplo 'daily_zone_metrics'
+    tabla_snowflake  nombre completo, por ejemplo 'BIGDATA.DEV.TARIFA_POR_MILLA_BARRIO'.
+    carpeta_gold     carpeta de la tabla dentro de gold, por ejemplo 'tarifa_por_milla_barrio'
                      (el stage LAKE_GOLD ya apunta a s3://<lake>/<entorno>/gold/).
     mes              'YYYY-MM': reemplaza solo ese mes (carpeta mes=YYYY-MM/). None: reemplaza
                      toda la tabla.
-    conexion         conexión abierta de Snowflake; si es None se abre con watermark.abrir_conexion
-                     (connections.toml o secreto) y se cierra al terminar.
+    conexion         conexión abierta de Snowflake; si es None se abre con el secreto del entorno
+                     de la tabla (BIGDATA_DEV o BIGDATA_PROD) y se cierra al terminar.
     columna_fecha    columna DATE de la tabla; se usa para borrar el mes antes de insertar.
-    stage            por defecto @<base>.<esquema>.LAKE_GOLD, tomado del nombre de la tabla.
-    formato_archivo  por defecto <base>.<esquema>.PARQUET_FF.
-    crear_si_no_existe  CREATE TABLE IF NOT EXISTS ... para la tabla de la casa (el DAG); el
-                     estudiante no lo necesita: crea su tabla él mismo.
+    opciones         stage (por defecto @<base>.<esquema>.LAKE_GOLD, tomado del nombre de la
+                     tabla), formato_archivo (por defecto <base>.<esquema>.PARQUET_FF) y
+                     crear_si_no_existe (CREATE TABLE IF NOT EXISTS ... para la tabla de la casa).
 
     Falla con ColumnasDistintas, sin tocar la tabla, si las columnas de S3 y de la tabla no
     coinciden. Falla con cualquier error de COPY o de la transacción, también sin tocarla.
     """
+    stage = opciones.pop("stage", None)
+    formato_archivo = opciones.pop("formato_archivo", None)
+    crear_si_no_existe = opciones.pop("crear_si_no_existe", None)
+    if opciones:
+        raise TypeError(f"cargar_gold no conoce estas opciones: {', '.join(sorted(opciones))}")
     if not PATRON_IDENTIFICADOR.match(tabla_snowflake):
         raise ValueError(f"Nombre de tabla inválido: {tabla_snowflake!r}")
     if mes is not None and not PATRON_MES.match(mes):
@@ -238,14 +306,10 @@ def cargar_gold_a_snowflake(
     if mes:
         ubicacion += f"mes={mes}/"
 
+    io.anunciar("CARGA", tabla_snowflake, f"desde {ubicacion}")
     cerrar_al_final = conexion is None
     if conexion is None:
-        # Una sola forma de conectarse (watermark.abrir_conexion): connections.toml en el Code
-        # Editor, secreto de Secrets Manager en Glue y en la VM. El import va aquí porque solo
-        # hace falta cuando no llega una conexión.
-        from pipeline.watermark import abrir_conexion
-
-        conexion = abrir_conexion()
+        conexion = _abrir_conexion_para(tabla_snowflake)
     try:
         cursor = conexion.cursor()
 
@@ -264,7 +328,7 @@ def cargar_gold_a_snowflake(
         )
         if hay_diferencias:
             raise ColumnasDistintas(
-                _mensaje_de_diferencias(tabla_snowflake, ubicacion, diferencias)
+                mensaje_de_diferencias(tabla_snowflake, ubicacion, diferencias, en_s3)
             )
         if columna_fecha.upper() not in {nombre.upper() for nombre in en_tabla}:
             raise ColumnasDistintas(
@@ -307,3 +371,7 @@ def cargar_gold_a_snowflake(
     finally:
         if cerrar_al_final:
             conexion.close()
+
+
+# Nombre con el que se enseñaba en las clases anteriores; sigue funcionando.
+cargar_gold_a_snowflake = cargar_gold

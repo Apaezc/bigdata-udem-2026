@@ -37,6 +37,10 @@ La conexión se abre de una de dos formas. Se elige de manera explícita, en est
     3. Variable de entorno WATERMARK_CONNECTION, o la conexión "default" de connections.toml.
        Es el camino del Code Editor de SageMaker.
 
+Desde la clase 7, la tabla de control por entorno (herramientas/control.py) y la carga de gold
+(herramientas/bodega.py) no usan estos tres caminos: abren siempre el secreto del entorno con
+`abrir_conexion_de_entorno` (BIGDATA_DEV en dev, BIGDATA_PROD en prod), nunca connections.toml.
+
 Rol y warehouse salen de la conexión. Solo si la conexión no los trae (la de connections.toml por
 llave suele venir sin warehouse) se usan ROL y WAREHOUSE como respaldo.
 
@@ -65,6 +69,7 @@ WAREHOUSE = "COMPUTE_WH"
 CONEXION_POR_DEFECTO = "default"
 VARIABLE_CONEXION = "WATERMARK_CONNECTION"
 VARIABLE_SECRETO = "WATERMARK_SECRET"
+PREFIJO_POR_DEFECTO = "bigdata"
 
 # Valor de la columna MES para las fuentes que no se parten por mes (las zonas de taxi).
 MES_SIN_MES = "sin_mes"
@@ -169,6 +174,28 @@ def _abrir(connection_name: str | None) -> Any:
     if connection_name is None and secreto:
         return _abrir_conexion_con_secreto(secreto)
     return _abrir_conexion(_nombre_de_conexion(connection_name))
+
+
+def nombre_del_secreto(entorno: str = "dev") -> str:
+    """Secreto de Secrets Manager con la conexión del entorno.
+
+    Gana WATERMARK_SECRET si está definida. Si no, el defecto de cada entorno: en dev
+    '<PREFIX>/snowflake' (rol BIGDATA_DEV) y en prod '<PREFIX>/snowflake_prod' (rol BIGDATA_PROD).
+    """
+    desde_el_entorno = os.environ.get(VARIABLE_SECRETO)
+    if desde_el_entorno:
+        return desde_el_entorno
+    prefijo = os.environ.get("PREFIX") or PREFIJO_POR_DEFECTO
+    return f"{prefijo}/snowflake_prod" if entorno == "prod" else f"{prefijo}/snowflake"
+
+
+def abrir_conexion_de_entorno(entorno: str = "dev") -> Any:
+    """Conexión de Snowflake para un entorno, siempre por secreto y nunca por connections.toml.
+
+    La tabla de control y la carga de gold la usan: así corren con el rol BIGDATA_DEV (o
+    BIGDATA_PROD) y no con el ACCOUNTADMIN que trae connections.toml en el Code Editor.
+    """
+    return _abrir_conexion_con_secreto(nombre_del_secreto(entorno))
 
 
 def abrir_conexion(connection_name: str | None = None) -> Any:

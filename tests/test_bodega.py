@@ -1,10 +1,18 @@
-"""cargar_gold_a_snowflake: comparación de columnas y carga atómica, con una conexión falsa."""
+"""bodega: comparación de columnas, crear_tabla y carga atómica, con una conexión falsa."""
 
 from __future__ import annotations
 
 import pytest
 
-from pipeline.herramientas import ColumnasDistintas, cargar_gold_a_snowflake, comparar_columnas
+from pipeline import watermark
+from pipeline.herramientas.bodega import (
+    ColumnasDistintas,
+    cargar_gold,
+    cargar_gold_a_snowflake,
+    comparar_columnas,
+    crear_tabla,
+    esquema_de_tabla,
+)
 
 TABLA = "BIGDATA.DEV.GOLD_ALUMNO"
 TIPOS_BASE = {
@@ -74,9 +82,7 @@ class ConexionFalsa:
 
 
 def _cargar(cursor, **kwargs):
-    return cargar_gold_a_snowflake(
-        TABLA, "daily_zone_metrics", conexion=ConexionFalsa(cursor), **kwargs
-    )
+    return cargar_gold(TABLA, "daily_zone_metrics", conexion=ConexionFalsa(cursor), **kwargs)
 
 
 def test_columnas_iguales_carga_y_reemplaza_el_mes():
@@ -121,7 +127,7 @@ def test_infer_schema_usa_un_solo_parquet_y_el_copy_filtra_por_patron():
 
 def test_nombre_de_tabla_sin_base_y_esquema_se_rechaza():
     with pytest.raises(ValueError, match="BASE.ESQUEMA.TABLA"):
-        cargar_gold_a_snowflake(
+        cargar_gold(
             "GOLD_ALUMNO", "daily_zone_metrics", conexion=ConexionFalsa(CursorFalso({}, {}))
         )
 
@@ -146,7 +152,8 @@ def test_columna_de_mas_en_s3_da_error_claro_y_no_toca_la_tabla():
     mensaje = str(error.value)
     assert "Solo en S3" in mensaje
     assert "RANGO_DISTANCIA" in mensaje
-    assert "ALTER TABLE BIGDATA.DEV.GOLD_ALUMNO ADD COLUMN RANGO_DISTANCIA" in mensaje
+    # El ALTER lleva el tipo real que trae S3, no un VARCHAR fijo.
+    assert "ALTER TABLE BIGDATA.DEV.GOLD_ALUMNO ADD COLUMN RANGO_DISTANCIA TEXT;" in mensaje
     assert not cursor.empiezan_con("COPY")
     assert not cursor.empiezan_con("DELETE")
 
@@ -210,7 +217,7 @@ def test_conexion_propia_se_cierra_y_la_ajena_no():
     cursor = CursorFalso(TIPOS_BASE, TABLA_BASE)
     conexion = ConexionFalsa(cursor)
 
-    cargar_gold_a_snowflake(TABLA, "daily_zone_metrics", conexion=conexion)
+    cargar_gold(TABLA, "daily_zone_metrics", conexion=conexion)
 
     assert conexion.cerrada is False
 
@@ -224,3 +231,137 @@ def test_comparar_columnas_ignora_mayusculas_y_acepta_entero_en_float():
     diferencias = comparar_columnas({"viajes": "NUMBER(19,0)"}, {"VIAJES": "FLOAT"})
 
     assert diferencias == {"solo_s3": [], "solo_snowflake": [], "tipos_distintos": []}
+
+
+def test_el_alter_usa_el_tipo_real_de_cada_columna_nueva():
+    en_s3 = {**TIPOS_BASE, "pasajeros": "NUMBER(38, 0)", "propina": "REAL"}
+    cursor = CursorFalso(en_s3, TABLA_BASE)
+
+    with pytest.raises(ColumnasDistintas) as error:
+        _cargar(cursor)
+
+    mensaje = str(error.value)
+    assert "ADD COLUMN PASAJEROS NUMBER(38, 0);" in mensaje
+    assert "ADD COLUMN PROPINA REAL;" in mensaje
+
+
+def test_cargar_gold_a_snowflake_sigue_siendo_el_mismo_nombre_de_antes():
+    assert cargar_gold_a_snowflake is cargar_gold
+
+
+def test_opciones_desconocidas_de_cargar_gold_fallan_antes_de_conectarse():
+    with pytest.raises(TypeError, match="no conoce estas opciones: rapido"):
+        cargar_gold(TABLA, "daily_zone_metrics", rapido=True)
+
+
+def test_las_opciones_stage_y_crear_si_no_existe_se_respetan():
+    cursor = CursorFalso(TIPOS_BASE, TABLA_BASE)
+
+    _cargar(
+        cursor,
+        stage="@OTRA.BASE.STAGE",
+        formato_archivo="OTRA.BASE.FORMATO",
+        crear_si_no_existe="CREATE TABLE IF NOT EXISTS BIGDATA.DEV.GOLD_ALUMNO (FECHA DATE)",
+    )
+
+    assert cursor.sentencias[0].startswith("CREATE TABLE IF NOT EXISTS BIGDATA.DEV.GOLD_ALUMNO")
+    assert "@OTRA.BASE.STAGE/daily_zone_metrics/" in cursor.sentencias[1]
+    assert cursor.valores_infer[1] == "OTRA.BASE.FORMATO"
+
+
+# --- la conexión sale del secreto del entorno de la tabla -----------------------------------------
+
+
+@pytest.mark.parametrize(
+    ("tabla", "entorno"),
+    [("BIGDATA.DEV.GOLD_ALUMNO", "dev"), ("BIGDATA.PROD.GOLD_ALUMNO", "prod")],
+)
+def test_sin_conexion_se_abre_la_del_entorno_de_la_tabla_y_se_cierra(monkeypatch, tabla, entorno):
+    conexion = ConexionFalsa(CursorFalso(TIPOS_BASE, TABLA_BASE))
+    pedidas = []
+
+    def abrir(nombre_entorno):
+        pedidas.append(nombre_entorno)
+        return conexion
+
+    monkeypatch.setattr(watermark, "abrir_conexion_de_entorno", abrir)
+
+    cargar_gold(tabla, "daily_zone_metrics")
+
+    assert pedidas == [entorno]
+    assert conexion.cerrada is True
+
+
+def test_nunca_se_abre_connections_toml(monkeypatch):
+    monkeypatch.setattr(
+        watermark, "_abrir_conexion", lambda nombre: pytest.fail("connections.toml")
+    )
+    conexion = ConexionFalsa(CursorFalso(TIPOS_BASE, TABLA_BASE))
+    monkeypatch.setattr(watermark, "abrir_conexion_de_entorno", lambda entorno: conexion)
+
+    cargar_gold(TABLA, "daily_zone_metrics")
+
+
+# --- crear_tabla y esquema_de_tabla -------------------------------------------------------------
+
+DDL = "CREATE TABLE IF NOT EXISTS BIGDATA.DEV.GOLD_ALUMNO (FECHA DATE, VIAJES NUMBER(38,0))"
+
+
+def test_crear_tabla_ejecuta_el_ddl_con_la_conexion_dada():
+    cursor = CursorFalso({}, {})
+    conexion = ConexionFalsa(cursor)
+
+    crear_tabla(DDL, conexion)
+
+    assert cursor.sentencias == [DDL]
+    assert conexion.cerrada is False
+
+
+def test_crear_tabla_sin_conexion_abre_la_del_entorno_y_la_cierra(monkeypatch):
+    cursor = CursorFalso({}, {})
+    conexion = ConexionFalsa(cursor)
+    pedidas = []
+    monkeypatch.setattr(
+        watermark, "abrir_conexion_de_entorno", lambda entorno: pedidas.append(entorno) or conexion
+    )
+
+    crear_tabla(DDL.replace(".DEV.", ".PROD."))
+
+    assert pedidas == ["prod"]
+    assert conexion.cerrada is True
+
+
+@pytest.mark.parametrize(
+    "sentencia",
+    [
+        "CREATE OR REPLACE TABLE BIGDATA.DEV.GOLD_ALUMNO (FECHA DATE)",
+        "DROP TABLE BIGDATA.DEV.GOLD_ALUMNO",
+        "DELETE FROM BIGDATA.DEV.GOLD_ALUMNO",
+    ],
+)
+def test_crear_tabla_solo_acepta_create_table(sentencia):
+    cursor = CursorFalso({}, {})
+
+    with pytest.raises(ValueError, match="solo ejecuta un CREATE TABLE"):
+        crear_tabla(sentencia, ConexionFalsa(cursor))
+
+    assert cursor.sentencias == []
+
+
+def test_esquema_de_tabla_devuelve_columna_y_tipo():
+    cursor = CursorFalso(TIPOS_BASE, TABLA_BASE)
+
+    assert esquema_de_tabla(TABLA, ConexionFalsa(cursor)) == TABLA_BASE
+    assert cursor.sentencias == ["DESCRIBE TABLE BIGDATA.DEV.GOLD_ALUMNO"]
+
+
+def test_esquema_de_tabla_inexistente_explica_como_crearla():
+    cursor = CursorFalso(TIPOS_BASE, TABLA_BASE, falla_en="DESCRIBE TABLE")
+
+    with pytest.raises(RuntimeError, match="no existe o tu rol no la ve"):
+        esquema_de_tabla(TABLA, ConexionFalsa(cursor))
+
+
+def test_esquema_de_tabla_rechaza_nombres_raros():
+    with pytest.raises(ValueError, match="Nombre de tabla inválido"):
+        esquema_de_tabla("T; DROP TABLE X", ConexionFalsa(CursorFalso({}, {})))
