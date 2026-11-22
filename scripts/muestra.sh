@@ -1,44 +1,8 @@
 #!/usr/bin/env bash
-# Prepara los datos en la nube con Glue, siempre con --env prod:
-#   (1) bronze del año en s3://<lake>/prod/bronze (descarga solo lo que falta, reutiliza lo que ya
-#       estaba en la ruta anterior y escribe un lote nuevo con metadatos), y
-#   (2) la muestra en s3://<lake>/prod/muestra, que es la que baja el entorno local.
-# Una vez por curso. No escribe nada en dev/: dev crea su propio bronze cuando lo corres.
-# Con --solo-muestra lanza únicamente el segundo paso (target `make muestra-solo`): sirve cuando se
-# cerró la terminal con el bronze del año ya terminado y la muestra nunca se lanzó.
+# Retirado en la clase 7: ya no hay muestra. Solo avisa y sale con error.
 # shellcheck source=lib.sh
 source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
-
-requerir aws jq
-
-LAKE="$(lake_bucket)"
-msg "Bucket del lake: s3://$LAKE"
-msg "Escribe en s3://$LAKE/prod/bronze/ y s3://$LAKE/prod/muestra/ (no toca dev/)"
-
-correr() {
-  # Uso: correr <perfil> <step>. Lanza el job Glue y espera a que termine.
-  local job="${PREFIX}-$1" step="$2" id estado
-  id="$(aws glue start-job-run --job-name "$job" \
-    --arguments "{\"--step\":\"$step\",\"--env\":\"prod\"}" --query JobRunId --output text)" \
-    || error "No se pudo lanzar $job (¿otro run en curso o bloqueo por presupuesto?)."
-  msg "Glue $job --step $step (run $id)"
-  while :; do
-    estado="$(aws glue get-job-run --job-name "$job" --run-id "$id" --query JobRun.JobRunState --output text)"
-    case "$estado" in
-      SUCCEEDED) msg "$step OK"; return 0 ;;
-      FAILED|ERROR|TIMEOUT|STOPPED)
-        error "$step terminó en $estado. Revisa los logs en CloudWatch (/aws-glue/jobs/${PREFIX})." ;;
-    esac
-    sleep 20
-  done
-}
-
-if [[ "${1:-}" == "--solo-muestra" ]]; then
-  # No se repite bronze: volver a correrlo crearía otro lote completo del año (más almacenamiento y más costo).
-  correr medium muestra
-else
-  correr large bronze  # convierte el año a Parquet con hash por fila
-  correr medium muestra
-fi
-msg "Bronze del año en s3://$LAKE/prod/bronze/. Muestra lista en s3://$LAKE/prod/muestra/."
-msg "En local: make run-local (la descarga la primera vez)."
+echo "ERROR: 'make muestra' se retiró en la clase 7: ya no hay muestra ni bucket público de muestra." >&2
+echo "  El crudo se descarga solo la primera vez que corres bronze, directo a s3://<tu-bucket>/dev/bronze/_crudo/." >&2
+echo "  Usa:  cd ~/bigdata && make correr PASO=bronze" >&2
+exit 1

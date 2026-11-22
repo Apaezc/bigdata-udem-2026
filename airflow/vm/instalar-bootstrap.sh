@@ -1,7 +1,9 @@
 #!/bin/bash
-# Acción única para una VM de Airflow creada antes de que existiera el arranque mínimo: instala
-# refresh.env, el arranque y el cron. Después, "make deploy" basta para actualizar la VM.
-# Uso (como root, por SSM): LAKE=... REGION=... PREFIX=... bash instalar-bootstrap.sh
+# Acción única para una VM de Airflow creada antes de que existiera el arranque mínimo (o antes de la
+# clase 7): instala refresh.env, el arranque y el cron. Después, el CI/CD basta para actualizar la VM.
+# La VM es la de prod: su secreto de Snowflake es <PREFIX>/snowflake_prod (rol BIGDATA_PROD).
+# Uso normal: "make actualizar-vm" (lo corre por SSM). A mano (como root):
+#   LAKE=... REGION=... PREFIX=... bash instalar-bootstrap.sh
 set -euo pipefail
 : "${LAKE:?falta LAKE}" "${REGION:?falta REGION}" "${PREFIX:?falta PREFIX}"
 export AWS_DEFAULT_REGION="$REGION"
@@ -9,7 +11,7 @@ mkdir -p /opt/airflow/pipeline
 cat > /opt/airflow/refresh.env <<ENV
 REGION=$REGION
 LAKE=$LAKE
-SNOWFLAKE_SECRET=$PREFIX/snowflake
+SNOWFLAKE_SECRET=$PREFIX/snowflake_prod
 ENV
 aws s3 cp "s3://$LAKE/code/airflow/airflow-bootstrap.sh" /usr/local/bin/airflow-refresh.sh
 chmod 755 /usr/local/bin/airflow-refresh.sh

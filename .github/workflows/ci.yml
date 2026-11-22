@@ -46,6 +46,12 @@ jobs:
       - name: Ruff (formato)
         run: ruff format --check .
 
+      - name: Scripts de shell (sintaxis y shellcheck)
+        run: |
+          set -euo pipefail
+          for f in scripts/*.sh airflow/vm/*.sh; do bash -n "$f"; done
+          shellcheck -S warning -x scripts/*.sh airflow/vm/*.sh
+
       - name: Pytest
         run: pytest
 
