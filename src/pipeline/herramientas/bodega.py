@@ -307,3 +307,20 @@ def cargar_gold_a_snowflake(
     finally:
         if cerrar_al_final:
             conexion.close()
+
+
+# --- contrato de la clase 7 (P3 los implementa; no cambian de nombre ni de firma) ----------------
+
+
+def crear_tabla(ddl: str, conexion: Any = None) -> None:
+    """Ejecuta un CREATE TABLE en Snowflake con la conexión de dev (rol BIGDATA_DEV)."""
+    raise NotImplementedError("P3: crear_tabla")
+
+
+def esquema_de_tabla(tabla: str, conexion: Any = None) -> dict[str, str]:
+    """{COLUMNA: tipo} de una tabla de Snowflake (BASE.ESQUEMA.TABLA)."""
+    raise NotImplementedError("P3: esquema_de_tabla")
+
+
+# Nombre corto que usan el diseño y el cuaderno; cargar_gold_a_snowflake sigue importable.
+cargar_gold = cargar_gold_a_snowflake

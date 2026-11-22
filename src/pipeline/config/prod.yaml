@@ -1,13 +1,6 @@
-# Entorno prod: Glue `medium`/`large` sobre el año completo; lo lanza el Airflow de prod.
-# Las rutas NO se escriben aquí: las arma settings.ruta_lake(). En prod todo cuelga de
-# s3://<lake>/prod/ (bronze, silver, gold y muestra); prod no toca nada de dev/.
-# Para verlas completas: python -c "from pipeline import io; io.donde_estoy('prod')"
-entorno: prod
-muestra:
-  max_rows: null
-  # --step muestra (lo corre make muestra): filas aproximadas de la muestra, que se escribe en
-  # prod/muestra a partir del bronze del año (prod/bronze).
-  objetivo_filas: 100000
+# Entorno prod: los meses que procesa el DAG de la VM cuando no se pide un mes.
+# Prod no lee pipeline.yaml: siempre usa Glue y procesa todo (limite todos).
+# Las rutas NO se escriben aquí: las arma settings.ruta_lake().
 meses:
   - "2024-01"
   - "2024-02"

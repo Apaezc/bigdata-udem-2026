@@ -1,3 +1,12 @@
+"""Fixtures comunes. Las tres primeras (spark, raiz_lake, control_en_memoria) son el contrato de la
+clase 7: están congeladas y todos los paquetes las usan. Las demás fixtures van en
+tests/<paquete>_fixtures.py.
+
+Las que siguen después de la línea «TRANSITORIO» son de las clases 1 a 6: las pruebas viejas
+(test_bronze, test_silver, test_gold, test_ingesta_alumno) todavía las usan. Se borran cuando esos
+archivos migren a sus propias fixtures (P2 y P4).
+"""
+
 from __future__ import annotations
 
 import shutil
@@ -14,11 +23,37 @@ MES = "2024-01"
 
 @pytest.fixture(scope="session")
 def spark():
+    """Spark del Code Editor (local[2]) SIN S3: sirve para todo lo que lee y escribe file://."""
     from pipeline.engine import get_spark
 
-    session = get_spark("local")
+    session = get_spark("code_editor")
     yield session
     session.stop()
+
+
+@pytest.fixture
+def raiz_lake(tmp_path, monkeypatch):
+    """El lake de la prueba vive en tmp_path: PIPELINE_RAIZ_LAKE=file://<tmp_path>.
+
+    ruta_lake("dev", "silver", "fhvhv", "2024-01") queda en file://<tmp_path>/dev/silver/fhvhv/mes=2024-01.
+    Devuelve el Path de la raíz.
+    """
+    monkeypatch.setenv("PIPELINE_RAIZ_LAKE", f"file://{tmp_path}")
+    return tmp_path
+
+
+@pytest.fixture
+def control_en_memoria():
+    """La tabla de control en memoria (sin Snowflake). Devuelve el ControlEnMemoria instalado."""
+    from pipeline.herramientas.control import ControlEnMemoria, instalar_backend
+
+    backend = ControlEnMemoria()
+    instalar_backend(backend)
+    yield backend
+    instalar_backend(None)
+
+
+# --- TRANSITORIO: fixtures de las clases 1 a 6 ---------------------------------------------------
 
 
 @pytest.fixture(scope="session")

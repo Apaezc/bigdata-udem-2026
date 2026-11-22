@@ -1,11 +1,5 @@
-# Entorno dev: Glue `small` sobre 1 mes completo.
-# Las rutas NO se escriben aquí: las arma settings.ruta_lake(). En dev todo cuelga de
-# s3://<lake>/dev/ (bronze, silver, gold y muestra); dev no toca nada de prod/.
-# Para verlas completas: python -c "from pipeline import io; io.donde_estoy('dev')"
-entorno: dev
-muestra:
-  max_rows: null
-  # --step muestra: filas aproximadas de la muestra (se escribe en dev/muestra).
-  objetivo_filas: 100000
+# Entorno dev: los meses que se procesan cuando no pides uno (mes vacío en pipeline.yaml).
+# Lo demás (cómputo, límite, reprocesar) se cambia en pipeline.yaml, en la raíz del repo.
+# Las rutas NO se escriben aquí: las arma settings.ruta_lake().
 meses:
   - "2024-01"
