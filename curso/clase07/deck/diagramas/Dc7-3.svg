@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 440" font-family="Helvetica Neue, Arial, sans-serif">
+<title>La puerta de la tabla de control: tres casos y una sola regla</title><desc>Arriba, la tabla de control con una flecha de doble punta hacia las tres filas de abajo. Cada fila es un caso. Sin registro y reprocesar falso: se ingesta. Con registro y reprocesar falso: se salta, sin mirar filas, cómputo ni límite. Con reprocesar verdadero: se ingesta siempre. Abajo, una nota: el paso anota su fila solo al terminar bien.</desc>
+<defs><marker id="m_a" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#2340D8"/></marker><marker id="m_g" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#5F6672"/></marker><marker id="m_b" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#B4622F"/></marker><marker id="m_y" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#FFC83D"/></marker><marker id="m_r" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#B3261E"/></marker></defs>
+<rect x="6" y="6" width="1108" height="46" rx="6" fill="#E3E6F6" stroke="#2340D8" stroke-width="2.5"/>
+<text x="560" y="37" font-size="22" fill="#2340D8" text-anchor="middle" font-weight="700">Tabla de control · clave (tabla, capa, mes) · una fila por paso terminado</text>
+<line x1="300" y1="112" x2="300" y2="54" stroke="#2340D8" stroke-width="2.5" marker-end="url(#m_a)" marker-start="url(#m_a)"/>
+<text x="316" y="92" font-size="22" fill="#2340D8" text-anchor="start">¿ya hay una fila para esta clave?</text>
+<text x="150" y="136" font-size="22" fill="#5F6672" text-anchor="middle">¿hay registro?</text>
+<text x="430" y="136" font-size="22" fill="#5F6672" text-anchor="middle">reprocesar</text>
+<text x="690" y="136" font-size="22" fill="#5F6672" text-anchor="middle">qué hace el paso</text>
+<rect x="6" y="150" width="288" height="62" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
+<text x="150.0" y="189.0" font-size="22" fill="#15171C" text-anchor="middle" font-weight="700">no hay registro</text>
+<rect x="310" y="150" width="240" height="62" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
+<text x="430.0" y="189.0" font-size="22" fill="#15171C" text-anchor="middle" font-weight="700" font-family="SF Mono, Menlo, Consolas, monospace">false</text>
+<line x1="552" y1="181" x2="574" y2="181" stroke="#5F6672" stroke-width="2.5" marker-end="url(#m_g)"/>
+<rect x="576" y="150" width="230" height="62" rx="6" fill="#FFFFFF" stroke="#15171C" stroke-width="2.5"/>
+<text x="691.0" y="189.0" font-size="22" fill="#15171C" text-anchor="middle" font-weight="700">SE INGESTA</text>
+<text x="830" y="188" font-size="22" fill="#5F6672" text-anchor="start">la primera vez</text>
+<rect x="6" y="222" width="288" height="62" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
+<text x="150.0" y="261.0" font-size="22" fill="#15171C" text-anchor="middle" font-weight="700">sí hay registro</text>
+<rect x="310" y="222" width="240" height="62" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
+<text x="430.0" y="261.0" font-size="22" fill="#15171C" text-anchor="middle" font-weight="700" font-family="SF Mono, Menlo, Consolas, monospace">false</text>
+<line x1="552" y1="253" x2="574" y2="253" stroke="#5F6672" stroke-width="2.5" marker-end="url(#m_g)"/>
+<rect x="576" y="222" width="230" height="62" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="2.5"/>
+<text x="691.0" y="261.0" font-size="22" fill="#15171C" text-anchor="middle" font-weight="700">SE SALTÓ</text>
+<text x="830" y="245" font-size="22" fill="#5F6672" text-anchor="start">sin mirar filas,</text>
+<text x="830" y="272" font-size="22" fill="#5F6672" text-anchor="start">cómputo ni límite</text>
+<rect x="6" y="294" width="288" height="62" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
+<text x="150.0" y="333.0" font-size="22" fill="#15171C" text-anchor="middle" font-weight="700">da igual</text>
+<rect x="310" y="294" width="240" height="62" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
+<text x="430.0" y="333.0" font-size="22" fill="#15171C" text-anchor="middle" font-weight="700" font-family="SF Mono, Menlo, Consolas, monospace">true</text>
+<line x1="552" y1="325" x2="574" y2="325" stroke="#5F6672" stroke-width="2.5" marker-end="url(#m_g)"/>
+<rect x="576" y="294" width="230" height="62" rx="6" fill="#FFFFFF" stroke="#15171C" stroke-width="2.5"/>
+<text x="691.0" y="333.0" font-size="22" fill="#15171C" text-anchor="middle" font-weight="700">SE INGESTA</text>
+<text x="830" y="317" font-size="22" fill="#5F6672" text-anchor="start">a propósito; silver</text>
+<text x="830" y="344" font-size="22" fill="#5F6672" text-anchor="start">resuelve los duplicados</text>
+<text x="560" y="396" font-size="22" fill="#15171C" text-anchor="middle" font-weight="700">El paso anota su fila solo al terminar bien:</text>
+<text x="560" y="426" font-size="22" fill="#5F6672" text-anchor="middle">si falla, no queda registro y el mes se puede reintentar.</text>
+</svg>

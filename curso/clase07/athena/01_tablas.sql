@@ -3,15 +3,25 @@
 -- =====================================================================
 --
 -- PROBLEMA
---   Antes, dev y prod compartían la carpeta bronze/ del bucket: una corrida en dev creaba un
---   lote nuevo que prod leía sin que nadie lo decidiera. Ahora cada entorno tiene sus propias
---   carpetas y no comparten ninguna:
+--   El pipeline escribe archivos en S3 y nadie los ha mirado. Para saber qué dejó cada paso
+--   (cuántos lotes tiene bronze, cuántas filas tiene silver, cuántos viajes suma gold) hay que
+--   consultarlos. Athena lee los archivos donde están, con SQL, sin cargarlos en ninguna base.
+--   Antes hay que decirle al catálogo (Glue) dónde están y qué columnas traen: eso hace
+--   CREATE EXTERNAL TABLE.
 --
---     s3://bigdata-lake-<CUENTA>-us-east-2/<ENTORNO>/<capa>/<tabla>/mes=AAAA-MM/
+-- LAS RUTAS (las arma src/pipeline/settings.py, función ruta_lake; <ENTORNO> = dev o prod)
+--   s3://bigdata-lake-<CUENTA>-us-east-2/<ENTORNO>/
+--     bronze/fhvhv/mes=AAAA-MM/lote=<id>/        viajes, un lote por ingesta
+--     bronze/clima/mes=AAAA-MM/lote=<id>/        clima, una fila por día
+--     bronze/taxi_zones/lote=<id>/               zonas (sin mes)
+--     bronze/_crudo/...                          los archivos tal como se descargaron
+--     silver/fhvhv/mes=AAAA-MM/                  espejo limpio de los viajes
+--     silver/clima/mes=AAAA-MM/                  espejo limpio del clima
+--     silver/taxi_zones/                         espejo limpio de las zonas
+--     gold/tarifa_por_milla_barrio/mes=AAAA-MM/  la tabla de gold de la casa
 --
---   con <ENTORNO> = dev o prod. Este archivo declara en Athena las tablas de UN entorno, y el
---   NOMBRE de cada tabla empieza con el entorno y la capa (dev_silver_fhvhv, prod_silver_fhvhv),
---   así nunca confundes de cuál lees. Para tener los dos, ejecuta el archivo dos veces.
+--   Dev y prod no comparten ninguna carpeta. Cada tabla de Athena lleva el entorno y la capa en
+--   el nombre (dev_bronze_fhvhv, prod_silver_fhvhv), así nunca confundes de cuál lees.
 --
 -- DÓNDE Y CÓMO SE EJECUTA
 --   Consola de AWS > región US East (Ohio), us-east-2 > Athena > Query editor.
@@ -26,53 +36,46 @@
 --     <ENTORNO>  por  dev  (lo que escribe el pipeline desde tu Code Editor) o por  prod
 --                (lo que escribe el DAG de la VM, después del PR y del CI/CD).
 --   Si no reemplazas <ENTORNO>, el CREATE falla: el signo < no es válido en un nombre de tabla.
+--   Desde la terminal hay un atajo (el último comando cuenta las marcas que quedan):
+--     cd ~/bigdata
+--     CUENTA=$(aws sts get-caller-identity --query Account --output text)
+--     sed "s/<CUENTA>/$CUENTA/g; s/<ENTORNO>/dev/g" curso/clase07/athena/01_tablas.sql > ~/01_tablas_dev.sql
 --
--- QUÉ SE DECLARA (todo bajo s3://bigdata-lake-<CUENTA>-us-east-2/<ENTORNO>/)
---   bronze/_crudo/fhvhv/mes=AAAA-MM/fhvhv_tripdata_AAAA-MM.parquet   viajes, Parquet original
---   bronze/_crudo/clima/mes=AAAA-MM/open_meteo_AAAA-MM.json          clima, JSON original
---   bronze/_crudo/taxi_zones/taxi_zone_lookup.csv                    zonas, CSV original
---   silver/fhvhv/mes=AAAA-MM/                                        viajes limpios (espejo)
---   silver/clima/mes=AAAA-MM/                                        clima, una fila por día
---   silver/taxi_zones/                                               zonas (sin mes)
---   gold/tarifa_por_milla_barrio/mes=AAAA-MM/                        tarifa por milla por barrio
---
---   Bronze se declara sobre _crudo/ (los archivos tal como llegaron, completos: no lo recorta
---   `limite`), NO sobre las carpetas con lote=...: ahí cada reingesta agrega un lote nuevo.
---   Silver es el ESPEJO de bronze: una tabla por fuente, con el mismo nombre (fhvhv, clima,
---   taxi_zones) y sin join. Cambió con la clase 7: ya no existe silver/fhvhv_trips con
---   pickup_date= ni gold/daily_zone_metrics; la tabla de gold de la casa es
---   tarifa_por_milla_barrio (una pregunta de ejemplo, no la del Taller).
---   Silver y gold existen cuando ya corriste esos pasos en ese entorno; si no, la tabla se crea
---   y devuelve 0 filas.
---
--- LAS COLUMNAS DE METADATOS DE SILVER
---   Silver conserva _hash_fila, _id_lote y _fecha_ingesta SI bronze las agregó. Mientras
---   agregar_metadatos (bronze.py) no las agregue, esas tres columnas existen en la tabla de
---   Athena pero salen NULL: es lo que vas a ver en la clase. Los nombres que empiezan con _ llevan
---   comillas invertidas en el CREATE y comillas dobles en el SELECT.
---
--- CÓMO SABER DE QUÉ BUCKET Y CARPETA ESTÁS LEYENDO
---   Athena sabe de qué archivo sale cada fila: la columna oculta "$path". El bloque 7 la
---   consulta y te muestra la ruta s3:// completa. Las rutas de abajo salen de la misma regla
---   que usa el código (src/pipeline/settings.py, función ruta_lake); la tabla completa de tu
---   entorno la imprime donde_estoy("<ENTORNO>") en un notebook, y `make rutas` en la terminal.
---
--- LAS TABLAS DE LA CLASE 6
---   Las tablas bronze_fhvhv, bronze_clima, bronze_taxi_zones, silver_fhvhv_trips y
---   gold_daily_zone_metrics (sin entorno en el nombre) apuntan a las carpetas del diseño
---   anterior (bronze/ en la raíz del bucket). Después de `make migrar-clase07` ya no tienen
---   datos. Se borran con DROP TABLE (el bloque 8); los archivos no se tocan porque las tablas
---   son EXTERNAL.
+-- POR QUÉ UN LOTE NUEVO APARECE SIN VOLVER A EJECUTAR NADA
+--   Las tablas de bronze apuntan a la carpeta del MES (mes=AAAA-MM/), no a un lote concreto.
+--   Athena lista esa carpeta cada vez que corres una consulta y lee todo lo que hay debajo, en
+--   las subcarpetas lote=<id>/. Cuando el pipeline escribe un lote nuevo, la siguiente consulta
+--   ya lo ve: no hay que tocar el DDL. Así se ven los dos lotes de la demostración de duplicados.
+--   La columna oculta "$path" dice de qué archivo sale cada fila, y por tanto de qué lote
+--   (el bloque 8 lo usa).
 --
 -- POR QUÉ PROYECCIÓN DE PARTICIONES
---   Igual que en la clase 6: se le dice a Athena la regla (mes de 2024-01 a 2024-12, uno por
---   mes) y calcula las rutas al ejecutar la consulta. No hay particiones que registrar. Si la
---   consulta filtra por mes, Athena solo abre esas carpetas y paga solo esos bytes.
+--   El catálogo no descubre solo las carpetas mes=AAAA-MM. Con proyección le dices a Athena la
+--   regla (mes de 2024-01 a 2024-12, uno por mes) y calcula las rutas al ejecutar la consulta:
+--   no hay particiones que registrar ni MSCK REPAIR que correr. Si la consulta filtra por mes,
+--   Athena solo abre esa carpeta y paga solo esos bytes. Zonas no tiene mes: sin partición.
+--
+-- LAS COLUMNAS DE METADATOS
+--   Bronze guarda, además de las columnas originales, _fecha_ingesta, _id_lote, _hash_fila,
+--   _fuente y _archivo_origen SI agregar_metadatos (bronze.py) las agregó. Mientras esa función
+--   no haga nada (problema a propósito de la clase), los archivos no las traen: las columnas
+--   existen en la tabla de Athena pero salen NULL. Silver conserva _hash_fila, _id_lote y
+--   _fecha_ingesta con la misma regla. Los nombres que empiezan con _ llevan comillas invertidas
+--   en el CREATE y comillas dobles en el SELECT.
+--
+-- REGLAS DE ESTE ARCHIVO
+--   Dentro de un CREATE no hay comentarios con -- (la consola de Athena falla con ellos) y los
+--   tipos struct van en una sola línea.
+--
+-- LAS TABLAS DE LA CLASE 6
+--   bronze_fhvhv, bronze_clima, bronze_taxi_zones, silver_fhvhv_trips y gold_daily_zone_metrics
+--   (sin entorno en el nombre) apuntan al diseño anterior. Después de `make migrar-clase07` ya
+--   no tienen datos. Se borran con DROP TABLE (el bloque 10); los archivos no se tocan porque
+--   las tablas son EXTERNAL.
 --
 -- PRUEBA
---   Los bloques 0 a 3 y 6 a 8 son los de la clase 6 con la ruta nueva. Los bloques 4 y 5 (silver
---   y gold nuevos) se ejecutan por primera vez en el ensayo de la clase 7: ver
---   curso/clase07/prueba_ensayo.md, donde se anotan las cifras reales.
+--   Se ejecuta por primera vez en el ensayo de la clase 7: ver curso/clase07/prueba_ensayo.md,
+--   donde se anotan las cifras reales y se confirma que un lote nuevo aparece sin recrear tablas.
 -- =====================================================================
 
 
@@ -80,10 +83,8 @@
 CREATE DATABASE IF NOT EXISTS bigdata_lake;
 
 
--- 1. Viajes FHVHV (Uber, Lyft...) en bronze, archivos originales de NYC TLC. Un archivo de
---    ~470 MB por mes (~19 a 21 millones de filas). EXTERNAL = si se borra la tabla, los archivos
---    quedan. trip_time está en segundos.
---    Dentro de un CREATE no se escriben comentarios con --: la consola de Athena falla con ellos.
+-- 1. Bronze: viajes FHVHV. Columnas del archivo original de NYC TLC (trip_time en segundos) más
+--    los cinco metadatos. Un archivo por lote; cada ingesta agrega una carpeta lote= nueva.
 CREATE EXTERNAL TABLE IF NOT EXISTS bigdata_lake.<ENTORNO>_bronze_fhvhv (
   hvfhs_license_num     string,
   dispatching_base_num  string,
@@ -108,11 +109,16 @@ CREATE EXTERNAL TABLE IF NOT EXISTS bigdata_lake.<ENTORNO>_bronze_fhvhv (
   shared_match_flag     string,
   access_a_ride_flag    string,
   wav_request_flag      string,
-  wav_match_flag        string
+  wav_match_flag        string,
+  `_fecha_ingesta`      timestamp,
+  `_id_lote`            string,
+  `_hash_fila`          string,
+  `_fuente`             string,
+  `_archivo_origen`     string
 )
 PARTITIONED BY (mes string)
 STORED AS PARQUET
-LOCATION 's3://bigdata-lake-<CUENTA>-us-east-2/<ENTORNO>/bronze/_crudo/fhvhv/'
+LOCATION 's3://bigdata-lake-<CUENTA>-us-east-2/<ENTORNO>/bronze/fhvhv/'
 TBLPROPERTIES (
   'projection.enabled'            = 'true',
   'projection.mes.type'           = 'date',
@@ -120,22 +126,24 @@ TBLPROPERTIES (
   'projection.mes.range'          = '2024-01,2024-12',
   'projection.mes.interval'       = '1',
   'projection.mes.interval.unit'  = 'MONTHS',
-  'storage.location.template'     = 's3://bigdata-lake-<CUENTA>-us-east-2/<ENTORNO>/bronze/_crudo/fhvhv/mes=${mes}/'
+  'storage.location.template'     = 's3://bigdata-lake-<CUENTA>-us-east-2/<ENTORNO>/bronze/fhvhv/mes=${mes}/'
 );
 
 
--- 2. Clima diario de Open-Meteo en bronze. El JSON trae listas paralelas dentro de "daily"
---    (fechas, lluvia, temperatura). Se declaran como arreglos y se "despliegan" con UNNEST al
---    consultar. Un archivo de ~1 KB por mes.
+-- 2. Bronze: clima. Bronze ya lo guarda como una fila por día (fecha, lluvia en mm y temperatura).
 CREATE EXTERNAL TABLE IF NOT EXISTS bigdata_lake.<ENTORNO>_bronze_clima (
-  latitude   double,
-  longitude  double,
-  timezone   string,
-  daily      struct<time:array<string>,precipitation_sum:array<double>,temperature_2m_mean:array<double>>
+  fecha              string,
+  lluvia_mm          double,
+  temperatura        double,
+  `_fecha_ingesta`   timestamp,
+  `_id_lote`         string,
+  `_hash_fila`       string,
+  `_fuente`          string,
+  `_archivo_origen`  string
 )
 PARTITIONED BY (mes string)
-ROW FORMAT SERDE 'org.openx.data.jsonserde.JsonSerDe'
-LOCATION 's3://bigdata-lake-<CUENTA>-us-east-2/<ENTORNO>/bronze/_crudo/clima/'
+STORED AS PARQUET
+LOCATION 's3://bigdata-lake-<CUENTA>-us-east-2/<ENTORNO>/bronze/clima/'
 TBLPROPERTIES (
   'projection.enabled'            = 'true',
   'projection.mes.type'           = 'date',
@@ -143,28 +151,31 @@ TBLPROPERTIES (
   'projection.mes.range'          = '2024-01,2024-12',
   'projection.mes.interval'       = '1',
   'projection.mes.interval.unit'  = 'MONTHS',
-  'storage.location.template'     = 's3://bigdata-lake-<CUENTA>-us-east-2/<ENTORNO>/bronze/_crudo/clima/mes=${mes}/'
+  'storage.location.template'     = 's3://bigdata-lake-<CUENTA>-us-east-2/<ENTORNO>/bronze/clima/mes=${mes}/'
 );
 
 
--- 3. Zonas de taxi (CSV, 265 filas). No tiene mes: es una tabla de referencia, sin particiones.
---    OpenCSVSerde entrega todo como texto; la primera línea es el encabezado y se salta.
+-- 3. Bronze: zonas de taxi (265 filas por lote, todo como texto). No tiene mes: la carpeta de
+--    cada lote cuelga directo de bronze/taxi_zones/.
 CREATE EXTERNAL TABLE IF NOT EXISTS bigdata_lake.<ENTORNO>_bronze_taxi_zones (
-  locationid    string,
-  borough       string,
-  zone          string,
-  service_zone  string
+  locationid         string,
+  borough            string,
+  zone               string,
+  service_zone       string,
+  `_fecha_ingesta`   timestamp,
+  `_id_lote`         string,
+  `_hash_fila`       string,
+  `_fuente`          string,
+  `_archivo_origen`  string
 )
-ROW FORMAT SERDE 'org.apache.hadoop.hive.serde2.OpenCSVSerde'
-WITH SERDEPROPERTIES ('separatorChar' = ',', 'quoteChar' = '"')
-LOCATION 's3://bigdata-lake-<CUENTA>-us-east-2/<ENTORNO>/bronze/_crudo/taxi_zones/'
-TBLPROPERTIES ('skip.header.line.count' = '1');
+STORED AS PARQUET
+LOCATION 's3://bigdata-lake-<CUENTA>-us-east-2/<ENTORNO>/bronze/taxi_zones/';
 
 
--- 4. Silver: viajes limpios. Es el espejo de bronze/fhvhv: una fila por viaje que pasó los filtros
---    (distancia entre 0 y 100 millas, tarifa mayor que cero, duración entre 1 y 180 minutos),
---    con cada columna en su tipo y la empresa con su nombre. Las tres últimas columnas son los
---    metadatos de bronze: salen NULL mientras bronze no los agregue. Particionado por mes.
+-- 4. Silver: viajes limpios. Es el espejo de bronze/fhvhv: una fila por viaje que pasó los
+--    filtros (distancia entre 0 y 100 millas, tarifa mayor que cero, duración entre 1 y 180
+--    minutos), con cada columna en su tipo y la empresa con su nombre. Silver lee TODOS los
+--    lotes de bronze del mes. Reemplaza la carpeta del mes en cada corrida.
 CREATE EXTERNAL TABLE IF NOT EXISTS bigdata_lake.<ENTORNO>_silver_fhvhv (
   pickup_datetime   timestamp,
   dropoff_datetime  timestamp,
@@ -219,7 +230,7 @@ TBLPROPERTIES (
 );
 
 
--- 4c. Silver: zonas de taxi (265 filas, sin mes). LocationID ya es un entero.
+-- 4c. Silver: zonas de taxi (sin mes). LocationID ya es un entero.
 CREATE EXTERNAL TABLE IF NOT EXISTS bigdata_lake.<ENTORNO>_silver_taxi_zones (
   locationid        int,
   borough           string,
@@ -233,9 +244,9 @@ STORED AS PARQUET
 LOCATION 's3://bigdata-lake-<CUENTA>-us-east-2/<ENTORNO>/silver/taxi_zones/';
 
 
--- 5. Gold de la casa: tarifa por milla por fecha, barrio y franja del día. Particionado por mes.
---    La carpeta mes= es solo partición física: todas las columnas, incluida fecha, van dentro de
---    los Parquet (Snowflake no lee columnas de partición).
+-- 5. Gold de la casa: tarifa por milla por fecha, barrio y franja del día. La carpeta mes= es
+--    solo partición física: todas las columnas, incluida fecha, van dentro de los Parquet
+--    (Snowflake no lee columnas de partición).
 CREATE EXTERNAL TABLE IF NOT EXISTS bigdata_lake.<ENTORNO>_gold_tarifa_por_milla_barrio (
   fecha               date,
   borough             string,
@@ -259,28 +270,82 @@ TBLPROPERTIES (
 );
 
 
--- 6. Verificación: las ocho tablas con el nombre de <ENTORNO> deben aparecer en la lista
---    (tres de bronze sobre _crudo, tres de silver y una de gold).
+-- 6. Verificación: las siete tablas con el nombre de <ENTORNO> deben aparecer en la lista
+--    (tres de bronze, tres de silver y una de gold).
 SHOW TABLES IN bigdata_lake;
 
 
 -- 7. ¿De qué bucket y carpeta estoy leyendo? "$path" es la ruta s3:// completa del archivo.
---    Debe empezar con s3://bigdata-lake-<CUENTA>-us-east-2/<ENTORNO>/bronze/_crudo/fhvhv/.
---    Si ves otro entorno en la ruta, la tabla está mal declarada.
-SELECT "$path" AS archivo, count(*) AS viajes
+--    Debe empezar con s3://bigdata-lake-<CUENTA>-us-east-2/<ENTORNO>/bronze/fhvhv/mes=2024-01/lote=
+--    Si ves otro entorno en la ruta, la tabla está mal declarada. Devuelve 0 filas si bronze
+--    todavía no corrió en ese entorno.
+SELECT "$path" AS archivo, count(*) AS filas
 FROM bigdata_lake.<ENTORNO>_bronze_fhvhv
 WHERE mes = '2024-01'
 GROUP BY "$path";
 
 
--- 8. Opcional: borrar las tablas de la clase 6, que apuntan al diseño anterior (sin datos).
---    Cada una en su propia ejecución. Los archivos no se tocan.
+-- 8. ¿De qué lote sale cada fila? El identificador del lote es la carpeta lote=<id> de la ruta
+--    del archivo (funciona aunque _id_lote salga NULL). Con una ingesta hay un lote; cada
+--    reproceso agrega otro SIN tocar esta tabla: vuelve a ejecutar esta consulta y aparece.
+SELECT regexp_extract("$path", 'lote=([^/]+)', 1) AS lote, count(*) AS filas
+FROM bigdata_lake.<ENTORNO>_bronze_fhvhv
+WHERE mes = '2024-01'
+GROUP BY regexp_extract("$path", 'lote=([^/]+)', 1)
+ORDER BY lote;
+
+
+-- 9. Opcional: el archivo CRUDO tal como se descargó, completo (no lo recorta limite). Sirve
+--    para comparar contra lo que bronze guardó. Una tabla por fuente, sobre bronze/_crudo/.
+CREATE EXTERNAL TABLE IF NOT EXISTS bigdata_lake.<ENTORNO>_crudo_fhvhv (
+  hvfhs_license_num     string,
+  dispatching_base_num  string,
+  originating_base_num  string,
+  request_datetime      timestamp,
+  on_scene_datetime     timestamp,
+  pickup_datetime       timestamp,
+  dropoff_datetime      timestamp,
+  pulocationid          int,
+  dolocationid          int,
+  trip_miles            double,
+  trip_time             bigint,
+  base_passenger_fare   double,
+  tolls                 double,
+  bcf                   double,
+  sales_tax             double,
+  congestion_surcharge  double,
+  airport_fee           double,
+  tips                  double,
+  driver_pay            double,
+  shared_request_flag   string,
+  shared_match_flag     string,
+  access_a_ride_flag    string,
+  wav_request_flag      string,
+  wav_match_flag        string
+)
+PARTITIONED BY (mes string)
+STORED AS PARQUET
+LOCATION 's3://bigdata-lake-<CUENTA>-us-east-2/<ENTORNO>/bronze/_crudo/fhvhv/'
+TBLPROPERTIES (
+  'projection.enabled'            = 'true',
+  'projection.mes.type'           = 'date',
+  'projection.mes.format'         = 'yyyy-MM',
+  'projection.mes.range'          = '2024-01,2024-12',
+  'projection.mes.interval'       = '1',
+  'projection.mes.interval.unit'  = 'MONTHS',
+  'storage.location.template'     = 's3://bigdata-lake-<CUENTA>-us-east-2/<ENTORNO>/bronze/_crudo/fhvhv/mes=${mes}/'
+);
+
+
+-- 10. Opcional: borrar las tablas de la clase 6, que apuntan al diseño anterior (sin datos).
+--     Cada una en su propia ejecución. Los archivos no se tocan.
 -- DROP TABLE IF EXISTS bigdata_lake.bronze_fhvhv;
 -- DROP TABLE IF EXISTS bigdata_lake.bronze_clima;
 -- DROP TABLE IF EXISTS bigdata_lake.bronze_taxi_zones;
 -- DROP TABLE IF EXISTS bigdata_lake.silver_fhvhv_trips;
 -- DROP TABLE IF EXISTS bigdata_lake.gold_daily_zone_metrics;
--- Si ya habías declarado las tablas de silver y gold de la versión anterior de este archivo,
--- bórralas también (apuntan a carpetas que ya no se escriben):
+-- Si ya habías declarado las tablas de una versión anterior de este archivo (bronze sobre
+-- _crudo, silver_fhvhv_trips o gold_daily_zone_metrics con el entorno en el nombre), bórralas
+-- también: apuntan a carpetas que ya no se escriben.
 -- DROP TABLE IF EXISTS bigdata_lake.<ENTORNO>_silver_fhvhv_trips;
 -- DROP TABLE IF EXISTS bigdata_lake.<ENTORNO>_gold_daily_zone_metrics;
