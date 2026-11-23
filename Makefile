@@ -9,7 +9,7 @@ AWS_REGION ?= us-east-2
 export PREFIX AWS_REGION
 export PATH := $(CURDIR)/.venv/bin:$(PATH)
 
-.PHONY: help setup reparar-entorno config doctor estado test secrets publicar-bootstrap retirar-bootstrap muestra muestra-solo rutas run-local correr jars-s3a migrar-clase07 actualizar-vm deploy airflow-on airflow-off airflow-local airflow-local-down airflow-local-estado \
+.PHONY: help setup reparar-entorno config doctor estado test secrets publicar-bootstrap retirar-bootstrap rutas correr jars-s3a migrar-clase07 actualizar-vm deploy airflow-on airflow-off airflow-local airflow-local-down airflow-local-estado \
 	airflow-habilitar airflow-deshabilitar snowflake snowflake-secreto snowflake-conexion \
 	airflow-tunel airflow-password desbloquear snowflake-ampliar-cuota destroy limpieza-total
 
@@ -33,13 +33,6 @@ estado: ## Airflow (on/off + URL), últimos job runs de Glue, warehouse y costos
 
 test: ## Ruff y pytest
 	bash scripts/test.sh
-
-# Retirados en la clase 7: sin '##' para que no salgan en make help; solo avisan y salen con error 1.
-muestra:
-	bash scripts/muestra.sh
-
-muestra-solo:
-	bash scripts/muestra.sh --solo-muestra
 
 correr: ## Corre el pipeline en dev (PASO=bronze|silver|gold|snowflake COMPUTO= LIMITE= MES= REPROCESAR=); sin nada usa pipeline.yaml
 	PASO="$(PASO)" COMPUTO="$(COMPUTO)" LIMITE="$(LIMITE)" MES="$(MES)" REPROCESAR="$(REPROCESAR)" bash scripts/correr.sh
@@ -65,9 +58,6 @@ publicar-bootstrap: # SOLO INSTRUCTOR: publica la plantilla (versión fija) para
 
 retirar-bootstrap: # SOLO INSTRUCTOR: retira la plantilla publicada (al cerrar la semana de inscripción)
 	bash scripts/publicar-bootstrap.sh --retirar
-
-run-local: # Retirado en la clase 7: solo avisa y sale con error 1
-	bash scripts/run-local.sh
 
 deploy: ## terraform apply de infra/aws (el código de prod lo publica solo el CI/CD al hacer merge a main)
 	bash scripts/deploy.sh

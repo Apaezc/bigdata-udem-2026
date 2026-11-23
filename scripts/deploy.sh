@@ -62,14 +62,7 @@ else
 
   msg "Subiendo código, DAGs y framework a s3://$LAKE/"
   aws s3 cp build/pipeline.zip "s3://$LAKE/code/pipeline.zip"
-  # ingesta_mensual.py y hola_airflow.py son ejercicios de la clase 6 para el Airflow local del Code
-  # Editor: no se suben a prod. El --exclude evita subirlos, pero 'sync --delete' no borra en destino
-  # lo que está excluido; por eso el 'rm' los quita si ya estaban de una sincronización anterior (la
-  # VM los borra en su propio sync con --delete).
-  aws s3 sync airflow/dags "s3://$LAKE/dags/" --delete --exclude '*__pycache__*' \
-    --exclude 'ingesta_mensual.py' --exclude 'hola_airflow.py'
-  aws s3 rm "s3://$LAKE/dags/ingesta_mensual.py"
-  aws s3 rm "s3://$LAKE/dags/hola_airflow.py"
+  aws s3 sync airflow/dags "s3://$LAKE/dags/" --delete --exclude '*__pycache__*'
   aws s3 sync airflow/framework "s3://$LAKE/code/airflow/framework/" --delete --exclude '*__pycache__*'
   # La VM necesita el paquete pipeline (las tareas importan pipeline.herramientas).
   aws s3 sync src/pipeline "s3://$LAKE/code/airflow/pipeline/" --delete --exclude '*__pycache__*' --exclude '*.pyc'

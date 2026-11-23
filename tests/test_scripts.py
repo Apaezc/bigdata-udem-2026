@@ -84,15 +84,6 @@ def test_correr_rechaza_valores_malos(perilla):
     assert "ERROR" in r.stderr
 
 
-@pytest.mark.parametrize("script", ["muestra.sh", "run-local.sh"])
-def test_targets_retirados_avisan_y_salen_con_1(script):
-    r = subprocess.run(
-        ["bash", str(RAIZ / "scripts" / script)], capture_output=True, text=True, cwd=RAIZ
-    )
-    assert r.returncode == 1
-    assert "make correr" in r.stderr
-
-
 def test_deploy_no_sube_codigo_de_prod_sin_confirmar():
     texto = (RAIZ / "scripts" / "deploy.sh").read_text()
     assert 'CONFIRMAR_PROD:-}" != "si"' in texto
@@ -115,7 +106,5 @@ def test_make_help_muestra_lo_nuevo_y_oculta_lo_del_instructor():
         "publicar-bootstrap",
         "retirar-bootstrap",
         "limpieza-total",
-        "muestra",
-        "run-local",
     ):
         assert oculto not in r.stdout
