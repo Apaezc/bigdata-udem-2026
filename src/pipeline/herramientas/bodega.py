@@ -19,7 +19,7 @@ from __future__ import annotations
 import re
 from typing import Any
 
-from pipeline import io
+from pipeline.herramientas import archivos
 
 TABLA_TEMPORAL = "CARGA_GOLD_TMP"
 PATRON_MES = re.compile(r"^\d{4}-\d{2}$")
@@ -230,7 +230,7 @@ def crear_tabla(ddl: str, conexion: Any = None) -> None:
             "crear_tabla solo ejecuta un CREATE TABLE (sin OR REPLACE), por ejemplo "
             f"'CREATE TABLE IF NOT EXISTS BIGDATA.DEV.MI_TABLA (...)'. Llegó: {texto[:60]!r}"
         )
-    io.anunciar("CREA", texto.split("(")[0].strip(), "tabla en Snowflake si no existe")
+    archivos.anunciar("CREA", texto.split("(")[0].strip(), "tabla en Snowflake si no existe")
     cerrar_al_final = conexion is None
     if conexion is None:
         nombre = re.search(r"(?:IF NOT EXISTS\s+)?([A-Za-z0-9_$.]+)\s*\(", texto)
@@ -306,7 +306,7 @@ def cargar_gold(
     if mes:
         ubicacion += f"mes={mes}/"
 
-    io.anunciar("CARGA", tabla_snowflake, f"desde {ubicacion}")
+    archivos.anunciar("CARGA", tabla_snowflake, f"desde {ubicacion}")
     cerrar_al_final = conexion is None
     if conexion is None:
         conexion = _abrir_conexion_para(tabla_snowflake)

@@ -25,7 +25,8 @@ from collections.abc import Callable
 from datetime import UTC, datetime
 from typing import Any
 
-from pipeline import io, watermark
+from pipeline import watermark
+from pipeline.herramientas import archivos
 
 BASE_DATOS = "BIGDATA"
 ENTORNOS = ("dev", "prod")
@@ -118,7 +119,7 @@ class ControlEnSnowflake:
 
     def consultar(self, entorno: str, tabla: str, capa: str, mes: str) -> list[dict]:
         tabla_control = tabla_de_control(entorno)
-        io.anunciar("CONSULTA", tabla_control, f"tabla={tabla} capa={capa} mes={mes}")
+        archivos.anunciar("CONSULTA", tabla_control, f"tabla={tabla} capa={capa} mes={mes}")
         sql = SQL_CONSULTAR.format(tabla_control=tabla_control, columnas=", ".join(COLUMNAS))
         return [
             _registro_a_diccionario(f) for f in self._ejecutar(entorno, sql, (tabla, capa, mes))
@@ -126,7 +127,9 @@ class ControlEnSnowflake:
 
     def registrar(self, entorno: str, registro: dict) -> None:
         tabla_control = tabla_de_control(entorno)
-        io.anunciar("REGISTRA", tabla_control, f"tabla={registro['tabla']} mes={registro['mes']}")
+        archivos.anunciar(
+            "REGISTRA", tabla_control, f"tabla={registro['tabla']} mes={registro['mes']}"
+        )
         sql = SQL_REGISTRAR.format(
             tabla_control=tabla_control,
             columnas=", ".join(COLUMNAS),
@@ -137,7 +140,7 @@ class ControlEnSnowflake:
 
     def vaciar(self, entorno: str) -> int:
         tabla_control = tabla_de_control(entorno)
-        io.anunciar("BORRA", tabla_control, "todos los registros")
+        archivos.anunciar("BORRA", tabla_control, "todos los registros")
         return self._ejecutar(entorno, SQL_VACIAR.format(tabla_control=tabla_control))[0][0]
 
 

@@ -17,8 +17,7 @@ from __future__ import annotations
 import re
 from typing import Any
 
-from pipeline import io
-from pipeline.herramientas import bodega
+from pipeline.herramientas import archivos, bodega
 
 BASE_ATHENA = "bigdata_lake"
 ENTORNOS = ("dev", "prod")
@@ -62,7 +61,7 @@ def esquema_de_athena(tabla: str, base: str = BASE_ATHENA) -> dict[str, str] | N
 
     None si la tabla no existe o no hay permiso para verla; en ese caso avisa por qué.
     """
-    io.anunciar("CONSULTA", f"athena://{base}.{tabla}", "catálogo de Glue, sin escanear S3")
+    archivos.anunciar("CONSULTA", f"athena://{base}.{tabla}", "catálogo de Glue, sin escanear S3")
     try:
         respuesta = _cliente_de_glue().get_table(DatabaseName=base, Name=tabla)
     except Exception as error:

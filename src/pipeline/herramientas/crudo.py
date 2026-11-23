@@ -19,7 +19,7 @@ import tempfile
 import urllib.request
 from pathlib import Path
 
-from pipeline import io
+from pipeline.herramientas import archivos
 from pipeline.herramientas.rutas import (
     MES_SIN_MES,
     TABLA_CLIMA,
@@ -90,17 +90,17 @@ def descargar(url: str, destino: str) -> None:
         print(f"DESCARGA {url}  ->  {destino}")
         with urllib.request.urlopen(url, timeout=TIMEOUT_S) as resp, local.open("wb") as f:
             shutil.copyfileobj(resp, f)
-        io.publicar(local, destino)
+        archivos.publicar(local, destino)
 
 
 def _asegurar_crudo(url: str, destino: str, ruta_anterior: str) -> str:
     """Deja el archivo crudo en `destino` haciendo el menor trabajo posible."""
-    if io.existe(destino):
+    if archivos.existe(destino):
         print(f"YA ESTÁ  {destino}  (no se descarga)")
         return destino
-    if io.existe(ruta_anterior):
+    if archivos.existe(ruta_anterior):
         print(f"MUEVE    {ruta_anterior}  ->  {destino}  (ruta del diseño anterior)")
-        io.mover(ruta_anterior, destino)
+        archivos.mover(ruta_anterior, destino)
         return destino
     descargar(url, destino)
     return destino
@@ -110,7 +110,7 @@ def _ruta_del_diseno_anterior(entorno: str, tabla: str, mes: str | None, destino
     """Dónde lo guardaba el diseño anterior: <bronze>/<tabla>[/mes=AAAA-MM]/<mismo nombre>."""
     nombre = destino.rstrip("/").rsplit("/", 1)[-1]
     carpeta = ruta_lake(entorno, "bronze", tabla, mes)
-    return io.unir(carpeta, nombre)
+    return archivos.unir(carpeta, nombre)
 
 
 def _traer(entorno: str, tabla: str, mes: str | None, url: str) -> str:

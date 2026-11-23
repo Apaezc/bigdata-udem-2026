@@ -11,8 +11,7 @@ from pathlib import Path
 
 import pytest
 
-from pipeline import io
-from pipeline.herramientas import capas
+from pipeline.herramientas import archivos, capas
 from pipeline.herramientas.rutas import ruta_del_crudo, ruta_lake
 
 DATA = Path(__file__).resolve().parent / "data"
@@ -29,7 +28,7 @@ def poner_viajes_crudos(spark, tmp_path, filas):
     carpeta = tmp_path / "parquet_tmp"
     df_de_prueba(spark, filas).coalesce(1).write.mode("overwrite").parquet(str(carpeta))
     archivo = next(carpeta.glob("part-*.parquet"))
-    destino = io.a_ruta_local(ruta_del_crudo(ENTORNO, "fhvhv", MES))
+    destino = archivos.a_ruta_local(ruta_del_crudo(ENTORNO, "fhvhv", MES))
     destino.parent.mkdir(parents=True, exist_ok=True)
     shutil.copyfile(archivo, destino)
 
@@ -80,7 +79,7 @@ def test_leer_crudo_sin_limite_trae_todo(spark, raiz_lake, tmp_path):
 
 
 def test_leer_crudo_zonas_deja_todo_como_texto(spark, raiz_lake):
-    destino = io.a_ruta_local(ruta_del_crudo(ENTORNO, "taxi_zones"))
+    destino = archivos.a_ruta_local(ruta_del_crudo(ENTORNO, "taxi_zones"))
     destino.parent.mkdir(parents=True, exist_ok=True)
     shutil.copyfile(DATA / "taxi_zone_lookup_sample.csv", destino)
 
@@ -91,7 +90,7 @@ def test_leer_crudo_zonas_deja_todo_como_texto(spark, raiz_lake):
 
 
 def test_leer_crudo_clima_sale_en_una_fila_por_dia(spark, raiz_lake):
-    destino = io.a_ruta_local(ruta_del_crudo(ENTORNO, "clima", MES))
+    destino = archivos.a_ruta_local(ruta_del_crudo(ENTORNO, "clima", MES))
     destino.parent.mkdir(parents=True, exist_ok=True)
     shutil.copyfile(DATA / "open_meteo_sample.json", destino)
 
@@ -116,8 +115,8 @@ def test_escribir_bronze_devuelve_filas_y_deja_el_marcador(spark, raiz_lake):
 
     assert escritas == 3
     carpeta = ruta_lake(ENTORNO, "bronze", "fhvhv", MES)
-    marcador = io.unir(carpeta, "lote=20240101T000000Z_aaaaaa", io.MARCA_LOTE_COMPLETO)
-    assert io.existe(marcador)
+    marcador = archivos.unir(carpeta, "lote=20240101T000000Z_aaaaaa", archivos.MARCA_LOTE_COMPLETO)
+    assert archivos.existe(marcador)
 
 
 def test_leer_capa_bronze_todos_suma_los_lotes_completos_e_ignora_los_incompletos(spark, raiz_lake):
@@ -125,7 +124,9 @@ def test_leer_capa_bronze_todos_suma_los_lotes_completos_e_ignora_los_incompleto
     capas.escribir_bronze(df_de_prueba(spark, [(3, "c")]), ENTORNO, "fhvhv", MES, "L2_x")
     # un lote a medias: tiene Parquet pero NO tiene _LOTE_COMPLETO
     carpeta = ruta_lake(ENTORNO, "bronze", "fhvhv", MES)
-    df_de_prueba(spark, [(9, "z"), (9, "z"), (9, "z")]).write.parquet(io.unir(carpeta, "lote=L3_x"))
+    df_de_prueba(spark, [(9, "z"), (9, "z"), (9, "z")]).write.parquet(
+        archivos.unir(carpeta, "lote=L3_x")
+    )
 
     todos = capas.leer_capa(spark, ENTORNO, "bronze", "fhvhv", MES, lotes="todos")
     ultimo = capas.leer_capa(spark, ENTORNO, "bronze", "fhvhv", MES, lotes="ultimo")
@@ -136,7 +137,7 @@ def test_leer_capa_bronze_todos_suma_los_lotes_completos_e_ignora_los_incompleto
 
 
 def test_leer_capa_bronze_sin_lotes_completos_falla_con_mensaje_claro(spark, raiz_lake):
-    with pytest.raises(io.LoteNoEncontrado):
+    with pytest.raises(archivos.LoteNoEncontrado):
         capas.leer_capa(spark, ENTORNO, "bronze", "fhvhv", MES)
 
 

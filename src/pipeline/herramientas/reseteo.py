@@ -29,14 +29,13 @@ from __future__ import annotations
 import re
 from typing import Any
 
-from pipeline import io
+from pipeline.herramientas import archivos
 from pipeline.herramientas.control import exigir_rol_del_entorno, tabla_de_control
 from pipeline.herramientas.rutas import ConfigError, bucket_del_lake, prefijo_lake, raiz_de_prueba
 
 ENTORNOS = ("dev", "prod")
 BASE_DATOS = "BIGDATA"
 CAPAS_DE_S3 = ("bronze", "silver", "gold")
-TOPE_POR_LLAMADA = 1000  # delete_objects acepta hasta 1000 claves
 
 # El esquema de un entorno es BIGDATA.DEV o BIGDATA.PROD y nada más.
 _RE_ESQUEMA = re.compile(r"^BIGDATA\.(DEV|PROD)$")
@@ -86,27 +85,6 @@ def _listar_objetos(s3: Any, bucket: str, prefijo: str) -> list[tuple[str, int]]
     return objetos
 
 
-def _borrar_claves(s3: Any, bucket: str, claves: list[str]) -> int:
-    """Borra las claves por lotes y devuelve cuántas borró. Si S3 reporta un error, se detiene."""
-    borradas = 0
-    for inicio in range(0, len(claves), TOPE_POR_LLAMADA):
-        lote = claves[inicio : inicio + TOPE_POR_LLAMADA]
-        respuesta = s3.delete_objects(
-            Bucket=bucket,
-            Delete={"Objects": [{"Key": clave} for clave in lote], "Quiet": True},
-        )
-        errores = respuesta.get("Errors") or []
-        if errores:
-            primero = errores[0]
-            raise RuntimeError(
-                f"S3 no pudo borrar {len(errores)} objeto(s); el primero: "
-                f"{primero.get('Key')} ({primero.get('Code')}: {primero.get('Message')}). "
-                "Me detengo: revisa los permisos del rol y vuelve a lanzar."
-            )
-        borradas += len(lote)
-    return borradas
-
-
 def borrar_capas_s3(entorno: str, solo_listar: bool = True, conservar_crudo: bool = False) -> dict:
     """Borra (o solo lista) todo lo que hay bajo s3://<lake>/<entorno>/. Devuelve el recuento.
 
@@ -126,7 +104,7 @@ def borrar_capas_s3(entorno: str, solo_listar: bool = True, conservar_crudo: boo
     ruta = f"s3://{bucket}/{prefijo}"
     s3 = _cliente_s3()
 
-    io.anunciar("LISTA", ruta, "todo lo que hay en el entorno")
+    archivos.anunciar("LISTA", ruta, "todo lo que hay en el entorno")
     objetos = _listar_objetos(s3, bucket, prefijo)
     # Defensa en profundidad: ninguna clave puede quedar fuera del entorno.
     ajenas = [clave for clave, _ in objetos if not clave.startswith(prefijo)]
@@ -156,8 +134,8 @@ def borrar_capas_s3(entorno: str, solo_listar: bool = True, conservar_crudo: boo
     if solo_listar or not a_borrar:
         return resumen
 
-    io.anunciar("BORRA", ruta, f"{len(a_borrar)} objetos (conservar_crudo={conservar_crudo})")
-    resumen["borrados"] = _borrar_claves(s3, bucket, [clave for clave, _ in a_borrar])
+    archivos.anunciar("BORRA", ruta, f"{len(a_borrar)} objetos (conservar_crudo={conservar_crudo})")
+    resumen["borrados"] = archivos.borrar_claves(s3, bucket, [clave for clave, _ in a_borrar])
     if resumen["borrados"] != resumen["objetos"]:
         raise RuntimeError(
             f"Lo borrado ({resumen['borrados']}) no cuadra con lo listado ({resumen['objetos']})."
@@ -208,14 +186,14 @@ def borrar_tablas_snowflake(
     try:
         exigir_rol_del_entorno(entorno, conexion)
         cursor = conexion.cursor()
-        io.anunciar("LISTA", esquema, "tablas y vistas")
+        archivos.anunciar("LISTA", esquema, "tablas y vistas")
         tablas = _nombres(cursor, f"SHOW TABLES IN SCHEMA {esquema}")
         vistas = _nombres(cursor, f"SHOW VIEWS IN SCHEMA {esquema}")
         objetos = [("TABLE", nombre) for nombre in tablas] + [("VIEW", nombre) for nombre in vistas]
         if not solo_listar:
             for tipo, nombre in objetos:
                 completo = f"{esquema}.{_entre_comillas(nombre)}"
-                io.anunciar("BORRA", completo, tipo.lower())
+                archivos.anunciar("BORRA", completo, tipo.lower())
                 cursor.execute(f"DROP {tipo} IF EXISTS {completo}")
         return [f"{esquema}.{nombre}" for _, nombre in objetos]
     finally:
@@ -235,7 +213,7 @@ def contar_control(entorno: str, conexion: Any = None) -> int:
     try:
         exigir_rol_del_entorno(entorno, conexion)
         cursor = conexion.cursor()
-        io.anunciar("CUENTA", tabla, "registros")
+        archivos.anunciar("CUENTA", tabla, "registros")
         cursor.execute(f"SELECT COUNT(*) FROM {tabla}")
         return int(cursor.fetchone()[0])
     finally:

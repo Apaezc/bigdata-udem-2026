@@ -18,7 +18,7 @@ from __future__ import annotations
 from collections.abc import Callable
 from typing import TYPE_CHECKING
 
-from pipeline import io
+from pipeline.herramientas import archivos
 from pipeline.herramientas.rutas import (
     TABLA_CLIMA,
     TABLA_VIAJES,
@@ -106,7 +106,7 @@ def leer_crudo(
     if tabla not in (TABLA_VIAJES, TABLA_ZONAS, TABLA_CLIMA):
         raise ValueError(f"No hay crudo para la tabla {tabla!r}")
     ruta = ruta_del_crudo(entorno, tabla, mes)
-    io.anunciar("LEE", ruta, f"crudo de {tabla}")
+    archivos.anunciar("LEE", ruta, f"crudo de {tabla}")
     if tabla == TABLA_VIAJES:
         df = spark.read.parquet(ruta)
     elif tabla == TABLA_ZONAS:
@@ -135,10 +135,10 @@ def escribir_bronze(df: DataFrame, entorno: str, tabla: str, mes: str | None, id
     """Escribe un lote nuevo en bronze (más su _LOTE_COMPLETO) y devuelve las filas escritas."""
     carpeta = dir_del_lote(entorno, tabla, id_lote, mes)
     # Las fuentes pequeñas (zonas, clima) caben en un solo archivo.
-    archivos = None
+    cuantos_archivos = None
     if tabla != TABLA_VIAJES:
-        archivos = 1
-    io.escribir_lote(df, carpeta, archivos)
+        cuantos_archivos = 1
+    archivos.escribir_lote(df, carpeta, cuantos_archivos)
     return _contar_lo_escrito(df.sparkSession, carpeta)
 
 
@@ -148,12 +148,12 @@ def _lotes_completos(carpeta_tabla: str) -> list[str]:
     Un lote sin marcador quedó a medias (la escritura falló): se ignora.
     """
     nombres = []
-    for nombre in io.listar_subcarpetas(carpeta_tabla):
-        if nombre.startswith(io.PREFIJO_LOTE):
+    for nombre in archivos.listar_subcarpetas(carpeta_tabla):
+        if nombre.startswith(archivos.PREFIJO_LOTE):
             nombres.append(nombre)
     completos = []
     for nombre in sorted(nombres):
-        if io.existe(io.unir(carpeta_tabla, nombre, io.MARCA_LOTE_COMPLETO)):
+        if archivos.existe(archivos.unir(carpeta_tabla, nombre, archivos.MARCA_LOTE_COMPLETO)):
             completos.append(nombre)
     return completos
 
@@ -181,14 +181,14 @@ def leer_capa(
     mes = _mes_de_la_tabla(tabla, mes)
     carpeta_tabla = ruta_lake(entorno, capa, tabla, mes)
     if capa != "bronze":
-        io.anunciar("LEE", carpeta_tabla, f"{capa} de {tabla}")
+        archivos.anunciar("LEE", carpeta_tabla, f"{capa} de {tabla}")
         return spark.read.parquet(carpeta_tabla)
 
     if lotes not in ("todos", "ultimo"):
         raise ValueError(f"lotes debe ser 'todos' o 'ultimo', no {lotes!r}")
     completos = _lotes_completos(carpeta_tabla)
     if len(completos) == 0:
-        raise io.LoteNoEncontrado(
+        raise archivos.LoteNoEncontrado(
             f"No hay ningún lote completo en {carpeta_tabla}. "
             "Ejecuta primero el paso bronze (make correr PASO=bronze)."
         )
@@ -196,8 +196,8 @@ def leer_capa(
         completos = completos[-1:]
     carpetas = []
     for nombre in completos:
-        carpeta = io.unir(carpeta_tabla, nombre)
-        io.anunciar("LEE", carpeta, f"bronze de {tabla}")
+        carpeta = archivos.unir(carpeta_tabla, nombre)
+        archivos.anunciar("LEE", carpeta, f"bronze de {tabla}")
         carpetas.append(carpeta)
     return spark.read.parquet(*carpetas)
 
@@ -217,8 +217,8 @@ def escribir_capa(
         raise ValueError("bronze solo agrega lotes: usa escribir_bronze")
     mes = _mes_de_la_tabla(tabla, mes)
     carpeta = ruta_lake(entorno, capa, tabla, mes)
-    io.borrar_carpeta(carpeta)
-    io.anunciar("ESCRIBE", carpeta, f"{capa} de {tabla}")
+    archivos.borrar_carpeta(carpeta)
+    archivos.anunciar("ESCRIBE", carpeta, f"{capa} de {tabla}")
     df.write.mode("overwrite").parquet(carpeta)
     return _contar_lo_escrito(df.sparkSession, carpeta)
 
