@@ -18,10 +18,9 @@ import re
 from typing import Any
 
 from pipeline.herramientas import archivos, bodega
+from pipeline.herramientas.rutas import validar_capa, validar_entorno
 
 BASE_ATHENA = "bigdata_lake"
-ENTORNOS = ("dev", "prod")
-CAPAS = ("bronze", "silver", "gold")
 
 # Tipo de Glue -> tipo de Snowflake, para el ALTER TABLE que se sugiere.
 TIPOS_DE_SNOWFLAKE = {
@@ -43,11 +42,7 @@ TIPOS_DE_SNOWFLAKE = {
 
 def nombre_tabla_athena(entorno: str, capa: str, tabla: str) -> str:
     """'dev', 'silver', 'fhvhv' -> 'dev_silver_fhvhv' (así se llaman las tablas en Athena)."""
-    if entorno not in ENTORNOS:
-        raise ValueError(f"Entorno desconocido '{entorno}'. Válidos: {', '.join(ENTORNOS)}")
-    if capa not in CAPAS:
-        raise ValueError(f"Capa desconocida '{capa}'. Válidas: {', '.join(CAPAS)}")
-    return f"{entorno}_{capa}_{tabla}"
+    return f"{validar_entorno(entorno)}_{validar_capa(capa)}_{tabla}"
 
 
 def _cliente_de_glue() -> Any:

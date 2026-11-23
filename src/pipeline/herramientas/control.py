@@ -26,9 +26,8 @@ from datetime import UTC, datetime
 from typing import Any
 
 from pipeline.herramientas import archivos, bodega
+from pipeline.herramientas.rutas import BASE_DATOS, validar_entorno
 
-BASE_DATOS = "BIGDATA"
-ENTORNOS = ("dev", "prod")
 ROL_DEL_ENTORNO = {"dev": "BIGDATA_DEV", "prod": "BIGDATA_PROD"}
 
 # Columnas de la tabla de control, en este orden (diseño técnico, 1.6).
@@ -58,15 +57,9 @@ SQL_REGISTRAR = "INSERT INTO {tabla_control} ({columnas}) VALUES ({marcas})"
 SQL_VACIAR = "DELETE FROM {tabla_control}"
 
 
-def _validar_entorno(entorno: str) -> str:
-    if entorno not in ENTORNOS:
-        raise ValueError(f"Entorno desconocido '{entorno}'. Válidos: {', '.join(ENTORNOS)}")
-    return entorno
-
-
 def tabla_de_control(entorno: str) -> str:
     """'BIGDATA.CONTROL_DEV.WATERMARK' en dev; 'BIGDATA.CONTROL_PROD.WATERMARK' en prod."""
-    _validar_entorno(entorno)
+    validar_entorno(entorno)
     return f"{BASE_DATOS}.CONTROL_{entorno.upper()}.WATERMARK"
 
 
@@ -164,7 +157,7 @@ class ControlEnMemoria:
         self.registros: list[dict] = []
 
     def consultar(self, entorno: str, tabla: str, capa: str, mes: str) -> list[dict]:
-        _validar_entorno(entorno)
+        validar_entorno(entorno)
         encontrados = [
             r
             for r in self.registros
@@ -173,11 +166,11 @@ class ControlEnMemoria:
         return [self._sin_entorno(r) for r in sorted(encontrados, key=lambda r: r["inicio"])]
 
     def registrar(self, entorno: str, registro: dict) -> None:
-        _validar_entorno(entorno)
+        validar_entorno(entorno)
         self.registros.append({"entorno": entorno, **registro})
 
     def vaciar(self, entorno: str) -> int:
-        _validar_entorno(entorno)
+        validar_entorno(entorno)
         borrados = [r for r in self.registros if r["entorno"] == entorno]
         self.registros = [r for r in self.registros if r["entorno"] != entorno]
         return len(borrados)
@@ -220,7 +213,7 @@ def exigir_rol_del_entorno(entorno: str, conexion: Any = None) -> None:
     """
     from pipeline.herramientas.corrida import EntornoNoPermitido
 
-    esperado = ROL_DEL_ENTORNO[_validar_entorno(entorno)]
+    esperado = ROL_DEL_ENTORNO[validar_entorno(entorno)]
     cerrar = conexion is None
     if conexion is None:
         conexion = bodega.abrir_conexion_de_entorno(entorno)

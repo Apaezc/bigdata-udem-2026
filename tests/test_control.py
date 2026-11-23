@@ -50,6 +50,7 @@ def _asegurar_modulo_corrida():
 
 _asegurar_modulo_corrida()
 from pipeline.herramientas.corrida import EntornoNoPermitido, Resultado  # noqa: E402
+from pipeline.herramientas.rutas import ConfigError  # noqa: E402
 
 
 @dataclass
@@ -86,8 +87,8 @@ def test_cada_entorno_tiene_su_tabla_de_control():
 
 
 def test_un_entorno_desconocido_se_rechaza():
-    with pytest.raises(ValueError, match="Entorno desconocido"):
-        tabla_de_control("local")
+    with pytest.raises(ConfigError, match="Entorno desconocido"):
+        tabla_de_control("qa")
 
 
 # --- la puerta: los tres casos de la regla del autor --------------------------------------------

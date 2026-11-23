@@ -168,11 +168,11 @@ def test_si_s3_devuelve_claves_ajenas_se_detiene(monkeypatch):
 
 @pytest.mark.parametrize("entorno", ["local", "staging", "", "DEV", "dev/../prod"])
 def test_un_entorno_raro_no_pasa(s3, entorno):
-    with pytest.raises(ValueError):
+    with pytest.raises(ConfigError):
         reseteo.borrar_capas_s3(entorno, solo_listar=False)
-    with pytest.raises(ValueError):
+    with pytest.raises(ConfigError):
         reseteo.borrar_tablas_snowflake(entorno, solo_listar=False, conexion=object())
-    with pytest.raises(ValueError):
+    with pytest.raises(ConfigError):
         reseteo.esquema_del_entorno(entorno)
     assert s3.prefijos_listados == [] and s3.llamadas_de_borrado == []
 

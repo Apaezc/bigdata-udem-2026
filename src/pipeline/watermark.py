@@ -61,8 +61,8 @@ from typing import Any
 
 from pipeline.herramientas.bodega import VARIABLE_SECRETO, _abrir_conexion_con_secreto
 from pipeline.herramientas.control import ERRNO_TABLA_NO_VISIBLE, inicio_en_utc
+from pipeline.herramientas.rutas import BASE_DATOS
 
-BASE_DATOS = "BIGDATA"
 ESQUEMA = "CONTROL"
 TABLA_CONTROL = f"{BASE_DATOS}.{ESQUEMA}.WATERMARK"
 

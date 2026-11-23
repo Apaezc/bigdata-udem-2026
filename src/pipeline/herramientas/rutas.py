@@ -34,6 +34,8 @@ import yaml
 
 ENTORNOS = ("dev", "prod")
 CAPAS = ("bronze", "silver", "gold")
+# Base de datos de Snowflake: BIGDATA.<ENTORNO>.<TABLA> y BIGDATA.CONTROL_<ENTORNO>.WATERMARK.
+BASE_DATOS = "BIGDATA"
 
 TABLA_VIAJES = "fhvhv"
 TABLA_ZONAS = "taxi_zones"
@@ -80,6 +82,13 @@ def validar_entorno(entorno: str) -> str:
     if entorno not in ENTORNOS:
         raise ConfigError(f"Entorno desconocido '{entorno}'. Válidos: {', '.join(ENTORNOS)}")
     return entorno
+
+
+def validar_capa(capa: str) -> str:
+    """Devuelve la capa si es bronze, silver o gold; si no, dice cuáles existen."""
+    if capa not in CAPAS:
+        raise ConfigError(f"Capa desconocida '{capa}'. Válidas: {', '.join(CAPAS)}")
+    return capa
 
 
 # --- el lake -----------------------------------------------------------------------------------
@@ -139,9 +148,7 @@ def _carpetas(capa: str | None, tabla: str | None, mes: str | None) -> list[str]
         if tabla is not None or mes is not None:
             raise ConfigError("Para pedir una tabla o un mes hay que indicar también la capa")
         return []
-    if capa not in CAPAS:
-        raise ConfigError(f"Capa desconocida '{capa}'. Válidas: {', '.join(CAPAS)}")
-    carpetas = [capa]
+    carpetas = [validar_capa(capa)]
     if tabla is None:
         if mes is not None:
             raise ConfigError("Para pedir un mes hay que indicar también la tabla")
@@ -240,7 +247,7 @@ def nombre_tabla_snowflake(entorno: str, tabla_gold: str) -> str:
     """'BIGDATA.DEV.TARIFA_POR_MILLA_BARRIO': la tabla de Snowflake de una tabla de gold."""
     if not _RE_NOMBRE.match(tabla_gold or ""):
         raise ConfigError(f"Nombre de tabla inválido '{tabla_gold}': usa letras, números y '_'")
-    return f"BIGDATA.{validar_entorno(entorno).upper()}.{tabla_gold.upper()}"
+    return f"{BASE_DATOS}.{validar_entorno(entorno).upper()}.{tabla_gold.upper()}"
 
 
 def describir_rutas(entorno: str, bucket: str | None = None) -> str:
