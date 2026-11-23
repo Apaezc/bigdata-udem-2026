@@ -25,8 +25,7 @@ from collections.abc import Callable
 from datetime import UTC, datetime
 from typing import Any
 
-from pipeline import watermark
-from pipeline.herramientas import archivos
+from pipeline.herramientas import archivos, bodega
 
 BASE_DATOS = "BIGDATA"
 ENTORNOS = ("dev", "prod")
@@ -45,6 +44,9 @@ COLUMNAS = [
     "LIMITE",
     "LEIDAS",
 ]
+
+# Código de error de Snowflake cuando el objeto no existe o el rol no tiene permiso para verlo.
+ERRNO_TABLA_NO_VISIBLE = 2003
 
 SQL_CONSULTAR = """
     SELECT {columnas}
@@ -71,6 +73,13 @@ def tabla_de_control(entorno: str) -> str:
 # --- dónde se guardan los registros -------------------------------------------------------------
 
 
+def inicio_en_utc(inicio: datetime) -> datetime:
+    """Deja la hora de inicio en UTC y sin zona horaria, que es como la guarda la tabla."""
+    if inicio.tzinfo is None:
+        return inicio
+    return inicio.astimezone(UTC).replace(tzinfo=None)
+
+
 def _registro_a_diccionario(fila: tuple) -> dict:
     """Una fila de la tabla (en el orden de COLUMNAS) como diccionario con claves en minúscula."""
     registro = dict(zip((nombre.lower() for nombre in COLUMNAS), fila, strict=True))
@@ -92,7 +101,7 @@ class ControlEnSnowflake:
         """(conexión, si hay que cerrarla). La que llega por parámetro la cierra quien la abrió."""
         if self.conexion is not None:
             return self.conexion, False
-        conexion = watermark.abrir_conexion_de_entorno(entorno)
+        conexion = bodega.abrir_conexion_de_entorno(entorno)
         try:
             exigir_rol_del_entorno(entorno, conexion)
         except Exception:
@@ -107,7 +116,7 @@ class ControlEnSnowflake:
             try:
                 cursor.execute(sql, valores)
             except Exception as error:
-                if getattr(error, "errno", None) == watermark.ERRNO_TABLA_NO_VISIBLE:
+                if getattr(error, "errno", None) == ERRNO_TABLA_NO_VISIBLE:
                     raise RuntimeError(_mensaje_tabla_no_visible(entorno)) from error
                 raise
             if sql.lstrip().upper().startswith("SELECT"):
@@ -214,7 +223,7 @@ def exigir_rol_del_entorno(entorno: str, conexion: Any = None) -> None:
     esperado = ROL_DEL_ENTORNO[_validar_entorno(entorno)]
     cerrar = conexion is None
     if conexion is None:
-        conexion = watermark.abrir_conexion_de_entorno(entorno)
+        conexion = bodega.abrir_conexion_de_entorno(entorno)
     try:
         cursor = conexion.cursor()
         cursor.execute("SELECT CURRENT_ROLE()")
@@ -271,7 +280,7 @@ def registrar_control(
         "tabla": tabla,
         "mes": mes,
         "filas": int(filas),
-        "inicio": watermark._inicio_en_utc(inicio),
+        "inicio": inicio_en_utc(inicio),
         "reprocesar": bool(corrida.reprocesar),
         "computo": corrida.computo,
         "limite": corrida.limite,

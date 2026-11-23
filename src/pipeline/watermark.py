@@ -39,7 +39,8 @@ La conexión se abre de una de dos formas. Se elige de manera explícita, en est
 
 Desde la clase 7, la tabla de control por entorno (herramientas/control.py) y la carga de gold
 (herramientas/bodega.py) no usan estos tres caminos: abren siempre el secreto del entorno con
-`abrir_conexion_de_entorno` (BIGDATA_DEV en dev, BIGDATA_PROD en prod), nunca connections.toml.
+`bodega.abrir_conexion_de_entorno` (BIGDATA_DEV en dev, BIGDATA_PROD en prod), nunca
+connections.toml.
 
 Rol y warehouse salen de la conexión. Solo si la conexión no los trae (la de connections.toml por
 llave suele venir sin warehouse) se usan ROL y WAREHOUSE como respaldo.
@@ -55,8 +56,11 @@ from __future__ import annotations
 
 import json
 import os
-from datetime import UTC, datetime
+from datetime import datetime
 from typing import Any
+
+from pipeline.herramientas.bodega import VARIABLE_SECRETO, _abrir_conexion_con_secreto
+from pipeline.herramientas.control import ERRNO_TABLA_NO_VISIBLE, inicio_en_utc
 
 BASE_DATOS = "BIGDATA"
 ESQUEMA = "CONTROL"
@@ -68,11 +72,6 @@ WAREHOUSE = "COMPUTE_WH"
 
 CONEXION_POR_DEFECTO = "default"
 VARIABLE_CONEXION = "WATERMARK_CONNECTION"
-VARIABLE_SECRETO = "WATERMARK_SECRET"
-PREFIJO_POR_DEFECTO = "bigdata"
-
-# Valor de la columna MES para las fuentes que no se parten por mes (las zonas de taxi).
-MES_SIN_MES = "sin_mes"
 
 # Las tablas de demostración y de prueba empiezan con uno de estos prefijos; solo ellas se
 # pueden borrar con borrar_registros_de_prueba.
@@ -80,8 +79,6 @@ PREFIJOS_DE_PRUEBA = ("demo", "prueba")
 
 COLUMNAS = ["FUENTE", "CAPA", "TABLA", "MES", "FILAS", "INICIO", "REPROCESAR"]
 
-# Código de error de Snowflake cuando el objeto no existe o el rol no tiene permiso para verlo.
-ERRNO_TABLA_NO_VISIBLE = 2003
 MENSAJE_TABLA_NO_VISIBLE = (
     f"No se encontró la tabla {TABLA_CONTROL}, o el rol de la conexión no tiene permiso sobre "
     f"ella. La crea Terraform: corre `cd ~/bigdata && git pull && make snowflake` y vuelve a "
@@ -110,57 +107,6 @@ def _abrir_conexion(connection_name: str) -> Any:
     return snowflake.connector.connect(connection_name=connection_name)
 
 
-def _leer_secreto(nombre_secreto: str) -> str:
-    """Lee el texto del secreto en AWS Secrets Manager (requiere secretsmanager:GetSecretValue)."""
-    import boto3  # import tardío: fuera de AWS no hace falta
-
-    cliente = boto3.client("secretsmanager")
-    return cliente.get_secret_value(SecretId=nombre_secreto)["SecretString"]
-
-
-def _llave_privada_der(pem: str) -> bytes:
-    """Convierte la llave privada PEM del secreto al formato DER que pide snowflake.connector."""
-    from cryptography.hazmat.primitives import serialization  # lo trae snowflake-connector
-
-    llave = serialization.load_pem_private_key(pem.encode(), password=None)
-    return llave.private_bytes(
-        encoding=serialization.Encoding.DER,
-        format=serialization.PrivateFormat.PKCS8,
-        encryption_algorithm=serialization.NoEncryption(),
-    )
-
-
-def _parametros_de_secreto(texto: str) -> dict:
-    """Convierte el JSON de conexión de Airflow en los parámetros de snowflake.connector.connect."""
-    conexion = json.loads(texto)
-    extra = conexion.get("extra") or {}
-    if isinstance(extra, str):
-        # Airflow también acepta el campo extra como texto JSON.
-        extra = json.loads(extra)
-
-    parametros = {"account": extra["account"], "user": conexion["login"]}
-    # Rol, warehouse y base los fija quien creó el secreto; solo se pasan los que vienen.
-    for campo in ("role", "warehouse", "database"):
-        if extra.get(campo):
-            parametros[campo] = extra[campo]
-
-    if extra.get("private_key_content"):
-        parametros["private_key"] = _llave_privada_der(extra["private_key_content"])
-    elif conexion.get("password"):
-        parametros["password"] = conexion["password"]
-    else:
-        raise ValueError("El secreto de Snowflake no trae private_key_content ni password.")
-    return parametros
-
-
-def _abrir_conexion_con_secreto(nombre_secreto: str) -> Any:
-    """Abre la conexión con los datos del secreto de Secrets Manager. Toca la red."""
-    import snowflake.connector
-
-    parametros = _parametros_de_secreto(_leer_secreto(nombre_secreto))
-    return snowflake.connector.connect(**parametros)
-
-
 def _nombre_de_conexion(connection_name: str | None) -> str:
     """El nombre pedido; si no se pidió ninguno, el de la variable de entorno; si no, 'default'."""
     if connection_name:
@@ -174,28 +120,6 @@ def _abrir(connection_name: str | None) -> Any:
     if connection_name is None and secreto:
         return _abrir_conexion_con_secreto(secreto)
     return _abrir_conexion(_nombre_de_conexion(connection_name))
-
-
-def nombre_del_secreto(entorno: str = "dev") -> str:
-    """Secreto de Secrets Manager con la conexión del entorno.
-
-    Gana WATERMARK_SECRET si está definida. Si no, el defecto de cada entorno: en dev
-    '<PREFIX>/snowflake' (rol BIGDATA_DEV) y en prod '<PREFIX>/snowflake_prod' (rol BIGDATA_PROD).
-    """
-    desde_el_entorno = os.environ.get(VARIABLE_SECRETO)
-    if desde_el_entorno:
-        return desde_el_entorno
-    prefijo = os.environ.get("PREFIX") or PREFIJO_POR_DEFECTO
-    return f"{prefijo}/snowflake_prod" if entorno == "prod" else f"{prefijo}/snowflake"
-
-
-def abrir_conexion_de_entorno(entorno: str = "dev") -> Any:
-    """Conexión de Snowflake para un entorno, siempre por secreto y nunca por connections.toml.
-
-    La tabla de control y la carga de gold la usan: así corren con el rol BIGDATA_DEV (o
-    BIGDATA_PROD) y no con el ACCOUNTADMIN que trae connections.toml en el Code Editor.
-    """
-    return _abrir_conexion_con_secreto(nombre_del_secreto(entorno))
 
 
 def _conectar(connection_name: str | None) -> Any:
@@ -230,13 +154,6 @@ def _ejecutar(cursor: Any, sql: str, valores: tuple) -> None:
 
 
 # --- conversión de valores ---------------------------------------------------------------------
-
-
-def _inicio_en_utc(inicio: datetime) -> datetime:
-    """Deja la hora de inicio en UTC y sin zona horaria, que es como la guarda la tabla."""
-    if inicio.tzinfo is None:
-        return inicio
-    return inicio.astimezone(UTC).replace(tzinfo=None)
 
 
 def _registro_a_diccionario(fila: tuple) -> dict:
@@ -293,7 +210,7 @@ def registrar_watermark(
     connection_name: str | None = None,
 ) -> None:
     """Inserta una fila en la tabla de control. Se llama solo cuando la ingesta terminó bien."""
-    valores = (fuente, capa, tabla, mes, int(filas), _inicio_en_utc(inicio), bool(reprocesar))
+    valores = (fuente, capa, tabla, mes, int(filas), inicio_en_utc(inicio), bool(reprocesar))
     conexion = _conectar(connection_name)
     try:
         _ejecutar(conexion.cursor(), SQL_REGISTRAR, valores)

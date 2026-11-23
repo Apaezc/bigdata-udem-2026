@@ -1,4 +1,9 @@
-"""Carga de gold (Parquet en S3) a una tabla de Snowflake, sin perder columnas en silencio.
+"""Todo lo que habla con Snowflake: la conexión del entorno, crear tablas y cargar gold.
+
+La conexión sale siempre del secreto del entorno en Secrets Manager (BIGDATA_DEV en dev,
+BIGDATA_PROD en prod), nunca de connections.toml: `abrir_conexion_de_entorno`.
+
+La carga de gold (Parquet en S3) a una tabla de Snowflake no pierde columnas en silencio.
 
 El problema que resuelve: con COPY ... MATCH_BY_COLUMN_NAME, una columna nueva en gold que la
 tabla no tiene se ignora sin error, y el run queda en verde con datos incompletos. Aquí, antes de
@@ -16,10 +21,17 @@ la tabla queda como estaba. (TRUNCATE no sirve para esto: en Snowflake es DDL y 
 
 from __future__ import annotations
 
+import json
+import os
 import re
 from typing import Any
 
 from pipeline.herramientas import archivos
+
+# Secreto de AWS Secrets Manager con la conexión (<prefix>/snowflake en dev, <prefix>/snowflake_prod
+# en prod). Si WATERMARK_SECRET está definida, gana sobre el defecto de cada entorno.
+VARIABLE_SECRETO = "WATERMARK_SECRET"
+PREFIJO_POR_DEFECTO = "bigdata"
 
 TABLA_TEMPORAL = "CARGA_GOLD_TMP"
 PATRON_MES = re.compile(r"^\d{4}-\d{2}$")
@@ -206,6 +218,82 @@ def _columnas_de_tabla(cursor: Any, tabla: str) -> dict[str, str]:
     return {fila[0]: fila[1] for fila in filas}
 
 
+# --- conexión del entorno ----------------------------------------------------------------------
+
+
+def _leer_secreto(nombre_secreto: str) -> str:
+    """Lee el texto del secreto en AWS Secrets Manager (requiere secretsmanager:GetSecretValue)."""
+    import boto3  # import tardío: fuera de AWS no hace falta
+
+    cliente = boto3.client("secretsmanager")
+    return cliente.get_secret_value(SecretId=nombre_secreto)["SecretString"]
+
+
+def _llave_privada_der(pem: str) -> bytes:
+    """Convierte la llave privada PEM del secreto al formato DER que pide snowflake.connector."""
+    from cryptography.hazmat.primitives import serialization  # lo trae snowflake-connector
+
+    llave = serialization.load_pem_private_key(pem.encode(), password=None)
+    return llave.private_bytes(
+        encoding=serialization.Encoding.DER,
+        format=serialization.PrivateFormat.PKCS8,
+        encryption_algorithm=serialization.NoEncryption(),
+    )
+
+
+def _parametros_de_secreto(texto: str) -> dict:
+    """Convierte el JSON de conexión de Airflow en los parámetros de snowflake.connector.connect."""
+    conexion = json.loads(texto)
+    extra = conexion.get("extra") or {}
+    if isinstance(extra, str):
+        # Airflow también acepta el campo extra como texto JSON.
+        extra = json.loads(extra)
+
+    parametros = {"account": extra["account"], "user": conexion["login"]}
+    # Rol, warehouse y base los fija quien creó el secreto; solo se pasan los que vienen.
+    for campo in ("role", "warehouse", "database"):
+        if extra.get(campo):
+            parametros[campo] = extra[campo]
+
+    if extra.get("private_key_content"):
+        parametros["private_key"] = _llave_privada_der(extra["private_key_content"])
+    elif conexion.get("password"):
+        parametros["password"] = conexion["password"]
+    else:
+        raise ValueError("El secreto de Snowflake no trae private_key_content ni password.")
+    return parametros
+
+
+def _abrir_conexion_con_secreto(nombre_secreto: str) -> Any:
+    """Abre la conexión con los datos del secreto de Secrets Manager. Toca la red."""
+    import snowflake.connector
+
+    parametros = _parametros_de_secreto(_leer_secreto(nombre_secreto))
+    return snowflake.connector.connect(**parametros)
+
+
+def nombre_del_secreto(entorno: str = "dev") -> str:
+    """Secreto de Secrets Manager con la conexión del entorno.
+
+    Gana WATERMARK_SECRET si está definida. Si no, el defecto de cada entorno: en dev
+    '<PREFIX>/snowflake' (rol BIGDATA_DEV) y en prod '<PREFIX>/snowflake_prod' (rol BIGDATA_PROD).
+    """
+    desde_el_entorno = os.environ.get(VARIABLE_SECRETO)
+    if desde_el_entorno:
+        return desde_el_entorno
+    prefijo = os.environ.get("PREFIX") or PREFIJO_POR_DEFECTO
+    return f"{prefijo}/snowflake_prod" if entorno == "prod" else f"{prefijo}/snowflake"
+
+
+def abrir_conexion_de_entorno(entorno: str = "dev") -> Any:
+    """Conexión de Snowflake para un entorno, siempre por secreto y nunca por connections.toml.
+
+    La tabla de control y la carga de gold la usan: así corren con el rol BIGDATA_DEV (o
+    BIGDATA_PROD) y no con el ACCOUNTADMIN que trae connections.toml en el Code Editor.
+    """
+    return _abrir_conexion_con_secreto(nombre_del_secreto(entorno))
+
+
 def _entorno_de_la_tabla(tabla: str) -> str:
     """'BIGDATA.PROD.X' -> 'prod'. Cualquier otro esquema usa la conexión de dev."""
     partes = tabla.split(".")
@@ -214,8 +302,6 @@ def _entorno_de_la_tabla(tabla: str) -> str:
 
 def _abrir_conexion_para(tabla: str) -> Any:
     """Conexión por secreto, con el rol del entorno de la tabla (nunca connections.toml)."""
-    from pipeline.watermark import abrir_conexion_de_entorno
-
     return abrir_conexion_de_entorno(_entorno_de_la_tabla(tabla))
 
 

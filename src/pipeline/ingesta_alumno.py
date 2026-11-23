@@ -57,8 +57,8 @@ from pipeline import (
 from pipeline import io as pio  # rutas del lake: crudo, lotes y marcador de lote completo
 from pipeline import watermark  # la tabla de control, ya hecha
 from pipeline.bronze import COLUMNAS_METADATOS, MARCADOR_NULO, SEPARADOR_HASH
+from pipeline.herramientas.rutas import MES_SIN_MES
 from pipeline.watermark import (
-    MES_SIN_MES,
     borrar_registros_de_prueba,
     consultar_watermark,
     registrar_watermark,

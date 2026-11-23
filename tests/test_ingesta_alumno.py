@@ -30,7 +30,8 @@ import pytest
 
 from conftest import DATA
 from pipeline import bronze, io
-from pipeline.watermark import MES_SIN_MES, PREFIJOS_DE_PRUEBA
+from pipeline.herramientas.rutas import MES_SIN_MES
+from pipeline.watermark import PREFIJOS_DE_PRUEBA
 
 MES_PRUEBA = "2099-01"  # un mes que todavía no existe
 LIMITE_DE_PRUEBA = 40

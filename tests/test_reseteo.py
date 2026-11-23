@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import pytest
 
-from pipeline.herramientas import reseteo
+from pipeline.herramientas import bodega, reseteo
 from pipeline.herramientas.corrida import EntornoNoPermitido
 from pipeline.herramientas.rutas import ConfigError
 
@@ -295,7 +295,7 @@ def test_un_nombre_con_comillas_se_escapa():
 def test_sin_conexion_abre_la_del_entorno_y_la_cierra(monkeypatch):
     con = ConexionFalsa(tablas=["T1"])
     pedidas = []
-    monkeypatch.setattr(reseteo, "_abrir_conexion", lambda entorno: pedidas.append(entorno) or con)
+    monkeypatch.setattr(bodega, "abrir_conexion_de_entorno", lambda e: pedidas.append(e) or con)
     reseteo.borrar_tablas_snowflake("dev")
     assert pedidas == ["dev"]
     assert con.cerrada is True

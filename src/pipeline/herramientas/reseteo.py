@@ -29,7 +29,7 @@ from __future__ import annotations
 import re
 from typing import Any
 
-from pipeline.herramientas import archivos
+from pipeline.herramientas import archivos, bodega
 from pipeline.herramientas.control import exigir_rol_del_entorno, tabla_de_control
 from pipeline.herramientas.rutas import ConfigError, bucket_del_lake, prefijo_lake, raiz_de_prueba
 
@@ -159,12 +159,6 @@ def _entre_comillas(nombre: str) -> str:
     return '"' + nombre.replace('"', '""') + '"'
 
 
-def _abrir_conexion(entorno: str) -> Any:
-    from pipeline import watermark
-
-    return watermark.abrir_conexion_de_entorno(entorno)
-
-
 def _nombres(cursor: Any, sql: str) -> list[str]:
     """Nombres de lo que devuelve un SHOW (la segunda columna es el nombre)."""
     cursor.execute(sql)
@@ -182,7 +176,7 @@ def borrar_tablas_snowflake(
     esquema = esquema_del_entorno(entorno)
     cerrar = conexion is None
     if conexion is None:
-        conexion = _abrir_conexion(entorno)
+        conexion = bodega.abrir_conexion_de_entorno(entorno)
     try:
         exigir_rol_del_entorno(entorno, conexion)
         cursor = conexion.cursor()
@@ -209,7 +203,7 @@ def contar_control(entorno: str, conexion: Any = None) -> int:
     tabla = tabla_de_control(_validar_entorno(entorno))
     cerrar = conexion is None
     if conexion is None:
-        conexion = _abrir_conexion(entorno)
+        conexion = bodega.abrir_conexion_de_entorno(entorno)
     try:
         exigir_rol_del_entorno(entorno, conexion)
         cursor = conexion.cursor()

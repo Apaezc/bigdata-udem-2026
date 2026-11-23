@@ -165,47 +165,6 @@ def test_borrar_solo_acepta_tablas_de_prueba(conexion):
 # --- elección de la conexión: connections.toml o Secrets Manager -------------------------------
 
 
-def secreto_de_airflow(**cambios):
-    """JSON de conexión de Airflow como lo escribe scripts/snowflake.sh (sin llave real)."""
-    conexion = {
-        "conn_type": "snowflake",
-        "login": "AIRFLOW_SVC",
-        "extra": {
-            "account": "org-cuenta",
-            "warehouse": "BIGDATA_WH",
-            "database": "BIGDATA",
-            "role": "BIGDATA_DEV",
-            "private_key_content": "PEM",
-        },
-    }
-    conexion.update(cambios)
-    return json.dumps(conexion)
-
-
-def test_el_secreto_se_convierte_en_parametros_del_conector(monkeypatch):
-    monkeypatch.setattr(watermark, "_llave_privada_der", lambda pem: b"der:" + pem.encode())
-    parametros = watermark._parametros_de_secreto(secreto_de_airflow())
-    assert parametros == {
-        "account": "org-cuenta",
-        "user": "AIRFLOW_SVC",
-        "role": "BIGDATA_DEV",
-        "warehouse": "BIGDATA_WH",
-        "database": "BIGDATA",
-        "private_key": b"der:PEM",
-    }
-
-
-def test_el_secreto_con_password_y_sin_llave_usa_password():
-    texto = secreto_de_airflow(password="clave", extra={"account": "a"})
-    parametros = watermark._parametros_de_secreto(texto)
-    assert parametros == {"account": "a", "user": "AIRFLOW_SVC", "password": "clave"}
-
-
-def test_el_secreto_sin_llave_ni_password_falla_con_mensaje_claro():
-    with pytest.raises(ValueError, match="private_key_content ni password"):
-        watermark._parametros_de_secreto(secreto_de_airflow(extra={"account": "a"}))
-
-
 def test_con_la_variable_del_secreto_se_conecta_por_secrets_manager(conexion, monkeypatch):
     pedidos = []
 
@@ -243,34 +202,3 @@ def test_si_falta_solo_el_warehouse_se_fija_solo_el_warehouse(conexion):
 def test_nombre_de_tabla_lleva_el_entorno():
     assert watermark.nombre_de_tabla("dev", "fhvhv_trips") == "dev/fhvhv_trips"
     assert watermark.nombre_de_tabla("prod", "daily_zone_metrics") == "prod/daily_zone_metrics"
-
-
-# --- conexión por entorno (la usan control.py y bodega.py) ----------------------------------------
-
-
-def test_el_secreto_por_defecto_de_cada_entorno(monkeypatch):
-    monkeypatch.delenv(watermark.VARIABLE_SECRETO, raising=False)
-    monkeypatch.delenv("PREFIX", raising=False)
-    assert watermark.nombre_del_secreto("dev") == "bigdata/snowflake"
-    assert watermark.nombre_del_secreto("prod") == "bigdata/snowflake_prod"
-
-    monkeypatch.setenv("PREFIX", "curso")
-    assert watermark.nombre_del_secreto("dev") == "curso/snowflake"
-    assert watermark.nombre_del_secreto("prod") == "curso/snowflake_prod"
-
-
-def test_la_variable_del_secreto_gana_sobre_el_defecto(monkeypatch):
-    monkeypatch.setenv(watermark.VARIABLE_SECRETO, "otro/secreto")
-    assert watermark.nombre_del_secreto("prod") == "otro/secreto"
-
-
-def test_la_conexion_de_entorno_usa_el_secreto_y_nunca_connections_toml(monkeypatch):
-    monkeypatch.delenv(watermark.VARIABLE_SECRETO, raising=False)
-    monkeypatch.delenv("PREFIX", raising=False)
-    abiertos = []
-    monkeypatch.setattr(watermark, "_abrir_conexion_con_secreto", lambda n: abiertos.append(n) or n)
-    monkeypatch.setattr(watermark, "_abrir_conexion", lambda n: pytest.fail("connections.toml"))
-
-    assert watermark.abrir_conexion_de_entorno("dev") == "bigdata/snowflake"
-    assert watermark.abrir_conexion_de_entorno("prod") == "bigdata/snowflake_prod"
-    assert abiertos == ["bigdata/snowflake", "bigdata/snowflake_prod"]

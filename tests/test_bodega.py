@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
+import json
+
 import pytest
 
-from pipeline import watermark
+from pipeline.herramientas import bodega
 from pipeline.herramientas.bodega import (
     ColumnasDistintas,
     cargar_gold,
@@ -279,22 +281,12 @@ def test_sin_conexion_se_abre_la_del_entorno_de_la_tabla_y_se_cierra(monkeypatch
         pedidas.append(nombre_entorno)
         return conexion
 
-    monkeypatch.setattr(watermark, "abrir_conexion_de_entorno", abrir)
+    monkeypatch.setattr(bodega, "abrir_conexion_de_entorno", abrir)
 
     cargar_gold(tabla, "daily_zone_metrics")
 
     assert pedidas == [entorno]
     assert conexion.cerrada is True
-
-
-def test_nunca_se_abre_connections_toml(monkeypatch):
-    monkeypatch.setattr(
-        watermark, "_abrir_conexion", lambda nombre: pytest.fail("connections.toml")
-    )
-    conexion = ConexionFalsa(CursorFalso(TIPOS_BASE, TABLA_BASE))
-    monkeypatch.setattr(watermark, "abrir_conexion_de_entorno", lambda entorno: conexion)
-
-    cargar_gold(TABLA, "daily_zone_metrics")
 
 
 # --- crear_tabla y esquema_de_tabla -------------------------------------------------------------
@@ -317,7 +309,7 @@ def test_crear_tabla_sin_conexion_abre_la_del_entorno_y_la_cierra(monkeypatch):
     conexion = ConexionFalsa(cursor)
     pedidas = []
     monkeypatch.setattr(
-        watermark, "abrir_conexion_de_entorno", lambda entorno: pedidas.append(entorno) or conexion
+        bodega, "abrir_conexion_de_entorno", lambda entorno: pedidas.append(entorno) or conexion
     )
 
     crear_tabla(DDL.replace(".DEV.", ".PROD."))
@@ -360,3 +352,74 @@ def test_esquema_de_tabla_inexistente_explica_como_crearla():
 def test_esquema_de_tabla_rechaza_nombres_raros():
     with pytest.raises(ValueError, match="Nombre de tabla inválido"):
         esquema_de_tabla("T; DROP TABLE X", ConexionFalsa(CursorFalso({}, {})))
+
+
+# --- la conexión del entorno: siempre por secreto, nunca connections.toml -------------------------
+
+
+def secreto_de_airflow(**cambios):
+    """JSON de conexión de Airflow como lo escribe scripts/snowflake.sh (sin llave real)."""
+    conexion = {
+        "conn_type": "snowflake",
+        "login": "AIRFLOW_SVC",
+        "extra": {
+            "account": "org-cuenta",
+            "warehouse": "BIGDATA_WH",
+            "database": "BIGDATA",
+            "role": "BIGDATA_DEV",
+            "private_key_content": "PEM",
+        },
+    }
+    conexion.update(cambios)
+    return json.dumps(conexion)
+
+
+def test_el_secreto_se_convierte_en_parametros_del_conector(monkeypatch):
+    monkeypatch.setattr(bodega, "_llave_privada_der", lambda pem: b"der:" + pem.encode())
+    parametros = bodega._parametros_de_secreto(secreto_de_airflow())
+    assert parametros == {
+        "account": "org-cuenta",
+        "user": "AIRFLOW_SVC",
+        "role": "BIGDATA_DEV",
+        "warehouse": "BIGDATA_WH",
+        "database": "BIGDATA",
+        "private_key": b"der:PEM",
+    }
+
+
+def test_el_secreto_con_password_y_sin_llave_usa_password():
+    texto = secreto_de_airflow(password="clave", extra={"account": "a"})
+    parametros = bodega._parametros_de_secreto(texto)
+    assert parametros == {"account": "a", "user": "AIRFLOW_SVC", "password": "clave"}
+
+
+def test_el_secreto_sin_llave_ni_password_falla_con_mensaje_claro():
+    with pytest.raises(ValueError, match="private_key_content ni password"):
+        bodega._parametros_de_secreto(secreto_de_airflow(extra={"account": "a"}))
+
+
+def test_el_secreto_por_defecto_de_cada_entorno(monkeypatch):
+    monkeypatch.delenv(bodega.VARIABLE_SECRETO, raising=False)
+    monkeypatch.delenv("PREFIX", raising=False)
+    assert bodega.nombre_del_secreto("dev") == "bigdata/snowflake"
+    assert bodega.nombre_del_secreto("prod") == "bigdata/snowflake_prod"
+
+    monkeypatch.setenv("PREFIX", "curso")
+    assert bodega.nombre_del_secreto("dev") == "curso/snowflake"
+    assert bodega.nombre_del_secreto("prod") == "curso/snowflake_prod"
+
+
+def test_la_variable_del_secreto_gana_sobre_el_defecto(monkeypatch):
+    monkeypatch.setenv(bodega.VARIABLE_SECRETO, "otro/secreto")
+    assert bodega.nombre_del_secreto("prod") == "otro/secreto"
+
+
+def test_la_conexion_de_entorno_usa_el_secreto_y_nunca_connections_toml(monkeypatch):
+    monkeypatch.delenv(bodega.VARIABLE_SECRETO, raising=False)
+    monkeypatch.delenv("PREFIX", raising=False)
+    abiertos = []
+    monkeypatch.setattr(bodega, "_abrir_conexion_con_secreto", lambda n: abiertos.append(n) or n)
+
+    assert bodega.abrir_conexion_de_entorno("dev") == "bigdata/snowflake"
+    assert bodega.abrir_conexion_de_entorno("prod") == "bigdata/snowflake_prod"
+    assert abiertos == ["bigdata/snowflake", "bigdata/snowflake_prod"]
