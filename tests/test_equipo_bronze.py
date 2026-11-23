@@ -13,7 +13,7 @@ import pytest
 
 from hueco import corrida_a_mano, saltar_si_pendiente
 from pipeline import bronze
-from pipeline.herramientas import COLUMNAS_METADATOS
+from pipeline.herramientas.capas import COLUMNAS_METADATOS
 
 pytest_plugins = ["p1_fixtures", "p4_fixtures"]
 

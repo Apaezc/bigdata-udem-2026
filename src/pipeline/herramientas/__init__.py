@@ -1,6 +1,12 @@
 """Caja de herramientas de la casa: lo único que los equipos importan.
 
-    from pipeline.herramientas import ruta_lake, Corrida, leer_crudo, registrar_control
+El curso usa la forma larga, que nombra el archivo de donde viene cada herramienta:
+
+    from pipeline.herramientas.rutas import ruta_lake
+    from pipeline.herramientas.corrida import Corrida
+
+Esta fachada sigue funcionando (`from pipeline.herramientas import ruta_lake`), pero en clase no
+se usa: los estudiantes deben ver qué importan y desde qué archivo.
 
 Es una fachada perezosa: cada nombre apunta a su módulo y el módulo se importa la primera vez que
 alguien lo pide. Así `from pipeline.herramientas import ruta_lake, Corrida` funciona en la VM de

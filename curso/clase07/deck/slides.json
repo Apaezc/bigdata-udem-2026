@@ -636,7 +636,7 @@
   {
    "tipo": "codigo",
    "titulo": "La puerta final invierte mes_ya_procesado, que ya trae la regla de reprocesar",
-   "sql": "from pipeline.herramientas import mes_ya_procesado\n\ndef debe_ingestar(corrida: Corrida, tabla: str, mes: str) -> bool:\n    ya_esta_registrado = mes_ya_procesado(corrida, tabla, CAPA, mes)\n    if ya_esta_registrado:\n        return False\n    return True",
+   "sql": "from pipeline.herramientas.control import mes_ya_procesado\n\ndef debe_ingestar(corrida: Corrida, tabla: str, mes: str) -> bool:\n    ya_esta_registrado = mes_ya_procesado(corrida, tabla, CAPA, mes)\n    if ya_esta_registrado:\n        return False\n    return True",
    "resaltar": [
     4,
     5

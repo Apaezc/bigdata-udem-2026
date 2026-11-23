@@ -29,14 +29,13 @@ from pyspark.sql import DataFrame
 from pyspark.sql import functions as F
 
 from pipeline import quality, silver
-from pipeline.herramientas import (
+from pipeline.herramientas.capas import escribir_capa, leer_capa
+from pipeline.herramientas.control import con_control
+from pipeline.herramientas.corrida import Resultado
+from pipeline.herramientas.rutas import (
     TABLA_CLIMA,
     TABLA_VIAJES,
     TABLA_ZONAS,
-    Resultado,
-    con_control,
-    escribir_capa,
-    leer_capa,
     ruta_lake,
 )
 

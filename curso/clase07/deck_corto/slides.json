@@ -207,7 +207,7 @@
   {
    "tipo": "codigo",
    "titulo": "La puerta se construye con debe_ingestar y con registrar_ingesta, que anota solo después de escribir",
-   "sql": "from pipeline.herramientas import mes_ya_procesado\n\ndef debe_ingestar(corrida: Corrida, tabla: str, mes: str) -> bool:\n    ya_esta_registrado = mes_ya_procesado(corrida, tabla, CAPA, mes)\n    if ya_esta_registrado:\n        return False\n    return True\n\n# Se registra al final: si la escritura falla, no queda registro\nregistrar_ingesta(corrida, tabla, mes, fuente, leidas, filas, inicio)",
+   "sql": "from pipeline.herramientas.control import mes_ya_procesado\n\ndef debe_ingestar(corrida: Corrida, tabla: str, mes: str) -> bool:\n    ya_esta_registrado = mes_ya_procesado(corrida, tabla, CAPA, mes)\n    if ya_esta_registrado:\n        return False\n    return True\n\n# Se registra al final: si la escritura falla, no queda registro\nregistrar_ingesta(corrida, tabla, mes, fuente, leidas, filas, inicio)",
    "resaltar": [
     4,
     8

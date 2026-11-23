@@ -24,16 +24,14 @@ from __future__ import annotations
 
 from typing import Any
 
-from pipeline.herramientas import (
-    Resultado,
-    cargar_gold,
-    con_control,
-    crear_tabla,
+from pipeline.herramientas.athena import (
     nombre_tabla_athena,
-    nombre_tabla_snowflake,
-    ruta_lake,
     verificar_esquema_con_athena,
 )
+from pipeline.herramientas.bodega import cargar_gold, crear_tabla
+from pipeline.herramientas.control import con_control
+from pipeline.herramientas.corrida import Resultado
+from pipeline.herramientas.rutas import nombre_tabla_snowflake, ruta_lake
 
 CAPA = "snowflake"
 

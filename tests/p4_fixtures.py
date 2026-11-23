@@ -14,13 +14,12 @@ import pytest
 
 from hueco import ENTORNO, MES
 from pipeline import io
-from pipeline.herramientas import (
+from pipeline.herramientas.capas import leer_capa
+from pipeline.herramientas.corrida import Corrida, cargar_configuracion
+from pipeline.herramientas.rutas import (
     TABLA_CLIMA,
     TABLA_VIAJES,
     TABLA_ZONAS,
-    Corrida,
-    cargar_configuracion,
-    leer_capa,
     ruta_del_crudo,
     ruta_lake,
 )

@@ -71,7 +71,7 @@ cd ~/bigdata
 make rutas ENTORNO=dev
 ```
 
-Sin `ENTORNO` imprime los dos entornos. En un notebook es `donde_estoy("dev")` (con `from pipeline.herramientas import donde_estoy`). Es solo informativo: no cambia con qué entorno corres. La salida es esta (la cuenta será la tuya):
+Sin `ENTORNO` imprime los dos entornos. En un notebook es `donde_estoy("dev")` (con `from pipeline.herramientas.rutas import donde_estoy`). Es solo informativo: no cambia con qué entorno corres. La salida es esta (la cuenta será la tuya):
 
 ```text
 DÓNDE ESTOY | entorno: dev | los datos están en S3

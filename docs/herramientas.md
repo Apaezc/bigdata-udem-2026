@@ -1,9 +1,10 @@
 # Herramientas de la casa
 
-Funciones que ya están escritas y probadas para que las uses en tus talleres sin reescribirlas. Se importan **solo** desde `pipeline.herramientas`:
+Funciones que ya están escritas y probadas para que las uses en tus talleres sin reescribirlas. Cada una se importa desde el archivo donde vive (por ejemplo `pipeline.herramientas.capas`, que es `src/pipeline/herramientas/capas.py`), para que siempre sepas de dónde viene:
 
 ```python
-from pipeline.herramientas import leer_crudo, mes_ya_procesado, registrar_control
+from pipeline.herramientas.capas import leer_crudo
+from pipeline.herramientas.control import mes_ya_procesado, registrar_control
 ```
 
 Cada función que lee, escribe, consulta o borra **dice en voz alta dónde** (`LEE`, `ESCRIBE`, `CONSULTA`, `REGISTRA`, `CREA`, `CARGA`, `BORRA`) con la ruta completa. En un notebook sale en la celda; en Airflow o Glue, en el log de la tarea.
@@ -25,33 +26,33 @@ Cada función que lee, escribe, consulta o borra **dice en voz alta dónde** (`L
 
 | De la casa (no se edita) | Del equipo (lo que sí escribes) |
 |---|---|
-| `pipeline.herramientas` (esta página), `io.py`, `settings.py`, `quality.py`, `engine.py`, `correr.py`, `run.py`, `watermark.py` | `agregar_metadatos` (en `bronze.py`) |
+| `src/pipeline/herramientas/` (esta página), `io.py`, `settings.py`, `quality.py`, `engine.py`, `correr.py`, `run.py`, `watermark.py` | `agregar_metadatos` (en `bronze.py`) |
 | Los `main` de los cuatro pasos y `limpiar_viajes`, `clima_diario`, `limpiar_taxi_zones` y `enriquecer` | `deduplicar` (en `silver.py`) y las tablas resumen que quieras |
 | `debe_ingestar` y `registrar_ingesta` (en `bronze.py`, ya resueltas) | Tus tablas de gold: una función en `gold.py`, sumada a `TABLAS_GOLD` y a `LLAVES_DE_GOLD` |
 | El ejemplo de gold, `tarifa_por_milla_por_barrio`, y su `CREATE TABLE` | El `CREATE TABLE` de tu gold en `carga.py`, sumado a `TABLAS_A_CARGAR` |
 | `pipeline.yaml`, el DAG `pipeline_taxi` y el DAG `resetear_entorno` | Tus pruebas en `tests/` |
 
-Tres reglas de la caja: los equipos importan solo desde `pipeline.herramientas`; la caja nunca importa `bronze.py`, `silver.py`, `gold.py` ni `carga.py` (así no hay ciclos); y todo lo que toca el lake dice en voz alta dónde.
+Tres reglas de la caja: los equipos importan con el nombre del archivo (`from pipeline.herramientas.<archivo> import ...`), nunca desde `pipeline.herramientas` a secas; la caja nunca importa `bronze.py`, `silver.py`, `gold.py` ni `carga.py` (así no hay ciclos); y todo lo que toca el lake dice en voz alta dónde.
 
 <a id="las-12"></a>
 ## Las 12 funciones
 
-| Función | Qué hace | Va con |
-|---|---|---|
-| `traer_crudo_viajes(entorno, mes)` | Deja el Parquet de viajes del mes en `_crudo/` y devuelve su ruta | Bronze |
-| `traer_crudo_taxi_zones(entorno)` | Deja el CSV de zonas en `_crudo/` | Bronze |
-| `traer_crudo_clima(entorno, mes)` | Deja el JSON de clima del mes en `_crudo/` | Bronze |
-| `leer_crudo(spark, entorno, tabla, mes=None, limite=None)` | Lee el crudo como DataFrame, con límite determinista | Bronze |
-| `escribir_bronze(df, entorno, tabla, mes, id_lote)` | Escribe un lote nuevo en bronze y devuelve las filas escritas | Bronze |
-| `hash_fila(columnas)` | La huella (SHA-256) de la fila completa, como columna de Spark | Bronze y silver |
-| `mes_ya_procesado(corrida, tabla, capa, mes)` | La puerta: `True` = se salta | Todos los pasos |
-| `registrar_control(corrida, tabla, capa, mes, filas, inicio, fuente, leidas=None)` | Anota que el paso terminó bien | Todos los pasos |
-| `leer_capa(spark, entorno, capa, tabla, mes=None, lotes="todos")` | Lee bronze, silver o gold | Silver y gold |
-| `escribir_capa(df, entorno, capa, tabla, mes=None)` | Escribe silver o gold reemplazando el mes | Silver y gold |
-| `crear_tabla(ddl)` | Ejecuta tu `CREATE TABLE` en Snowflake | Snowflake |
-| `cargar_gold(tabla_snowflake, carpeta_gold, mes=None, ...)` | Carga gold desde S3 a una tabla de Snowflake | Snowflake |
+| Función | Qué hace | Va con | Se importa de |
+|---|---|---|---|
+| `traer_crudo_viajes(entorno, mes)` | Deja el Parquet de viajes del mes en `_crudo/` y devuelve su ruta | Bronze | `pipeline.herramientas.crudo` (`crudo.py`) |
+| `traer_crudo_taxi_zones(entorno)` | Deja el CSV de zonas en `_crudo/` | Bronze | `pipeline.herramientas.crudo` (`crudo.py`) |
+| `traer_crudo_clima(entorno, mes)` | Deja el JSON de clima del mes en `_crudo/` | Bronze | `pipeline.herramientas.crudo` (`crudo.py`) |
+| `leer_crudo(spark, entorno, tabla, mes=None, limite=None)` | Lee el crudo como DataFrame, con límite determinista | Bronze | `pipeline.herramientas.capas` (`capas.py`) |
+| `escribir_bronze(df, entorno, tabla, mes, id_lote)` | Escribe un lote nuevo en bronze y devuelve las filas escritas | Bronze | `pipeline.herramientas.capas` (`capas.py`) |
+| `hash_fila(columnas)` | La huella (SHA-256) de la fila completa, como columna de Spark | Bronze y silver | `pipeline.herramientas.capas` (`capas.py`) |
+| `mes_ya_procesado(corrida, tabla, capa, mes)` | La puerta: `True` = se salta | Todos los pasos | `pipeline.herramientas.control` (`control.py`) |
+| `registrar_control(corrida, tabla, capa, mes, filas, inicio, fuente, leidas=None)` | Anota que el paso terminó bien | Todos los pasos | `pipeline.herramientas.control` (`control.py`) |
+| `leer_capa(spark, entorno, capa, tabla, mes=None, lotes="todos")` | Lee bronze, silver o gold | Silver y gold | `pipeline.herramientas.capas` (`capas.py`) |
+| `escribir_capa(df, entorno, capa, tabla, mes=None)` | Escribe silver o gold reemplazando el mes | Silver y gold | `pipeline.herramientas.capas` (`capas.py`) |
+| `crear_tabla(ddl)` | Ejecuta tu `CREATE TABLE` en Snowflake | Snowflake | `pipeline.herramientas.bodega` (`bodega.py`) |
+| `cargar_gold(tabla_snowflake, carpeta_gold, mes=None, ...)` | Carga gold desde S3 a una tabla de Snowflake | Snowflake | `pipeline.herramientas.bodega` (`bodega.py`) |
 
-`COLUMNAS_METADATOS` es la lista de las cinco columnas que bronze agrega. El resto de lo que ves en `pipeline.herramientas` es importable pero no se enseña.
+`COLUMNAS_METADATOS` es la lista de las cinco columnas que bronze agrega (también de `pipeline.herramientas.capas`). El resto de lo que hay en `src/pipeline/herramientas/` es importable pero no se enseña.
 
 Todas las funciones que llevan `entorno` o `corrida` toman el entorno **de la corrida**: desde el Code Editor siempre es `dev`. No hay un argumento para cambiarlo.
 
@@ -59,7 +60,11 @@ Todas las funciones que llevan `entorno` o `corrida` toman el entorno **de la co
 ## Traer el crudo
 
 ```python
-from pipeline.herramientas import traer_crudo_clima, traer_crudo_taxi_zones, traer_crudo_viajes
+from pipeline.herramientas.crudo import (
+    traer_crudo_clima,
+    traer_crudo_taxi_zones,
+    traer_crudo_viajes,
+)
 
 ruta_viajes = traer_crudo_viajes("dev", "2024-01")
 ruta_zonas = traer_crudo_taxi_zones("dev")
@@ -80,6 +85,8 @@ Cada función devuelve la ruta `s3://` completa donde quedó el archivo, y antes
 **`leer_crudo`** devuelve un DataFrame del archivo tal como se descargó: los viajes en Parquet, las zonas en un CSV leído todo como texto y el clima en una fila por día. `limite` es el número de filas (`corrida.limite_filas`) o `None` para todo. El límite es **determinista**: `coalesce(1).limit(n)` toma siempre las mismas `n` primeras filas del archivo, así que reprocesar el mismo mes da las mismas filas y se puede comprobar la deduplicación.
 
 ```python
+from pipeline.herramientas.capas import leer_crudo  # src/pipeline/herramientas/capas.py
+
 viajes = leer_crudo(spark, "dev", "fhvhv", "2024-01", limite=1000)
 ```
 
@@ -88,6 +95,8 @@ viajes = leer_crudo(spark, "dev", "fhvhv", "2024-01", limite=1000)
 **`leer_capa`** lee una tabla de una capa. En bronze, `lotes="todos"` junta **todos** los lotes completos del mes y `lotes="ultimo"` lee solo el más reciente. En silver y gold lee la carpeta del mes.
 
 ```python
+from pipeline.herramientas.capas import leer_capa  # src/pipeline/herramientas/capas.py
+
 bronze = leer_capa(spark, "dev", "bronze", "fhvhv", "2024-01")  # todos los lotes
 silver = leer_capa(spark, "dev", "silver", "fhvhv", "2024-01")
 ```
@@ -95,6 +104,8 @@ silver = leer_capa(spark, "dev", "silver", "fhvhv", "2024-01")
 **`escribir_capa`** escribe silver o gold **reemplazando el mes**: borra `mes=<mes>/` y escribe de nuevo, para que un reproceso con menos filas no deje filas viejas mezcladas. Devuelve las filas escritas. Con `capa="bronze"` falla: bronze se escribe con `escribir_bronze`.
 
 ```python
+from pipeline.herramientas.capas import escribir_capa  # src/pipeline/herramientas/capas.py
+
 filas = escribir_capa(gold, "dev", "gold", "mi_tabla", "2024-01")
 ```
 
@@ -110,7 +121,7 @@ Resumen de las reglas de cada capa:
 ## La huella de una fila
 
 ```python
-from pipeline.herramientas import COLUMNAS_METADATOS, hash_fila
+from pipeline.herramientas.capas import COLUMNAS_METADATOS, hash_fila
 
 print(COLUMNAS_METADATOS)
 # ['_fecha_ingesta', '_id_lote', '_hash_fila', '_fuente', '_archivo_origen']
@@ -136,7 +147,7 @@ Es una tabla de Snowflake por entorno: `BIGDATA.CONTROL_DEV.WATERMARK` y `BIGDAT
 ```python
 from datetime import UTC, datetime
 
-from pipeline.herramientas import mes_ya_procesado, registrar_control
+from pipeline.herramientas.control import mes_ya_procesado, registrar_control
 
 if mes_ya_procesado(corrida, "fhvhv", "bronze", "2024-01"):
     print("se salta")
@@ -208,7 +219,8 @@ Cada equipo **nombra sus tablas** y viven en `BIGDATA.DEV` (y, ya promovidas, en
 3. El nombre completo de la tabla sale de una función, para que no se escriba a mano:
 
    ```python
-   from pipeline.herramientas import crear_tabla, nombre_tabla_snowflake
+   from pipeline.herramientas.bodega import crear_tabla
+   from pipeline.herramientas.rutas import nombre_tabla_snowflake
 
    tabla = nombre_tabla_snowflake("dev", "tarifa_por_milla_barrio")
    print(tabla)  # BIGDATA.DEV.TARIFA_POR_MILLA_BARRIO
@@ -218,7 +230,8 @@ Cada equipo **nombra sus tablas** y viven en `BIGDATA.DEV` (y, ya promovidas, en
 
    ```python
    from pipeline.carga import DDL_TARIFA_POR_MILLA
-   from pipeline.herramientas import cargar_gold, crear_tabla, nombre_tabla_snowflake
+   from pipeline.herramientas.bodega import cargar_gold, crear_tabla
+   from pipeline.herramientas.rutas import nombre_tabla_snowflake
 
    tabla = nombre_tabla_snowflake("dev", "tarifa_por_milla_barrio")
    crear_tabla(DDL_TARIFA_POR_MILLA.format(tabla=tabla))
@@ -289,7 +302,10 @@ Cada una recibe las cuatro perillas, todas opcionales: `mes`, `computo`, `limite
 Dos ayudas para escribir tus funciones en un notebook antes de pasarlas a los `.py`:
 
 ```python
-from pipeline.herramientas import probar_mis_funciones, usar_mis_funciones
+from pipeline.herramientas.equipo import (
+    probar_mis_funciones,
+    usar_mis_funciones,
+)
 
 # Las pone «encima» de bronze.py y silver.py, solo en este proceso, para correr el pipeline con ellas.
 usar_mis_funciones(agregar_metadatos=agregar_metadatos, deduplicar=deduplicar)
