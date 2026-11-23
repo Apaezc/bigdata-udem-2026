@@ -15,9 +15,7 @@ cargar en la VM de Airflow, que no tiene pyspark.
 
 from __future__ import annotations
 
-import secrets
 from collections.abc import Callable
-from datetime import datetime
 from typing import TYPE_CHECKING
 
 from pipeline import io
@@ -41,18 +39,7 @@ MARCADOR_NULO = "<nulo>"
 SEPARADOR_HASH = "||"
 
 
-# --- identificador del lote y hash de la fila -------------------------------------------------
-
-
-def nuevo_id_lote(ahora: datetime) -> str:
-    """Id de un lote: fecha UTC de la ingesta y 6 caracteres hexadecimales al azar.
-
-    Ejemplo: 20260115T143005Z_a3f9c1. Empieza con la fecha para que ordenar los ids como texto
-    los ordene también en el tiempo; el sufijo evita choques entre dos ingestas del mismo segundo.
-    """
-    fecha = ahora.strftime("%Y%m%dT%H%M%SZ")
-    sufijo = secrets.token_hex(3)
-    return f"{fecha}_{sufijo}"
+# --- hash de la fila -------------------------------------------------
 
 
 def hash_fila(columnas: list[str]) -> Column:

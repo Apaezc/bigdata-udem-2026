@@ -29,6 +29,7 @@ from pathlib import Path
 
 import yaml
 
+from pipeline.herramientas.control import tabla_de_control
 from pipeline.herramientas.rutas import (
     ENTORNOS,
     MES_SIN_MES,
@@ -215,8 +216,13 @@ def valores_de_pipeline_yaml(ruta: str | None = None) -> dict:
 # --- la corrida --------------------------------------------------------------------------------
 
 
-def _nuevo_id_lote(ahora: datetime) -> str:
-    """Id de lote, igual que capas.nuevo_id_lote: fecha UTC y 6 hex (20260115T143005Z_a3f9c1)."""
+def nuevo_id_lote(ahora: datetime) -> str:
+    """Id de un lote: fecha UTC de la ingesta y 6 caracteres hexadecimales al azar.
+
+    Ejemplo: 20260115T143005Z_a3f9c1. Empieza con la fecha para que ordenar los ids como texto
+    los ordene también en el tiempo; el sufijo evita choques entre dos ingestas del mismo segundo.
+    El id es de la corrida: lo calcula `cargar_configuracion` y bronze lo usa para nombrar el lote.
+    """
     return f"{ahora.strftime('%Y%m%dT%H%M%SZ')}_{secrets.token_hex(3)}"
 
 
@@ -368,7 +374,7 @@ def cargar_configuracion(mes=None, computo=None, limite=None, reprocesar=None) -
         meses=meses,
         limite=elegido_limite,
         reprocesar=elegido_reprocesar,
-        id_lote=_nuevo_id_lote(ahora),
+        id_lote=nuevo_id_lote(ahora),
         fecha_ingesta=ahora,
         avisos=tuple(avisos),
     )
@@ -423,18 +429,13 @@ def _carpeta_del_crudo(entorno: str, tabla: str, mes: str) -> str:
     return dir_del_crudo(entorno, tabla, mes) + "/"
 
 
-def tabla_de_control_del_entorno(entorno: str) -> str:
-    """'BIGDATA.CONTROL_DEV.WATERMARK' (como control.tabla_de_control, sin importar Snowflake)."""
-    return f"BIGDATA.CONTROL_{entorno.upper()}.WATERMARK"
-
-
 def rutas_del_paso(corrida: Corrida, paso: str, mes: str) -> tuple[list[str], list[str], str]:
     """(rutas completas que lee, rutas completas que escribe, tabla de control).
 
     Todo sale de ruta_lake: el banner no escribe rutas a mano.
     """
     entorno = corrida.entorno
-    control = tabla_de_control_del_entorno(entorno)
+    control = tabla_de_control(entorno)
     tablas = [tabla for tabla, _ in tablas_del_paso(paso, mes)]
     if paso == "bronze":
         lee = [_carpeta_del_crudo(entorno, tabla, mes) for tabla in tablas]

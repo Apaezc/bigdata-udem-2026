@@ -532,3 +532,10 @@ def test_el_zip_de_dev_trae_el_codigo_del_arbol_de_trabajo(tmp_path):
         contenido = zip_.read("pipeline/herramientas/rutas.py").decode("utf-8")
     assert "def ruta_lake" in contenido
     assert io.StringIO  # (el zip se arma con zipfile, sin archivos temporales de más)
+
+
+def test_nuevo_id_lote_empieza_con_la_fecha():
+    ahora = datetime(2026, 1, 15, 14, 30, 5, tzinfo=UTC)
+    id_lote = corrida_mod.nuevo_id_lote(ahora)
+    assert id_lote.startswith("20260115T143005Z_")
+    assert len(id_lote.split("_")[1]) == 6

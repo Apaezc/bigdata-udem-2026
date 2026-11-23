@@ -7,7 +7,6 @@ apunta el lake a una carpeta temporal con PIPELINE_RAIZ_LAKE=file://...
 from __future__ import annotations
 
 import shutil
-from datetime import UTC, datetime
 from pathlib import Path
 
 import pytest
@@ -57,13 +56,6 @@ def test_hash_fila_igual_para_filas_iguales_y_distinto_si_cambia_un_valor(spark)
     assert hashes[0] != hashes[2]
     # un nulo no se confunde con un texto vacío
     assert hashes[3] != hashes[4]
-
-
-def test_nuevo_id_lote_empieza_con_la_fecha():
-    ahora = datetime(2026, 1, 15, 14, 30, 5, tzinfo=UTC)
-    id_lote = capas.nuevo_id_lote(ahora)
-    assert id_lote.startswith("20260115T143005Z_")
-    assert len(id_lote.split("_")[1]) == 6
 
 
 # --- leer_crudo -------------------------------------------------------------------------------

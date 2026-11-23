@@ -22,7 +22,7 @@ Bronze es solo de agregar: cada ingesta escribe un lote nuevo (lote=<id>/) y nun
 anteriores. Quien lee bronze (silver) junta todos los lotes completos del mes.
 
 Nombres de las clases 1 a 6 que siguen importables desde aquí (ahora viven en la caja de
-herramientas): URL_VIAJES, URL_ZONAS, URL_CLIMA, url_clima, nuevo_id_lote, descargar,
+herramientas): URL_VIAJES, URL_ZONAS, URL_CLIMA, url_clima, nuevo_id_lote (de corrida), descargar,
 COLUMNAS_METADATOS, MARCADOR_NULO, SEPARADOR_HASH, hash_fila y clima_a_filas.
 """
 
@@ -39,14 +39,13 @@ from pipeline.herramientas.capas import (
     escribir_bronze,
     hash_fila,
     leer_crudo,
-    nuevo_id_lote,
 )
 from pipeline.herramientas.control import (
     consultar_control,
     mes_ya_procesado,
     registrar_control,
 )
-from pipeline.herramientas.corrida import Resultado
+from pipeline.herramientas.corrida import Resultado, nuevo_id_lote
 from pipeline.herramientas.crudo import (
     URL_CLIMA,
     URL_VIAJES,
