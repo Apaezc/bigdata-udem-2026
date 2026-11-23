@@ -4,7 +4,7 @@ Esta guía recorre la clase 7 en la máquina real del Code Editor, con la cuenta
 
 Tiempo estimado: unas 3 horas y media, sin contar las esperas de Glue y del CI. Se hace dos veces: el domingo (con la cuenta en el diseño viejo) y el lunes antes de clase (con la cuenta ya migrada). **Costo:** el paso 11 usa Glue; el 12 enciende la VM de prod.
 
-La secuencia de la clase: (1) empezar limpio con `resetear_entorno` en dev; (2) Notebook 1 con `limite` 1000; (3) copiar a los `.py`; (4) las tareas del DAG una por una con `airflow tasks test`, con Athena entre cada una; (5) crear la tabla en Snowflake y correr el DAG completo desde la interfaz; (6) resetear y correr todo otra vez (funciona una vez); (7) correr con `reprocesar=true` y ver los duplicados; después, dimensionamiento y prod.
+La secuencia de la clase: (1) empezar limpio con `resetear_entorno` en dev; (2) Notebook 1 con `limite` 1000, en el dev de verdad; (3) `resetear_entorno` en dev otra vez y copiar a los `.py`; (4) las tareas del DAG una por una con `airflow tasks test`, con Athena entre cada una; (5) crear la tabla en Snowflake y correr el DAG completo desde la interfaz; (6) resetear y correr todo otra vez (funciona una vez); (7) correr con `reprocesar=true` y ver los duplicados; después, dimensionamiento y prod.
 
 ## 0. Traer la rama y revisar el entorno
 
@@ -48,24 +48,27 @@ En Snowsight: `SELECT COUNT(*) FROM BIGDATA.CONTROL_DEV.WATERMARK;` (0) y `SHOW 
 
 **Pega:** el tiempo de arranque de Airflow y `airflow-local-estado`; el log de `validar` del intento malo; `contar` y `resumen` de (b) y (c); cuánto tardó el borrado real; y las tres comprobaciones.
 
-## 3. Notebook 1 completo, en laboratorio (slides del Notebook 1)
+## 3. Notebook 1 completo, en dev de verdad (slides del Notebook 1)
 
 ```bash
 mkdir -p ~/clase07_mis_notebooks && cp ~/bigdata/curso/clase07/0*.ipynb ~/clase07_mis_notebooks/
 cd ~/bigdata && make airflow-local-down
 ```
 
-Abre `01_construir_paso_a_paso.ipynb`, elige el kernel `.venv` y ejecuta las celdas **una por una**, cronometrando las lentas. El notebook trabaja en `/tmp/lake_clase07` (disco) y con la tabla de control en memoria: **no debe escribir en S3 ni en `CONTROL_DEV`**; compruébalo al final (paso 3b).
+Abre `01_construir_paso_a_paso.ipynb`, elige el kernel `.venv` y ejecuta las celdas **una por una**, cronometrando las lentas. El notebook corre contra el dev de verdad: escribe en `s3://<lake>/dev/` y anota en `BIGDATA.CONTROL_DEV.WATERMARK` (incluidas filas de ensayo de 2023), y **no debe escribir nada en el disco** (sin `/tmp/lake_clase07`); compruébalo en el paso 3b. Necesita los `.jar` de `make jars-s3a`.
 
-**Pega:** Celda 2 (encabezado con `[RAÍZ DE PRUEBA]`), 5 (tiempo del crudo), 6 y 7, 9 (debe ser `[]`), 14, 16, 20 y 21 (encabezado y cierre; tiempo de la 20), 22 y 23, 24, 26 y 27, 30 y 31, 34 (`CREA` y siete columnas) y el tiempo total. Cierra con la Celda 35.
+**Pega:** Celda 2 (encabezado con rutas `s3://`, sin `[RAÍZ DE PRUEBA]`), 5 (tiempo del crudo), 6 y 7, 9 (debe ser `[]`), 14, 16, 20 y 21 (encabezado y cierre; tiempo de la 20), 22 y 23, 24, 26 y 27, 30 y 31, 34 (`CREA` y siete columnas) y el tiempo total. Cierra con la Celda 35. Anota el tiempo de la Celda 20 (la primera corrida sube ~450 MB a S3) y confirma que las celdas 10 a 17 usan meses de 2023 y no dejan nada en enero.
 
-**3b. Comprobar que dev sigue limpio:**
+**3b. Comprobar que dev quedó con datos reales y que el disco no se tocó:**
 
 ```bash
 cd ~/bigdata && aws s3 ls "s3://bigdata-lake-$(aws sts get-caller-identity --query Account --output text)-us-east-2/dev/bronze/" --recursive | grep lote= | head
+ls /tmp/lake_clase07 2>&1 | head -2
 ```
 
-En Snowsight: `SELECT COUNT(*) FROM BIGDATA.CONTROL_DEV.WATERMARK;` debe dar 0. **Pega:** ambas salidas (no debe haber lotes, salvo el crudo si lo conservaste; el contador, 0).
+En Snowsight: `SELECT TABLA, CAPA, MES, COUNT(*) FROM BIGDATA.CONTROL_DEV.WATERMARK GROUP BY ALL;` debe mostrar las tres tablas de bronze de `2024-01` (una fila cada una) y los meses de ensayo de 2023. **Pega:** las tres salidas (un lote de `fhvhv` en S3; `ls` debe decir que no existe la carpeta; las filas de control).
+
+**3c. Empezar limpio otra vez (slide de `resetear_entorno` después del notebook):** en Airflow del Code Editor, lanza `resetear_entorno` con `Solo listar` marcada (anota cuántos objetos, registros y tablas cuenta) y después con `Solo listar` desmarcada, `Conservar el crudo` marcada y `borrar dev`. Repite la consulta de control: debe dar 0 filas. **Pega:** `contar` y `resumen` de las dos corridas.
 
 ## 4. Notebook 2 y `make test`
 

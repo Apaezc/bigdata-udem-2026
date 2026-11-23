@@ -362,14 +362,15 @@ En esta máquina solo cabe un proceso de Spark a la vez. Si el notebook anterior
 
 1. Apertura: qué dijimos en las clases 5 y 6 y qué cambia; dev y prod; dónde se cambia cada cosa.
 2. **Empezamos limpios:** `resetear_entorno` en dev (el DAG que borra todo el entorno de ese Airflow).
-3. **Notebook 1:** se construye cada función con 1 000 viajes, en un laboratorio (disco y tabla de control en memoria) que no ensucia dev. El límite se aplica solo en bronze.
-4. **Notebook 2** y pasar las funciones a los `.py`; `make test` (salen `PENDIENTE`).
-5. **Las tareas del DAG, una por una** (`airflow tasks test`): primero bronze y Athena; luego silver y Athena; luego gold y Athena. Ahí se notan los problemas: bronze sin huella y qué hace la tabla de control.
-6. Crear la tabla en Snowflake y correr el DAG completo desde la interfaz: con `reprocesar` sin marcar, bronze, silver y gold **se saltan** y solo carga Snowflake.
-7. Resetear y correr todo otra vez: funciona una vez.
-8. **Reprocesar a propósito** (`reprocesar=true`): bronze guarda los dos lotes, silver los espeja sin deduplicar y gold multiplica; medido: silver ×2 y gold ×8. Se ve en Athena y en Snowflake.
-9. `make correr` y `glue_small`, y el ejercicio de dimensionamiento: cuánto tarda cada combinación de límite y cómputo.
-10. Llevar todo a prod: pull request, CI/CD, DAG en la VM; y validar con Athena y Snowflake.
+3. **Notebook 1:** se construye cada función con 1 000 viajes, en el dev de verdad: Spark del Code Editor escribe en `s3://<lake>/dev/` y la tabla de control es `BIGDATA.CONTROL_DEV.WATERMARK`. No se escribe nada en el disco. El límite se aplica solo en bronze.
+4. **`resetear_entorno` en dev otra vez:** el notebook dejó datos reales (crudo, un lote de bronze, filas de control y la tabla vacía de gold); se borran para que las tareas del DAG partan de cero.
+5. **Notebook 2** y pasar las funciones a los `.py`; `make test` (salen `PENDIENTE`).
+6. **Las tareas del DAG, una por una** (`airflow tasks test`): primero bronze y Athena; luego silver y Athena; luego gold y Athena. Ahí se notan los problemas: bronze sin huella y qué hace la tabla de control.
+7. Crear la tabla en Snowflake y correr el DAG completo desde la interfaz: con `reprocesar` sin marcar, bronze, silver y gold **se saltan** y solo carga Snowflake.
+8. Resetear y correr todo otra vez: funciona una vez.
+9. **Reprocesar a propósito** (`reprocesar=true`): bronze guarda los dos lotes, silver los espeja sin deduplicar y gold multiplica; medido: silver ×2 y gold ×8. Se ve en Athena y en Snowflake.
+10. `make correr` y `glue_small`, y el ejercicio de dimensionamiento: cuánto tarda cada combinación de límite y cómputo.
+11. Llevar todo a prod: pull request, CI/CD, DAG en la VM; y validar con Athena y Snowflake.
 
 Las dos reglas que se repiten: el límite recorta **solo bronze**, y **sin `reprocesar` la segunda corrida se salta**: los duplicados aparecen solo al forzarlo.
 

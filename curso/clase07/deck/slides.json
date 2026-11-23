@@ -8,7 +8,7 @@
    "subtitulo": "Clase 7 · Un pipeline completo en dev y cómo llevarlo a prod",
    "meta": "Posgrado UdeM · 23 nov 2026",
    "min": 1,
-   "notas": "Antes de la clase, cada persona migró su cuenta (curso/clase07/README.md) y dejó abierto el Code Editor con una terminal. Si el Space se apagó (se apaga solo tras 60 minutos sin uso), se enciende con Run space. La secuencia de hoy: aclarar lo que cambia respecto a las clases 5 y 6 y dónde corre cada cosa (dev y prod); empezar limpios con resetear_entorno en dev; construir las funciones en el Notebook 1 con 1 000 viajes y pasarlas a los .py; correr las tareas del DAG una por una, con Athena entre cada una, y notar los problemas; crear la tabla en Snowflake y correr el DAG completo desde la interfaz; resetear y correr todo otra vez, que funciona una vez; repetir con reprocesar=true y ver cómo se duplican silver, gold y Snowflake, con la explicación completa; dimensionar con tiempos reales; y llevarlo a prod con un pull request. Hoy el trabajo es individual y la única ayuda es el instructor; el Taller 2 se hace en equipos y arranca mañana. Tiempo: 1 min. Siguiente: ¿Cómo construyo un pipeline en dev, lo llevo a prod sin duplicar nada y sé cuánto cómputo necesita.",
+   "notas": "Antes de la clase, cada persona migró su cuenta (curso/clase07/README.md) y dejó abierto el Code Editor con una terminal. Si el Space se apagó (se apaga solo tras 60 minutos sin uso), se enciende con Run space. La secuencia de hoy: aclarar lo que cambia respecto a las clases 5 y 6 y dónde corre cada cosa (dev y prod); empezar limpios con resetear_entorno en dev; construir las funciones en el Notebook 1 con 1 000 viajes, en el dev de verdad; volver a resetear dev y pasarlas a los .py; correr las tareas del DAG una por una, con Athena entre cada una, y notar los problemas; crear la tabla en Snowflake y correr el DAG completo desde la interfaz; resetear y correr todo otra vez, que funciona una vez; repetir con reprocesar=true y ver cómo se duplican silver, gold y Snowflake, con la explicación completa; dimensionar con tiempos reales; y llevarlo a prod con un pull request. Hoy el trabajo es individual y la única ayuda es el instructor; el Taller 2 se hace en equipos y arranca mañana. Tiempo: 1 min. Siguiente: ¿Cómo construyo un pipeline en dev, lo llevo a prod sin duplicar nada y sé cuánto cómputo necesita.",
    "id": "1"
   },
   {
@@ -412,12 +412,12 @@
     {
      "titulo": "Al terminar",
      "items": [
-      "Sabrás por qué la puerta evita duplicar un mes."
+      "Sabrás por qué la puerta evita duplicar un mes, y habrás dejado datos reales en dev."
      ]
     }
    ],
    "min": 1,
-   "notas": "Transición, en voz alta: ahora continuamos con el Notebook 1, 01_construir_paso_a_paso. Problema: un pipeline es una cadena de funciones; si las dejas correr sin haberlas entendido, el día que algo falle no sabrás por dónde empezar. Aquí las construimos una por una con 1 000 viajes en lugar de 20 millones y las probamos varias veces. El instructor conduce; cada persona sigue en su Code Editor, celda por celda, con Shift + Enter. Este notebook es un laboratorio: arma un lake de prueba en el disco (/tmp/lake_clase07) y guarda la tabla de control en memoria, así que NO escribe en S3 ni en CONTROL_DEV: el dev de verdad queda limpio. Lo único real es leer la tabla de control y crear una tabla vacía en BIGDATA.DEV. El límite de 1 000 filas se aplica solo en bronze. Importa las herramientas de la casa y nunca las copia. Tiempo: 1 min. Siguiente: Copias los dos notebooks a una carpeta tuya para no tocar los del repositorio.",
+   "notas": "Transición, en voz alta: ahora continuamos con el Notebook 1, 01_construir_paso_a_paso. Problema: un pipeline es una cadena de funciones; si las dejas correr sin haberlas entendido, el día que algo falle no sabrás por dónde empezar. Aquí las construimos una por una con 1 000 viajes en lugar de 20 millones y las probamos varias veces. El instructor conduce; cada persona sigue en su Code Editor, celda por celda, con Shift + Enter. Este notebook corre contra el dev de verdad, sin laboratorio: Spark del Code Editor lee y escribe en s3://<lake>/dev/ y la tabla de control es BIGDATA.CONTROL_DEV.WATERMARK (conexión por el secreto bigdata/snowflake, rol BIGDATA_DEV). No se escribe nada en el disco. Como lo que escribe es de verdad, al terminar volvemos a correr resetear_entorno en dev para empezar limpios antes de las tareas del DAG. El límite de 1 000 filas se aplica solo en bronze. Importa las herramientas de la casa y nunca las copia. Tiempo: 1 min. Siguiente: Copias los dos notebooks a una carpeta tuya para no tocar los del repositorio.",
    "id": "23"
   },
   {
@@ -471,11 +471,11 @@
     8,
     9
    ],
-   "explicacion": "En el notebook sale [RAÍZ DE PRUEBA] y file://. En dev de verdad, s3://<tu-lake>/dev/ (bigdata-lake-<tu cuenta>-us-east-2).",
+   "explicacion": "Las rutas son s3://<tu-lake>/dev/, con tu lake bigdata-lake-<tu cuenta>-us-east-2: es el dev de verdad.",
    "aqui": "bronze",
    "notebook": "01_construir_paso_a_paso",
    "min": 1,
-   "notas": "Problema: ¿cómo sé, antes de que se ejecute algo, en qué entorno estoy y dónde va a escribir? El encabezado lo dice. Es el mismo en la consola, el notebook, el log de Airflow, el log de Glue y prod (en prod, la línea Entorno dice PROD con una advertencia). Las líneas Lee y Escribe salen de la misma función de rutas que usa el código (ruta_lake), no se escriben a mano. En el notebook, la etiqueta [RAÍZ DE PRUEBA] en la línea Entorno y las rutas file:// dicen que estamos en el laboratorio; en dev de verdad serán rutas s3://bigdata-lake-<tu cuenta>-us-east-2/dev/..., que es lo que muestra la slide recortado. Al final de cada paso hay un cierre con una línea por tabla: filas leídas, escritas y si se saltó o registró; lo veremos en la Celda 20. Tiempo: 1 min. Siguiente: Ejecutas las Celdas 4 y 5.",
+   "notas": "Problema: ¿cómo sé, antes de que se ejecute algo, en qué entorno estoy y dónde va a escribir? El encabezado lo dice. Es el mismo en la consola, el notebook, el log de Airflow, el log de Glue y prod (en prod, la línea Entorno dice PROD con una advertencia). Las líneas Lee y Escribe salen de la misma función de rutas que usa el código (ruta_lake), no se escriben a mano. En el notebook las rutas son s3://bigdata-lake-<tu cuenta>-us-east-2/dev/..., exactamente lo que muestra la slide: no hay laboratorio ni disco local, escribimos en el dev de verdad. Al final de cada paso hay un cierre con una línea por tabla: filas leídas, escritas y si se saltó o registró; lo veremos en la Celda 20. Tiempo: 1 min. Siguiente: Ejecutas las Celdas 4 y 5.",
    "id": "27"
   },
   {
@@ -484,13 +484,13 @@
    "ventana": "Notebook 1",
    "pasos": [
     "Ejecuta la Celda 4: Spark enciende y dice su versión.",
-    "Ejecuta la Celda 5: baja los tres archivos crudos.",
+    "Ejecuta la Celda 5: sube los tres archivos crudos a S3.",
     "Espera: los viajes de enero pesan unos 450 MB."
    ],
    "aqui": "bronze",
    "notebook": "01_construir_paso_a_paso",
    "min": 2,
-   "notas": "Celda 4: get_spark(\"code_editor\") crea una sesión local[2] con 2 GB de memoria, la misma configuración del pipeline. En el laboratorio trabaja sobre el disco y no necesita los .jar de S3A; en dev de verdad sí los usa para leer y escribir s3://. Celda 5: traer_crudo_viajes, traer_crudo_taxi_zones y traer_crudo_clima revisan en este orden: ¿el archivo ya está en _crudo/? no se descarga; ¿está en la ruta del diseño anterior? se mueve; si no está en ninguna parte, se descarga de la fuente. Cada una devuelve la ruta completa y dice en voz alta qué hace (YA ESTÁ, DESCARGA...). Aquí el archivo se guarda en el disco del laboratorio: la primera vez baja unos 450 MB, y con 30 cuentas a la vez puede tardar. Tiempo: 2 min. Siguiente: leer_crudo devuelve siempre las mismas 1 000 filas, y se comprueba leyendo dos veces.",
+   "notas": "Celda 4: get_spark(\"code_editor\") crea una sesión local[2] con 2 GB de memoria, la misma configuración del pipeline. Usa los .jar de S3A (los que bajó make jars-s3a) para leer y escribir s3://. Celda 5: traer_crudo_viajes, traer_crudo_taxi_zones y traer_crudo_clima revisan en este orden: ¿el archivo ya está en _crudo/? no se descarga; ¿está en la ruta del diseño anterior? se mueve; si no está en ninguna parte, se descarga de la fuente. Cada una devuelve la ruta completa y dice en voz alta qué hace (YA ESTÁ, DESCARGA...). El archivo se descarga y se guarda en s3://<lake>/dev/bronze/_crudo/, no en el disco: la primera vez baja unos 450 MB, y con 30 cuentas a la vez puede tardar. Las siguientes veces ya está en S3. Tiempo: 2 min. Siguiente: leer_crudo devuelve siempre las mismas 1 000 filas, y se comprueba leyendo dos veces.",
    "id": "28"
   },
   {
@@ -563,13 +563,13 @@
    "ventana": "Notebook 1",
    "pasos": [
     "Ejecuta la Celda 9: consulta CONTROL_DEV y sale una lista vacía.",
-    "Ejecuta la Celda 10: instala una tabla de control de ensayo.",
-    "Lee que la tabla de Snowflake no se toca."
+    "Ejecuta la Celda 10: fija MES_ENSAYO, un mes de 2023.",
+    "Lee que enero de 2024 queda sin registros."
    ],
    "aqui": "bronze",
    "notebook": "01_construir_paso_a_paso",
    "min": 1,
-   "notas": "Problema: vamos a equivocarnos mientras construimos la puerta y no queremos dejar filas falsas en la tabla real: una fila de «ya procesado» sin datos detrás es justo el error que la tabla de control debe evitar. Celda 9: consultar_control(\"dev\", \"fhvhv\", \"bronze\", \"2024-01\") va a Snowflake con el rol BIGDATA_DEV y devuelve [] si ningún paso ha terminado. Si tu cuenta ya trae un registro de una corrida anterior, queda anotado y se explica más abajo. Celda 10: instalar_backend(ControlEnMemoria()) cambia solo dónde se guardan los registros, no la regla; la puerta y el registro corren igual. Es una herramienta pensada para pruebas, y aquí es exactamente eso: un ensayo. Error común: «No se encontró la tabla BIGDATA.CONTROL_DEV.WATERMARK»: falta make snowflake o make migrar-clase07. Tiempo: 1 min. Siguiente: Primera versión de debe_ingestar: si no hay registro se ingesta, y si lo hay se salta.",
+   "notas": "Problema: vamos a equivocarnos mientras construimos la puerta, y la tabla de control es la real: una fila de «ya procesado» para enero de 2024 sin datos detrás es justo el error que la tabla de control debe evitar. Celda 9: consultar_control(\"dev\", \"fhvhv\", \"bronze\", \"2024-01\") va a Snowflake con el rol BIGDATA_DEV y devuelve [] si ningún paso ha terminado. Si tu cuenta ya trae un registro de una corrida anterior, queda anotado y se explica más abajo. Celda 10: no hay tabla de mentira; todos los ensayos de las celdas 10 a 17 escriben en la tabla real, pero con meses de 2023 (MES_ENSAYO = 2023-12 y otros), que el pipeline nunca procesa. La clave (TABLA, CAPA, MES) es distinta y enero de 2024 queda intacto. Esas filas se borran con el resetear_entorno del final del notebook. Error común: «No se encontró la tabla BIGDATA.CONTROL_DEV.WATERMARK»: falta make snowflake o make migrar-clase07. Tiempo: 1 min. Siguiente: Primera versión de debe_ingestar: si no hay registro se ingesta, y si lo hay se salta.",
    "id": "32"
   },
   {
@@ -584,7 +584,7 @@
    "aqui": "bronze",
    "notebook": "01_construir_paso_a_paso",
    "min": 1,
-   "notas": "Entrada (Celda 11): la función recibe la corrida (de ahí sale el entorno), la tabla y el mes; consulta la tabla de control con la clave (tabla, bronze, mes) y devuelve True si no hay registros. Salida esperada: True, porque la tabla de ensayo está vacía. Esta versión responde solo a la primera columna de la regla («¿hay registro?»); todavía no sabe reprocesar. Para probar el segundo caso necesitamos que exista un registro, y eso lo escribe otra función: registrar_ingesta. Pregunta a la clase: ¿qué pasa con esta versión si queremos repetir un mes a propósito? Respuesta: no se puede, y por eso hay una segunda versión. Tiempo: 1 min. Siguiente: registrar_ingesta anota la fila de bronze, solo después de escribir.",
+   "notas": "Entrada (Celda 11): la función recibe la corrida (de ahí sale el entorno), la tabla y el mes; consulta la tabla de control con la clave (tabla, bronze, mes) y devuelve True si no hay registros. Salida esperada: True, porque el mes de ensayo (2023-12) todavía no tiene registros en la tabla real. Esta versión responde solo a la primera columna de la regla («¿hay registro?»); todavía no sabe reprocesar. Para probar el segundo caso necesitamos que exista un registro, y eso lo escribe otra función: registrar_ingesta. Pregunta a la clase: ¿qué pasa con esta versión si queremos repetir un mes a propósito? Respuesta: no se puede, y por eso hay una segunda versión. Tiempo: 1 min. Siguiente: registrar_ingesta anota la fila de bronze, solo después de escribir.",
    "id": "33"
   },
   {
@@ -599,7 +599,7 @@
    "aqui": "bronze",
    "notebook": "01_construir_paso_a_paso",
    "min": 1,
-   "notas": "Problema: ¿cuándo se anota que un mes ya se procesó? Si se anota antes de escribir y la escritura se cae a la mitad, la tabla dice «procesado» pero los datos no están, y la puerta salta el mes para siempre. Si se anota después y la escritura falla, no queda registro y el mes se puede reintentar. Por eso: se registra al final y solo si todo salió bien. registrar_control es la función de la casa que escribe una fila; nuestra función solo la llama con la capa bronze. Entrada (Celda 12): registra una fila de ensayo y la imprime. Salida esperada: un diccionario con fuente, capa, tabla, mes, filas, inicio, reprocesar, computo, limite y leidas. Tiempo: 1 min. Siguiente: Ejecutas las Celdas 12 y 13.",
+   "notas": "Problema: ¿cuándo se anota que un mes ya se procesó? Si se anota antes de escribir y la escritura se cae a la mitad, la tabla dice «procesado» pero los datos no están, y la puerta salta el mes para siempre. Si se anota después y la escritura falla, no queda registro y el mes se puede reintentar. Por eso: se registra al final y solo si todo salió bien. registrar_control es la función de la casa que escribe una fila; nuestra función solo la llama con la capa bronze. Entrada (Celda 12): registra una fila en la tabla real, con el mes de ensayo, y la imprime. Salida esperada: un diccionario con fuente, capa, tabla, mes, filas, inicio, reprocesar, computo, limite y leidas. Tiempo: 1 min. Siguiente: Ejecutas las Celdas 12 y 13.",
    "id": "34"
   },
   {
@@ -655,12 +655,12 @@
    "pasos": [
     "Ejecuta la Celda 15: redefine debe_ingestar con reprocesar.",
     "Ejecuta la Celda 16: tres casos, y cada uno dice coincide.",
-    "Ejecuta la Celda 17: dejas una tabla de ensayo limpia."
+    "Ejecuta la Celda 17: enero de 2024 sigue sin registros."
    ],
    "aqui": "bronze",
    "notebook": "01_construir_paso_a_paso",
    "min": 1,
-   "notas": "Salida esperada de la Celda 16: tres filas. «False, False: ingesta, coincide»; «True, False: salta, coincide»; «True, True: ingesta, coincide». La función caso arma cada situación desde cero, con una tabla de ensayo limpia y dataclasses.replace para copiar la corrida cambiando solo reprocesar. Si alguna fila dice DIFERENTE, hay un error en la versión final; revisa la Celda 15. Con esto, nuestras dos funciones (debe_ingestar y registrar_ingesta) son las mismas que ya trae bronze.py. La Celda 17 instala una tabla de control de ensayo limpia, en memoria, para la corrida de la parte 6; la de Snowflake sigue sin tocarse. Tiempo: 1 min. Siguiente: agregar_metadatos hoy no agrega nada, a propósito.",
+   "notas": "Salida esperada de la Celda 16: tres filas. «False, False: ingesta, coincide»; «True, False: salta, coincide»; «True, True: ingesta, coincide». La función caso arma cada situación con su propio mes de ensayo de 2023 (la tabla es la real y no se vacía) y dataclasses.replace para copiar la corrida cambiando solo reprocesar. Si alguna fila dice DIFERENTE, hay un error en la versión final; revisa la Celda 15. Con esto, nuestras dos funciones (debe_ingestar y registrar_ingesta) son las mismas que ya trae bronze.py. La Celda 17 comprueba que los ensayos no tocaron enero de 2024: sin registros de bronze, la corrida de la parte 6 va a trabajar. Las filas de ensayo de 2023 se borran con resetear_entorno al final. Tiempo: 1 min. Siguiente: agregar_metadatos hoy no agrega nada, a propósito.",
    "id": "38"
   },
   {
@@ -714,7 +714,7 @@
    "aqui": "bronze",
    "notebook": "01_construir_paso_a_paso",
    "min": 2,
-   "notas": "Entrada: correr_bronze(limite=\"1000\") es una de las cuatro funciones de los pasos: la misma que corre la primera tarea del DAG pipeline_taxi y la que llama el CLI. Imprime el encabezado, hace el trabajo y cierra con una línea por tabla. Con limite 1000 cada fuente se recorta a 1 000 filas, justo después de leerla; las zonas son 265 y el clima 31, así que entran completas. Salida esperada: líneas YA ESTÁ, LEE (crudo), ESCRIBE (el lote en Parquet), SUBE (el marcador _LOTE_COMPLETO) y el cierre con REGISTRÓ. Esta corrida es del laboratorio: escribe en el disco, en /tmp/lake_clase07/dev/bronze/, y anota en la tabla de ensayo. La corrida en dev de verdad la haremos con las tareas del DAG. Tiempo: 2 min. Siguiente: El cierre dice, por tabla, filas leídas, escritas y la decisión.",
+   "notas": "Entrada: correr_bronze(limite=\"1000\") es una de las cuatro funciones de los pasos: la misma que corre la primera tarea del DAG pipeline_taxi y la que llama el CLI. Imprime el encabezado, hace el trabajo y cierra con una línea por tabla. Con limite 1000 cada fuente se recorta a 1 000 filas, justo después de leerla; las zonas son 265 y el clima 31, así que entran completas. Salida esperada: líneas YA ESTÁ, LEE (crudo), ESCRIBE (el lote en Parquet), SUBE (el marcador _LOTE_COMPLETO) y el cierre con REGISTRÓ. Esta corrida es de verdad: escribe en s3://<lake>/dev/bronze/ y anota en BIGDATA.CONTROL_DEV.WATERMARK. Más adelante resetear_entorno lo borra para que las tareas del DAG partan de cero. Tiempo: 2 min. Siguiente: El cierre dice, por tabla, filas leídas, escritas y la decisión.",
    "id": "41"
   },
   {
@@ -745,7 +745,7 @@
    "aqui": "bronze",
    "notebook": "01_construir_paso_a_paso",
    "min": 1,
-   "notas": "La puerta consultó la tabla de control de ensayo, encontró el registro de la primera corrida y no hizo nada: no hay lote nuevo, no hay filas repetidas. Termina en segundos. Celda 22: consultar_control devuelve la fila: filas=1000, leidas=1000, computo=code_editor, limite=1000 y reprocesar False. Celda 23: lista la carpeta de bronze de fhvhv en el laboratorio; debe haber una sola carpeta lote=<fecha>_<código>, a pesar de las dos corridas. Reprocesar a propósito (reprocesar=True) crearía un segundo lote: todavía no lo hacemos; lo haremos en dev de verdad, con Athena abierta. Para recordar: la puerta funciona igual en todos lados: en un notebook, con make, en Airflow y en Glue. Tiempo: 1 min. Siguiente: Silver es el espejo limpio de bronze, una tabla por fuente.",
+   "notas": "La puerta consultó la tabla de control real, encontró el registro de la primera corrida y no hizo nada: no hay lote nuevo, no hay filas repetidas. Termina en segundos. Celda 22: consultar_control devuelve la fila: filas=1000, leidas=1000, computo=code_editor, limite=1000 y reprocesar False. Celda 23: lista las carpetas de bronze de fhvhv en S3; debe haber una sola carpeta lote=<fecha>_<código>, a pesar de las dos corridas. Reprocesar a propósito (reprocesar=True) crearía un segundo lote: todavía no lo hacemos; lo haremos con las tareas del DAG, con Athena abierta. Para recordar: la puerta funciona igual en todos lados: en un notebook, con make, en Airflow y en Glue. Tiempo: 1 min. Siguiente: Silver es el espejo limpio de bronze, una tabla por fuente.",
    "id": "43"
   },
   {
@@ -922,8 +922,22 @@
    ],
    "notebook": "01_construir_paso_a_paso",
    "min": 1,
-   "notas": "Hemos probado la lógica de las cuatro partes del pipeline: bronze (con su puerta y su registro), silver (con el problema de los dos lotes), gold (con una pregunta de la casa) y snowflake (con su CREATE TABLE). Apagamos Spark para liberar la memoria: en esta máquina solo cabe una sesión a la vez, y el Notebook 2 y los comandos de make abren la suya. Resumen en dos frases: el Notebook 1 mostró cómo funciona cada función; el Notebook 2 trae esas mismas funciones listas para pasarlas a los .py, con sus dos problemas dichos en voz alta. Tiempo: 1 min. Siguiente: Ahora continuamos con el Notebook 2: las funciones listas.",
+   "notas": "Hemos probado la lógica de las cuatro partes del pipeline: bronze (con su puerta y su registro), silver (con el problema de los dos lotes), gold (con una pregunta de la casa) y snowflake (con su CREATE TABLE). Apagamos Spark para liberar la memoria: en esta máquina solo cabe una sesión a la vez, y el Notebook 2 y los comandos de make abren la suya. Antes de seguir: este notebook dejó datos de verdad en dev (el crudo, un lote de bronze, filas de la tabla de control, incluidos los meses de ensayo de 2023, y la tabla vacía de gold), así que lo siguiente es resetear dev. Resumen en dos frases: el Notebook 1 mostró cómo funciona cada función; el Notebook 2 trae esas mismas funciones listas para pasarlas a los .py, con sus dos problemas dichos en voz alta. Tiempo: 1 min. Siguiente: Reseteas dev otra vez para borrar lo que dejó el Notebook 1.",
    "id": "52"
+  },
+  {
+   "tipo": "pasos",
+   "titulo": "Reseteas dev otra vez para borrar lo que dejó el Notebook 1",
+   "ventana": "Navegador · Airflow",
+   "pasos": [
+    "En la terminal, ejecuta make airflow-local.",
+    "Lanza resetear_entorno con borrar dev y Conservar el crudo.",
+    "Comprueba en el log lo que borró."
+   ],
+   "notebook": "Airflow del Code Editor",
+   "min": 3,
+   "notas": "Problema: el Notebook 1 escribió de verdad en dev: el archivo crudo, un lote de bronze, filas en BIGDATA.CONTROL_DEV.WATERMARK (las de enero y las de los meses de ensayo de 2023) y una tabla vacía en BIGDATA.DEV. Si dejamos eso, la primera tarea del DAG saltaría bronze porque la tabla de control ya dice que enero está hecho. Por eso corremos resetear_entorno otra vez, igual que al principio: Airflow ya estaba apagado porque Spark y Airflow no caben a la vez; se enciende con make airflow-local, se lanza resetear_entorno con Solo listar desmarcada, Conservar el crudo marcada (el archivo de enero no cambia) y la confirmación borrar dev. Salida esperada: seis tareas en verde y, en el log de contar, el lote de fhvhv, los registros de control y la tabla de gold. Después, dev está limpio y copiamos las funciones a los .py. Error común: «Confirmación incorrecta»: se escribió con espacios o mayúsculas. Tiempo: 3 min. Siguiente: Ahora continuamos con el Notebook 2: las funciones listas.",
+   "id": "52b"
   },
   {
    "tipo": "comparacion",
@@ -1136,7 +1150,7 @@
     }
    ],
    "min": 1,
-   "notas": "Transición, en voz alta: ahora continuamos con las tareas del DAG, una por una. Problema: construimos y probamos las funciones en el laboratorio del notebook, ya están en los .py, y dev quedó limpio. Ahora corremos el pipeline en dev de verdad, pero no de golpe: una tarea a la vez, con airflow tasks test, y después de cada una miramos con Athena y con Snowflake qué dejó. Así, cuando el DAG completo salga en verde, ya sabemos qué hay dentro. Primero solo bronze; luego bronze y silver; luego gold. Para cuando lleguemos a gold deben haber notado dos cosas: qué hace la tabla de control en cada tarea y qué problemas trae bronze. Tiempo: 1 min. Siguiente: A mano, preparas la terminal para que encuentre Airflow.",
+   "notas": "Transición, en voz alta: ahora continuamos con las tareas del DAG, una por una. Problema: construimos y probamos las funciones en el notebook, ya están en los .py, y dev quedó limpio después del segundo reseteo. Ahora corremos el pipeline en dev de verdad, pero no de golpe: una tarea a la vez, con airflow tasks test, y después de cada una miramos con Athena y con Snowflake qué dejó. Así, cuando el DAG completo salga en verde, ya sabemos qué hay dentro. Primero solo bronze; luego bronze y silver; luego gold. Para cuando lleguemos a gold deben haber notado dos cosas: qué hace la tabla de control en cada tarea y qué problemas trae bronze. Tiempo: 1 min. Siguiente: A mano, preparas la terminal para que encuentre Airflow.",
    "id": "66"
   },
   {
