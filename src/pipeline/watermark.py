@@ -198,11 +198,6 @@ def abrir_conexion_de_entorno(entorno: str = "dev") -> Any:
     return _abrir_conexion_con_secreto(nombre_del_secreto(entorno))
 
 
-def abrir_conexion(connection_name: str | None = None) -> Any:
-    """Conexión lista para usar; la misma elección en Code Editor, Glue y VM (ver _abrir)."""
-    return _conectar(connection_name)
-
-
 def _conectar(connection_name: str | None) -> Any:
     """Abre la conexión y deja rol y warehouse fijos.
 

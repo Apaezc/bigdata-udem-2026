@@ -29,13 +29,10 @@ import os
 import re
 from datetime import date, timedelta
 from importlib import resources
-from typing import Any
 
 import yaml
 
 ENTORNOS = ("dev", "prod")
-# Nombre histórico (clases 1 a 6): hoy los dos entornos viven en S3.
-ENTORNOS_S3 = ENTORNOS
 CAPAS = ("bronze", "silver", "gold")
 
 TABLA_VIAJES = "fhvhv"
@@ -303,19 +300,6 @@ def meses_del_entorno(entorno: str) -> list[str]:
     with ruta.open("r", encoding="utf-8") as archivo:
         contenido = yaml.safe_load(archivo)
     return [validar_mes(str(mes)) for mes in contenido["meses"]]
-
-
-def cargar(env: str) -> dict[str, Any]:
-    """Nombre histórico (clases 5 y 6): {'entorno', 'meses', 'rutas'} del entorno.
-
-    El pipeline nuevo no la usa: pide una Corrida a pipeline.herramientas.cargar_configuracion.
-    """
-    validar_entorno(env)
-    return {
-        "entorno": env,
-        "meses": meses_del_entorno(env),
-        "rutas": {capa: ruta_lake(env, capa) for capa in CAPAS},
-    }
 
 
 # --- meses -------------------------------------------------------------------------------------

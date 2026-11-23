@@ -18,7 +18,6 @@ from pipeline.settings import (
     ENTORNOS,
     ConfigError,
     bucket_del_lake,
-    cargar,
     describir_rutas,
     dir_del_crudo,
     dir_del_lote,
@@ -248,19 +247,6 @@ def test_donde_estoy_imprime(capsys):
     assert f"s3://{BUCKET}/prod/silver" in capsys.readouterr().out
 
 
-def test_cargar_nombre_historico(entorno_limpio, monkeypatch):
-    monkeypatch.setenv("LAKE_BUCKET", BUCKET)
-    dev = cargar("dev")
-    assert dev["entorno"] == "dev"
-    assert dev["meses"] == ["2024-01"]
-    assert dev["rutas"]["bronze"] == f"s3://{BUCKET}/dev/bronze"
-    assert dev["rutas"]["gold"] == f"s3://{BUCKET}/dev/gold"
-    assert len(cargar("prod")["meses"]) == 12
-
-
-# --- meses -------------------------------------------------------------------------------------
-
-
 def test_inicio_fin_mes_incluye_cambio_de_anio():
     assert inicio_fin_mes("2024-12") == (date(2024, 12, 1), date(2025, 1, 1))
     assert inicio_fin_mes("2024-02") == (date(2024, 2, 1), date(2024, 3, 1))
@@ -318,7 +304,7 @@ def test_la_fachada_tiene_todos_los_nombres_del_contrato():
     nuevo_id_lote hash_fila COLUMNAS_METADATOS MARCADOR_NULO SEPARADOR_HASH tabla_de_control
     consultar_control mes_ya_procesado registrar_control con_control exigir_rol_del_entorno
     vaciar_control ControlEnMemoria instalar_backend nombre_tabla_athena esquema_de_athena
-    verificar_esquema_con_athena crear_tabla esquema_de_tabla cargar_gold cargar_gold_a_snowflake
+    verificar_esquema_con_athena crear_tabla esquema_de_tabla cargar_gold
     comparar_columnas ColumnasDistintas borrar_capas_s3 borrar_tablas_snowflake
     usar_mis_funciones probar_mis_funciones
     """.split()

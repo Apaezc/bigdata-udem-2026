@@ -73,7 +73,7 @@ _registrar("athena", "nombre_tabla_athena esquema_de_athena verificar_esquema_co
 # bodega.py (la parte de Snowflake)
 _registrar(
     "bodega",
-    """crear_tabla esquema_de_tabla cargar_gold cargar_gold_a_snowflake comparar_columnas
+    """crear_tabla esquema_de_tabla cargar_gold comparar_columnas
     ColumnasDistintas""",
 )
 # reseteo.py

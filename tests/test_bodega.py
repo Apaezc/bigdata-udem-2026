@@ -8,7 +8,6 @@ from pipeline import watermark
 from pipeline.herramientas.bodega import (
     ColumnasDistintas,
     cargar_gold,
-    cargar_gold_a_snowflake,
     comparar_columnas,
     crear_tabla,
     esquema_de_tabla,
@@ -243,10 +242,6 @@ def test_el_alter_usa_el_tipo_real_de_cada_columna_nueva():
     mensaje = str(error.value)
     assert "ADD COLUMN PASAJEROS NUMBER(38, 0);" in mensaje
     assert "ADD COLUMN PROPINA REAL;" in mensaje
-
-
-def test_cargar_gold_a_snowflake_sigue_siendo_el_mismo_nombre_de_antes():
-    assert cargar_gold_a_snowflake is cargar_gold
 
 
 def test_opciones_desconocidas_de_cargar_gold_fallan_antes_de_conectarse():

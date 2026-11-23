@@ -43,13 +43,6 @@ from pipeline.settings import (
     rango_meses,
 )
 
-# Las funciones para armar rutas del lake viven en settings; se reexportan aquí para que los
-# notebooks las encuentren con `from pipeline import io as pio` (pio.ruta_lake, pio.donde_estoy).
-from pipeline.settings import describir_rutas as describir_rutas
-from pipeline.settings import donde_estoy as donde_estoy
-from pipeline.settings import prefijo_lake as prefijo_lake
-from pipeline.settings import ruta_lake as ruta_lake
-
 if TYPE_CHECKING:  # pyspark solo se importa dentro de las funciones que lo usan: la VM no lo tiene
     from pyspark.sql import DataFrame, SparkSession
 
@@ -213,32 +206,6 @@ def escribir_lote(df: DataFrame, carpeta_lote: str, archivos: int | None = None)
 
 
 # --- lectura ----------------------------------------------------------------------------------
-
-
-def leer_viajes(spark: SparkSession, base: str, meses: list[str]) -> DataFrame:
-    """Viajes de todos los meses, cada uno desde su lote más reciente de bronze."""
-    carpetas = []
-    for mes in meses:
-        carpetas.append(dir_lote_reciente(base, VIAJES, mes))
-    for carpeta in carpetas:
-        anunciar("LEE", carpeta, "viajes")
-    return spark.read.parquet(*carpetas)
-
-
-def leer_zonas(spark: SparkSession, base: str) -> DataFrame:
-    carpeta = dir_lote_reciente(base, ZONAS)
-    anunciar("LEE", carpeta, "zonas")
-    return spark.read.parquet(carpeta)
-
-
-def leer_clima(spark: SparkSession, base: str, meses: list[str]) -> DataFrame:
-    """Clima diario (una fila por día) de todos los meses, desde su lote más reciente."""
-    carpetas = []
-    for mes in meses:
-        carpetas.append(dir_lote_reciente(base, CLIMA, mes))
-    for carpeta in carpetas:
-        anunciar("LEE", carpeta, "clima")
-    return spark.read.parquet(*carpetas)
 
 
 def leer_silver(spark: SparkSession, cfg: dict, meses: list[str]) -> DataFrame:

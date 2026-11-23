@@ -20,7 +20,6 @@ import urllib.request
 from pathlib import Path
 
 from pipeline import io
-from pipeline.herramientas.capas import nuevo_id_lote as nuevo_id_lote  # lo re-exporta bronze.py
 from pipeline.herramientas.rutas import (
     MES_SIN_MES,
     TABLA_CLIMA,
@@ -51,7 +50,6 @@ __all__ = [
     "URL_VIAJES",
     "URL_ZONAS",
     "descargar",
-    "nuevo_id_lote",
     "traer_crudo_clima",
     "traer_crudo_taxi_zones",
     "traer_crudo_viajes",

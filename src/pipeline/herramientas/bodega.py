@@ -371,7 +371,3 @@ def cargar_gold(
     finally:
         if cerrar_al_final:
             conexion.close()
-
-
-# Nombre con el que se enseñaba en las clases anteriores; sigue funcionando.
-cargar_gold_a_snowflake = cargar_gold
