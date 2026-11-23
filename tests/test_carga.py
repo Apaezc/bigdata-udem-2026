@@ -150,5 +150,18 @@ def test_tablas_a_cargar_tiene_la_de_la_casa():
 def test_el_paso_snowflake_no_importa_pyspark():
     """La VM de Airflow no tiene Spark: carga.py tiene que cargar sin él."""
     codigo = "import sys, pipeline.carga; sys.exit(1 if 'pyspark' in sys.modules else 0)"
-    resultado = subprocess.run([sys.executable, "-c", codigo], capture_output=True, text=True)
+    resultado = subprocess.run(
+        [sys.executable, "-c", codigo], capture_output=True, text=True, env=_entorno_con_src()
+    )
     assert resultado.returncode == 0, resultado.stderr
+
+
+def _entorno_con_src() -> dict:
+    """El proceso hijo no hereda el sys.path de pytest: se le pasa src/ por PYTHONPATH."""
+    import os
+    from pathlib import Path
+
+    src = str(Path(__file__).resolve().parents[1] / "src")
+    entorno = dict(os.environ)
+    entorno["PYTHONPATH"] = src + os.pathsep + entorno.get("PYTHONPATH", "")
+    return entorno

@@ -94,5 +94,16 @@ def test_el_modulo_no_importa_pyspark_al_cargarse():
         "import sys; import pipeline.herramientas.crudo, pipeline.herramientas.capas; "
         "sys.exit(1 if 'pyspark' in sys.modules else 0)"
     )
-    resultado = subprocess.run([sys.executable, "-c", codigo], check=False)
+    resultado = subprocess.run([sys.executable, "-c", codigo], check=False, env=_entorno_con_src())
     assert resultado.returncode == 0
+
+
+def _entorno_con_src() -> dict:
+    """El proceso hijo no hereda el sys.path de pytest: se le pasa src/ por PYTHONPATH."""
+    import os
+    from pathlib import Path
+
+    src = str(Path(__file__).resolve().parents[1] / "src")
+    entorno = dict(os.environ)
+    entorno["PYTHONPATH"] = src + os.pathsep + entorno.get("PYTHONPATH", "")
+    return entorno
