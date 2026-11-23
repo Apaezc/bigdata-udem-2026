@@ -19,8 +19,9 @@ partes = [
     f"Lunes 23 de noviembre de 2026 · {total} min con descanso de 20 min · {len(slides)} slides.",
     "",
     "Cada slide trae el título en pantalla, su duración, la hora relativa de inicio y qué decir. "
-    "Las cifras que dicen «se anotan en el ensayo» salen de `curso/clase07/prueba_ensayo.md`; las "
-    "medidas previas son las de `validacion/contenido/clase07_medidas.md`.",
+    "Las cifras en dev (code_editor, límite 1000, mes 2024-01) son las del ensayo del 22 y 23 de noviembre, "
+    "registradas en `validacion/contenido/clase07_medidas.md`; las celdas de Glue del dimensionamiento "
+    "quedan pendientes de medir.",
     "",
 ]
 acumulado = 0

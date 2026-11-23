@@ -1,8 +1,8 @@
 # Clase 7 · Guion del orador
 
-Lunes 23 de noviembre de 2026 · 243 min con descanso de 20 min · 131 slides.
+Lunes 23 de noviembre de 2026 · 248 min con descanso de 20 min · 133 slides.
 
-Cada slide trae el título en pantalla, su duración, la hora relativa de inicio y qué decir. Las cifras que dicen «se anotan en el ensayo» salen de `curso/clase07/prueba_ensayo.md`; las medidas previas son las de `validacion/contenido/clase07_medidas.md`.
+Cada slide trae el título en pantalla, su duración, la hora relativa de inicio y qué decir. Las cifras en dev (code_editor, límite 1000, mes 2024-01) son las del ensayo del 22 y 23 de noviembre, registradas en `validacion/contenido/clase07_medidas.md`; las celdas de Glue del dimensionamiento quedan pendientes de medir.
 
 ## 1. Big Data e Ingeniería de Datos
 
@@ -152,7 +152,7 @@ Dónde: la terminal del Code Editor. Problema: si editas el notebook dentro del 
 
 *1 min · inicia en 0:37*
 
-Dónde: el Code Editor. El kernel es el programa Python que ejecuta las celdas; si eliges uno equivocado, las librerías no están instaladas. Se elige siempre Python (bigdata), que es el .venv del proyecto. No se eligen los kernels Glue PySpark o SparkMagic: abren una sesión de AWS Glue en la nube y esa sesión cobra mientras está abierta. Paso 4: en esta máquina solo cabe un proceso de Spark a la vez (7.6 GB compartidos con Airflow); por eso Airflow del Code Editor debe estar apagado mientras se usan los notebooks. Error común: no aparece Python (bigdata): corre cd ~/bigdata && make reparar-entorno y recarga la ventana. Tiempo: 1 min. Siguiente: Ejecutas las Celdas 1 a 3.
+Dónde: el Code Editor. El kernel es el programa Python que ejecuta las celdas; si eliges uno equivocado, las librerías no están instaladas. Se elige siempre Python (bigdata), que es el .venv del proyecto. No se eligen los kernels Glue PySpark o SparkMagic: abren una sesión de AWS Glue en la nube y esa sesión cobra mientras está abierta. Paso 4: en esta máquina solo cabe un proceso de Spark a la vez (7.6 GB compartidos con Airflow); por eso Airflow del Code Editor debe estar apagado mientras se usan los notebooks. Error común: no aparece Python (bigdata): corre cd ~/bigdata && make reparar-entorno y recarga la ventana. Medida en el ensayo del 22 y 23 de noviembre: Airflow del Code Editor ocupa unos 5 GB de los 7.6 GB de la máquina; con Spark encendido encima ya no queda holgura. En el ensayo, con Airflow sin servidor web y corriendo el DAG completo, la memoria disponible mínima fue de 3 890 MB. Tiempo: 1 min. Siguiente: Ejecutas las Celdas 1 a 3.
 
 ## 26. Ejecutas las Celdas 1 a 3
 
@@ -272,7 +272,7 @@ Problema: bronze guarda las filas como llegaron: viajes con distancia cero, dura
 
 *1 min · inicia en 1:03*
 
-Entrada (Celda 24): leer_capa(spark, "dev", "bronze", "fhvhv", "2024-01") junta todos los lotes completos del mes (hoy hay uno) y silver.limpiar_viajes(bronze, ["2024-01"]) aplica los filtros y los tipos. Salida esperada: Filas en bronze 1000; filas en silver un poco menos; la diferencia son los descartados. Las cifras exactas de tu corrida se anotan en el ensayo (el archivo de enero completo descarta 13 907 de 19 663 930). Qué observar: distancia_mi y duracion_min son números, y empresa ya no es HV0003 sino Uber. Celda 25: las zonas con LocationID como entero (265 filas) y el clima con la fecha como fecha (31 filas). Error común: «No hay ningún lote completo en s3://.../dev/bronze/...»: bronze no corrió; se ejecutan las Celdas 19 a 21. Tiempo: 1 min. Siguiente: Ejecutas las Celdas 26 y 27: dos lotes de enero.
+Entrada (Celda 24): leer_capa(spark, "dev", "bronze", "fhvhv", "2024-01") junta todos los lotes completos del mes (hoy hay uno) y silver.limpiar_viajes(bronze, ["2024-01"]) aplica los filtros y los tipos. Salida esperada: Filas en bronze 1000; filas en silver un poco menos; la diferencia son los descartados. Con los 1 000 viajes del ensayo no se descartó ninguno (silver también da 1 000); el archivo de enero completo descarta 13 907 de 19 663 930. Qué observar: distancia_mi y duracion_min son números, y empresa ya no es HV0003 sino Uber. Celda 25: las zonas con LocationID como entero (265 filas) y el clima con la fecha como fecha (31 filas). Error común: «No hay ningún lote completo en s3://.../dev/bronze/...»: bronze no corrió; se ejecutan las Celdas 19 a 21. Tiempo: 1 min. Siguiente: Ejecutas las Celdas 26 y 27: dos lotes de enero.
 
 ## 46. Ejecutas las Celdas 26 y 27: dos lotes de enero
 
@@ -416,376 +416,388 @@ Dónde: la terminal del Code Editor. Problema: el comando airflow vive en un ent
 
 *2 min · inicia en 1:52*
 
-Entrada: airflow tasks test ejecuta UNA tarea del DAG, sin pasar por el calendario ni por la interfaz, y sin registrar una corrida del DAG; pero la tarea hace su trabajo de verdad: escribe en S3 y anota en la tabla de control. La tarea correr_bronze llama a correr_bronze con los parámetros que le pasas en --task-params: cómputo code_editor, límite 1000, mes 2024-01 y reprocesar false. Son los mismos cuatro campos del formulario del DAG. La fecha (2024-01-01) es solo el identificador de la ejecución de prueba. Salida esperada: el encabezado de siempre (Entorno DEV, Cómputo code_editor, Límite 1000, Escribe s3://.../dev/...) y, al final, el cierre. Aquí el límite se aplica solo en bronze. Error común: «airflow.exceptions... params» si el JSON está mal escrito; se repite con cuidado de las comillas. Tiempo: 2 min. Siguiente: Corres solo correr_bronze y lees su encabezado y su cierre.
+Entrada: airflow tasks test ejecuta UNA tarea del DAG, sin pasar por el calendario ni por la interfaz, y sin registrar una corrida del DAG; pero la tarea hace su trabajo de verdad: escribe en S3 y anota en la tabla de control. La tarea correr_bronze llama a correr_bronze con los parámetros que le pasas en --task-params: cómputo code_editor, límite 1000, mes 2024-01 y reprocesar false. Son los mismos cuatro campos del formulario del DAG. La fecha (2024-01-01) identifica la ejecución de prueba, y hay una trampa: airflow tasks test reutiliza una corrida del DAG que ya exista con la misma fecha y con su configuración; ni siquiera --task-params la cambia (se comprobó en el ensayo). Por eso se usa una fecha nueva en cada corrida: 2024-01-01 para bronze, 2024-01-02 para repetir bronze, 2024-01-03 para silver y 2024-01-04 para gold. Salida esperada: el encabezado de siempre (Entorno DEV, Cómputo code_editor, Límite 1000, Escribe s3://.../dev/...) y, al final, el cierre. Aquí el límite se aplica solo en bronze. Error común: «airflow.exceptions... params» si el JSON está mal escrito; se repite con cuidado de las comillas. Tiempo: 2 min. Siguiente: Corres solo correr_bronze y lees su encabezado y su cierre.
 
-## 70. Corres solo correr_bronze y lees su encabezado y su cierre
+## 70. Corres solo correr_bronze y lees su cierre
 
-*3 min · inicia en 1:54*
+*4 min · inicia en 1:54*
 
-Es la primera corrida de verdad en dev: Spark del Code Editor lee el crudo de S3 (si no está, lo descarga: unos 450 MB la primera vez, y ese es el momento largo), aplica el límite de 1 000 filas SOLO en bronze, justo después de leer y antes de transformar o escribir, y escribe un lote nuevo en s3://<lake>/dev/bronze/fhvhv/mes=2024-01/lote=<id>/. Después anota una fila en BIGDATA.CONTROL_DEV.WATERMARK por tabla. Cierre esperado: fhvhv leyó 1 000 y escribió 1 000; taxi_zones 265 y 265; clima 31 y 31; las tres con REGISTRÓ. Errores comunes: «Faltan los jars de S3A» (make jars-s3a); «AccessDenied» (credenciales vencidas). Aquí todavía no sabemos qué quedó en S3: eso lo vemos con Athena en la siguiente slide. Tiempo: 3 min. Siguiente: ¿Cómo sé que lo que dejó cada tarea es lo correcto.
+Es la primera corrida de verdad en dev: Spark del Code Editor lee el crudo de S3 (si no está, lo descarga: unos 450 MB la primera vez, y ese es el momento largo), aplica el límite de 1 000 filas SOLO en bronze, justo después de leer y antes de transformar o escribir, y escribe un lote nuevo en s3://<lake>/dev/bronze/fhvhv/mes=2024-01/lote=<id>/. Después anota una fila en BIGDATA.CONTROL_DEV.WATERMARK por tabla. Cierre esperado: fhvhv leyó 1 000 y escribió 1 000; taxi_zones 265 y 265; clima 31 y 31; las tres con REGISTRÓ. Errores comunes: «Faltan los jars de S3A» (make jars-s3a); «AccessDenied» (credenciales vencidas). Aquí todavía no sabemos qué quedó en S3: eso lo vemos con Athena en la siguiente slide. Ensayo del 22 y 23 de noviembre (dev, code_editor, límite 1000, mes 2024-01): la tarea tardó 1 min 11 s; fhvhv leyó 1 000 y escribió 1 000, taxi_zones 265 y clima 31, las tres REGISTRÓ. Se repite el comando con reprocesar=false y una fecha nueva: SE SALTÓ en unos 30 s; aun saltándose hay que arrancar la tarea antes de preguntar a la puerta. Es la regla de la puerta en vivo: el segundo intento no escribe nada. Tiempo: 4 min. Siguiente: ¿Cómo sé que lo que dejó cada tarea es lo correcto.
 
 ## 71. ¿Cómo sé que lo que dejó cada tarea es lo correcto?
 
-*1 min · inicia en 1:57*
+*1 min · inicia en 1:58*
 
 Problema: acabamos de correr bronze con una tarea y el log dice REGISTRÓ. ¿Qué hay realmente en S3? Nadie lo ha mirado. La única forma de saberlo es abrir los datos: el criterio de ingeniería es comparar cifras entre capas y con la tabla de control, no confiar en el color de la tarea ni en el mensaje del log. Vamos a declarar las tablas en Athena y a hacer, después de cada tarea, un punto de control: qué se ingestó, cuántas filas quedaron, si cuadran los viajes de gold con las filas de silver. Tiempo: 1 min. Siguiente: Abres Athena y eliges región, workgroup y base.
 
 ## 72. Abres Athena y eliges región, workgroup y base
 
-*1 min · inicia en 1:58*
+*1 min · inicia en 1:59*
 
 Dónde: la consola de AWS en el navegador. La región va arriba a la derecha y debe decir US East (Ohio), us-east-2; en otra región Athena no encuentra el workgroup. El workgroup bigdata-wg guarda los resultados y fija el límite de 1 GB por consulta. Todas las consultas escriben el nombre completo de la tabla (bigdata_lake.dev_silver_fhvhv) para no depender del selector. Error común: «Workgroup not found»: región equivocada. Tiempo: 1 min. Siguiente: Creas tu copia de 01_tablas.sql con tu número de cuenta y el entorno dev.
 
 ## 73. Creas tu copia de 01_tablas.sql con tu número de cuenta y el entorno dev
 
-*2 min · inicia en 1:59*
+*2 min · inicia en 2:00*
 
 Problema: 01_tablas.sql trae dos marcadores, <CUENTA> y <ENTORNO>, y hay que reemplazarlos antes de ejecutar. Entrada: la primera línea guarda tu número de cuenta en una variable; sed reemplaza los dos marcadores y escribe el resultado en ~/01_tablas_dev.sql, fuera del repositorio; el último comando cuenta las líneas con «<» (quedan algunas dentro de comentarios, pero ninguna con los marcadores). Para prod, más tarde, se repite con s/<ENTORNO>/prod/g. Si no se reemplaza <ENTORNO>, el CREATE falla: el signo < no es válido en un nombre de tabla. Después abre el archivo en el editor, selecciona todo y cópialo. Tiempo: 2 min. Siguiente: Pegas y ejecutas una sentencia a la vez.
 
 ## 74. Pegas y ejecutas una sentencia a la vez
 
-*2 min · inicia en 2:01*
+*2 min · inicia en 2:02*
 
 Las siete tablas son tres de bronze sobre los lotes (dev_bronze_fhvhv, dev_bronze_clima, dev_bronze_taxi_zones), tres de silver (dev_silver_fhvhv, dev_silver_clima, dev_silver_taxi_zones) y una de gold (dev_gold_tarifa_por_milla_barrio). Las tablas son EXTERNAL: si se borran, los archivos quedan. Las de bronze apuntan a la carpeta del mes, no a un lote: cuando el pipeline escribe un lote nuevo, la siguiente consulta lo ve sin recrear nada. Usan proyección de particiones: la regla de mes (2024-01 a 2024-12) está en la tabla y no hay particiones que registrar. Las columnas de metadatos existen pero salen NULL mientras bronze no las agregue. Error común: «Dentro de un CREATE no se escriben comentarios con --» (consola de Athena); el archivo ya viene sin ellos. Tiempo: 2 min. Siguiente: Primer punto de control en Athena: cuántas filas trae cada lote de bronze.
 
 ## 75. Primer punto de control en Athena: cuántas filas trae cada lote de bronze
 
-*2 min · inicia en 2:03*
+*2 min · inicia en 2:04*
 
-Del archivo curso/clase07/athena/02_duplicados_y_conciliacion.sql, consulta A1. La columna oculta "$path" es la ruta s3:// del archivo del que sale cada fila; la carpeta lote=<id> de esa ruta es el lote. Resultado esperado después de la primera tarea: UNA fila, el lote recién escrito, con 1 000 filas (las zonas, 265, y el clima, 31, se ven con la consulta A2). Con cada ingesta que se repita con reprocesar=true aparece un lote más, sin tocar la tabla: Athena lista la carpeta del mes cada vez. Si devuelve 0 filas: la tabla apunta a otro entorno, o la tarea falló. Las cifras exactas se anotan en el ensayo. Tiempo: 2 min. Siguiente: Bronze no guardó la huella ni el lote: el primer problema ya se ve.
+Del archivo curso/clase07/athena/02_duplicados_y_conciliacion.sql, consulta A1. La columna oculta "$path" es la ruta s3:// del archivo del que sale cada fila; la carpeta lote=<id> de esa ruta es el lote. Resultado esperado después de la primera tarea: UNA fila, el lote recién escrito, con 1 000 filas (las zonas, 265, y el clima, 31, se ven con la consulta A2). Con cada ingesta que se repita con reprocesar=true aparece un lote más, sin tocar la tabla: Athena lista la carpeta del mes cada vez. Si devuelve 0 filas: la tabla apunta a otro entorno, o la tarea falló. Confirmado en el ensayo: sale un lote con 1 000 filas en fhvhv, 265 en taxi_zones y 31 en clima, y Athena lee bien las subcarpetas lote=. Tiempo: 2 min. Siguiente: Bronze no guardó la huella ni el lote: el primer problema ya se ve.
 
 ## 76. Bronze no guardó la huella ni el lote: el primer problema ya se ve
 
-*2 min · inicia en 2:05*
+*2 min · inicia en 2:06*
 
 Consulta A3 del archivo SQL. count(columna) cuenta solo los valores que no son NULL. Las dos columnas existen en la tabla de Athena porque la tabla las declara, pero los archivos de bronze no las traen: agregar_metadatos devuelve df tal cual. Resultado esperado: 1 000 filas, 0 con huella y 0 con lote. Es el primer problema, y ahora está a la vista: bronze guardó las filas, pero no dice de qué lote ni de qué archivo vienen, ni tiene una huella para reconocer una fila repetida. Cuando tu equipo escriba la función y se reprocese, esos conteos serán 1 000 y 1 000. Tiempo: 2 min. Siguiente: En Snowsight, la tabla de control ya tiene una fila por cada tabla de bronze.
 
 ## 77. En Snowsight, la tabla de control ya tiene una fila por cada tabla de bronze
 
-*2 min · inicia en 2:07*
+*2 min · inicia en 2:08*
 
 Dónde: Snowsight, una hoja SQL; las tres primeras sentencias eligen rol, warehouse y base. Esto es lo que hacen las llamadas a la tabla de control: debe_ingestar la consultó antes de trabajar (estaba vacía, así que ingestó) y registrar_ingesta escribió una fila al terminar bien. La consulta sale con tres filas de capa bronze: fhvhv con 1 000 filas escritas y 1 000 leídas, taxi_zones 265 y clima 31; COMPUTO code_editor, LIMITE 1000, REPROCESAR false. Las columnas COMPUTO, LIMITE y LEIDAS son solo informativas: la puerta solo mira (TABLA, CAPA, MES). Repite esta consulta después de cada tarea: cada paso terminado deja sus filas. Tiempo: 2 min. Siguiente: Corres correr_silver y miras cuántas filas dejó.
 
 ## 78. Corres correr_silver y miras cuántas filas dejó
 
-*3 min · inicia en 2:09*
+*3 min · inicia en 2:10*
 
-El comando es idéntico al de bronze, cambiando correr_bronze por correr_silver y dejando los mismos parámetros. Silver lee TODOS los lotes completos de bronze del mes (hoy uno), sin ningún límite: el límite ya se aplicó en bronze. Limpia cada tabla, valida y escribe silver/<tabla>/mes=2024-01/ reemplazando el mes; después registra. Cierre esperado: fhvhv leyó 1 000 y escribió un poco menos (los filtros descartan los viajes imposibles); taxi_zones 265 y 265; clima 31 y 31. Si el comando se corre antes que bronze: «No hay ningún lote completo en .../dev/bronze/...». Las cifras exactas se anotan en el ensayo. Tiempo: 3 min. Siguiente: Silver lee todo bronze: las filas descartadas son bronze menos silver.
+El comando es idéntico al de bronze, cambiando correr_bronze por correr_silver y dejando los mismos parámetros. Silver lee TODOS los lotes completos de bronze del mes (hoy uno), sin ningún límite: el límite ya se aplicó en bronze. Limpia cada tabla, valida y escribe silver/<tabla>/mes=2024-01/ reemplazando el mes; después registra. Cierre esperado: fhvhv leyó 1 000 y escribió 1 000 (con este lote, los filtros no descartan ningún viaje); taxi_zones 265 y 265; clima 31 y 31. Ensayo: 55 s. Si el comando se corre antes que bronze: «No hay ningún lote completo en .../dev/bronze/...». Tiempo: 3 min. Siguiente: Silver lee todo bronze: las filas descartadas son bronze menos silver.
 
 ## 79. Silver lee todo bronze: las filas descartadas son bronze menos silver
 
-*2 min · inicia en 2:12*
+*2 min · inicia en 2:13*
 
-Consulta B1 del archivo SQL. filas_en_bronze cuenta las filas de TODOS los lotes del mes; filas_en_silver, las que dejó silver. Con un solo lote y 1 000 viajes, la diferencia son los descartes: pocos, o ninguno. Con el archivo de enero completo, los filtros descartan 13 907 de 19 663 930 viajes. Después de reprocesar sin deduplicar, filas_en_silver no es menor que filas_en_bronze sino que se acerca al doble de lo que dio la primera vez: nadie avisó. La consulta B2 cuenta las tres tablas de silver: zonas 265 y clima 31 si el pipeline está sano. Tiempo: 2 min. Siguiente: Corres correr_gold y comparas gold con silver.
+Consulta B1 del archivo SQL. filas_en_bronze cuenta las filas de TODOS los lotes del mes; filas_en_silver, las que dejó silver. Con un solo lote y 1 000 viajes, la diferencia son los descartes; en el ensayo salió 1 000 y 1 000, sin descartes. Con el archivo de enero completo, los filtros descartan 13 907 de 19 663 930 viajes. Después de reprocesar sin deduplicar, filas_en_silver no es menor que filas_en_bronze sino que se acerca al doble de lo que dio la primera vez: nadie avisó. La consulta B2 cuenta las tres tablas de silver: zonas 265 y clima 31 si el pipeline está sano. Tiempo: 2 min. Siguiente: Corres correr_gold y comparas gold con silver.
 
 ## 80. Corres correr_gold y comparas gold con silver
 
-*3 min · inicia en 2:14*
+*3 min · inicia en 2:15*
 
-Gold lee las tres tablas de silver, las junta con silver.enriquecer, aplica tarifa_por_milla_por_barrio, valida que (fecha, borough, franja) no se repitan y escribe gold/tarifa_por_milla_barrio/mes=2024-01/; después registra. En el cierre, leyó son las filas del enriquecido (debe ser igual a las filas de silver de viajes) y escribió son las filas de gold. En la tabla de control, FILAS de gold cuenta filas de gold, no viajes: los viajes se comparan con la suma de la columna viajes. Si gold falla con QualityError de clave no única, hay filas repetidas en silver. Tiempo: 3 min. Siguiente: La suma de viajes de gold debe ser igual a las filas de silver.
+Gold lee las tres tablas de silver, las junta con silver.enriquecer, aplica tarifa_por_milla_por_barrio, valida que (fecha, borough, franja) no se repitan y escribe gold/tarifa_por_milla_barrio/mes=2024-01/; después registra. En el ensayo la tarea tardó 43 s: leyó 1 000 y escribió 5 filas en tarifa_por_milla_barrio, una por (fecha, barrio, franja). En el cierre, leyó son las filas del enriquecido (debe ser igual a las filas de silver de viajes) y escribió son las filas de gold. En la tabla de control, FILAS de gold cuenta filas de gold, no viajes: los viajes se comparan con la suma de la columna viajes. Si gold falla con QualityError de clave no única, hay filas repetidas en silver. Tiempo: 3 min. Siguiente: La suma de viajes de gold debe ser igual a las filas de silver.
 
 ## 81. La suma de viajes de gold debe ser igual a las filas de silver
 
-*2 min · inicia en 2:17*
+*2 min · inicia en 2:18*
 
-Consulta C1 del archivo SQL. Gold agrega: no tiene una fila por viaje sino una por (fecha, barrio, franja); por eso se compara la SUMA de su columna viajes contra las filas de silver. Si el pipeline está sano, son iguales: la relación vale 1. Con una sola corrida debe salir 1. Después de reprocesar una vez, la relación es 8, no 2: silver tiene ×2 viajes, pero enriquecer también une las zonas (×2) y el clima (×2). Un factor exacto como 8 o 27 es la firma de este problema: un múltiplo exacto casi siempre quiere decir «alguna tabla está duplicada». Tiempo: 2 min. Siguiente: Con un solo lote ya se nota: sin huella, control por tarea, límite en bronze.
+Consulta C1 del archivo SQL. Gold agrega: no tiene una fila por viaje sino una por (fecha, barrio, franja); por eso se compara la SUMA de su columna viajes contra las filas de silver. Si el pipeline está sano, son iguales: la relación vale 1. Con una sola corrida debe salir 1. Después de reprocesar una vez, la relación es 8, no 2: silver tiene ×2 viajes, pero enriquecer también une las zonas (×2) y el clima (×2). Un factor exacto como 8 o 27 es la firma de este problema: un múltiplo exacto casi siempre quiere decir «alguna tabla está duplicada». Por eso, más adelante, para ver el daño en gold no sirve contar sus filas (seguirán siendo 5): hay que sumar viajes e ingresos. Tiempo: 2 min. Siguiente: Con un solo lote ya se nota: sin huella, control por tarea, límite en bronze.
 
 ## 82. Con un solo lote ya se nota: sin huella, control por tarea, límite en bronze
 
-*2 min · inicia en 2:19*
+*2 min · inicia en 2:20*
 
 Resumen de lo que ya se nota con un solo lote, antes de cerrar este bloque. Primero: bronze no guarda la huella ni el lote (consulta A3): es el primer problema a propósito. Segundo: la tabla de control anota una fila por cada tabla de cada tarea terminada, y es lo que decide más adelante si un mes se salta. Tercero: el límite se aplica solo en bronze, justo después de leer la fuente y antes de transformar o escribir; silver y gold leen todo lo que hay en bronze. Todavía no hay duplicados porque solo hay un lote. Para verlos hay que repetir bronze con reprocesar=true: pero antes, probemos el DAG completo desde la interfaz. Tiempo: 2 min. Siguiente: Creas la tabla de Snowflake con el CREATE TABLE de la casa.
 
 ## 83. Creas la tabla de Snowflake con el CREATE TABLE de la casa
 
-*2 min · inicia en 2:21*
+*2 min · inicia en 2:22*
 
-Problema: gold está en S3, pero para consultarlo con SQL en Snowflake hace falta una tabla con las mismas columnas y tipos. La casa trae el CREATE TABLE en carga.py (DDL_TARIFA_POR_MILLA); aquí lo ejecutamos a mano en Snowsight para ver el momento en que nace la tabla. Con IF NOT EXISTS no pasa nada si el Notebook 1 ya la creó con crear_tabla. El paso snowflake del pipeline también la crea si no existe; hacerlo a mano es solo para verla. Equivalencias: date DATE, string VARCHAR, bigint NUMBER(38,0), double FLOAT. La tabla queda vacía hasta que el paso snowflake cargue gold. Tiempo: 2 min. Siguiente: Lanzas el DAG completo con el formulario.
+Problema: gold está en S3, pero para consultarlo con SQL en Snowflake hace falta una tabla con las mismas columnas y tipos. La casa trae el CREATE TABLE en carga.py (DDL_TARIFA_POR_MILLA); aquí lo ejecutamos a mano en Snowsight para ver el momento en que nace la tabla. Con IF NOT EXISTS no pasa nada si el Notebook 1 ya la creó con crear_tabla. El paso snowflake del pipeline también la crea si no existe; hacerlo a mano es solo para verla. Equivalencias: date DATE, string VARCHAR, bigint NUMBER(38,0), double FLOAT. La tabla queda vacía hasta que el paso snowflake cargue gold. Si te saltas este paso, no pasa nada: cuando la tabla no existe, cargar_snowflake avisa con un AVISO y la crea con CREATE TABLE IF NOT EXISTS BIGDATA.DEV.TARIFA_POR_MILLA_BARRIO antes de cargar. En el ensayo, corrida sola, tardó 22 s y cargó 5 filas. Tiempo: 2 min. Siguiente: Lanzas el DAG completo con el formulario.
 
 ## 84. Lanzas el DAG completo con el formulario
 
-*2 min · inicia en 2:23*
+*2 min · inicia en 2:24*
 
 El formulario trae los valores de pipeline.yaml (Airflow re-parsea cada unos 30 segundos, así que un cambio en el yaml tarda en llegar). Los cuatro campos son Cómputo, Límite de filas, Mes y Reprocesar. No hay un campo de entorno: este Airflow es dev. Dejamos Reprocesar SIN marcar: bronze, silver y gold ya están registrados, así que sus tareas se saltan, y cargar_snowflake, que nunca corrió, trabaja y carga gold. Cada tarea llama a su función: con code_editor, la tarea ejecuta el CLI python -m pipeline.run con el Python del .venv; con glue_*, la función lanza el job de Glue desde el proceso de Airflow; cargar_snowflake no usa Spark. Las tareas no reintentan solas (retries=0). Tiempo: 2 min. Siguiente: El formulario tiene cuatro campos y ninguno es el entorno.
 
 ## 85. El formulario tiene cuatro campos y ninguno es el entorno
 
-*2 min · inicia en 2:25*
+*2 min · inicia en 2:26*
 
 Con code_editor, el límite todos se rechaza en la primera tarea con un mensaje claro: no cabe en el Code Editor. En prod el formulario ofrece solo glue_small, glue_medium y glue_large (por defecto glue_medium), un único límite (todos) y el mes con valor inicial 2024-01 durante el curso: un mes vacío lanzaría los doce meses. Si llega algo que el formulario no ofrece (por ejemplo con airflow dags trigger --conf), la tarea falla antes de tocar nada. El valor del formulario gana sobre pipeline.yaml, que solo se lee en dev. Tiempo: 2 min. Siguiente: Sin reprocesar, tres tareas saltan y solo carga Snowflake.
 
 ## 86. Sin reprocesar, tres tareas saltan y solo carga Snowflake
 
-*2 min · inicia en 2:27*
+*2 min · inicia en 2:28*
 
-Esto es lo que el DAG completo debe hacer ahora, y es la regla de la puerta en acción. Bronze, silver y gold ya terminaron en dev y están registrados en la tabla de control; con reprocesar sin marcar, sus tareas se saltan: terminan en verde en segundos y no escriben nada. cargar_snowflake nunca se había corrido, así que no tiene registro: trabaja de verdad, compara las columnas de gold con las de la tabla, y carga el mes. Resultado: el DAG sale en verde, y por primera vez hay datos en Snowflake. Es importante decirlo claro: con reprocesar=false la segunda corrida SALTA; los duplicados solo aparecen cuando se fuerza reprocesar=true. Tiempo: 2 min. Siguiente: Lees la cuadrícula: tres tareas saltan y una carga.
+Esto es lo que el DAG completo debe hacer ahora, y es la regla de la puerta en acción. Bronze, silver y gold ya terminaron en dev y están registrados en la tabla de control; con reprocesar sin marcar, sus tareas se saltan: terminan en verde en segundos y no escriben nada. cargar_snowflake nunca se había corrido, así que no tiene registro: trabaja de verdad, compara las columnas de gold con las de la tabla, y carga el mes. Resultado: el DAG sale en verde, y por primera vez hay datos en Snowflake. Es importante decirlo claro: con reprocesar=false la segunda corrida SALTA; los duplicados solo aparecen cuando se fuerza reprocesar=true. Aviso: la puerta protege todas las capas, no solo bronze. Si cargar_snowflake ya se hubiera corrido sola con reprocesar=false (en el ensayo, 22 s), también diría SE SALTÓ; aquí no se corrió, por eso trabaja. Tiempo: 2 min. Siguiente: Lees la cuadrícula: tres tareas saltan y una carga.
 
 ## 87. Lees la cuadrícula: tres tareas saltan y una carga
 
-*2 min · inicia en 2:29*
+*2 min · inicia en 2:30*
 
 Las tareas que se saltan terminan en segundos y en verde: un salto no es un error. En el log de correr_bronze se ve el encabezado y un cierre con SE SALTÓ (ya registrado y reprocesar=false); igual para silver y gold. cargar_snowflake sí trabaja: verificar_esquema_con_athena (compara las columnas de gold con las de la tabla), crear_tabla (IF NOT EXISTS) y cargar_gold (COPY INTO a una tabla temporal y, en una transacción, reemplaza el mes). Cierra con REGISTRÓ. Mientras corre, el color de cada tarea es un estado: verde success, azul claro running, gris queued, rojo failed, naranja up_for_retry. Error común: cargar_snowflake en rojo con ColumnasDistintas (la tabla no tiene una columna que gold trae; el error sugiere el ALTER TABLE) o con «insufficient privileges» (no se usó el rol BIGDATA_DEV). Tiempo: 2 min. Siguiente: En Snowsight, rol, warehouse y base se dicen siempre antes de consultar la tabla.
 
 ## 88. En Snowsight, rol, warehouse y base se dicen siempre antes de consultar la tabla
 
-*2 min · inicia en 2:31*
+*2 min · inicia en 2:32*
 
-Dónde: Snowsight, en el navegador; + > SQL Worksheet. Entrada: las tres primeras sentencias eligen rol, warehouse y base de datos. Se escriben siempre: ACCOUNTADMIN no puede crear ni alterar en BIGDATA.DEV, y BIGDATA_WH es el warehouse que tiene el freno de costo. La consulta cuenta las filas de gold, suma la columna VIAJES y da el rango de fechas. Salida esperada: la suma de VIAJES es igual a N, las filas de silver de viajes; las fechas van de 2024-01-01 a 2024-01-31 (con 1 000 filas, solo las fechas que haya entre esas filas). Error común: «insufficient privileges»: no se usó USE ROLE BIGDATA_DEV. Tiempo: 2 min. Siguiente: Reseteas dev otra vez y corres todo con el formulario.
+Dónde: Snowsight, en el navegador; + > SQL Worksheet. Entrada: las tres primeras sentencias eligen rol, warehouse y base de datos. Se escriben siempre: ACCOUNTADMIN no puede crear ni alterar en BIGDATA.DEV, y BIGDATA_WH es el warehouse que tiene el freno de costo. La consulta cuenta las filas de gold (5 en el ensayo), suma la columna VIAJES (1 000) y da el rango de fechas. Salida esperada: la suma de VIAJES es igual a N, las filas de silver de viajes; las fechas van de 2024-01-01 a 2024-01-31 (con 1 000 filas, solo las fechas que haya entre esas filas). Error común: «insufficient privileges»: no se usó USE ROLE BIGDATA_DEV. Tiempo: 2 min. Siguiente: Reseteas dev otra vez y corres todo con el formulario.
 
 ## 89. Reseteas dev otra vez y corres todo con el formulario
 
-*3 min · inicia en 2:33*
+*3 min · inicia en 2:34*
 
-Problema: hasta ahora corrimos las tareas una por una y el DAG completo saltó tres de ellas. Para ver el pipeline completo funcionar de principio a fin, y una sola vez, partimos de cero otra vez: resetear_entorno con la confirmación borrar dev y Conservar el crudo marcada (así no se vuelve a descargar el archivo); después pipeline_taxi desde el formulario con Reprocesar sin marcar. Con dev vacío y la tabla de control vacía, las cuatro tareas trabajan y registran: REGISTRÓ en cada log. Es la corrida limpia de referencia: bronze escribió un solo lote, silver y gold quedaron con sus cifras de un lote, y Snowflake con las filas de gold. Tiempo: 3 min. Siguiente: Compruebas en Athena: con un lote, la relación es 1.
+Problema: hasta ahora corrimos las tareas una por una y el DAG completo saltó tres de ellas. Para ver el pipeline completo funcionar de principio a fin, y una sola vez, partimos de cero otra vez: resetear_entorno con la confirmación borrar dev y Conservar el crudo marcada (así no se vuelve a descargar el archivo); después pipeline_taxi desde el formulario con Reprocesar sin marcar. Con dev vacío y la tabla de control vacía, las cuatro tareas trabajan y registran: REGISTRÓ en cada log. Es la corrida limpia de referencia: bronze escribió un solo lote, silver y gold quedaron con sus cifras de un lote, y Snowflake con las filas de gold. Cifras del ensayo (22 y 23 de noviembre, airflow dags test): el log de contar de resetear_entorno dijo 16 registros de control, 1 tabla de Snowflake y 32 objetos de S3; la corrida limpia del DAG completo tardó 2 min 15 s. Tiempo: 3 min. Siguiente: Compruebas en Athena: con un lote, la relación es 1.
 
 ## 90. Compruebas en Athena: con un lote, la relación es 1
 
-*3 min · inicia en 2:36*
+*3 min · inicia en 2:37*
 
 Con dev vacío y sin reprocesar, las cuatro tareas registraron: una sola carga limpia. Bronze escribió un solo lote, silver tiene ×1 y gold ×1: la relación de la consulta C1 vuelve a ser 1, y SUM(VIAJES) en Snowflake coincide con las filas de silver. Esta es la corrida que funciona UNA vez, la línea base contra la que se mide todo lo demás, incluido el ejercicio de dimensionamiento. Si las tablas devuelven 0 filas antes de correr, es normal: las tablas externas apuntan a carpetas vacías. Tiempo: 3 min. Siguiente: Lanzas otra vez el DAG, ahora con Reprocesar marcado.
 
 ## 91. Lanzas otra vez el DAG, ahora con Reprocesar marcado
 
-*3 min · inicia en 2:39*
+*3 min · inicia en 2:40*
 
-Ahora sí forzamos la repetición. Con Reprocesar marcado, la puerta ignora la tabla de control y deja pasar las cuatro tareas: bronze ingesta otra vez enero y escribe un SEGUNDO lote, con las mismas 1 000 filas (el límite es determinista); silver lee los dos lotes; gold los junta; Snowflake carga lo que gold trae. Todas las tareas terminan en verde y nadie recibe un error. Esa es la preocupación de la clase: el pipeline dice que todo está bien. En las siguientes slides lo comprobamos con Athena y Snowflake. Tiempo: 3 min. Siguiente: Solo con Reprocesar marcado se duplica; sin marcarlo, la puerta salta.
+Ahora sí forzamos la repetición. Con Reprocesar marcado, la puerta ignora la tabla de control y deja pasar las cuatro tareas: bronze ingesta otra vez enero y escribe un SEGUNDO lote, con las mismas 1 000 filas (el límite es determinista); silver lee los dos lotes; gold los junta; Snowflake carga lo que gold trae. Todas las tareas terminan en verde y nadie recibe un error. Esa es la preocupación de la clase: el pipeline dice que todo está bien. En las siguientes slides lo comprobamos con Athena y Snowflake. Se marca Reprocesar en el formulario y se corre TODO el DAG: es lo que abre la puerta en bronze, silver, gold y Snowflake a la vez. En el ensayo, esta corrida con reprocesar=true tardó 2 min 6 s. Tiempo: 3 min. Siguiente: Solo con Reprocesar marcado se duplica; sin marcarlo, la puerta salta.
 
 ## 92. Solo con Reprocesar marcado se duplica; sin marcarlo, la puerta salta
 
-*2 min · inicia en 2:42*
+*2 min · inicia en 2:43*
 
-La aclaración más importante de la demostración. Con reprocesar=false, correr el pipeline por segunda vez SALTA: la tabla de control es la puerta y el mes ya está registrado; no hay lote nuevo y no hay duplicados. Los duplicados aparecen solo al forzar reprocesar=true. Y no los causa la puerta ni bronze (bronze solo agrega, como debe), sino silver, que debería ser el espejo limpio de la fuente y hoy no deduplica. La puerta protege de las corridas accidentales; la idempotencia de silver protege de los reprocesos legítimos. Tiempo: 2 min. Siguiente: Por qué se duplica: tres razones, una por capa.
+La aclaración más importante de la demostración. Con reprocesar=false, correr el pipeline por segunda vez SALTA: la tabla de control es la puerta y el mes ya está registrado; no hay lote nuevo y no hay duplicados. Los duplicados aparecen solo al forzar reprocesar=true. Y no los causa la puerta ni bronze (bronze solo agrega, como debe), sino silver, que debería ser el espejo limpio de la fuente y hoy no deduplica. La puerta protege de las corridas accidentales; la idempotencia de silver protege de los reprocesos legítimos. Hallazgo del ensayo, que es el corazón de la demostración: la puerta de la tabla de control protege CADA capa. Si se corre solo bronze con reprocesar=true y después silver, gold o Snowflake con reprocesar=false, esas tareas se saltan y nada se duplica. Por eso reprocesar exige correr todo el DAG con reprocesar=true: el parámetro único del formulario lo propaga a las cuatro tareas. Tiempo: 2 min. Siguiente: Por qué se duplica: tres razones, una por capa.
 
 ## 93. Por qué se duplica: tres razones, una por capa
 
-*2 min · inicia en 2:44*
+*2 min · inicia en 2:45*
 
-La explicación, muy clara y en este orden. Bronze: reprocesar escribió un SEGUNDO lote de enero, con las mismas 1 000 filas (el límite es determinista); bronze solo agrega y nunca borra, y eso es correcto. Silver: lee TODOS los lotes completos del mes y los junta; es el espejo de bronze, y como deduplicar no hace nada, cada fila queda dos veces, en las tres tablas (viajes, zonas y clima). Gold: enriquecer une los viajes con las zonas y con el clima; cada viaje se repite una vez por cada copia de zonas y de clima: ×2 de viajes, ×2 de zonas, ×2 de clima, es decir ×8. Medido: silver ×2 y gold ×8 después de la segunda corrida, y ×27 después de la tercera. Y Snowflake carga lo que gold trae. Recordatorio: esto pasó porque se forzó reprocesar=true; con reprocesar=false se habría saltado. Tiempo: 2 min. Siguiente: Repites en Athena las consultas de lotes, silver y gold.
+La explicación, muy clara y en este orden. Bronze: reprocesar escribió un SEGUNDO lote de enero, con las mismas 1 000 filas (el límite es determinista); bronze solo agrega y nunca borra, y eso es correcto. Silver: lee TODOS los lotes completos del mes y los junta; es el espejo de bronze, y como deduplicar no hace nada, cada fila queda dos veces, en las tres tablas (viajes, zonas y clima). Gold: enriquecer une los viajes con las zonas y con el clima; cada viaje se repite una vez por cada copia de zonas y de clima: ×2 de viajes, ×2 de zonas, ×2 de clima, es decir ×8. Medido: silver ×2 y gold ×8 después de la segunda corrida, y ×27 después de la tercera. Y Snowflake carga lo que gold trae. Recordatorio: esto pasó porque se forzó reprocesar=true; con reprocesar=false se habría saltado. Medido en el ensayo del 22 y 23 de noviembre, después de reprocesar todo el DAG: silver fhvhv pasó de 1 000 a 2 000 y silver taxi_zones de 265 a 530. bronze quedó con 2 lotes de 1 000 y silver clima pasó de 31 a 62. Gold leyó 8 000 filas (×8) y escribió otra vez 5, porque agrega por barrio y franja: sus totales de viajes e ingresos quedaron inflados (8 000 viajes frente a 1 000 reales), por eso el daño se muestra con sumas y no con conteo de filas. Tiempo: 2 min. Siguiente: Repites en Athena las consultas de lotes, silver y gold.
 
 ## 94. Repites en Athena las consultas de lotes, silver y gold
 
-*3 min · inicia en 2:46*
+*3 min · inicia en 2:47*
 
 Los tres puntos de control, otra vez, con dos lotes. A1: dos lotes, cada uno con 1 000 filas, sin tocar la tabla de Athena (la consulta lista la carpeta del mes). B1: las filas de silver ya no son menores que las de un lote sino el doble de la primera vez; clima 62 y zonas 530 (consulta B2). C1: la suma de viajes de gold dividida entre las filas de silver ya no es 1 sino 8: silver ×2 por los dos lotes de viajes, y gold ×2 viajes por ×2 zonas por ×2 clima. Medido: silver ×2 y gold ×8. Tiempo: 3 min. Siguiente: Primera consulta: cuántas filas tiene cada tabla de silver.
 
 ## 95. Primera consulta: cuántas filas tiene cada tabla de silver
 
-*2 min · inicia en 2:49*
+*2 min · inicia en 2:50*
 
-Del archivo curso/clase07/athena/02_duplicados_y_conciliacion.sql, consulta B2. Un conteo no necesita leer columnas: Parquet guarda el número de filas en el pie del archivo, así que Data scanned es casi 0. Resultado esperado con dos lotes: clima 62 (31 días ×2), taxi_zones 530 (265 ×2) y viajes el doble de lo que dio la primera corrida de silver (N×2). Es la primera cifra de la línea que crece: apunta las tres después de cada corrida. Si el pipeline está sano, una tabla de referencia como taxi_zones no puede tener más de 265 filas: ya con eso se detecta el problema sin saber nada del resto. Las cifras exactas de viajes se anotan en el ensayo. Tiempo: 2 min. Siguiente: Con silver sin deduplicar, cada reproceso multiplica silver por N y gold por N al cubo.
+Del archivo curso/clase07/athena/02_duplicados_y_conciliacion.sql, consulta B2. Un conteo no necesita leer columnas: Parquet guarda el número de filas en el pie del archivo, así que Data scanned es casi 0. Resultado esperado con dos lotes: clima 62 (31 días ×2), taxi_zones 530 (265 ×2) y viajes el doble de lo que dio la primera corrida de silver (2 000 en el ensayo, frente a 1 000). Es la primera cifra de la línea que crece: apunta las tres después de cada corrida. Si el pipeline está sano, una tabla de referencia como taxi_zones no puede tener más de 265 filas: ya con eso se detecta el problema sin saber nada del resto. Tiempo: 2 min. Siguiente: Segunda consulta: gold sigue con cinco filas, pero sus totales de viajes e ingresos salen inflados.
 
-## 96. Con silver sin deduplicar, cada reproceso multiplica silver por N y gold por N al cubo
+## 96. Segunda consulta: 1 000 viajes reales aparecen como 8 000 en gold, aunque gold sigue con cinco filas
 
-*2 min · inicia en 2:51*
+*2 min · inicia en 2:52*
+
+Problema: gold agrega, así que contar sus filas no dice nada: antes y después de reprocesar son 5 (una por barrio en este lote). Lo que se infla son los totales. Medido en el ensayo del 22 y 23 de noviembre: la suma de viajes en gold es 8 000 (Manhattan 3 904, Brooklyn 2 344, Queens 1 112, Bronx 488 y Staten Island 152), frente a 1 000 viajes reales. Gold leyó 8 000 filas del enriquecido: silver ×2, zonas ×2 y clima ×2 en el join. Y Snowflake carga lo que gold trae, así que 1 000 viajes reales aparecen como 8 000 en gold y en Snowflake, sin una sola advertencia. Tiempo: 2 min. Siguiente: Con silver sin deduplicar, cada reproceso multiplica silver por N y gold por N al cubo.
+
+## 97. Con silver sin deduplicar, cada reproceso multiplica silver por N y gold por N al cubo
+
+*2 min · inicia en 2:54*
 
 Los factores medidos: silver ×2 y gold ×8 después de la segunda corrida; silver ×3 y gold ×27 después de la tercera. La barra de gold crece con el cubo del número de lotes: ×(lotes)³, porque son tres tablas repetidas multiplicándose en el join. Y Snowflake carga ese gold: la tabla de Snowflake también queda inflada, con la misma cifra. Pregunta a la clase: ¿qué pasaría con un informe de gerencia que sume los viajes de gold? Respuesta: diría 8 veces más viajes de los que hubo, sin una sola advertencia. Nota de clase: _hash_fila también colapsa dos filas idénticas dentro de un mismo archivo fuente; es discusión, no un error a resolver. Tiempo: 2 min. Siguiente: Tercera consulta: sin la huella, los duplicados se buscan por las columnas del viaje.
 
-## 97. Tercera consulta: sin la huella, los duplicados se buscan por las columnas del viaje
+## 98. Tercera consulta: sin la huella, los duplicados se buscan por las columnas del viaje
 
-*2 min · inicia en 2:53*
+*2 min · inicia en 2:56*
 
-Consulta D1. Si no tuviéramos las cifras de la primera corrida, ¿cómo detectaríamos el problema? Buscando filas que se repiten. Un viaje se describe por cuándo empezó y terminó, de dónde a dónde, quién lo hizo, cuánto recorrió y cuánto cobró; si dos filas coinciden en todo eso, casi seguro es el mismo viaje. La consulta cuenta las filas y las filas distintas por esas columnas; la resta, filas_de_mas, dice cuántas sobran. Con un solo lote es casi 0 (dos viajes reales pueden coincidir en todo). Con dos lotes se acerca al número de filas del primer lote. Luego, D3 usa la huella: count(*) frente a count(DISTINCT "_hash_fila"); mientras bronze no agregue los metadatos, la huella es NULL (huellas = 0): ese NULL es la prueba de que falta agregar_metadatos. Tiempo: 2 min. Siguiente: Reprocesas una vez más y la relación pasa a 27.
+Consulta D1. Si no tuviéramos las cifras de la primera corrida, ¿cómo detectaríamos el problema? Buscando filas que se repiten. Un viaje se describe por cuándo empezó y terminó, de dónde a dónde, quién lo hizo, cuánto recorrió y cuánto cobró; si dos filas coinciden en todo eso, casi seguro es el mismo viaje. La consulta cuenta las filas y las filas distintas por esas columnas; la resta, filas_de_mas, dice cuántas sobran. Con un solo lote es casi 0 (dos viajes reales pueden coincidir en todo). Con dos lotes se acerca al número de filas del primer lote. Luego, D3 usa la huella: count(*) frente a count(DISTINCT "_hash_fila"); mientras bronze no agregue los metadatos, la huella es NULL (huellas = 0): ese NULL es la prueba de que falta agregar_metadatos. Tiempo: 2 min. Siguiente: Cuarta consulta: sin huella ni siquiera podemos detectar el duplicado, por eso los metadatos van primero.
 
-## 98. Reprocesas una vez más y la relación pasa a 27
-
-*3 min · inicia en 2:55*
-
-Opcional, si hay tiempo. Es la tercera corrida de bronze: tres lotes de enero. Medido: silver ×3 y gold ×27. Esta corrida también carga a Snowflake, así que BIGDATA.DEV.TARIFA_POR_MILLA_BARRIO queda con ×27: el reemplazo del mes en Snowflake es idempotente, pero reemplaza con lo que gold trae. Pregunta a la clase: ¿qué pasaría con un informe que sume los viajes de gold? Respuesta: diría 27 veces más viajes de los que hubo, sin una sola advertencia. Tiempo: 3 min. Siguiente: Dos problemas con un mismo dueño: tu equipo.
-
-## 99. Dos problemas con un mismo dueño: tu equipo
+## 99. Cuarta consulta: sin huella ni siquiera podemos detectar el duplicado, por eso los metadatos van primero
 
 *2 min · inicia en 2:58*
 
-Resumen de lo que acabamos de ver. Primero: sin la huella _hash_fila, silver no sabe qué fila ya vio; la función que la agrega es agregar_metadatos, en bronze.py. Segundo: con dos lotes, silver guarda cada fila dos veces; la función que lo evita es deduplicar, en silver.py, que deja una fila por huella. Tercero: gold y Snowflake no se arreglan por separado; heredan el problema de silver y se corrigen solos al corregirlo (reprocesando). Silver es el lugar donde se decide si el pipeline es idempotente: pase lo que pase en bronze, silver es el reflejo de la fuente original sin duplicados. La puerta protege de las corridas accidentales; la idempotencia de silver protege de los reprocesos legítimos. Es el entregable 1 del Taller 2. Tiempo: 2 min. Siguiente: Snowflake carga lo que gold trae: la suma de viajes de la tabla también sale ×27.
+Consulta D3. Es el hallazgo del ensayo: count(DISTINCT "_hash_fila") da 0 porque agregar_metadatos todavía no agrega la huella (el problema a propósito). Sin huella ni siquiera podemos detectar el duplicado con una línea; por eso los metadatos van primero: con la huella, filas frente a huellas distintas diría 2 000 contra 1 000 y el duplicado quedaría a la vista. Y sin ella, silver tampoco puede deduplicar. Tiempo: 2 min. Siguiente: Reprocesas una vez más y la relación pasa a 27.
 
-## 100. Snowflake carga lo que gold trae: la suma de viajes de la tabla también sale ×27
+## 100. Reprocesas una vez más y la relación pasa a 27
 
-*2 min · inicia en 3:00*
+*3 min · inicia en 3:00*
 
-Conciliación con la tabla de control. Reprocesar no borra la historia: una misma clave (tabla, capa, mes) tiene varias filas, una por corrida. La regla de lectura: el último registro por (TABLA, CAPA, MES), el de mayor INICIO. TABLA no lleva el entorno. En gold, FILAS cuenta filas de gold, no viajes. Para ver el factor en Snowflake: SELECT SUM(VIAJES) FROM BIGDATA.DEV.TARIFA_POR_MILLA_BARRIO, que debe coincidir con viajes_en_gold de la consulta de Athena (×27 tras la tercera corrida). La consulta modelo está en curso/clase07/athena/02_duplicados_y_conciliacion.sql, punto de control E, y la usa el Taller 2 para conciliar. Tiempo: 2 min. Siguiente: Ahora continuamos con make correr: la abreviatura.
+Opcional, si hay tiempo. Es la tercera corrida de bronze: tres lotes de enero. Medido: silver ×3 y gold ×27. Esta corrida también carga a Snowflake, así que BIGDATA.DEV.TARIFA_POR_MILLA_BARRIO queda con ×27: el reemplazo del mes en Snowflake es idempotente, pero reemplaza con lo que gold trae. Pregunta a la clase: ¿qué pasaría con un informe que sume los viajes de gold? Respuesta: diría 27 veces más viajes de los que hubo, sin una sola advertencia. Tiempo: 3 min. Siguiente: Dos problemas con un mismo dueño: tu equipo.
 
-## 101. Ahora continuamos con make correr: la abreviatura
-
-*1 min · inicia en 3:02*
-
-Transición, en voz alta: ahora continuamos con make correr. Hasta aquí corrimos el pipeline con tareas de Airflow y con el formulario. Todo eso llama a la misma función, y make correr es su abreviatura para la terminal. Lo mostramos con el comando a mano y con make -n, y lo usamos para cambiar el cómputo a glue_small y para medir tiempos en el ejercicio de dimensionamiento. Tiempo: 1 min. Siguiente: A mano, el comando de Python hace todo; make correr solo lo abrevia.
-
-## 102. A mano, el comando de Python hace todo; make correr solo lo abrevia
+## 101. Dos problemas con un mismo dueño: tu equipo
 
 *2 min · inicia en 3:03*
 
-Primero se muestra el comando a mano y después su abreviatura, como en la clase 6. python -m pipeline.run es el CLI del pipeline: --paso elige bronze, silver, gold o snowflake (sin --paso corre los cuatro en orden); --computo, --mes, --limite y --reprocesar son las perillas. Lo que no pidas sale de pipeline.yaml. PYTHONPATH=src le dice a Python dónde está el paquete pipeline, y .venv/bin/python es el Python del proyecto. No existen --env ni --engine: el entorno es automático y el cómputo se llama --computo. Salida esperada: el encabezado de siempre y un cierre con tres líneas SE SALTÓ (ya registrado y reprocesar=false), porque el notebook ya registró bronze de enero. La puerta es la misma en todos lados: esa es la lección. Error común: «Faltan los jars de S3A»: make jars-s3a. Tiempo: 2 min. Siguiente: make -n muestra lo que haría make correr, sin ejecutarlo.
+Resumen de lo que acabamos de ver. Primero: sin la huella _hash_fila, silver no sabe qué fila ya vio; la función que la agrega es agregar_metadatos, en bronze.py. Segundo: con dos lotes, silver guarda cada fila dos veces; la función que lo evita es deduplicar, en silver.py, que deja una fila por huella. Tercero: gold y Snowflake no se arreglan por separado; heredan el problema de silver y se corrigen solos al corregirlo (reprocesando). Silver es el lugar donde se decide si el pipeline es idempotente: pase lo que pase en bronze, silver es el reflejo de la fuente original sin duplicados. La puerta protege de las corridas accidentales; la idempotencia de silver protege de los reprocesos legítimos. Es el entregable 1 del Taller 2 y la rúbrica 2: agregar_metadatos y deduplicar son parte de lo que los equipos deben resolver, y así lo confirmó el autor del curso. Tiempo: 2 min. Siguiente: Snowflake carga lo que gold trae: la suma de viajes de la tabla también sale ×27.
 
-## 103. make -n muestra lo que haría make correr, sin ejecutarlo
+## 102. Snowflake carga lo que gold trae: la suma de viajes de la tabla también sale ×27
 
 *2 min · inicia en 3:05*
 
+Conciliación con la tabla de control. Reprocesar no borra la historia: una misma clave (tabla, capa, mes) tiene varias filas, una por corrida. La regla de lectura: el último registro por (TABLA, CAPA, MES), el de mayor INICIO. TABLA no lleva el entorno. En gold, FILAS cuenta filas de gold, no viajes. Para ver el factor en Snowflake: SELECT SUM(VIAJES) FROM BIGDATA.DEV.TARIFA_POR_MILLA_BARRIO, que debe coincidir con viajes_en_gold de la consulta de Athena (×27 tras la tercera corrida). La consulta modelo está en curso/clase07/athena/02_duplicados_y_conciliacion.sql, punto de control E, y la usa el Taller 2 para conciliar. En el ensayo, tras la segunda corrida, SUM(VIAJES) en Snowflake también es 8 000 frente a 1 000 reales. Tiempo: 2 min. Siguiente: Ahora continuamos con make correr: la abreviatura.
+
+## 103. Ahora continuamos con make correr: la abreviatura
+
+*1 min · inicia en 3:07*
+
+Transición, en voz alta: ahora continuamos con make correr. Hasta aquí corrimos el pipeline con tareas de Airflow y con el formulario. Todo eso llama a la misma función, y make correr es su abreviatura para la terminal. Lo mostramos con el comando a mano y con make -n, y lo usamos para cambiar el cómputo a glue_small y para medir tiempos en el ejercicio de dimensionamiento. Tiempo: 1 min. Siguiente: A mano, el comando de Python hace todo; make correr solo lo abrevia.
+
+## 104. A mano, el comando de Python hace todo; make correr solo lo abrevia
+
+*2 min · inicia en 3:08*
+
+Primero se muestra el comando a mano y después su abreviatura, como en la clase 6. python -m pipeline.run es el CLI del pipeline: --paso elige bronze, silver, gold o snowflake (sin --paso corre los cuatro en orden); --computo, --mes, --limite y --reprocesar son las perillas. Lo que no pidas sale de pipeline.yaml. PYTHONPATH=src le dice a Python dónde está el paquete pipeline, y .venv/bin/python es el Python del proyecto. No existen --env ni --engine: el entorno es automático y el cómputo se llama --computo. Salida esperada: el encabezado de siempre y un cierre con tres líneas SE SALTÓ (ya registrado y reprocesar=false), porque el notebook ya registró bronze de enero. La puerta es la misma en todos lados: esa es la lección. Error común: «Faltan los jars de S3A»: make jars-s3a. Tiempo: 2 min. Siguiente: make -n muestra lo que haría make correr, sin ejecutarlo.
+
+## 105. make -n muestra lo que haría make correr, sin ejecutarlo
+
+*2 min · inicia en 3:10*
+
 Salida real de make -n en el repositorio de la clase. make -n (dry run) imprime las órdenes que ejecutaría y no ejecuta ninguna: es la forma segura de leer qué hace un target. make correr pasa las cinco variables a scripts/correr.sh; las vacías significan «usa pipeline.yaml». correr.sh valida cada valor (PASO, COMPUTO, LIMITE, MES, REPROCESAR), exporta PIPELINE_ENTORNO=dev, calcula LAKE_BUCKET y WATERMARK_SECRET y llama al mismo python -m pipeline.run de la slide anterior. Si alguien escribe make correr ENTORNO=prod, el script avisa que el entorno no se elige y sigue en dev. LIMITE=todos con COMPUTO=code_editor falla antes de empezar: «no cabe en el Code Editor, usa un cómputo de Glue». Tiempo: 2 min. Siguiente: Cambiar a Glue cambia solo el cómputo; la puerta es la misma.
 
-## 104. Cambiar a Glue cambia solo el cómputo; la puerta es la misma
+## 106. Cambiar a Glue cambia solo el cómputo; la puerta es la misma
 
-*2 min · inicia en 3:07*
+*2 min · inicia en 3:12*
 
 Problema: ¿qué esperaríamos al cambiar el cómputo? Que la lógica no cambie. Con COMPUTO=glue_small la función lanzar_en_glue sube el código de tu árbol de trabajo a s3://<lake>/code/dev/pipeline.zip y llama StartJobRun con --env dev y tus perillas; nunca toca code/pipeline.zip, que es el de prod y solo lo escribe el CI/CD. Dentro del job corre el mismo paso con la misma puerta: si silver ya está registrado y no pides reprocesar, el job se salta. Pero el job de Glue arranca antes de preguntar, y ese arranque (aprovisionar workers, instalar el conector de Snowflake) tiene un costo fijo de tiempo y de dinero. Esa es la primera lección de dimensionamiento. Aviso: con glue_*, usar_mis_funciones falla a propósito, porque tus funciones del notebook no viajan a Glue. Tiempo: 2 min. Siguiente: Corres silver con glue_small.
 
-## 105. Corres silver con glue_small
+## 107. Corres silver con glue_small
 
-*4 min · inicia en 3:09*
+*4 min · inicia en 3:14*
 
-Entrada 1: make correr PASO=silver COMPUTO=glue_small. La terminal imprime el encabezado con Cómputo: glue_small, la URL de la consola de Glue y del Spark UI, espera con get_job_run y cierra con el último registro de la tabla de control o «SE SALTÓ (ver log de Glue)». Salida: SE SALTÓ, porque silver ya estaba registrado desde la corrida con code_editor. Entrada 2: con REPROCESAR=true la puerta se abre, silver lee los lotes de bronze (hoy uno), reemplaza silver/.../mes=2024-01/ y registra una segunda fila. Como bronze tiene un solo lote, silver queda igual: reprocesar silver no duplica; lo que duplica es reprocesar bronze. Mide el tiempo con un cronómetro: lo usaremos en el ejercicio de dimensionamiento. Medida previa (pipeline anterior, 20 nov., enero completo): silver en Glue small 163 s. Tiempo: 4 min. Siguiente: Ahora continuamos con el ejercicio de dimensionamiento.
+Entrada 1: make correr PASO=silver COMPUTO=glue_small. La terminal imprime el encabezado con Cómputo: glue_small, la URL de la consola de Glue y del Spark UI, espera con get_job_run y cierra con el último registro de la tabla de control o «SE SALTÓ (ver log de Glue)». Salida: SE SALTÓ, porque silver ya estaba registrado desde la corrida con code_editor. Entrada 2: con REPROCESAR=true la puerta se abre, silver lee los lotes de bronze (hoy uno), reemplaza silver/.../mes=2024-01/ y registra una segunda fila. Como bronze tiene un solo lote, silver queda igual: reprocesar silver no duplica; lo que duplica es reprocesar bronze. Mide el tiempo con un cronómetro: lo usaremos en el ejercicio de dimensionamiento. Medida previa (pipeline anterior, 20 nov., enero completo): silver en Glue small 163 s. Nota técnica: el lanzador de Glue tenía un fallo, no pasaba el WorkerType junto con NumberOfWorkers y Glue lo exige; ya quedó corregido en el repositorio (G.1X), así que con el git pull de la clase funciona. Tiempo: 4 min. Siguiente: Ahora continuamos con el ejercicio de dimensionamiento.
 
-## 106. Ahora continuamos con el ejercicio de dimensionamiento
+## 108. Ahora continuamos con el ejercicio de dimensionamiento
 
-*1 min · inicia en 3:13*
+*1 min · inicia en 3:18*
 
 Transición, en voz alta: ahora continuamos con el ejercicio de dimensionamiento. Problema: ¿cuánto cómputo necesito? Un job de Glue small tiene 2 workers, medium 4 y large 6; el Code Editor tiene 2 hilos y 7.6 GB. Elegir mal cuesta: poco cómputo, el job tarda y falla por timeout; mucho, pagas workers que no ayudan. La forma de elegir es medir. Hoy medimos entre todos: cada quien llena una fila de la tabla con tiempos reales de su cuenta. Tiempo: 1 min. Siguiente: Te toca una fila: la corres y anotas el tiempo.
 
-## 107. Te toca una fila: la corres y anotas el tiempo
+## 109. Te toca una fila: la corres y anotas el tiempo
 
-*2 min · inicia en 3:14*
+*2 min · inicia en 3:19*
 
 Cada persona mide una de las siete combinaciones y los resultados se juntan en una hoja compartida: así tenemos la tabla completa sin que nadie corra siete veces. Cada medida parte de un dev limpio (resetear_entorno con Conservar el crudo), para que silver no lea lotes de más. Comando, por ejemplo: time make correr LIMITE=100000 COMPUTO=code_editor; o time make correr LIMITE=todos COMPUTO=glue_medium. El comando time imprime tres líneas: real es el tiempo transcurrido, y es el que se anota. Aviso de costo: las filas con todos cuestan más; solo las corren las personas a quienes les toca. Con code_editor solo valen 1000 o 100000 (todos se rechaza). Tiempo: 2 min. Siguiente: Primera parte: con 1 000 y 100 000 filas, ¿conviene Glue.
 
-## 108. Primera parte: con 1 000 y 100 000 filas, ¿conviene Glue?
+## 110. Primera parte: con 1 000 y 100 000 filas, ¿conviene Glue?
 
-*4 min · inicia en 3:16*
+*4 min · inicia en 3:21*
 
-Tiempo del ejercicio: unos 8 minutos de medición en paralelo. Se mide el pipeline completo (bronze, silver, gold y snowflake) con time make correr, desde un dev limpio. Qué esperar (hipótesis para contrastar, no cifras): con 1 000 filas el Code Editor gana, porque el job de Glue paga un arranque fijo (aprovisionar workers e instalar el conector de Snowflake) que no depende de los datos; con 100 000 filas el Code Editor todavía puede alcanzar y la diferencia se acorta. Las celdas están vacías a propósito: se llenan en vivo con los tiempos reales de la clase; las cifras del ensayo del instructor están en prueba_ensayo.md. Tiempo: 4 min. Siguiente: Segunda parte: con todos los viajes, ¿ayudan más workers.
+Tiempo del ejercicio: unos 8 minutos de medición en paralelo. Se mide el pipeline completo (bronze, silver, gold y snowflake) con time make correr, desde un dev limpio. Qué esperar (hipótesis para contrastar, no cifras): con 1 000 filas el Code Editor gana, porque el job de Glue paga un arranque fijo (aprovisionar workers e instalar el conector de Snowflake) que no depende de los datos; con 100 000 filas el Code Editor todavía puede alcanzar y la diferencia se acorta. Las celdas están vacías a propósito: se llenan en vivo con los tiempos reales de la clase; la fila 0 (3:11 min) trae la referencia del ensayo: la suma de las cuatro tareas corridas solas con airflow tasks test dio 3 min 11 s (bronze 1 min 11 s, silver 55 s, gold 43 s, snowflake 22 s), un valor aproximado porque make correr las encadena de otra forma. Las filas de Glue quedan pendientes de medir. Tiempo: 4 min. Siguiente: Segunda parte: con todos los viajes, ¿ayudan más workers.
 
-## 109. Segunda parte: con todos los viajes, ¿ayudan más workers?
+## 111. Segunda parte: con todos los viajes, ¿ayudan más workers?
 
-*3 min · inicia en 3:20*
+*3 min · inicia en 3:25*
 
 Con todos los viajes de enero (19 663 930 en el archivo). La columna Antes son las únicas medidas previas, del pipeline anterior el 20 de noviembre: dev con glue_small, un mes completo, 10 min 36 s en total (bronze 227 s, silver 163 s, gold unos 170 s, carga 9 s); prod con glue_medium, 8 min 30 s (bronze 157 s, silver 134 s, gold 116 s). Son dos corridas distintas, pero sirven de pista: con el doble de workers (de 2 a 4) el tiempo total bajó de 10 min 36 s a 8 min 30 s, es decir, unas 1.25 veces más rápido, no 2 veces. Para glue_large no hay medida de un mes con este pipeline; solo el año completo, bronze con Glue large, 537 s. La columna Tiempo real se llena en clase. El pipeline nuevo no es idéntico al anterior (silver espejo, gold distinto, puerta nueva): por eso se mide de nuevo. Tiempo: 3 min. Siguiente: Qué mirar en la tabla: arranque, límite y workers.
 
-## 110. Qué mirar en la tabla: arranque, límite y workers
+## 112. Qué mirar en la tabla: arranque, límite y workers
 
-*3 min · inicia en 3:23*
+*3 min · inicia en 3:28*
 
-Tres lecciones para el informe de costo del Taller. Una: el arranque fijo. Un job de Glue tarda en aprovisionar workers y en instalar el conector de Snowflake; con 1 000 filas ese arranque es casi todo el tiempo. Dos: el Code Editor deja de alcanzar. Tiene 2 hilos de Spark y 7.6 GB compartidos con Airflow; el archivo de enero completo son unos 450 MB de Parquet y casi 20 millones de filas; por eso LIMITE=todos se rechaza con code_editor. Tres: más workers ya no ayudan cuando el cuello de botella es otro: descargar un solo archivo, instalar el conector o escribir un solo archivo. Pregunta para el informe del Taller: ¿qué configuración elegirían para correr el pipeline cada mes, y por qué? Costo aproximado de Glue: depende de DPU-horas; mide tú, no supongas. Tiempo: 3 min. Siguiente: ¿Cómo llevo algo a prod sin que nadie pueda romperlo desde su Code Editor.
+Tres lecciones para el informe de costo del Taller. Una: el arranque fijo. Un job de Glue tarda en aprovisionar workers y en instalar el conector de Snowflake; con 1 000 filas ese arranque es casi todo el tiempo. Dos: el Code Editor deja de alcanzar. Tiene 2 hilos de Spark y 7.6 GB compartidos con Airflow, que por sí solo usa unos 5; el archivo de enero completo son unos 450 MB de Parquet y casi 20 millones de filas; por eso LIMITE=todos se rechaza con code_editor. Tres: más workers ya no ayudan cuando el cuello de botella es otro: descargar un solo archivo, instalar el conector o escribir un solo archivo. Pregunta para el informe del Taller: ¿qué configuración elegirían para correr el pipeline cada mes, y por qué? Costo aproximado de Glue: depende de DPU-horas; mide tú, no supongas. Tiempo: 3 min. Siguiente: ¿Cómo llevo algo a prod sin que nadie pueda romperlo desde su Code Editor.
 
-## 111. ¿Cómo llevo algo a prod sin que nadie pueda romperlo desde su Code Editor?
+## 113. ¿Cómo llevo algo a prod sin que nadie pueda romperlo desde su Code Editor?
 
-*1 min · inicia en 3:26*
+*1 min · inicia en 3:31*
 
 Problema: todo lo que hicimos hasta ahora fue en dev, y desde el Code Editor no se puede correr prod. ¿Cómo llega entonces el código a prod? Por el único camino que deja rastro y exige revisión: un pull request, los checks automáticos, un merge a main y un despliegue que lo hace GitHub Actions, no una persona. El pipeline en prod lo corre un DAG en la VM de Airflow, con el rol BIGDATA_PROD. Hoy hacemos el recorrido completo, en el fork de cada quien. Tiempo: 1 min. Siguiente: La escalera de dev a prod tiene siete peldaños, y prod solo se alcanza por PR y CI/CD.
 
-## 112. La escalera de dev a prod tiene siete peldaños, y prod solo se alcanza por PR y CI/CD
+## 114. La escalera de dev a prod tiene siete peldaños, y prod solo se alcanza por PR y CI/CD
 
-*2 min · inicia en 3:27*
+*2 min · inicia en 3:32*
 
 Esta es la escalera de pruebas, de lo barato a lo caro; cada peldaño debe pasar antes del siguiente. 1: notebook y make test (segundos). 2: make correr con code_editor (minutos, sin costo extra). 3: make correr con glue_small (minutos y centavos). 4: Airflow del Code Editor, que orquesta lo anterior. La línea roja separa dev de prod. 5: el pull request y el CI (ruff, pytest, integridad de los DAGs, Terraform). 6: el merge a main y el workflow Deploy, que publica el código y los DAGs en S3 y enciende la VM de prod. 7: el DAG pipeline_taxi en la VM, con glue_medium y todos los viajes. Lo que sube a prod es lo que está en main, no lo que tienes en tu Code Editor. Tiempo: 2 min. Siguiente: Creas una rama para tu cambio sin tocar main y compruebas que estás en ella.
 
-## 113. Creas una rama para tu cambio sin tocar main y compruebas que estás en ella
+## 115. Creas una rama para tu cambio sin tocar main y compruebas que estás en ella
 
-*1 min · inicia en 3:29*
+*1 min · inicia en 3:34*
 
 Dónde: la terminal. Problema: no se cambia main directamente; todo entra por una rama y un pull request. git switch main y git pull parten de la versión más reciente del fork. git switch -c crea una rama nueva y se mueve a ella; una rama es una línea de trabajo paralela: lo que hagas en ella no toca main hasta que lo apruebes. git branch --show-current imprime en qué rama estás. Error común: «Your local changes would be overwritten»: guarda tus cambios antes (git add y git commit) o muévelos fuera del repositorio. Tiempo: 1 min. Siguiente: Haces un cambio pequeño en src/pipeline/gold.py.
 
-## 114. Haces un cambio pequeño en src/pipeline/gold.py
+## 116. Haces un cambio pequeño en src/pipeline/gold.py
 
-*1 min · inicia en 3:30*
+*1 min · inicia en 3:35*
 
 Problema: para recorrer el camino a prod necesitamos un cambio, y debe ser inofensivo. Un comentario en src/ sirve por dos razones: no cambia el comportamiento y, como toca src/, el workflow Deploy sí enciende la VM de prod después del merge (enciende la VM si cambian airflow/ o src/). Es el cambio más pequeño que atraviesa todo el camino. Quien ya empezó su cambio real del Taller puede usar el suyo. Error común: se editó un archivo fuera de src/ o de airflow/: el Deploy no enciende la VM y el DAG de prod no aparece. Tiempo: 1 min. Siguiente: Compruebas el cambio con make test y lo guardas con git add y git commit.
 
-## 115. Compruebas el cambio con make test y lo guardas con git add y git commit
-
-*2 min · inicia en 3:31*
-
-Entrada: make test ejecuta ruff y pytest, y es lo mismo que ejecutará GitHub después: si falla aquí, fallará allá. git status lista qué archivos cambiaron; debe aparecer solo gold.py. git add marca exactamente qué entra al commit; no se usa git add -A para no subir por accidente archivos como .env. git commit guarda ese punto de la historia con un mensaje que diga qué cambió. Si Git responde «Please tell me who you are», se configura una vez: git config --global user.name "Tu Nombre" y git config --global user.email "tu-correo@ejemplo.com". Tiempo: 2 min. Siguiente: Subes la rama a GitHub con git push; la opción -u la enlaza con la rama remota.
-
-## 116. Subes la rama a GitHub con git push; la opción -u la enlaza con la rama remota
-
-*1 min · inicia en 3:33*
-
-git push envía la rama a tu fork en GitHub (origin). La opción -u la enlaza con la rama remota, para que los siguientes git push no necesiten más argumentos. Salida esperada: el resumen de objetos enviados y un aviso con la URL «Create a pull request for 'clase07-a-prod' on GitHub». Errores comunes: «Authentication failed» (la autenticación de gh caducó: gh auth login) o «Permission denied»: se está empujando al repositorio equivocado; origin debe ser tu fork. Tiempo: 1 min. Siguiente: Abres un pull request en GitHub.
-
-## 117. Abres un pull request en GitHub
-
-*2 min · inicia en 3:34*
-
-Dónde: GitHub, en el navegador. Un pull request (PR) es una solicitud para revisar tus cambios antes de incorporarlos a main. En un fork, GitHub a veces propone como destino el repositorio original del curso: hay que cambiar base repository al fork del equipo. Escribe una descripción de dos o tres frases. Al crear el PR arrancan solos los checks del CI. Error común: el PR apunta al repositorio del instructor; se cierra y se abre de nuevo con la base correcta. Tiempo: 2 min. Siguiente: Esperas los cinco checks del CI en verde.
-
-## 118. Esperas los cinco checks del CI en verde
+## 117. Compruebas el cambio con make test y lo guardas con git add y git commit
 
 *2 min · inicia en 3:36*
 
+Entrada: make test ejecuta ruff y pytest, y es lo mismo que ejecutará GitHub después: si falla aquí, fallará allá. git status lista qué archivos cambiaron; debe aparecer solo gold.py. git add marca exactamente qué entra al commit; no se usa git add -A para no subir por accidente archivos como .env. git commit guarda ese punto de la historia con un mensaje que diga qué cambió. Si Git responde «Please tell me who you are», se configura una vez: git config --global user.name "Tu Nombre" y git config --global user.email "tu-correo@ejemplo.com". Tiempo: 2 min. Siguiente: Subes la rama a GitHub con git push; la opción -u la enlaza con la rama remota.
+
+## 118. Subes la rama a GitHub con git push; la opción -u la enlaza con la rama remota
+
+*1 min · inicia en 3:38*
+
+git push envía la rama a tu fork en GitHub (origin). La opción -u la enlaza con la rama remota, para que los siguientes git push no necesiten más argumentos. Salida esperada: el resumen de objetos enviados y un aviso con la URL «Create a pull request for 'clase07-a-prod' on GitHub». Errores comunes: «Authentication failed» (la autenticación de gh caducó: gh auth login) o «Permission denied»: se está empujando al repositorio equivocado; origin debe ser tu fork. Tiempo: 1 min. Siguiente: Abres un pull request en GitHub.
+
+## 119. Abres un pull request en GitHub
+
+*2 min · inicia en 3:39*
+
+Dónde: GitHub, en el navegador. Un pull request (PR) es una solicitud para revisar tus cambios antes de incorporarlos a main. En un fork, GitHub a veces propone como destino el repositorio original del curso: hay que cambiar base repository al fork del equipo. Escribe una descripción de dos o tres frases. Al crear el PR arrancan solos los checks del CI. Error común: el PR apunta al repositorio del instructor; se cierra y se abre de nuevo con la base correcta. Tiempo: 2 min. Siguiente: Esperas los cinco checks del CI en verde.
+
+## 120. Esperas los cinco checks del CI en verde
+
+*2 min · inicia en 3:41*
+
 El CI (la verificación automática) corre en GitHub Actions al crear o actualizar el PR: ruff lint y formato, pytest, pytest de los DAGs (necesita Airflow), terraform fmt y validate de infra/aws y de infra/snowflake, y terraform plan de infra/aws. Deben quedar en verde los cinco. Si un check sale rojo, se abre Details, se lee el error, se corrige en la rama y un git push actualiza el PR solo. No se avanza hasta que estén en verde: el merge con CI en rojo no se hace. Tiempo típico: unos minutos; el tiempo exacto se anota en el ensayo. Error común: el check de Terraform plan falla si faltan los secrets AWS_ROLE_ARN o TF_STATE_BUCKET en el fork (make secrets). Tiempo: 2 min. Siguiente: Se aprueba el cambio y se hace el merge.
 
-## 119. Se aprueba el cambio y se hace el merge
+## 121. Se aprueba el cambio y se hace el merge
 
-*2 min · inicia en 3:38*
+*2 min · inicia en 3:43*
 
 Nadie aprueba su propio cambio: es la segunda barandilla, después del CI. Para esta práctica, quien trabaja solo puede pedir la aprobación al compañero de al lado. Al hacer merge, el cambio entra a main. El workflow Deploy se dispara solo: planea y aplica Terraform (con la guardia de destrucción: aborta si el plan elimina algo), empaqueta src en code/pipeline.zip, sincroniza dags/, code/ y framework/ en S3 (sin ingesta_mensual ni hola_airflow) y, si el push cambió airflow/ o src/, enciende la VM de Airflow de prod. Ese Deploy es lo que pone en prod el código de main. Error común: el Deploy falla por falta de secrets; el instructor ayuda. Tiempo: 2 min. Siguiente: Apagas el Airflow de dev y abres el túnel, porque los dos usan el puerto 8080.
 
-## 120. Apagas el Airflow de dev y abres el túnel, porque los dos usan el puerto 8080
+## 122. Apagas el Airflow de dev y abres el túnel, porque los dos usan el puerto 8080
 
-*1 min · inicia en 3:40*
+*1 min · inicia en 3:45*
 
 Problema: la VM de prod no tiene ninguna entrada pública; su UI solo se alcanza por un túnel SSM desde el Code Editor. Y el Airflow de dev y el de prod usan el mismo puerto 8080, así que primero se apaga el de dev. make airflow-tunel abre el túnel y imprime la URL, que es la misma que la de dev. La VM la encendió el Deploy; si no está encendida, make airflow-on. Tarda unos 2 minutos después del Deploy en estar lista. Errores comunes: «El puerto 8080 está ocupado (¿Airflow de dev encendido?)»; «La instancia está stopped. Ejecuta make airflow-on primero»; «No existe la instancia bigdata-airflow»: falta make airflow-habilitar, una sola vez. Tiempo: 1 min. Siguiente: Entras a Airflow de prod por el túnel.
 
-## 121. Entras a Airflow de prod por el túnel
+## 123. Entras a Airflow de prod por el túnel
 
-*1 min · inicia en 3:41*
+*1 min · inicia en 3:46*
 
 Salida de make airflow-password: «Usuario: admin» y «Contraseña: ...», leídas de Secrets Manager (el secreto <prefijo>/airflow-admin). La contraseña de prod es distinta a la de dev. En la lista de DAGs de prod deben verse pipeline_taxi y resetear_entorno (pausados al nacer); ingesta_mensual y hola_airflow no deben estar: el despliegue no los sube a la VM (puede quedar un resto pausado en la base de datos si venía de antes; no importa). El Airflow de prod es el entorno PROD: lo dice la descripción del DAG y el encabezado de cada tarea (PROD, con una advertencia). Errores comunes: la UI sale en blanco (la URL es la del túnel, no la de dev); «Invalid or Expired Auth Token». Tiempo: 1 min. Siguiente: Lanzas pipeline_taxi en prod.
 
-## 122. Lanzas pipeline_taxi en prod
-
-*3 min · inicia en 3:42*
-
-En prod el formulario no deja elegir el entorno, ni code_editor, ni un límite: el cómputo ofrece solo glue_small, glue_medium y glue_large (defecto glue_medium), el límite ofrece solo todos, y el mes arranca en 2024-01 durante el curso (un mes vacío lanzaría los doce meses). Prod no lee pipeline.yaml. Escribe en s3://<lake>/prod/, anota en BIGDATA.CONTROL_PROD.WATERMARK y carga en BIGDATA.PROD, con el rol BIGDATA_PROD (el secreto <prefijo>/snowflake_prod). Medida previa (pipeline anterior, 20 nov., glue_medium, enero completo): success en 8 min 30 s (bronze 157 s, silver 134 s, gold 116 s); la de hoy se mide en el ensayo. Mientras corre, el instructor puede mostrar el log de correr_bronze: el encabezado dice PROD. Errores comunes: el DAG falla en cargar_snowflake (revisar el secreto de prod); «Invalid or Expired Auth Token». Tiempo: 3 min. Siguiente: Prod rechaza el entorno elegido, code_editor y los límites.
-
-## 123. Prod rechaza el entorno elegido, code_editor y los límites
-
-*2 min · inicia en 3:45*
-
-Barandillas, no un control contra el dueño de la cuenta, y así hay que decirlo. En el formulario de prod, cómputo y límite no ofrecen las opciones prohibidas; si llega un valor ajeno por airflow dags trigger --conf, la primera tarea falla antes de tocar nada: «Prod solo corre con Glue» o «Prod siempre procesa todo». Desde el Code Editor, entorno_actual() devuelve dev, y si alguien fuerza PIPELINE_ENTORNO=prod, el código rechaza code_editor y exige el rol BIGDATA_PROD, que el Code Editor no tiene. El control real es Snowflake: BIGDATA_DEV no puede escribir en PROD ni en CONTROL_PROD, y el rol de la VM no tiene acceso a dev/. Lo comprobamos con una consulta en un minuto. Tiempo: 2 min. Siguiente: Validas prod con Athena: la misma consulta de gold contra silver, ahora con las tablas prod_.
-
-## 124. Validas prod con Athena: la misma consulta de gold contra silver, ahora con las tablas prod_
+## 124. Lanzas pipeline_taxi en prod
 
 *3 min · inicia en 3:47*
 
-Primero se repite el paso de la copia de 01_tablas.sql con s/<ENTORNO>/prod/g y se ejecutan los bloques en Athena: aparecen las siete tablas prod_. La consulta es la C1 de 02_duplicados_y_conciliacion.sql con dev_ cambiado por prod_ (Ctrl+F > reemplazar todo). Prod procesó el mes completo con un solo lote y no reprocesó: la relación vale 1. Cifras esperadas del mes completo, según la corrida del 20 de noviembre (bronze 19 663 930, silver 19 650 023; 13 907 descartados por los filtros): se confirman en el ensayo. Y gold en prod ya no es la tabla de 15 909 filas de daily_zone_metrics: es tarifa_por_milla_barrio. Si Athena devuelve 0 filas, la tabla apunta a otro entorno o prod no ha corrido el paso: el bloque 7 de 01_tablas.sql ("$path") muestra de qué carpeta lee. Tiempo: 3 min. Siguiente: Validas prod en Snowflake: la tabla de control de prod y la tabla cargada deben cuadrar.
+En prod el formulario no deja elegir el entorno, ni code_editor, ni un límite: el cómputo ofrece solo glue_small, glue_medium y glue_large (defecto glue_medium), el límite ofrece solo todos, y el mes arranca en 2024-01 durante el curso (un mes vacío lanzaría los doce meses). Prod no lee pipeline.yaml. Escribe en s3://<lake>/prod/, anota en BIGDATA.CONTROL_PROD.WATERMARK y carga en BIGDATA.PROD, con el rol BIGDATA_PROD (el secreto <prefijo>/snowflake_prod). Medida previa (pipeline anterior, 20 nov., glue_medium, enero completo): success en 8 min 30 s (bronze 157 s, silver 134 s, gold 116 s); la de hoy se mide en el ensayo. Mientras corre, el instructor puede mostrar el log de correr_bronze: el encabezado dice PROD. Errores comunes: el DAG falla en cargar_snowflake (revisar el secreto de prod); «Invalid or Expired Auth Token». Tiempo: 3 min. Siguiente: Prod rechaza el entorno elegido, code_editor y los límites.
 
-## 125. Validas prod en Snowflake: la tabla de control de prod y la tabla cargada deben cuadrar
+## 125. Prod rechaza el entorno elegido, code_editor y los límites
 
 *2 min · inicia en 3:50*
 
+Barandillas, no un control contra el dueño de la cuenta, y así hay que decirlo. En el formulario de prod, cómputo y límite no ofrecen las opciones prohibidas; si llega un valor ajeno por airflow dags trigger --conf, la primera tarea falla antes de tocar nada: «Prod solo corre con Glue» o «Prod siempre procesa todo». Desde el Code Editor, entorno_actual() devuelve dev, y si alguien fuerza PIPELINE_ENTORNO=prod, el código rechaza code_editor y exige el rol BIGDATA_PROD, que el Code Editor no tiene. El control real es Snowflake: BIGDATA_DEV no puede escribir en PROD ni en CONTROL_PROD, y el rol de la VM no tiene acceso a dev/. Lo comprobamos con una consulta en un minuto. Tiempo: 2 min. Siguiente: Validas prod con Athena: la misma consulta de gold contra silver, ahora con las tablas prod_.
+
+## 126. Validas prod con Athena: la misma consulta de gold contra silver, ahora con las tablas prod_
+
+*3 min · inicia en 3:52*
+
+Primero se repite el paso de la copia de 01_tablas.sql con s/<ENTORNO>/prod/g y se ejecutan los bloques en Athena: aparecen las siete tablas prod_. La consulta es la C1 de 02_duplicados_y_conciliacion.sql con dev_ cambiado por prod_ (Ctrl+F > reemplazar todo). Prod procesó el mes completo con un solo lote y no reprocesó: la relación vale 1. Cifras esperadas del mes completo, según la corrida del 20 de noviembre (bronze 19 663 930, silver 19 650 023; 13 907 descartados por los filtros): se confirman en el ensayo. Y gold en prod ya no es la tabla de 15 909 filas de daily_zone_metrics: es tarifa_por_milla_barrio. Si Athena devuelve 0 filas, la tabla apunta a otro entorno o prod no ha corrido el paso: el bloque 7 de 01_tablas.sql ("$path") muestra de qué carpeta lee. Tiempo: 3 min. Siguiente: Validas prod en Snowflake: la tabla de control de prod y la tabla cargada deben cuadrar.
+
+## 127. Validas prod en Snowflake: la tabla de control de prod y la tabla cargada deben cuadrar
+
+*2 min · inicia en 3:55*
+
 Con el rol BIGDATA_DEV se puede leer PROD y CONTROL_PROD, y no escribir. La primera consulta lista lo que anotó el DAG de la VM, en orden: bronze (fhvhv, taxi_zones, clima), silver, gold y snowflake, todas con COMPUTO glue_medium y LIMITE todos; cada paso terminado deja una fila. Las filas de gold cuentan filas de gold, no viajes. La segunda consulta cuenta las filas de la tabla de prod y suma los viajes. Debe cuadrar: SUM(VIAJES) en Snowflake es igual a las filas de silver (según la corrida del 20 nov. del pipeline anterior, silver de enero tenía 19 650 023 viajes; se confirma en el ensayo), que es igual a viajes_en_gold de Athena. Si no cuadra y el factor es exacto, silver tiene duplicados. Tiempo: 2 min. Siguiente: Compruebas que BIGDATA_DEV no puede escribir en prod: el INSERT falla por permisos.
 
-## 126. Compruebas que BIGDATA_DEV no puede escribir en prod: el INSERT falla por permisos
+## 128. Compruebas que BIGDATA_DEV no puede escribir en prod: el INSERT falla por permisos
 
-*2 min · inicia en 3:52*
+*2 min · inicia en 3:57*
 
 Esta es la prueba de que dev no puede contaminar prod. Con el rol BIGDATA_DEV, un INSERT en BIGDATA.CONTROL_PROD.WATERMARK falla con un error de control de acceso («Insufficient privileges»); el mismo INSERT en CONTROL_DEV funcionaría (por eso no lo repetimos: dejaría una fila falsa). El texto exacto del error se confirma en el ensayo. SHOW GRANTS TO ROLE BIGDATA_DEV no trae CREATE, INSERT ni DELETE sobre PROD ni sobre CONTROL_PROD. Son barandillas contra errores, y el control real es este: el rol. El rol de Glue es el mismo para dev y prod; el aislamiento está en el código y en Snowflake. Tiempo: 2 min. Siguiente: Antes de cerrar, apagas todo lo que cobra.
 
-## 127. Antes de cerrar, apagas todo lo que cobra
+## 129. Antes de cerrar, apagas todo lo que cobra
 
-*2 min · inicia en 3:54*
+*2 min · inicia en 3:59*
 
 Lo que cuesta dinero mientras está encendido: el Code Editor (unos US$0.10 por hora; se apaga solo tras 60 minutos de inactividad) y la VM de Airflow de prod. Glue y Snowflake solo cobran mientras corre un job o una consulta; el warehouse BIGDATA_WH se suspende solo a los 60 segundos. make estado muestra el estado de Airflow, los últimos job runs de Glue, el warehouse y los costos. Recordatorio importante: después de cada merge a main que toque src/ o airflow/, el Deploy enciende la VM de prod; hay que apagarla con make airflow-off. Presupuesto: al 60 % del gasto real AWS impide iniciar jobs de Glue y máquinas virtuales y detiene la VM (make desbloquear lo revierte). Tiempo: 2 min. Siguiente: Hoy construiste, comprobaste y promoviste un pipeline.
 
-## 128. Hoy construiste, comprobaste y promoviste un pipeline
+## 130. Hoy construiste, comprobaste y promoviste un pipeline
 
-*2 min · inicia en 3:56*
+*2 min · inicia en 4:01*
 
 Cierre de la clase, en tres frases. Construir: cada función del pipeline con su firma, probada con 1 000 viajes; la puerta de la tabla de control, que evita repetir un mes, y el registro al final, que evita anotar lo que no terminó. Comprobar: el pipeline puede salir en verde y estar mal; el duplicado se detectó comparando cifras entre capas (silver contra gold) y con SQL; la tabla de dimensionamiento da una forma de elegir el cómputo midiendo. Promover: prod se alcanza por PR y CI/CD, el entorno no se elige, y se valida con Athena y Snowflake; las barandillas protegen de errores, y el rol de Snowflake es el control real. Tiempo: 2 min. Siguiente: En el Taller extiendes el pipeline: la casa da las herramientas y tu equipo escribe cuatro cosas.
 
-## 129. En el Taller extiendes el pipeline: la casa da las herramientas y tu equipo escribe cuatro cosas
+## 131. En el Taller extiendes el pipeline: la casa da las herramientas y tu equipo escribe cuatro cosas
 
-*2 min · inicia en 3:58*
+*2 min · inicia en 4:03*
 
 Puente al Taller 2. Lo que da la casa (arriba de cada columna): las herramientas de pipeline.herramientas (traer_crudo, leer_crudo, escribir_bronze, leer_capa, escribir_capa, la tabla de control, crear_tabla, cargar_gold), el ejemplo de gold y su CREATE TABLE, los DAG. Lo que escribe el equipo (abajo): agregar_metadatos en bronze.py, deduplicar en silver.py, su propia tabla de gold en gold.py y su CREATE TABLE en carga.py. Las pruebas ya están escritas: pasan de PENDIENTE a OK cuando escriben las dos funciones. Evidencia: sale de la cuenta del anfitrión, con el Airflow del Code Editor y glue_small; prod no es requisito. Las tablas de cada equipo llevan el nombre del equipo en BIGDATA.DEV. docs/herramientas.md es la hoja de consulta con las 12 funciones. Tiempo: 2 min. Siguiente: Para mañana: pipeline_taxi corre en el Airflow del anfitrión.
 
-## 130. Para mañana: pipeline_taxi corre en el Airflow del anfitrión
+## 132. Para mañana: pipeline_taxi corre en el Airflow del anfitrión
 
-*2 min · inicia en 4:00*
+*2 min · inicia en 4:05*
 
 Hito del Taller 2 para hoy: el pipeline corre en el Airflow del Code Editor del anfitrión, con glue_small, desde el fork del equipo; puede ir todavía sin el cambio propio. Mañana, martes 24, clase 8: el instructor muestra el DAG resetear_entorno en prod (solo en la VM, con el rol de prod) y el equipo arranca el trabajo del taller; la revisión de avance no se califica por separado. La entrega final es el domingo 29 de noviembre a las 23:59, hora de Colombia, con el release t2-entrega en el fork del anfitrión. Recuerden: todo en el fork del anfitrión, con PR y CI en verde; la evidencia de la cuenta del anfitrión; y apagar todo al terminar cada sesión. Tiempo: 2 min. Siguiente: Si alguien reprocesa un mes en prod, ¿qué función de tu equipo evita que silver se duplique.
 
-## 131. Si alguien reprocesa un mes en prod, ¿qué función de tu equipo evita que silver se duplique?
+## 133. Si alguien reprocesa un mes en prod, ¿qué función de tu equipo evita que silver se duplique?
 
-*1 min · inicia en 4:02*
+*1 min · inicia en 4:07*
 
 Pregunta de cierre, para que se la lleven. Respuesta: deduplicar, en silver.py, que deja una fila por _hash_fila; y para que exista la huella, agregar_metadatos, en bronze.py. Si prod reprocesa un mes sin esas dos funciones, silver se multiplica por el número de lotes y gold por su cubo, y nadie recibe un error. Esa es la razón por la que son lo primero que escribe cada equipo. Gracias; apaguen todo. Tiempo: 1 min.
