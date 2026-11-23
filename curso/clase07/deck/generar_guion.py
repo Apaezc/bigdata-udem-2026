@@ -28,7 +28,14 @@ for i, s in enumerate(slides, start=1):
     titulo = s.get("titulo") or s.get("pregunta") or s.get("etiqueta") or f"Slide {i}"
     minutos = s.get("min", 1)
     inicio = f"{acumulado // 60}:{acumulado % 60:02d}"
-    partes += [f"## {i}. {titulo}", "", f"*{minutos} min · inicia en {inicio}*", "", s.get("notas", ""), ""]
+    partes += [
+        f"## {i}. {titulo}",
+        "",
+        f"*{minutos} min · inicia en {inicio}*",
+        "",
+        s.get("notas", ""),
+        "",
+    ]
     acumulado += minutos
 (AQUI / "guion.md").write_text("\n".join(partes), encoding="utf-8")
 print(f"guion.md: {len(slides)} slides, {total} min")

@@ -201,7 +201,14 @@ def dc7_0(ruta):
         bold=True,
         maxw=1090,
     )
-    s.text(560, 330, "y como tarea del DAG pipeline_taxi (con el mismo nombre).", anchor="middle", bold=True, maxw=1090)
+    s.text(
+        560,
+        330,
+        "y como tarea del DAG pipeline_taxi (con el mismo nombre).",
+        anchor="middle",
+        bold=True,
+        maxw=1090,
+    )
     s.text(
         560,
         384,
@@ -265,10 +272,30 @@ def dc7_2(ruta):
         "Abajo, una nota: agregar_metadatos y deduplicar hoy no hacen nada a propósito; debe_ingestar y registrar_ingesta ya vienen resueltas.",
     )
     columnas = (
-        ("Bronze", BRONZE, ["traer_crudo_*", "leer_crudo", "escribir_bronze", "la tabla de control"], "agregar_metadatos"),
-        ("Silver", SILVER, ["leer_capa", "escribir_capa", "limpiar_viajes", "main de silver"], "deduplicar"),
-        ("Gold", GOLD, ["leer_capa", "escribir_capa", "ejemplo: tarifa por", "milla por barrio"], "tu tabla de gold"),
-        ("Snowflake", None, ["crear_tabla", "cargar_gold", "ejemplo de", "CREATE TABLE"], "tu CREATE TABLE"),
+        (
+            "Bronze",
+            BRONZE,
+            ["traer_crudo_*", "leer_crudo", "escribir_bronze", "la tabla de control"],
+            "agregar_metadatos",
+        ),
+        (
+            "Silver",
+            SILVER,
+            ["leer_capa", "escribir_capa", "limpiar_viajes", "main de silver"],
+            "deduplicar",
+        ),
+        (
+            "Gold",
+            GOLD,
+            ["leer_capa", "escribir_capa", "ejemplo: tarifa por", "milla por barrio"],
+            "tu tabla de gold",
+        ),
+        (
+            "Snowflake",
+            None,
+            ["crear_tabla", "cargar_gold", "ejemplo de", "CREATE TABLE"],
+            "tu CREATE TABLE",
+        ),
     )
     for i, (nombre, color, casa, equipo) in enumerate(columnas):
         x = 6 + i * 280
@@ -278,8 +305,22 @@ def dc7_2(ruta):
             s.caja(x, 6, 262, 54, [nombre], fill=PANEL, line=INK, lw=2.5)
         s.caja(x, 70, 262, 168, ["De la casa", *casa], fill=PANEL, line=GRIS)
         s.caja(x, 250, 262, 76, ["Del equipo", equipo], fill=BLANCO, line=INK, lw=3)
-    s.text(560, 372, "Problemas a propósito: agregar_metadatos y deduplicar hoy no hacen nada.", bold=True, anchor="middle", maxw=1100)
-    s.text(560, 408, "debe_ingestar y registrar_ingesta ya vienen resueltas.", anchor="middle", col=GRIS, maxw=1100)
+    s.text(
+        560,
+        372,
+        "Problemas a propósito: agregar_metadatos y deduplicar hoy no hacen nada.",
+        bold=True,
+        anchor="middle",
+        maxw=1100,
+    )
+    s.text(
+        560,
+        408,
+        "debe_ingestar y registrar_ingesta ya vienen resueltas.",
+        anchor="middle",
+        col=GRIS,
+        maxw=1100,
+    )
     s.guardar(ruta)
 
 
@@ -309,8 +350,22 @@ def dc7_3(ruta):
     s.text(690, 136, "qué hace el paso", col=GRIS, anchor="middle", maxw=270)
     filas = (
         ("no hay registro", "false", "SE INGESTA", ["la primera vez"], BLANCO, INK),
-        ("sí hay registro", "false", "SE SALTÓ", ["sin mirar filas,", "cómputo ni límite"], PANEL, GRIS),
-        ("da igual", "true", "SE INGESTA", ["a propósito; silver", "resuelve los duplicados"], BLANCO, INK),
+        (
+            "sí hay registro",
+            "false",
+            "SE SALTÓ",
+            ["sin mirar filas,", "cómputo ni límite"],
+            PANEL,
+            GRIS,
+        ),
+        (
+            "da igual",
+            "true",
+            "SE INGESTA",
+            ["a propósito; silver", "resuelve los duplicados"],
+            BLANCO,
+            INK,
+        ),
     )
     for i, (reg, rep, resultado, nota, fondo, borde) in enumerate(filas):
         y = 150 + i * 72
@@ -319,8 +374,22 @@ def dc7_3(ruta):
         s.flecha(552, y + 31, 574, y + 31)
         s.caja(576, y, 230, 62, [resultado], fill=fondo, line=borde, lw=2.5)
         s.lineas(830, y + 23 if len(nota) > 1 else y + 38, nota, col=GRIS, maxw=284)
-    s.text(560, 396, "El paso anota su fila solo al terminar bien:", bold=True, anchor="middle", maxw=1090)
-    s.text(560, 426, "si falla, no queda registro y el mes se puede reintentar.", col=GRIS, anchor="middle", maxw=1090)
+    s.text(
+        560,
+        396,
+        "El paso anota su fila solo al terminar bien:",
+        bold=True,
+        anchor="middle",
+        maxw=1090,
+    )
+    s.text(
+        560,
+        426,
+        "si falla, no queda registro y el mes se puede reintentar.",
+        col=GRIS,
+        anchor="middle",
+        maxw=1090,
+    )
     s.guardar(ruta)
 
 
@@ -382,7 +451,13 @@ def dc7_5(ruta):
         ancho_gold = max(14, int(14.5 * n**3))
         s.rect(640, y + 14, ancho_gold, 36, fill=GOLD, line=GOLD)
         s.text(640 + ancho_gold + 12, y + 42, f"×{n**3}", bold=True, col=(ROJO if n > 1 else INK))
-    s.text(560, 392, "gold sube con el cubo de los lotes: enriquecer une zonas y clima,", anchor="middle", maxw=1100)
+    s.text(
+        560,
+        392,
+        "gold sube con el cubo de los lotes: enriquecer une zonas y clima,",
+        anchor="middle",
+        maxw=1100,
+    )
     s.text(560, 422, "y esas dos tablas de silver también se repiten.", anchor="middle", maxw=1100)
     s.guardar(ruta)
 
@@ -403,7 +478,16 @@ def dc7_6(ruta):
     for y, ts in entradas:
         s.caja(6, y, 340, 80, ts)
         s.flecha(348, y + 40, 396, 215, col="g", lw=3)
-    s.caja(398, 130, 300, 170, ["correr_silver", "pipeline/correr.py", "mismo encabezado", "mismo cierre"], fill=BLANCO, line=INK, lw=3)
+    s.caja(
+        398,
+        130,
+        300,
+        170,
+        ["correr_silver", "pipeline/correr.py", "mismo encabezado", "mismo cierre"],
+        fill=BLANCO,
+        line=INK,
+        lw=3,
+    )
     s.flecha(700, 190, 746, 106, col="g", lw=3)
     s.flecha(700, 240, 746, 324, col="g", lw=3)
     s.caja(748, 56, 366, 100, ["computo = code_editor", "Spark en tu máquina"])

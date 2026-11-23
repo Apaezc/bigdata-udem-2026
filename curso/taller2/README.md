@@ -94,7 +94,7 @@ Ejemplos de preguntas y del cambio que exigen:
 |---|---|---|
 | ¿Los viajes largos caen más que los cortos cuando llueve? | Una clasificación del viaje por distancia | Columna `rango_distancia` en silver (en `limpiar_viajes` o en `enriquecer`); tu tabla de gold agrega por rango |
 | ¿La lluvia de la mañana afecta más que la de la noche? | La lluvia del día junto a la franja horaria | Tu función de gold agrupa por franja del día y por lluvia (`lluvia_mm` llega por `enriquecer`) |
-| ¿Se descartan más viajes los días de lluvia? | Cuántos viajes descarta silver cada día | **No es una tabla del pipeline.** Se resuelve como conciliación en SQL: los descartes por tipo se cuentan comparando bronze (las tablas de Athena sobre `_crudo`) con silver (sección 10) |
+| ¿Se descartan más viajes los días de lluvia? | Cuántos viajes descarta silver cada día | **No es una tabla del pipeline.** Se resuelve como conciliación en SQL: los descartes por tipo se cuentan comparando bronze (las tablas `dev_bronze_*` de Athena, que leen los lotes) con silver (sección 10) |
 | ¿Cómo cambia la propina con lluvia fuerte? | Una variable que distinga lluvia fuerte de ligera | Columna `nivel_lluvia` (umbrales escritos en el contrato), en silver o en tu función de gold |
 
 Tres reglas para elegir el cambio. Primera: debe ser **pequeño y verificable**; es mejor una columna bien probada que tres a medio hacer. Segunda: debe poder explicarse en dos frases y probarse con pocas filas escritas a mano en el test. Tercera: el pipeline exige que cada tabla de gold tenga una **clave única** (`LLAVES_DE_GOLD`): si cambian el grano (por ejemplo, agregar por `rango_distancia`), hay que agregar esa columna a la clave, o la corrida falla con `QualityError`. Todo esto se acuerda con el instructor al llenar `contrato.md`.
@@ -245,7 +245,7 @@ Además: el PR del cambio debe aparecer fusionado (*merged*) en el historial del
 
 Conciliar es comprobar que las cifras cuadran de una capa a la siguiente. Lo mínimo que se espera:
 
-- **Bronze a silver:** filas de bronze, menos las que silver descartó (cada tipo de descarte contado), igual a las filas de silver. La diferencia debe quedar explicada, no «aproximadamente igual». Ojo: las tablas de bronze en Athena leen `_crudo/` (el archivo original, completo), no el lote en Parquet; con `limite` el lote es más pequeño que el crudo.
+- **Bronze a silver:** filas de bronze, menos las que silver descartó (cada tipo de descarte contado), igual a las filas de silver. La diferencia debe quedar explicada, no «aproximadamente igual». Ojo: las tablas `dev_bronze_*` de Athena leen **todos los lotes** de bronze (silver también los lee todos); el archivo original completo está en `dev_crudo_fhvhv`. Con `limite` el lote es más pequeño que el crudo, porque el límite se aplica solo en bronze.
 - **Silver a gold:** la suma de viajes en silver es igual a la suma de la columna de viajes en gold. (Si no cuadra y es un múltiplo exacto, silver tiene duplicados: revisen `deduplicar`.)
 - **Gold a Snowflake:** filas y viajes de la tabla del equipo en Snowflake igual a lo que gold escribió.
 

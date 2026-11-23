@@ -88,7 +88,7 @@ viajes = leer_crudo(spark, "dev", "fhvhv", "2024-01", limite=1000)
 **`leer_capa`** lee una tabla de una capa. En bronze, `lotes="todos"` junta **todos** los lotes completos del mes y `lotes="ultimo"` lee solo el más reciente. En silver y gold lee la carpeta del mes.
 
 ```python
-bronze = leer_capa(spark, "dev", "bronze", "fhvhv", "2024-01")             # todos los lotes
+bronze = leer_capa(spark, "dev", "bronze", "fhvhv", "2024-01")  # todos los lotes
 silver = leer_capa(spark, "dev", "silver", "fhvhv", "2024-01")
 ```
 
@@ -211,7 +211,7 @@ Cada equipo **nombra sus tablas** y viven en `BIGDATA.DEV` (y, ya promovidas, en
    from pipeline.herramientas import crear_tabla, nombre_tabla_snowflake
 
    tabla = nombre_tabla_snowflake("dev", "tarifa_por_milla_barrio")
-   print(tabla)   # BIGDATA.DEV.TARIFA_POR_MILLA_BARRIO
+   print(tabla)  # BIGDATA.DEV.TARIFA_POR_MILLA_BARRIO
    ```
 
 4. Crea la tabla y carga un mes:
@@ -223,9 +223,9 @@ Cada equipo **nombra sus tablas** y viven en `BIGDATA.DEV` (y, ya promovidas, en
    tabla = nombre_tabla_snowflake("dev", "tarifa_por_milla_barrio")
    crear_tabla(DDL_TARIFA_POR_MILLA.format(tabla=tabla))
    filas = cargar_gold(
-       tabla,                         # siempre BASE.ESQUEMA.TABLA
-       "tarifa_por_milla_barrio",     # carpeta dentro de s3://<lake>/dev/gold/
-       mes="2024-01",                 # None = reemplaza toda la tabla
+       tabla,  # siempre BASE.ESQUEMA.TABLA
+       "tarifa_por_milla_barrio",  # carpeta dentro de s3://<lake>/dev/gold/
+       mes="2024-01",  # None = reemplaza toda la tabla
    )
    print(f"Se cargaron {filas} filas")
    ```

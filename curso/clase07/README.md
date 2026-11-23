@@ -26,8 +26,8 @@ Esta carpeta tiene todo lo que usas hoy. Este archivo explica dos cosas: **qué 
 |---|---|
 | `01_construir_paso_a_paso.ipynb` | Notebook 1. El instructor construye la lógica de cada función con 1 000 viajes: la puerta de la tabla de control, bronze, silver, gold y la tabla de Snowflake. Tú lo sigues celda por celda. |
 | `02_funciones_listas.ipynb` | Notebook 2. Las mismas funciones ya escritas, con sus problemas dichos en voz alta, y a qué archivo `.py` se copia cada una. Termina con las pruebas de `make test`. |
-| `athena/01_tablas.sql` | Declara en Athena las tablas del lake de un entorno (`dev_...` o `prod_...`). |
-| `athena/02_duplicados_y_conciliacion.sql` | Consultas para encontrar con SQL lo que el pipeline no avisó: silver y gold inflados después de reprocesar. |
+| `athena/01_tablas.sql` | Declara en Athena las siete tablas del lake de un entorno (`dev_...` o `prod_...`): bronze por lotes, silver y gold. |
+| `athena/02_duplicados_y_conciliacion.sql` | Las consultas de cada punto de control (después de bronze, silver y gold, y después de reprocesar) para ver lotes, filas, duplicados y la conciliación. |
 | `deck/` | Las slides de la clase (`index.html`) y el guion del orador (`guion.md`). |
 | `prueba_ensayo.md` | Guía de ensayo del instructor. No es para estudiantes. |
 
@@ -360,16 +360,17 @@ En esta máquina solo cabe un proceso de Spark a la vez. Si el notebook anterior
 <a id="clase"></a>
 ## Cómo es la clase
 
-1. Apertura: qué dijimos en las clases 5 y 6 y qué cambia.
-2. Dev y prod: dos carpetas, dos esquemas, y quién decide el entorno.
-3. **Notebook 1**: se construye cada función con 1 000 viajes.
-4. **Notebook 2**: las funciones ya listas, con sus dos problemas dichos en voz alta.
-5. Pasar las funciones a los archivos `.py` y correr `make test` (salen `PENDIENTE`).
-6. `make correr PASO=...`, paso por paso, con `code_editor` y luego con `glue_small`.
-7. Airflow del Code Editor, de punta a punta, con el formulario del DAG `pipeline_taxi`.
-8. **Reprocesar a propósito:** silver se duplica, gold se multiplica por ocho; lo encontramos con Athena.
-9. `resetear_entorno` en dev: borrar todo y repetir.
-10. Ejercicio de dimensionamiento: cuánto cuesta en tiempo cada combinación de límite y cómputo.
-11. Llevar todo a prod: pull request, CI/CD, DAG en la VM; y validar con Athena y Snowflake.
+1. Apertura: qué dijimos en las clases 5 y 6 y qué cambia; dev y prod; dónde se cambia cada cosa.
+2. **Empezamos limpios:** `resetear_entorno` en dev (el DAG que borra todo el entorno de ese Airflow).
+3. **Notebook 1:** se construye cada función con 1 000 viajes, en un laboratorio (disco y tabla de control en memoria) que no ensucia dev. El límite se aplica solo en bronze.
+4. **Notebook 2** y pasar las funciones a los `.py`; `make test` (salen `PENDIENTE`).
+5. **Las tareas del DAG, una por una** (`airflow tasks test`): primero bronze y Athena; luego silver y Athena; luego gold y Athena. Ahí se notan los problemas: bronze sin huella y qué hace la tabla de control.
+6. Crear la tabla en Snowflake y correr el DAG completo desde la interfaz: con `reprocesar` sin marcar, bronze, silver y gold **se saltan** y solo carga Snowflake.
+7. Resetear y correr todo otra vez: funciona una vez.
+8. **Reprocesar a propósito** (`reprocesar=true`): bronze guarda los dos lotes, silver los espeja sin deduplicar y gold multiplica; medido: silver ×2 y gold ×8. Se ve en Athena y en Snowflake.
+9. `make correr` y `glue_small`, y el ejercicio de dimensionamiento: cuánto tarda cada combinación de límite y cómputo.
+10. Llevar todo a prod: pull request, CI/CD, DAG en la VM; y validar con Athena y Snowflake.
+
+Las dos reglas que se repiten: el límite recorta **solo bronze**, y **sin `reprocesar` la segunda corrida se salta**: los duplicados aparecen solo al forzarlo.
 
 **Clase 8 (martes 24):** se muestra el DAG que resetea todo, ahora en prod, y arranca el Taller 2.
