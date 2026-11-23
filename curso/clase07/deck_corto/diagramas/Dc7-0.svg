@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 440" font-family="Helvetica Neue, Arial, sans-serif">
+<title>El pipeline de la clase 7: cuatro pasos y una tabla de control que hace de puerta</title><desc>De izquierda a derecha, las fuentes entran a cuatro pasos: bronze (correr_bronze), silver (correr_silver), gold (correr_gold) y snowflake (cargar_snowflake). Arriba, la tabla de control del entorno; cada paso tiene una flecha de doble punta con ella: pregunta antes de trabajar y anota al terminar bien. Abajo, una nota: la misma función corre desde un notebook, con make correr y como tarea del DAG pipeline_taxi.</desc>
+<defs><marker id="m_a" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#2340D8"/></marker><marker id="m_g" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#5F6672"/></marker><marker id="m_b" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#B4622F"/></marker><marker id="m_y" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#FFC83D"/></marker><marker id="m_r" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#B3261E"/></marker></defs>
+<rect x="196" y="6" width="920" height="46" rx="6" fill="#E3E6F6" stroke="#2340D8" stroke-width="2.5"/>
+<text x="656" y="37" font-size="22" fill="#2340D8" text-anchor="middle" font-weight="700">Tabla de control · BIGDATA.CONTROL_DEV.WATERMARK (una por entorno)</text>
+<rect x="6" y="140" width="150" height="110" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
+<text x="81.0" y="176.0" font-size="22" fill="#15171C" text-anchor="middle" font-weight="700">Fuentes</text>
+<text x="81.0" y="203.0" font-size="22" fill="#5F6672" text-anchor="middle">viajes</text>
+<text x="81.0" y="230.0" font-size="22" fill="#5F6672" text-anchor="middle">zonas, clima</text>
+<line x1="158" y1="195" x2="194" y2="195" stroke="#5F6672" stroke-width="2.5" marker-end="url(#m_g)"/>
+<rect x="196" y="140" width="200" height="110" rx="6" fill="#B4622F" stroke="#B4622F" stroke-width="1.5"/>
+<text x="296.0" y="176.0" font-size="22" fill="#FFFFFF" text-anchor="middle" font-weight="700">Bronze</text>
+<text x="296.0" y="203.0" font-size="22" fill="#FFFFFF" text-anchor="middle">correr_bronze</text>
+<text x="296.0" y="230.0" font-size="22" fill="#FFFFFF" text-anchor="middle">guarda tal cual</text>
+<line x1="296" y1="138" x2="296" y2="54" stroke="#2340D8" stroke-width="2.5" marker-end="url(#m_a)" marker-start="url(#m_a)"/>
+<line x1="398" y1="195" x2="434" y2="195" stroke="#5F6672" stroke-width="2.5" marker-end="url(#m_g)"/>
+<rect x="436" y="140" width="200" height="110" rx="6" fill="#6E7F94" stroke="#6E7F94" stroke-width="1.5"/>
+<text x="536.0" y="176.0" font-size="22" fill="#FFFFFF" text-anchor="middle" font-weight="700">Silver</text>
+<text x="536.0" y="203.0" font-size="22" fill="#FFFFFF" text-anchor="middle">correr_silver</text>
+<text x="536.0" y="230.0" font-size="22" fill="#FFFFFF" text-anchor="middle">limpia y espeja</text>
+<line x1="536" y1="138" x2="536" y2="54" stroke="#2340D8" stroke-width="2.5" marker-end="url(#m_a)" marker-start="url(#m_a)"/>
+<line x1="638" y1="195" x2="674" y2="195" stroke="#5F6672" stroke-width="2.5" marker-end="url(#m_g)"/>
+<rect x="676" y="140" width="200" height="110" rx="6" fill="#B07F0E" stroke="#B07F0E" stroke-width="1.5"/>
+<text x="776.0" y="176.0" font-size="22" fill="#FFFFFF" text-anchor="middle" font-weight="700">Gold</text>
+<text x="776.0" y="203.0" font-size="22" fill="#FFFFFF" text-anchor="middle">correr_gold</text>
+<text x="776.0" y="230.0" font-size="22" fill="#FFFFFF" text-anchor="middle">resume el negocio</text>
+<line x1="776" y1="138" x2="776" y2="54" stroke="#2340D8" stroke-width="2.5" marker-end="url(#m_a)" marker-start="url(#m_a)"/>
+<line x1="878" y1="195" x2="914" y2="195" stroke="#5F6672" stroke-width="2.5" marker-end="url(#m_g)"/>
+<rect x="916" y="140" width="200" height="110" rx="6" fill="#F0EEE7" stroke="#15171C" stroke-width="2.5"/>
+<text x="1016.0" y="176.0" font-size="22" fill="#15171C" text-anchor="middle" font-weight="700">Snowflake</text>
+<text x="1016.0" y="203.0" font-size="22" fill="#5F6672" text-anchor="middle">cargar_snowflake</text>
+<text x="1016.0" y="230.0" font-size="22" fill="#5F6672" text-anchor="middle">carga la tabla</text>
+<line x1="1016" y1="138" x2="1016" y2="54" stroke="#2340D8" stroke-width="2.5" marker-end="url(#m_a)" marker-start="url(#m_a)"/>
+<text x="6" y="24" font-size="22" fill="#2340D8" text-anchor="start">pregunta antes</text>
+<text x="6" y="52" font-size="22" fill="#2340D8" text-anchor="start">y anota al final</text>
+<text x="560" y="300" font-size="22" fill="#15171C" text-anchor="middle" font-weight="700">La misma función corre en un notebook, con make correr</text>
+<text x="560" y="330" font-size="22" fill="#15171C" text-anchor="middle" font-weight="700">y como tarea del DAG pipeline_taxi (con el mismo nombre).</text>
+<text x="560" y="384" font-size="22" fill="#5F6672" text-anchor="middle">Para pasar de Spark en el Code Editor a Glue cambia solo el cómputo.</text>
+</svg>

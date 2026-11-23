@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# Airflow de dev: Airflow 3.3.2 dentro del Code Editor (sin Docker). Lanza el DAG con
-# entorno=local (Spark aquí, sobre la muestra) o entorno=dev (Glue small). Prod es la VM.
+# Airflow de dev: Airflow 3.3.2 dentro del Code Editor (sin Docker). Todo lo que corre aquí es dev
+# (el entorno no se elige: se fuerza PIPELINE_ENTORNO=dev); el cómputo sí: code_editor (Spark aquí,
+# leyendo y escribiendo en s3://<lake>/dev/) o glue_*. Prod es la VM.
 # Uso: airflow-local.sh up | down | estado
 #   up     instala (solo la primera vez), levanta nginx en 8080 y `airflow standalone` en 8081
 #   down   detiene Airflow y nginx
@@ -110,25 +111,27 @@ entorno_airflow() {
   export AIRFLOW_CONN_AWS_DEFAULT="{\"conn_type\": \"aws\", \"extra\": {\"region_name\": \"$AWS_REGION\"}}"
   export AWS_DEFAULT_REGION="$AWS_REGION"
   export AIRFLOW_VAR_PREFIX="$PREFIX"
-  # Rama local del DAG: descarga la muestra la primera vez (s3://<lake>/muestra).
+  # Bucket del lake y secreto de Snowflake de dev (rol BIGDATA_DEV), igual que make correr.
   LAKE_BUCKET="$(lake_bucket)"
   export LAKE_BUCKET
-  export PIPELINE_ENTORNO=dev
+  export WATERMARK_SECRET="$SECRETO_SNOWFLAKE"
+  export PIPELINE_ENTORNO=dev  # forzado: prod solo existe en la VM
+  unset PIPELINE_RAIZ_LAKE     # solo para pruebas; aquí no debe existir
   # Conexión snowflake_default desde el secreto <prefix>/snowflake (igual que en la VM).
   local snow
-  snow="$(aws secretsmanager get-secret-value --secret-id "$PREFIX/snowflake" \
+  snow="$(aws secretsmanager get-secret-value --secret-id "$SECRETO_SNOWFLAKE" \
     --query SecretString --output text 2>/dev/null || true)"
   if [[ -n "$snow" ]] && jq -e '.conn_type' >/dev/null 2>&1 <<< "$snow"; then
     export AIRFLOW_CONN_SNOWFLAKE_DEFAULT="$snow"
   else
-    aviso "Sin conexión snowflake_default (secreto $PREFIX/snowflake vacío o inválido): cargar_gold fallará."
+    aviso "Sin conexión snowflake_default (secreto $SECRETO_SNOWFLAKE vacío o inválido): cargar_gold fallará."
   fi
 }
 
 up() {
   requerir python3 aws jq
   [[ -x "$ROOT_DIR/.venv/bin/python" ]] \
-    || error "Falta $ROOT_DIR/.venv (Spark de la rama local del DAG). Corre 'make setup' primero."
+    || error "Falta $ROOT_DIR/.venv (Spark del cómputo code_editor). Corre 'cd ~/bigdata && make setup' primero."
   instalar
   if ! pgrep -f "airflow standalone" >/dev/null && ss -ltn 2>/dev/null | grep -q ':8081 '; then
     error "El puerto 8081 está ocupado por otro proceso (¿un Airflow anterior?). Corre 'make airflow-local-down'."

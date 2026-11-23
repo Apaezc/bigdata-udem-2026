@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 440" font-family="Helvetica Neue, Arial, sans-serif">
+<title>El mismo paso desde tres puertas: solo cambia el cómputo</title><desc>A la izquierda, tres formas de lanzar el paso silver: la función correr_silver en un notebook, make correr PASO=silver en la terminal y la tarea correr_silver del DAG pipeline_taxi. Las tres llaman a la misma función de pipeline/correr.py, que imprime el mismo encabezado y cierre. A la derecha, el cómputo decide dónde se calcula: code_editor, Spark en tu máquina, o un job de Glue.</desc>
+<defs><marker id="m_a" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#2340D8"/></marker><marker id="m_g" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#5F6672"/></marker><marker id="m_b" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#B4622F"/></marker><marker id="m_y" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#FFC83D"/></marker><marker id="m_r" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#B3261E"/></marker></defs>
+<rect x="6" y="40" width="340" height="80" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
+<text x="176.0" y="74.5" font-size="22" fill="#15171C" text-anchor="middle" font-weight="700">Notebook</text>
+<text x="176.0" y="101.5" font-size="22" fill="#5F6672" text-anchor="middle">correr_silver()</text>
+<line x1="348" y1="80" x2="396" y2="215" stroke="#5F6672" stroke-width="3" marker-end="url(#m_g)"/>
+<rect x="6" y="170" width="340" height="80" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
+<text x="176.0" y="204.5" font-size="22" fill="#15171C" text-anchor="middle" font-weight="700">Terminal</text>
+<text x="176.0" y="231.5" font-size="22" fill="#5F6672" text-anchor="middle">make correr PASO=silver</text>
+<line x1="348" y1="210" x2="396" y2="215" stroke="#5F6672" stroke-width="3" marker-end="url(#m_g)"/>
+<rect x="6" y="300" width="340" height="80" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
+<text x="176.0" y="334.5" font-size="22" fill="#15171C" text-anchor="middle" font-weight="700">Airflow</text>
+<text x="176.0" y="361.5" font-size="22" fill="#5F6672" text-anchor="middle">tarea correr_silver</text>
+<line x1="348" y1="340" x2="396" y2="215" stroke="#5F6672" stroke-width="3" marker-end="url(#m_g)"/>
+<rect x="398" y="130" width="300" height="170" rx="6" fill="#FFFFFF" stroke="#15171C" stroke-width="3"/>
+<text x="548.0" y="182.5" font-size="22" fill="#15171C" text-anchor="middle" font-weight="700">correr_silver</text>
+<text x="548.0" y="209.5" font-size="22" fill="#5F6672" text-anchor="middle">pipeline/correr.py</text>
+<text x="548.0" y="236.5" font-size="22" fill="#5F6672" text-anchor="middle">mismo encabezado</text>
+<text x="548.0" y="263.5" font-size="22" fill="#5F6672" text-anchor="middle">mismo cierre</text>
+<line x1="700" y1="190" x2="746" y2="106" stroke="#5F6672" stroke-width="3" marker-end="url(#m_g)"/>
+<line x1="700" y1="240" x2="746" y2="324" stroke="#5F6672" stroke-width="3" marker-end="url(#m_g)"/>
+<rect x="748" y="56" width="366" height="100" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
+<text x="931.0" y="100.5" font-size="22" fill="#15171C" text-anchor="middle" font-weight="700">computo = code_editor</text>
+<text x="931.0" y="127.5" font-size="22" fill="#5F6672" text-anchor="middle">Spark en tu máquina</text>
+<rect x="748" y="276" width="366" height="100" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
+<text x="931.0" y="320.5" font-size="22" fill="#15171C" text-anchor="middle" font-weight="700">computo = glue_*</text>
+<text x="931.0" y="347.5" font-size="22" fill="#5F6672" text-anchor="middle">un job de Glue en la nube</text>
+<text x="931" y="228" font-size="22" fill="#5F6672" text-anchor="middle" font-weight="700">lo único que cambia</text>
+</svg>

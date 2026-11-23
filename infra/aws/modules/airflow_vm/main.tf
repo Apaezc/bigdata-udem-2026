@@ -17,7 +17,7 @@ locals {
   instance_name  = "${var.prefix}-airflow"    # tag Name: lo buscan scripts/ y workflows
   sg_name        = "${var.prefix}-airflow-sg"
   secret_name    = "${var.prefix}/airflow-admin"
-  snowflake_name = "${var.prefix}/snowflake" # lo crea infra/aws (raíz); la VM solo lo lee
+  snowflake_name = "${var.prefix}/snowflake_prod" # lo crea infra/aws (raíz); la VM es prod y solo lee este secreto de Snowflake (BIGDATA_PROD)
 
   lake_arn           = "arn:aws:s3:::${var.lake_bucket}"
   secret_arn_pattern = "arn:aws:secretsmanager:${local.region}:${local.account_id}:secret:${var.prefix}/*"
@@ -91,6 +91,30 @@ data "aws_iam_policy_document" "airflow_vm_access" {
       variable = "s3:prefix"
       values   = ["code/*", "dags/*", "logs/*"]
     }
+  }
+
+  # Solo prod: el DAG resetear_entorno de la VM borra prod/ (nunca dev/). Sin permisos de escritura
+  # en el lake: Glue es quien escribe los datos. Los marcadores de carpeta de EMRFS (<prefijo>_$folder$)
+  # viven en la raíz y dentro de prod/.
+  statement {
+    sid       = "ProdListar"
+    actions   = ["s3:ListBucket"]
+    resources = [local.lake_arn]
+
+    condition {
+      test     = "StringLike"
+      variable = "s3:prefix"
+      values   = ["prod", "prod/*"]
+    }
+  }
+
+  statement {
+    sid     = "ProdLeerYBorrar"
+    actions = ["s3:GetObject", "s3:DeleteObject"]
+    resources = [
+      "${local.lake_arn}/prod/*",
+      "${local.lake_arn}/prod_$folder$",
+    ]
   }
 
   statement {
@@ -178,11 +202,12 @@ resource "aws_instance" "airflow" {
   associate_public_ip_address = true
 
   user_data = templatefile("${path.module}/user_data.sh.tftpl", {
-    region           = local.region
-    prefix           = var.prefix
-    lake_bucket      = var.lake_bucket
-    secret_name      = local.secret_name
-    snowflake_secret = local.snowflake_name
+    region            = local.region
+    prefix            = var.prefix
+    lake_bucket       = var.lake_bucket
+    secret_name       = local.secret_name
+    snowflake_secret  = local.snowflake_name
+    refresh_bootstrap = file("${path.module}/refresh-bootstrap.sh")
   })
 
   metadata_options {

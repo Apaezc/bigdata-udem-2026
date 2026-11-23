@@ -1,17 +1,20 @@
-"""DAG ingesta_mensual: tus funciones de la clase 5, más silver y gold, ejecutadas en orden.
+"""DAG ingesta_mensual: tus funciones de la clase 5, ejecutadas en orden.
 
-    ingestar_zonas -> ingestar_clima -> ingestar_viajes -> silver -> gold
+    ingestar_zonas -> ingestar_clima -> ingestar_viajes
+
+Es la práctica de ingesta de las clases 5 y 6, no el pipeline: el pipeline es `pipeline_taxi`.
+Vive solo en el Airflow del Code Editor (la VM de prod no lo recibe) y por eso escribe en disco
+(~/datos_clase05), no en S3.
 
 Qué hace cada tarea
 - Las tres ingestas llaman a TUS funciones de src/pipeline/ingesta_alumno.py (las del lab de la
   clase 5), con `mes` y `reprocesar`. Si una todavía está vacía, la tarea falla con un mensaje
   que dice cuál pegar.
-- silver y gold usan el código del repo (pipeline.silver y pipeline.gold, con Spark local) sobre
-  el bronze que dejaron tus ingestas.
-- Las cinco tareas consultan la tabla de control (BIGDATA.CONTROL.WATERMARK) antes de trabajar y
-  registran en ella al terminar bien. Por eso ejecutar el DAG dos veces con el mismo mes no repite
-  nada, y por eso un reintento de Airflow tampoco duplica: si la tarea alcanzó a registrar, el
-  reintento se salta; si falló antes de registrar, el reintento lo hace completo.
+- Las tres tareas consultan la tabla de control (BIGDATA.CONTROL.WATERMARK, la de la práctica;
+  el pipeline usa CONTROL_DEV y CONTROL_PROD) antes de trabajar y registran en ella al terminar
+  bien. Por eso ejecutar el DAG dos veces con el mismo mes no repite nada, y por eso un reintento
+  de Airflow tampoco duplica: si la tarea alcanzó a registrar, el reintento se salta; si falló
+  antes de registrar, el reintento lo hace completo.
 - Cada tarea imprime en su log qué decidió: «INGESTÓ», «SE SALTÓ» o «REPROCESÓ».
 
 Cómo se lanza (es un DAG de dev, en el Airflow del Code Editor; no hay corridas automáticas)
@@ -24,23 +27,21 @@ Cómo se lanza (es un DAG de dev, en el Airflow del Code Editor; no hay corridas
   mes que no ha terminado falla.
 
 Datos de prueba (para que cada estudiante pueda repetir la clase sin ensuciar nada real)
-- Las tablas se llaman prueba_clima, prueba_taxi_zones, prueba_fhvhv, prueba_fhvhv_trips (silver)
-  y prueba_daily_zone_metrics (gold). El prefijo «prueba_» es lo que permite ingestar viajes con
-  limite_filas (la guarda del lab lo exige) y borrar sus registros para empezar de cero.
+- Las tablas se llaman prueba_clima, prueba_taxi_zones y prueba_fhvhv. El prefijo «prueba_» es lo
+  que permite ingestar viajes con limite_filas (la guarda del lab lo exige) y borrar sus registros
+  para empezar de cero.
 - Los viajes se ingestan en modo de prueba: se descarga el archivo completo y se escriben solo
   las primeras 1 000 filas. Airflow y Spark comparten una máquina de 7.6 GB.
 
 Configuración opcional, con variables de entorno al arrancar Airflow (make airflow-local)
     CLASE05_DATOS             carpeta de datos de las clases (por defecto ~/datos_clase05)
     INGESTA_BASE_BRONZE       bronze de entrada y salida (por defecto <CLASE05_DATOS>/bronze_alumno)
-    INGESTA_BASE_SILVER       carpeta de silver (por defecto <CLASE05_DATOS>/silver_alumno)
-    INGESTA_BASE_GOLD         carpeta de gold (por defecto <CLASE05_DATOS>/gold_alumno)
     INGESTA_PREFIJO_TABLAS    prefijo de las tablas (por defecto «prueba_»)
     INGESTA_LIMITE_VIAJES     filas de viajes (por defecto 1000; 0 = mes completo)
 
 Por qué las tareas usan ExternalPythonOperator: Airflow corre en su propio entorno de Python
 (sin Spark ni el paquete pipeline). Cada tarea ejecuta su función con el Python del .venv del
-repo, el mismo de los notebooks y de `make test`, donde sí están Spark y pipeline. Por eso cada
+repo, el mismo de los notebooks y de `make test`, donde sí está el paquete pipeline. Por eso cada
 función de tarea es autocontenida: importa lo que usa dentro de ella.
 """
 
@@ -55,22 +56,18 @@ from airflow.sdk import DAG, Param, task
 # --- configuración --------------------------------------------------------------------------
 
 # Raíz del repo (airflow/dags/ingesta_mensual.py -> repo) y el Python del .venv, como en
-# framework/tasks.py (pipeline_local_task).
+# el resto del repo.
 REPO_ROOT = Path(__file__).resolve().parents[2]
 REPO_SRC = str(REPO_ROOT / "src")
 PYTHON_DEL_REPO = str(REPO_ROOT / ".venv" / "bin" / "python")
 
 DATOS = Path(os.environ.get("CLASE05_DATOS", Path.home() / "datos_clase05"))
 BASE_BRONZE = os.environ.get("INGESTA_BASE_BRONZE", str(DATOS / "bronze_alumno"))
-BASE_SILVER = os.environ.get("INGESTA_BASE_SILVER", str(DATOS / "silver_alumno"))
-BASE_GOLD = os.environ.get("INGESTA_BASE_GOLD", str(DATOS / "gold_alumno"))
 
 PREFIJO = os.environ.get("INGESTA_PREFIJO_TABLAS", "prueba_")
 TABLA_ZONAS = f"{PREFIJO}taxi_zones"
 TABLA_CLIMA = f"{PREFIJO}clima"
 TABLA_VIAJES = f"{PREFIJO}fhvhv"
-TABLA_SILVER = f"{PREFIJO}fhvhv_trips"
-TABLA_GOLD = f"{PREFIJO}daily_zone_metrics"
 
 # Modo de prueba de los viajes. 0 en la variable significa mes completo (None para la función).
 LIMITE_VIAJES = int(os.environ.get("INGESTA_LIMITE_VIAJES", "1000")) or None
@@ -193,113 +190,11 @@ def tarea_ingestar_viajes(repo_src, base_bronze, tabla, mes, reprocesar, limite_
         print(f"DECISIÓN: INGESTÓ los viajes de {mes}. Lote nuevo en {lote}.")
 
 
-@task.external_python(task_id="silver", python=PYTHON_DEL_REPO, expect_airflow=False)
-def tarea_silver(repo_src, base_bronze, base_silver, base_gold, mes, reprocesar, tablas):
-    import json
-    import sys
-    from argparse import Namespace
-    from datetime import UTC, datetime
-    from unittest import mock
-
-    sys.path.insert(0, repo_src)
-    from pipeline import engine, silver
-    from pipeline import io as pio
-    from pipeline.settings import cargar, validar_mes
-    from pipeline.watermark import consultar_watermark, registrar_watermark
-
-    reprocesar = str(reprocesar).lower() == "true"
-    if not mes:
-        raise ValueError('Falta el parámetro mes. Dispara el DAG con {"mes": "2024-01"}.')
-    validar_mes(mes)
-    tabla_silver = tablas["silver"]
-
-    # Paso 1. Consultar la tabla de control: ¿silver de este mes ya está hecho?
-    registros = json.loads(consultar_watermark(tabla_silver, "silver", mes))
-    if registros and not reprocesar:
-        ultimo = registros[-1]
-        print(
-            f"DECISIÓN: SE SALTÓ silver {mes}. La tabla de control ya tiene {len(registros)} "
-            f"registro(s), el último del {ultimo['inicio']} UTC con {ultimo['filas']} filas."
-        )
-        return
-
-    # Paso 2. Configuración del repo (entorno local) apuntando a las carpetas del estudiante.
-    inicio = datetime.now(UTC).replace(microsecond=0)
-    cfg = cargar("local")
-    cfg["rutas"] = {"bronze": base_bronze, "silver": base_silver, "gold": base_gold}
-    args = Namespace(env="local", engine="local", meses=[mes], limite=None)
-
-    # Paso 3. Correr silver del repo. Silver busca las carpetas «fhvhv», «clima» y «taxi_zones»;
-    # las ingestas de prueba escribieron en las suyas (prefijo prueba_), así que se le indica
-    # cuáles son solo mientras corre.
-    carpetas_de_bronze = {
-        "VIAJES": tablas["viajes"],
-        "CLIMA": tablas["clima"],
-        "ZONAS": tablas["zonas"],
-    }
-    spark = engine.get_spark("local")
-    with mock.patch.multiple(pio, **carpetas_de_bronze):
-        silver.main(spark, cfg, args)
-
-    # Paso 4. Registrar solo ahora, con las filas que quedaron en silver.
-    filas = pio.leer_silver(spark, cfg, [mes]).count()
-    registrar_watermark(base_bronze, "silver", tabla_silver, mes, filas, inicio, reprocesar)
-    accion = "REPROCESÓ" if registros else "CONSTRUYÓ"
-    print(f"DECISIÓN: {accion} silver {mes}: {filas} filas en {base_silver}.")
-
-
-@task.external_python(task_id="gold", python=PYTHON_DEL_REPO, expect_airflow=False)
-def tarea_gold(repo_src, base_bronze, base_silver, base_gold, mes, reprocesar, tablas):
-    import json
-    import sys
-    from argparse import Namespace
-    from datetime import UTC, datetime
-
-    sys.path.insert(0, repo_src)
-    from pipeline import engine, gold
-    from pipeline import io as pio
-    from pipeline.settings import cargar, validar_mes
-    from pipeline.watermark import consultar_watermark, registrar_watermark
-
-    reprocesar = str(reprocesar).lower() == "true"
-    if not mes:
-        raise ValueError('Falta el parámetro mes. Dispara el DAG con {"mes": "2024-01"}.')
-    validar_mes(mes)
-    tabla_gold = tablas["gold"]
-
-    # Paso 1. Consultar la tabla de control: ¿gold de este mes ya está hecho?
-    registros = json.loads(consultar_watermark(tabla_gold, "gold", mes))
-    if registros and not reprocesar:
-        ultimo = registros[-1]
-        print(
-            f"DECISIÓN: SE SALTÓ gold {mes}. La tabla de control ya tiene {len(registros)} "
-            f"registro(s), el último del {ultimo['inicio']} UTC con {ultimo['filas']} filas."
-        )
-        return
-
-    # Paso 2. Configuración del repo apuntando a las carpetas del estudiante.
-    inicio = datetime.now(UTC).replace(microsecond=0)
-    cfg = cargar("local")
-    cfg["rutas"] = {"bronze": base_bronze, "silver": base_silver, "gold": base_gold}
-    args = Namespace(env="local", engine="local", meses=[mes], limite=None)
-
-    # Paso 3. Correr gold del repo: lee silver y escribe las métricas diarias por zona.
-    spark = engine.get_spark("local")
-    gold.main(spark, cfg, args)
-
-    # Paso 4. Registrar solo ahora, con las filas de la partición del mes.
-    carpeta_del_mes = pio.unir(cfg["rutas"]["gold"], pio.CARPETA_CAPA["gold"], f"mes={mes}")
-    filas = spark.read.parquet(carpeta_del_mes).count()
-    registrar_watermark(base_silver, "gold", tabla_gold, mes, filas, inicio, reprocesar)
-    accion = "REPROCESÓ" if registros else "CONSTRUYÓ"
-    print(f"DECISIÓN: {accion} gold {mes}: {filas} filas en {base_gold}.")
-
-
 # --- el DAG ---------------------------------------------------------------------------------
 
 with DAG(
     dag_id="ingesta_mensual",
-    description="Ingesta del alumno (zonas, clima, viajes) y silver/gold, mes a mes",
+    description="Práctica de ingesta del alumno (zonas, clima, viajes), mes a mes",
     # Para correr solo el día 1 de cada mes a medianoche, cambia la línea de abajo por esta:
     # schedule="0 0 1 * *",
     schedule=None,
@@ -344,28 +239,4 @@ with DAG(
         reprocesar=REPROCESAR,
         limite_filas=LIMITE_VIAJES,
     )
-    silver = tarea_silver(
-        repo_src=REPO_SRC,
-        base_bronze=BASE_BRONZE,
-        base_silver=BASE_SILVER,
-        base_gold=BASE_GOLD,
-        mes=MES,
-        reprocesar=REPROCESAR,
-        tablas={
-            "zonas": TABLA_ZONAS,
-            "clima": TABLA_CLIMA,
-            "viajes": TABLA_VIAJES,
-            "silver": TABLA_SILVER,
-        },
-    )
-    gold = tarea_gold(
-        repo_src=REPO_SRC,
-        base_bronze=BASE_BRONZE,
-        base_silver=BASE_SILVER,
-        base_gold=BASE_GOLD,
-        mes=MES,
-        reprocesar=REPROCESAR,
-        tablas={"gold": TABLA_GOLD},
-    )
-
-    zonas >> clima >> viajes >> silver >> gold
+    zonas >> clima >> viajes

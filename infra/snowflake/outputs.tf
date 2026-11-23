@@ -19,3 +19,15 @@ output "airflow_conexion" {
     role      = snowflake_account_role.dev.name
   }
 }
+
+# Datos (no secretos) de la conexión de prod; scripts/snowflake-secreto.sh añade la llave de AIRFLOW_PROD_SVC.
+output "airflow_prod_conexion" {
+  description = "Campos de la conexión de Airflow en prod a Snowflake (rol BIGDATA_PROD). null si no se creó AIRFLOW_PROD_SVC."
+  value = var.airflow_prod_public_key == null ? null : {
+    login     = snowflake_service_user.airflow_prod[0].name
+    account   = "${var.organization_name}-${var.account_name}"
+    warehouse = snowflake_warehouse.bigdata.name
+    database  = snowflake_database.bigdata.name
+    role      = snowflake_account_role.prod.name
+  }
+}

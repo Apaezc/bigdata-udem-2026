@@ -40,6 +40,8 @@ module "glue" {
   aws_region               = var.aws_region
   lake_bucket              = module.lake.bucket_name
   permissions_boundary_arn = local.permissions_boundary_arn
+  snowflake_secret_arns    = [aws_secretsmanager_secret.snowflake.arn, aws_secretsmanager_secret.snowflake_prod.arn]
+  snowflake_secret_name    = aws_secretsmanager_secret.snowflake.name
 }
 
 # Secreto con la conexión de Snowflake para Airflow (snowflake_default), siempre creado: lo leen
@@ -56,6 +58,16 @@ resource "aws_secretsmanager_secret" "snowflake" {
 moved {
   from = module.airflow_vm[0].aws_secretsmanager_secret.snowflake
   to   = aws_secretsmanager_secret.snowflake
+}
+
+# Conexión de producción (AIRFLOW_PROD_SVC, rol BIGDATA_PROD). La lee la VM (refresh.env: SNOWFLAKE_SECRET)
+# y los jobs de Glue que lanza el DAG de prod (--snowflake-secret <prefix>/snowflake_prod). Mismo trato:
+# Terraform crea el contenedor y scripts/snowflake-secreto.sh escribe el valor. Es un recurso nuevo:
+# no reemplaza ni borra nada de lo que ya existe.
+resource "aws_secretsmanager_secret" "snowflake_prod" {
+  name                    = "${var.prefix}/snowflake_prod"
+  description             = "Conexión de Airflow en prod a Snowflake (rol BIGDATA_PROD). La escribe make snowflake."
+  recovery_window_in_days = 0
 }
 
 module "airflow_vm" {

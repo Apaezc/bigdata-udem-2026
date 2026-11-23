@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 440" font-family="Helvetica Neue, Arial, sans-serif">
+<title>Dev y prod no comparten ninguna carpeta ni ningún esquema</title><desc>A la izquierda, el bucket del lake con dos carpetas separadas, dev y prod, cada una con bronze, silver y gold; code, dags, logs y tmp son del lake. A la derecha, Snowflake con cuatro esquemas: DEV, PROD, CONTROL_DEV y CONTROL_PROD. Abajo, el Code Editor siempre escribe en dev, dev y CONTROL_DEV; la VM de Airflow solo escribe en prod, PROD y CONTROL_PROD, y solo después de un pull request y del CI/CD. Una flecha roja marca que el Code Editor no puede escribir en prod.</desc>
+<defs><marker id="m_a" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#2340D8"/></marker><marker id="m_g" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#5F6672"/></marker><marker id="m_b" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#B4622F"/></marker><marker id="m_y" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#FFC83D"/></marker><marker id="m_r" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#B3261E"/></marker></defs>
+<rect x="6" y="6" width="670" height="260" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
+<text x="22" y="36" font-size="22" fill="#15171C" text-anchor="start" font-weight="700">Bucket del lake</text>
+<text x="662" y="36" font-size="22" fill="#5F6672" text-anchor="end">code/ dags/ logs/ tmp/ son del lake</text>
+<text x="22" y="66" font-size="22" fill="#5F6672" text-anchor="start" font-family="SF Mono, Menlo, Consolas, monospace">s3://bigdata-lake-&lt;cuenta&gt;-us-east-2</text>
+<rect x="22" y="84" width="306" height="170" rx="6" fill="#FFFFFF" stroke="#15171C" stroke-width="2.5"/>
+<text x="36" y="112" font-size="22" fill="#15171C" text-anchor="start" font-weight="700">dev/</text>
+<rect x="38" y="124" width="274" height="36" rx="6" fill="#B4622F" stroke="#B4622F" stroke-width="1.5"/>
+<text x="175.0" y="150.0" font-size="22" fill="#FFFFFF" text-anchor="middle" font-weight="700">bronze</text>
+<rect x="38" y="166" width="274" height="36" rx="6" fill="#6E7F94" stroke="#6E7F94" stroke-width="1.5"/>
+<text x="175.0" y="192.0" font-size="22" fill="#FFFFFF" text-anchor="middle" font-weight="700">silver</text>
+<rect x="38" y="208" width="274" height="36" rx="6" fill="#B07F0E" stroke="#B07F0E" stroke-width="1.5"/>
+<text x="175.0" y="234.0" font-size="22" fill="#FFFFFF" text-anchor="middle" font-weight="700">gold</text>
+<rect x="346" y="84" width="306" height="170" rx="6" fill="#FFFFFF" stroke="#15171C" stroke-width="2.5"/>
+<text x="360" y="112" font-size="22" fill="#15171C" text-anchor="start" font-weight="700">prod/</text>
+<rect x="362" y="124" width="274" height="36" rx="6" fill="#B4622F" stroke="#B4622F" stroke-width="1.5"/>
+<text x="499.0" y="150.0" font-size="22" fill="#FFFFFF" text-anchor="middle" font-weight="700">bronze</text>
+<rect x="362" y="166" width="274" height="36" rx="6" fill="#6E7F94" stroke="#6E7F94" stroke-width="1.5"/>
+<text x="499.0" y="192.0" font-size="22" fill="#FFFFFF" text-anchor="middle" font-weight="700">silver</text>
+<rect x="362" y="208" width="274" height="36" rx="6" fill="#B07F0E" stroke="#B07F0E" stroke-width="1.5"/>
+<text x="499.0" y="234.0" font-size="22" fill="#FFFFFF" text-anchor="middle" font-weight="700">gold</text>
+<rect x="692" y="6" width="422" height="260" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
+<text x="708" y="36" font-size="22" fill="#15171C" text-anchor="start" font-weight="700">Snowflake · base BIGDATA</text>
+<rect x="704" y="56" width="196" height="90" rx="6" fill="#FFFFFF" stroke="#15171C" stroke-width="2.5"/>
+<text x="802.0" y="109.0" font-size="22" fill="#15171C" text-anchor="middle" font-weight="700">DEV</text>
+<rect x="912" y="56" width="196" height="90" rx="6" fill="#FFFFFF" stroke="#15171C" stroke-width="2.5"/>
+<text x="1010.0" y="109.0" font-size="22" fill="#15171C" text-anchor="middle" font-weight="700">PROD</text>
+<rect x="704" y="162" width="196" height="90" rx="6" fill="#E3E6F6" stroke="#2340D8" stroke-width="2.5"/>
+<text x="802.0" y="215.0" font-size="22" fill="#2340D8" text-anchor="middle" font-weight="700">CONTROL_DEV</text>
+<rect x="912" y="162" width="196" height="90" rx="6" fill="#E3E6F6" stroke="#2340D8" stroke-width="2.5"/>
+<text x="1010.0" y="215.0" font-size="22" fill="#2340D8" text-anchor="middle" font-weight="700">CONTROL_PROD</text>
+<rect x="6" y="330" width="548" height="100" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
+<text x="280.0" y="374.5" font-size="22" fill="#15171C" text-anchor="middle" font-weight="700">Code Editor · siempre dev</text>
+<text x="280.0" y="401.5" font-size="22" fill="#5F6672" text-anchor="middle">escribe dev/, DEV y CONTROL_DEV</text>
+<rect x="572" y="330" width="542" height="100" rx="6" fill="#FFFFFF" stroke="#15171C" stroke-width="2.5"/>
+<text x="843.0" y="374.5" font-size="22" fill="#15171C" text-anchor="middle" font-weight="700">VM de Airflow · solo prod</text>
+<text x="843.0" y="401.5" font-size="22" fill="#5F6672" text-anchor="middle">tras PR y CI/CD: prod/, PROD, CONTROL_PROD</text>
+<line x1="180" y1="328" x2="180" y2="256" stroke="#5F6672" stroke-width="3" marker-end="url(#m_g)"/>
+<line x1="600" y1="328" x2="600" y2="256" stroke="#5F6672" stroke-width="3" marker-end="url(#m_g)"/>
+<line x1="440" y1="328" x2="440" y2="256" stroke="#B3261E" stroke-width="3" stroke-dasharray="8 6" marker-end="url(#m_r)"/>
+<text x="452" y="304" font-size="22" fill="#B3261E" text-anchor="start" font-weight="700">no puede</text>
+</svg>

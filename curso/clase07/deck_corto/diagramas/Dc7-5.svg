@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 440" font-family="Helvetica Neue, Arial, sans-serif">
+<title>Reprocesar con silver sin deduplicar: silver se multiplica y gold se multiplica al cubo</title><desc>Tres filas, una por corrida. En la primera hay un lote en bronze, silver multiplicado por uno y gold por uno. En la segunda, con reprocesar, dos lotes, silver por dos y gold por ocho. En la tercera, tres lotes, silver por tres y gold por veintisiete. La barra de gold crece con el cubo del número de lotes, porque enriquecer une zonas y clima, que también se repiten.</desc>
+<defs><marker id="m_a" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#2340D8"/></marker><marker id="m_g" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#5F6672"/></marker><marker id="m_b" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#B4622F"/></marker><marker id="m_y" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#FFC83D"/></marker><marker id="m_r" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#B3261E"/></marker></defs>
+<text x="228" y="30" font-size="22" fill="#5F6672" text-anchor="start">lotes en bronze</text>
+<text x="430" y="30" font-size="22" fill="#5F6672" text-anchor="start">silver</text>
+<text x="640" y="30" font-size="22" fill="#5F6672" text-anchor="start">gold</text>
+<text x="6" y="90" font-size="22" fill="#15171C" text-anchor="start" font-weight="700">1.ª corrida</text>
+<text x="6" y="118" font-size="22" fill="#5F6672" text-anchor="start">primera vez</text>
+<rect x="228" y="70" width="36" height="36" rx="6" fill="#B4622F" stroke="#B4622F" stroke-width="1.5"/>
+<rect x="430" y="70" width="56" height="36" rx="6" fill="#6E7F94" stroke="#6E7F94" stroke-width="1.5"/>
+<text x="498" y="98" font-size="22" fill="#15171C" text-anchor="start" font-weight="700">×1</text>
+<rect x="640" y="70" width="14" height="36" rx="6" fill="#B07F0E" stroke="#B07F0E" stroke-width="1.5"/>
+<text x="666" y="98" font-size="22" fill="#15171C" text-anchor="start" font-weight="700">×1</text>
+<text x="6" y="194" font-size="22" fill="#15171C" text-anchor="start" font-weight="700">2.ª corrida</text>
+<text x="6" y="222" font-size="22" fill="#5F6672" text-anchor="start">reprocesar</text>
+<rect x="228" y="174" width="36" height="36" rx="6" fill="#B4622F" stroke="#B4622F" stroke-width="1.5"/>
+<rect x="272" y="174" width="36" height="36" rx="6" fill="#B4622F" stroke="#B4622F" stroke-width="1.5"/>
+<rect x="430" y="174" width="112" height="36" rx="6" fill="#6E7F94" stroke="#6E7F94" stroke-width="1.5"/>
+<text x="554" y="202" font-size="22" fill="#B3261E" text-anchor="start" font-weight="700">×2</text>
+<rect x="640" y="174" width="116" height="36" rx="6" fill="#B07F0E" stroke="#B07F0E" stroke-width="1.5"/>
+<text x="768" y="202" font-size="22" fill="#B3261E" text-anchor="start" font-weight="700">×8</text>
+<text x="6" y="298" font-size="22" fill="#15171C" text-anchor="start" font-weight="700">3.ª corrida</text>
+<text x="6" y="326" font-size="22" fill="#5F6672" text-anchor="start">reprocesar</text>
+<rect x="228" y="278" width="36" height="36" rx="6" fill="#B4622F" stroke="#B4622F" stroke-width="1.5"/>
+<rect x="272" y="278" width="36" height="36" rx="6" fill="#B4622F" stroke="#B4622F" stroke-width="1.5"/>
+<rect x="316" y="278" width="36" height="36" rx="6" fill="#B4622F" stroke="#B4622F" stroke-width="1.5"/>
+<rect x="430" y="278" width="168" height="36" rx="6" fill="#6E7F94" stroke="#6E7F94" stroke-width="1.5"/>
+<text x="610" y="306" font-size="22" fill="#B3261E" text-anchor="start" font-weight="700">×3</text>
+<rect x="640" y="278" width="391" height="36" rx="6" fill="#B07F0E" stroke="#B07F0E" stroke-width="1.5"/>
+<text x="1043" y="306" font-size="22" fill="#B3261E" text-anchor="start" font-weight="700">×27</text>
+<text x="560" y="392" font-size="22" fill="#15171C" text-anchor="middle">gold sube con el cubo de los lotes: enriquecer une zonas y clima,</text>
+<text x="560" y="422" font-size="22" fill="#15171C" text-anchor="middle">y esas dos tablas de silver también se repiten.</text>
+</svg>

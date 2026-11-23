@@ -36,62 +36,30 @@ if ! docker buildx version >/dev/null 2>&1 || ! docker buildx version | grep -Eq
 fi
 systemctl enable --now docker crond
 
-# 3. Directorios de Airflow y script de refresco. El script descarga, desde el bucket del lake,
-#    docker-compose.yaml (code/airflow/), framework/ (code/airflow/framework/), los DAGs (dags/)
-#    y arma la conexion snowflake_default desde el secreto. Corre ahora y antes de cada arranque
-#    de airflow.service: la VM se apaga y enciende, y asi toma siempre el codigo mas reciente
-#    que dejo "make deploy".
+# 3. Directorios de Airflow, refresh.env y el arranque minimo del refresco. El arranque baja de S3
+#    la version vigente del cuerpo (airflow/vm/airflow-refresh.sh, que sube "make deploy") y la
+#    ejecuta: asi un cambio en el refresco llega sin recrear la VM (user_data corre una sola vez).
+#    El cuerpo baja docker-compose.yaml, framework/, pipeline/ y los DAGs, y arma la conexion
+#    snowflake_default desde el secreto. Corre ahora y antes de cada arranque de airflow.service.
 mkdir -p "$AIRFLOW_HOME/dags" "$AIRFLOW_HOME/logs" "$AIRFLOW_HOME/plugins" \
-         "$AIRFLOW_HOME/framework" "$AIRFLOW_HOME/secrets"
+         "$AIRFLOW_HOME/framework" "$AIRFLOW_HOME/pipeline" "$AIRFLOW_HOME/secrets"
+
+cat > "$AIRFLOW_HOME/refresh.env" <<ENV
+REGION=${region}
+LAKE=${lake_bucket}
+SNOWFLAKE_SECRET=${snowflake_secret}
+ENV
 
 cat > /usr/local/bin/airflow-refresh.sh <<'REFRESH'
-#!/bin/bash
-# Refresca compose, framework, DAGs y la conexion snowflake_default. No imprime secretos.
-set -uo pipefail
-export AWS_DEFAULT_REGION="${region}"
-LAKE="${lake_bucket}"
-SNOWFLAKE_SECRET="${snowflake_secret}"
-AIRFLOW_HOME=/opt/airflow
-
-aws s3 cp "s3://$LAKE/code/airflow/docker-compose.yaml" "$AIRFLOW_HOME/docker-compose.yaml" \
-  || echo "AVISO: no hay docker-compose.yaml en s3://$LAKE/code/airflow/ (ejecuta make deploy)"
-aws s3 sync "s3://$LAKE/code/airflow/framework/" "$AIRFLOW_HOME/framework/" --delete \
-  || echo "AVISO: no se pudo sincronizar framework/"
-aws s3 sync "s3://$LAKE/dags/" "$AIRFLOW_HOME/dags" --delete \
-  || echo "AVISO: no se pudieron sincronizar los DAGs"
-
-# Conexion snowflake_default: el secreto guarda el JSON de la conexion de Airflow.
-# Si esta vacio o no es valido, queda sin conexion (cargar_gold fallara hasta completarlo).
-SNOW_JSON=$(aws secretsmanager get-secret-value --secret-id "$SNOWFLAKE_SECRET" \
-  --query SecretString --output text 2>/dev/null || true)
-: > "$AIRFLOW_HOME/snowflake.env"
-if [ -n "$SNOW_JSON" ]; then
-  SNOW_JSON="$SNOW_JSON" python3 -c '
-import json, os, sys
-d = json.loads(os.environ["SNOW_JSON"])
-if not isinstance(d, dict) or "conn_type" not in d:
-    sys.exit(1)
-c = json.dumps(d, separators=(",", ":"))
-if "\x27" in c:
-    sys.exit(1)
-print("AIRFLOW_CONN_SNOWFLAKE_DEFAULT=\x27" + c + "\x27")
-' >> "$AIRFLOW_HOME/snowflake.env" \
-    || { : > "$AIRFLOW_HOME/snowflake.env"; echo "AVISO: el secreto de Snowflake no es un JSON de conexion valido"; }
-fi
-unset SNOW_JSON
-chmod 600 "$AIRFLOW_HOME/snowflake.env"
-chown 50000:0 "$AIRFLOW_HOME/snowflake.env"
-chown -R 50000:0 "$AIRFLOW_HOME/framework" "$AIRFLOW_HOME/dags" 2>/dev/null || true
+${refresh_bootstrap}
 REFRESH
 chmod 755 /usr/local/bin/airflow-refresh.sh
 /usr/local/bin/airflow-refresh.sh
 
-# 4. Sincronizacion de DAGs y framework cada minuto.
-cat > /etc/cron.d/airflow-dags-sync <<EOF
-AWS_DEFAULT_REGION=${region}
-* * * * * root aws s3 sync s3://$LAKE/dags/ $AIRFLOW_HOME/dags --delete >> /var/log/airflow-dags-sync.log 2>&1
-* * * * * root aws s3 sync s3://$LAKE/code/airflow/framework/ $AIRFLOW_HOME/framework/ --delete >> /var/log/airflow-dags-sync.log 2>&1
-EOF
+# 4. Sincronizacion de DAGs, framework y pipeline cada minuto (el cuerpo decide que se sincroniza).
+cat > /etc/cron.d/airflow-dags-sync <<'CRON'
+* * * * * root /usr/local/bin/airflow-refresh.sh sync >> /var/log/airflow-dags-sync.log 2>&1
+CRON
 chmod 644 /etc/cron.d/airflow-dags-sync
 
 # 5. Contraseña admin de la UI (desde Secrets Manager) y claves del .env (generadas una vez).

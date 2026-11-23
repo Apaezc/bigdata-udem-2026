@@ -41,3 +41,9 @@ variable "airflow_public_key" {
   type        = string
   default     = null
 }
+
+variable "airflow_prod_public_key" {
+  description = "Clave pública (una línea, sin cabeceras) de AIRFLOW_PROD_SVC. El Makefile la lee de ~/.snowflake/keys/airflow_prod_svc_rsa_key.pub (la genera con bootstrap/snowflake/gen_key.sh si falta) y la pasa como TF_VAR_airflow_prod_public_key. null = no se crea el usuario."
+  type        = string
+  default     = null
+}
