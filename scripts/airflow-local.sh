@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# Airflow de dev: Airflow 3.3.2 dentro del Code Editor (sin Docker). Lanza el DAG con
-# entorno=local (Spark aquí, sobre la muestra) o entorno=dev (Glue small). Prod es la VM.
+# Airflow de dev: Airflow 3.3.2 dentro del Code Editor (sin Docker). Todo lo que corre aquí es dev
+# (el entorno no se elige: se fuerza PIPELINE_ENTORNO=dev); el cómputo sí: code_editor (Spark aquí,
+# leyendo y escribiendo en s3://<lake>/dev/) o glue_*. Prod es la VM.
 # Uso: airflow-local.sh up | down | estado
 #   up     instala (solo la primera vez), levanta nginx en 8080 y `airflow standalone` en 8081
 #   down   detiene Airflow y nginx
@@ -22,20 +23,45 @@ instalar() {
     msg "Instalando nginx (normalmente lo instala el Lifecycle Config al arrancar el space)"
     sudo apt-get update -qq && sudo apt-get install -y -qq nginx >/dev/null
   fi
-  if [[ ! -x "$VENV/bin/airflow" ]]; then
-    msg "Instalando Airflow $AIRFLOW_VERSION en $VENV (unos minutos, solo la primera vez)"
-    python3 -m venv "$VENV"
-    local py constraints
-    py="$("$VENV/bin/python" -c 'import sys; print("%d.%d" % sys.version_info[:2])')"
-    constraints="https://raw.githubusercontent.com/apache/airflow/constraints-${AIRFLOW_VERSION}/constraints-${py}.txt"
-    "$VENV/bin/pip" install --quiet --upgrade pip
-    "$VENV/bin/pip" install --quiet --constraint "$constraints" \
-      "apache-airflow==$AIRFLOW_VERSION" \
-      apache-airflow-providers-amazon \
-      apache-airflow-providers-snowflake \
-      apache-airflow-providers-common-sql \
-      apache-airflow-providers-standard
+  if airflow_sano; then
+    return 0
   fi
+  # El venv se crea siempre con Python 3.12 y no con el python3 del sistema: SageMaker cambia
+  # la versión de conda (pasó de 3.12 a 3.13) y deja un venv roto o sin constraints de Airflow.
+  msg "Instalando Airflow $AIRFLOW_VERSION en $VENV con Python $VENV_PYTHON_VERSION (unos minutos, solo la primera vez)"
+  rm -rf "$VENV"
+  local uv_bin="" constraints
+  uv_bin="$(buscar_uv)" || uv_bin=""
+  if [[ -n "$uv_bin" ]]; then
+    "$uv_bin" venv --seed --python "$VENV_PYTHON_VERSION" "$VENV"
+  elif command -v "python$VENV_PYTHON_VERSION" >/dev/null 2>&1; then
+    "python$VENV_PYTHON_VERSION" -m venv "$VENV"
+  else
+    error "No hay uv ni python$VENV_PYTHON_VERSION para instalar Airflow. Corre 'make reparar-entorno' y repite."
+  fi
+  constraints="https://raw.githubusercontent.com/apache/airflow/constraints-${AIRFLOW_VERSION}/constraints-${VENV_PYTHON_VERSION}.txt"
+  local paquetes=(
+    "apache-airflow==$AIRFLOW_VERSION"
+    apache-airflow-providers-amazon
+    apache-airflow-providers-snowflake
+    apache-airflow-providers-common-sql
+    apache-airflow-providers-standard
+  )
+  # Sin --quiet: si la instalación falla, el error tiene que verse aquí y no como un Airflow que no arranca.
+  if [[ -n "$uv_bin" ]]; then
+    "$uv_bin" pip install --python "$VENV/bin/python" --constraint "$constraints" "${paquetes[@]}"
+  else
+    "$VENV/bin/python" -m pip install --upgrade pip
+    "$VENV/bin/python" -m pip install --constraint "$constraints" "${paquetes[@]}"
+  fi
+  airflow_sano || error "Airflow no quedó instalado en $VENV: revisa el error de arriba."
+}
+
+airflow_sano() {
+  # 0 si el venv de Airflow existe, es Python 3.12 y el comando airflow responde.
+  [[ -x "$VENV/bin/airflow" ]] || return 1
+  "$VENV/bin/python" -c "import sys; sys.exit(0 if sys.version_info[:2] == (3, 12) else 1)" >/dev/null 2>&1 || return 1
+  "$VENV/bin/airflow" version >/dev/null 2>&1
 }
 
 escribir_nginx() {
@@ -85,25 +111,27 @@ entorno_airflow() {
   export AIRFLOW_CONN_AWS_DEFAULT="{\"conn_type\": \"aws\", \"extra\": {\"region_name\": \"$AWS_REGION\"}}"
   export AWS_DEFAULT_REGION="$AWS_REGION"
   export AIRFLOW_VAR_PREFIX="$PREFIX"
-  # Rama local del DAG: descarga la muestra la primera vez (s3://<lake>/muestra).
+  # Bucket del lake y secreto de Snowflake de dev (rol BIGDATA_DEV), igual que make correr.
   LAKE_BUCKET="$(lake_bucket)"
   export LAKE_BUCKET
-  export PIPELINE_ENTORNO=dev
+  export WATERMARK_SECRET="$SECRETO_SNOWFLAKE"
+  export PIPELINE_ENTORNO=dev  # forzado: prod solo existe en la VM
+  unset PIPELINE_RAIZ_LAKE     # solo para pruebas; aquí no debe existir
   # Conexión snowflake_default desde el secreto <prefix>/snowflake (igual que en la VM).
   local snow
-  snow="$(aws secretsmanager get-secret-value --secret-id "$PREFIX/snowflake" \
+  snow="$(aws secretsmanager get-secret-value --secret-id "$SECRETO_SNOWFLAKE" \
     --query SecretString --output text 2>/dev/null || true)"
   if [[ -n "$snow" ]] && jq -e '.conn_type' >/dev/null 2>&1 <<< "$snow"; then
     export AIRFLOW_CONN_SNOWFLAKE_DEFAULT="$snow"
   else
-    aviso "Sin conexión snowflake_default (secreto $PREFIX/snowflake vacío o inválido): cargar_gold fallará."
+    aviso "Sin conexión snowflake_default (secreto $SECRETO_SNOWFLAKE vacío o inválido): cargar_gold fallará."
   fi
 }
 
 up() {
   requerir python3 aws jq
   [[ -x "$ROOT_DIR/.venv/bin/python" ]] \
-    || error "Falta $ROOT_DIR/.venv (Spark de la rama local del DAG). Corre 'make setup' primero."
+    || error "Falta $ROOT_DIR/.venv (Spark del cómputo code_editor). Corre 'cd ~/bigdata && make setup' primero."
   instalar
   if ! pgrep -f "airflow standalone" >/dev/null && ss -ltn 2>/dev/null | grep -q ':8081 '; then
     error "El puerto 8081 está ocupado por otro proceso (¿un Airflow anterior?). Corre 'make airflow-local-down'."

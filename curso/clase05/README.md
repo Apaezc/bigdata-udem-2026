@@ -1,3 +1,5 @@
+> Este material usó código que se reemplazó en la clase 7. Para verlo funcionando: `git checkout antes-limpieza-clase07`
+
 # Clase 5 · Transformar con Spark (mar 17 nov)
 
 Pregunta de la clase: ¿cómo llegan al lake, sin repetirse, los datos de tres fuentes que cambian cada mes? Es la primera clase en la que escribes código del pipeline: aprendes a usar Spark y después escribes la ingesta de las tres fuentes a tu propio bronze. El trabajo se hace en tres notebooks que corren en el Code Editor de SageMaker, con Spark en local. El lab de silver y gold, que antes era parte de esta clase, es ahora el lab de la clase 6 (`curso/clase06/`).

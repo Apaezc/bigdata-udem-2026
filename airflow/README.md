@@ -42,27 +42,80 @@ El Dockerfile es inline en el compose; no hay archivo extra.
     `make airflow-off && make airflow-on` (o, dentro de la VM, `sudo /usr/local/bin/airflow-refresh.sh && sudo systemctl restart airflow`).
 - Logs de Glue: `verbose=True` copia en el log de la tarea los logs del job (CloudWatch `/aws-glue/jobs/...`) y los enlaces a la consola de Glue y al Spark UI.
 
-## Entorno y parámetros del DAG
+## Los DAGs
 
-`pipeline_taxi` separa dos conceptos:
+| DAG | Dónde corre | Qué hace |
+|---|---|---|
+| `pipeline_taxi` | los dos Airflow | `correr_bronze` → `correr_silver` → `correr_gold` → `cargar_snowflake` (el pipeline) |
+| `resetear_entorno` | los dos Airflow; cada uno resetea solo el suyo | vacía el entorno para repetir el pipeline desde cero |
 
-- **Entorno** (dónde quedan los datos): lo fija cada Airflow con `PIPELINE_ENTORNO` y no se elige al lanzar el DAG.
-  El Airflow del Code Editor es `dev` (`s3://<lake>/dev/`, `BIGDATA.DEV`) y la VM es `prod` (`s3://<lake>/prod/`, `BIGDATA.PROD`).
-- **Cómputo** (con qué recursos se calcula): el parámetro `computo`.
+## `pipeline_taxi`: entorno y perillas
 
-| `computo` | Recursos | Entornos | Notas |
-|---|---|---|---|
-| `spark_local` | Spark en el Code Editor, sobre la muestra | solo dev | Gratis. Máximo 10 000 filas por fuente. Escribe en `./lake` y no carga en Snowflake. Es el valor por defecto en dev |
-| `glue_small` | Glue, 2 workers | dev | |
-| `glue_medium` | Glue, 4 workers | dev, prod | |
-| `glue_large` | Glue, 6 workers | dev, prod | Es el valor por defecto en prod |
+Son dos cosas distintas:
 
-Otros parámetros:
+- **Entorno** (dónde quedan los datos): lo fija cada Airflow con `PIPELINE_ENTORNO` y **no se elige al lanzar**.
+  El Airflow del Code Editor es `dev` (`s3://<lake>/dev/`, `BIGDATA.DEV`, `BIGDATA.CONTROL_DEV`) y la VM es `prod`
+  (`s3://<lake>/prod/`, `BIGDATA.PROD`, `BIGDATA.CONTROL_PROD`). No hay un parámetro de entorno: el entorno aparece en
+  el `doc_md` del DAG y en el banner de cada tarea. Detalle en [docs/rutas_del_lake.md](../docs/rutas_del_lake.md).
+- **Perillas** (el formulario de «Trigger DAG»): `computo`, `limite`, `mes` y `reprocesar`. Lo que pones en el
+  formulario gana sobre `pipeline.yaml`.
 
-- `mes`: vacío = todos los meses de `src/pipeline/config/<entorno>.yaml` (en dev, solo `2024-01`); o un mes en formato `YYYY-MM`.
-- `limite`: máximo de viajes por fuente. Vacío = sin recorte. Con `spark_local` se aplica el tope de 10 000; en prod se ignora.
+| Perilla | Dev | Prod |
+|---|---|---|
+| `computo` | `code_editor`, `glue_small`, `glue_medium`, `glue_large`; valor inicial: el de `pipeline.yaml` | solo `glue_small`, `glue_medium`, `glue_large`; valor inicial `glue_medium` |
+| `limite` | `1000`, `100000`, `todos` (texto); con `code_editor` solo 1000 o 100000 | solo `todos` |
+| `mes` | `AAAA-MM`; vacío = los meses de `config/dev.yaml` | `AAAA-MM`; valor inicial `2024-01` durante el curso (vacío lanzaría los doce meses) |
+| `reprocesar` | casilla | casilla |
 
-En dev puedes probar a escala con `glue_large` (varios meses) sin tocar prod.
+Prod no lee `pipeline.yaml`. En dev, si `pipeline.yaml` trae un valor inválido (por ejemplo `limite: 12345` o
+`computo: foo`) el DAG se parsea igual: el formulario arranca con el valor por defecto y el aviso queda en el
+`doc_md` y en el log. Un cambio en `pipeline.yaml` tarda unos 30 segundos en llegar al formulario.
+
+Si llega algo que el formulario no ofrece (por ejemplo con `airflow dags trigger --conf`), la tarea falla con un
+mensaje claro **antes de tocar nada**: en prod, un `computo` que no sea `glue_*` o un `limite` distinto de `todos`;
+en dev, `code_editor` con `todos`.
+
+Cómo se lanza cada tarea (`framework/tasks.py`):
+
+- `computo = code_editor`: el CLI `python -m pipeline.run --paso <paso> ...` con el Python del `.venv` del repo y
+  `PIPELINE_ENTORNO=dev`; el banner sale en el log de la tarea. Con `mes` vacío corre cada mes de `config/dev.yaml`.
+- `computo = glue_*`: la tarea llama directo a `correr_<paso>(...)` en el proceso de Airflow, que usa `lanzar_en_glue`
+  (en dev sube el código de tu árbol de trabajo a `code/dev/`; en prod usa `code/pipeline.zip`). No hace falta Spark.
+- `cargar_snowflake`: llama a `cargar_snowflake(..., conexion=...)` con la conexión `snowflake_default`, sin Spark ni
+  Glue, y exige antes el rol del entorno (`BIGDATA_DEV` o `BIGDATA_PROD`).
+
+Las cuatro tareas no reintentan solas (`retries=0`): una corrida mal hecha no se repite sin que alguien lo decida.
+`max_active_runs=1` y `max_active_tasks=1`.
+
+## `resetear_entorno`
+
+El mismo archivo (`dags/resetear_entorno.py`) está en los dos Airflow y **cada uno borra solo su entorno**: el del
+Code Editor, dev; la VM, con el rol de prod, prod. El parámetro `entorno` solo admite el de ese Airflow.
+
+| Qué | Cómo | No toca |
+|---|---|---|
+| Capas de S3 | todos los objetos bajo `s3://<lake>/<entorno>/` (con `_crudo`; «Conservar el crudo» deja `bronze/_crudo/`) | el otro entorno, `code/`, `dags/`, `logs/`, `tmp/` |
+| Tabla de control | `DELETE FROM BIGDATA.CONTROL_<ENTORNO>.WATERMARK` | `CONTROL_<otro>`, `CONTROL` (historia) |
+| Snowflake | `DROP` de cada tabla y vista de `BIGDATA.<ENTORNO>` | el stage `LAKE_GOLD`, el formato `PARQUET_FF`, el otro esquema |
+| Athena | nada: las tablas externas quedan apuntando a carpetas vacías | |
+
+Tareas, en orden: `validar` → `contar` → `vaciar_control` → `borrar_snowflake` → `borrar_s3` → `resumen`. La tabla de
+control va primero: si algo falla a medias queda «no procesado», nunca «procesado sin datos».
+
+Salvaguardas:
+
+1. El DAG nace pausado y sin calendario.
+2. `solo_listar` viene marcada: la primera corrida cuenta y lista lo que se borraría y termina.
+3. Para borrar hay que desmarcar `solo_listar` **y** escribir la confirmación: `borrar dev`; en prod,
+   `borrar prod <ID de la cuenta AWS>` (el que da `aws sts get-caller-identity`). No hay un valor por defecto que borre.
+4. Antes de borrar se exige el rol del entorno (`BIGDATA_DEV` o `BIGDATA_PROD`; `ACCOUNTADMIN` se rechaza). Si entre
+   `contar` y cada paso de borrado cambia el recuento (registros, tablas u objetos), la tarea se detiene.
+5. El prefijo de S3 sale de `ruta_lake` y se verifica que empiece por `<entorno>/`; el esquema es `BIGDATA.DEV` o
+   `BIGDATA.PROD` y se valida con una expresión regular.
+
+Son barandillas contra errores, no un control contra el dueño de la cuenta: el control real es Snowflake (el rol de
+dev no escribe en `PROD` ni `CONTROL_PROD`) más el rol de la VM (solo ve `prod/`). La lógica que borra está en
+`src/pipeline/herramientas/reseteo.py`; sus pruebas, en `tests/test_reseteo.py` y `airflow/tests/`.
 
 ## Ejecución local (prueba)
 
@@ -81,7 +134,7 @@ Validación sin levantar nada: `docker compose -f airflow/docker-compose.yaml --
 
 1. Terraform (`infra/aws/modules/airflow_vm`, con `enable_airflow = true`) crea la instancia (tag `Name=<prefix>-airflow`),
    el SG `<prefix>-airflow-sg` (sin ingress), los secretos y el apagado a las 23:00 (America/Bogota). Sin IP fija.
-2. `make deploy` / `deploy.yml` suben a `s3://<lake>/`: `dags/` (DAGs), `code/airflow/framework/` y `code/airflow/docker-compose.yaml`.
+2. `deploy.yml` (CI/CD, merge a `main`) sube a `s3://<lake>/`: `dags/` (los DAGs), `code/airflow/framework/` y `code/airflow/docker-compose.yaml`.
 3. User-data instala `/usr/local/bin/airflow-refresh.sh`, que copia esos objetos a `/opt/airflow/` y arma `snowflake.env`.
    Corre al crear la VM y antes de cada arranque de `airflow.service` (que levanta el compose); por cron, cada minuto, se
    sincronizan `dags/` y `framework/`. El `docker-compose.yaml` nuevo se aplica en el siguiente arranque.
@@ -96,11 +149,11 @@ en la VM quedan `/opt/airflow/dags` y `/opt/airflow/framework`, y en el repo `ai
 
 `make airflow-local` instala Airflow 3.3.2 con pip en `~/.airflow-local` (solo la primera vez), levanta nginx en 8080 y
 `airflow standalone` en 8081, con los DAGs del repo. Mismo DAG, misma URL. El entorno es siempre `dev`
-(`PIPELINE_ENTORNO=dev`) y el cómputo se elige con `computo` (por defecto `spark_local`, Spark del `.venv` sobre la muestra).
+(`PIPELINE_ENTORNO=dev`) y el cómputo se elige con `computo` (por defecto el de `pipeline.yaml`; `code_editor` es Spark del `.venv` leyendo y escribiendo en `s3://<lake>/dev/`).
 Al arrancar lee el secreto `${prefix}/snowflake`; si cambia, reinicia con `make airflow-local-down && make airflow-local`.
 Se detiene con `make airflow-local-down` y se cae si el Code Editor se apaga por inactividad.
 
-Snowpark Connect ya no es parte del DAG: se compara contra Glue en el laboratorio de motores (sesión 7).
+Este Airflow tiene los mismos dos DAGs que el de prod: `pipeline_taxi` y `resetear_entorno`.
 
 ## Supuestos a verificar
 
@@ -110,3 +163,14 @@ Snowpark Connect ya no es parte del DAG: se compara contra Glue en el laboratori
 - Los DAGs importan `framework` como paquete (`PYTHONPATH=/opt/airflow`). Validado en `airflow/tests` con Airflow 3.3.2 real; falta verlo dentro de los contenedores.
 - `private_key_content` en la conexión Snowflake del provider 6.17 y el formato del JSON del secreto.
 - `env_file` con `required: false` (Docker Compose >= 2.24) con el plugin que instale `dnf` en Amazon Linux 2023.
+
+## Pruebas de los DAGs
+
+```bash
+cd ~/bigdata
+python -m pytest airflow/tests tests/test_reseteo.py -q     # con Airflow instalado (CI, o el venv de make airflow-local)
+```
+
+`airflow/tests/test_dag_integrity.py` (carga, tareas y orden; el DAG se parsea sin pyspark), `test_params.py`
+(formulario, `pipeline.yaml` inválido, enums y barandillas de prod) y `test_reseteo_dag.py` (confirmaciones, `solo_listar`,
+orden control → Snowflake → S3). Sin Airflow instalado, `make test` las omite y corren en CI.

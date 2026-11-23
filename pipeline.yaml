@@ -1,0 +1,5 @@
+# pipeline.yaml · lo único que se cambia para correr. El entorno NO se cambia: desde el Code Editor siempre es dev.
+computo: code_editor   # dónde se calcula: code_editor | glue_small | glue_medium | glue_large
+limite: "1000"        # filas por fuente: "1000" | "100000" | "todos" (con code_editor solo 1000 o 100000)
+mes: "2024-01"         # AAAA-MM; vacío = todos los meses de config/dev.yaml
+reprocesar: false      # true = ignora la tabla de control y procesa el mes otra vez

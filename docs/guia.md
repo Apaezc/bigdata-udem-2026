@@ -20,9 +20,9 @@ Recorrido de 14 pasos, en orden, para desplegar el pipeline en tu propia cuenta.
 - [Parte 3 · Infraestructura y datos](#parte-3)
   - [Paso 10 · Despliega AWS y sube el código del pipeline](#paso-10)
   - [Paso 11 · Crea los recursos de Snowflake](#paso-11)
-  - [Paso 12 · Prepara los datos (una vez)](#paso-12)
+  - [Paso 12 · Deja el Code Editor listo para escribir en S3 (una vez)](#paso-12)
 - [Parte 4 · Desarrollar y publicar](#parte-4)
-  - [Paso 13 · Desarrolla en local y dev](#paso-13)
+  - [Paso 13 · Corre el pipeline en dev](#paso-13)
   - [Paso 14 · Pasa a prod con un PR](#paso-14)
 - [Listo](#listo)
 - [Glosario](#glosario)
@@ -61,7 +61,7 @@ Cada paso o sub-paso indica en qué ventana estás con uno de estos marcadores:
 Cifras aproximadas:
 
 - **Encendido:** el Code Editor cuesta ~US$0.10/h y se apaga solo tras 60 minutos de inactividad. La **VM** (computadora virtual en la nube) de Airflow de prod también cuesta mientras está encendida. <!-- AUTOR: ¿cuánto cuesta esa VM encendida? El original no lo dice. --> Apagada, solo paga el disco (~US$2.4/mes).
-- **Datos:** la muestra cuesta ~US$0.15 ([Paso 12](#paso-12)). Con **Glue** (servicio de AWS para trabajos de datos), 1 mes en `small` cuesta ~US$0.02 y el año en `large` ~US$0.12. Glue y Snowflake solo cobran mientras corre un job o una consulta.
+- **Datos:** el crudo de un mes se descarga una sola vez a tu bucket ([Paso 13](#paso-13)). Con **Glue** (servicio de AWS para trabajos de datos), 1 mes en `small` cuesta ~US$0.02 y el año en `large` ~US$0.12. Glue y Snowflake solo cobran mientras corre un job o una consulta.
 - **Presupuesto** (AWS Budgets): se crea `bigdata-mensual` con 50 USD por defecto y alertas al 40 y 80 %. Al 60 %, AWS impide iniciar jobs de Glue y máquinas virtuales, y detiene la VM de Airflow de prod (`make desbloquear` lo revierte).
 
 > [!NOTE]
@@ -627,8 +627,15 @@ snowflake_s3_role_arn = "arn:aws:iam::123456789012:role/bigdata-snowflake-s3"
 ==> Subiendo código, DAGs y framework a s3://bigdata-lake-123456789012-us-east-2/
 upload: build/pipeline.zip to s3://.../code/pipeline.zip
 ...
+==> Rutas del lake (cada entorno solo toca su carpeta; el detalle: docs/rutas_del_lake.md)
+  Bucket del lake: bigdata-lake-123456789012-us-east-2
+  s3://bigdata-lake-123456789012-us-east-2/dev/bronze/
+  ...
+  s3://bigdata-lake-123456789012-us-east-2/prod/gold/
+  Del lake, no de un entorno: code/  dags/  logs/  tmp/
 ==> Deploy completado
 ```
+<!-- AUTOR: validar en V10 el bloque «Rutas del lake» de la salida de make deploy -->
 
 **❌ Si falla:** [`El plan destruye recursos`](problemas.md#p-plan-destruye) (avanzado) · [`make deploy` se queda colgado](problemas.md#p-deploy-colgado) (avanzado)
 
@@ -690,47 +697,43 @@ Apply complete! Resources: 0 added, 1 changed, 0 destroyed.
 **Siguiente:** [Paso 12](#paso-12)
 
 <a id="paso-12"></a>
-### Paso 12 de 14 · Prepara los datos (una vez)
+### Paso 12 de 14 · Deja el Code Editor listo para escribir en S3 (una vez)
 
-**Para qué:** bajar los datos del año y dejarlos en bronze con sus metadatos, y generar la muestra en tu bucket.
+**Para qué:** bajar los dos archivos `.jar` que Spark necesita para leer y escribir en S3 desde el Code Editor. Sin ellos, Spark en tu máquina no puede tocar `s3://`.
 
 > [!NOTE]
-> Para correr el pipeline en local ya no necesitas este paso: `make run-local` descarga la muestra sola la primera vez, de tu bucket o, si ahí no hay una con el formato nuevo, del bucket público del curso. Este paso sirve para tener el bronze del año en tu bucket y la muestra propia.
+> Antes, este paso era `make muestra`: bajaba el año completo y generaba una muestra. **Se retiró en la clase 7.** Ya no hay muestra: el pipeline descarga el crudo de cada mes solo la primera vez que corre bronze, directo a `s3://<LAKE>/dev/bronze/_crudo/`. Si ya tenías datos del diseño anterior, `make migrar-clase07` los mueve ([README de la clase 7](../curso/clase07/README.md)).
 
-**Tiempo:** ~5 min · **Costo:** ~US$0.15 <!-- AUTOR: tiempo y costo medidos antes de la ingesta con metadatos; bronze ahora usa Glue `large` y calcula un hash por fila: validar en Glue -->
-
-> [!IMPORTANT]
-> La terminal se queda quieta varios minutos entre líneas mientras Glue trabaja. Es normal: no la cierres.
+**Tiempo:** ~2 min · **Costo:** ninguno.
 
 💻 **Terminal del Code Editor**
 
 1. Ejecuta:
    ```bash
    cd ~/bigdata
-   make muestra
+   make jars-s3a
    ```
 
-> [!NOTE]
-> **FHVHV** son los viajes de Uber/Lyft de NYC publicados por la NYC TLC. **Bronze** guarda cada archivo tal como llega (en `_crudo/`) y una copia en Parquet con columnas extra que dicen de dónde y cuándo vino cada fila. La **muestra** es un subconjunto pequeño de los datos para trabajar en local. Qué hace `make muestra`: [detalle](referencia.md#make-muestra).
-
-**✅ Debes ver:** estas líneas (los ids de **run**, una ejecución de Glue, serán otros):
+**✅ Debes ver:** una línea por jar (la primera vez los baja; las siguientes dice `OK (ya estaba)`) y, al final:
 ```text
-==> Glue bigdata-large --step bronze (run jr_...)
-==> bronze OK
-==> Glue bigdata-medium --step muestra (run jr_...)
-==> muestra OK
-==> Muestra lista en s3://bigdata-lake-123456789012-us-east-2/muestra. En local: make run-local (la descarga la primera vez).
+==> Jars de S3A en /home/sagemaker-user/.spark-jars
+  OK: /home/sagemaker-user/.spark-jars/hadoop-aws-3.3.4.jar
+  OK: /home/sagemaker-user/.spark-jars/aws-java-sdk-bundle-1.12.262.jar
+==> Listo. Spark ya puede leer y escribir en s3:// desde el Code Editor.
+Siguiente:  cd ~/bigdata && make correr PASO=bronze
 ```
 
-> [!TIP]
-> Si cierras la terminal mientras `make muestra` espera, Glue sigue trabajando, pero el script se detiene y la muestra nunca se lanza. No repitas `make muestra`: volvería a crear el bronze del año. Cuando `make estado` muestre el job `bigdata-large` en `SUCCEEDED`, lanza solo la muestra:
-> ```bash
-> cd ~/bigdata
-> make muestra-solo
-> ```
-> Verás las mismas dos últimas líneas de la salida de arriba (`==> Glue bigdata-medium --step muestra (run jr_...)` y `==> muestra OK`), sin el paso de bronze.
+> [!NOTE]
+> **Dónde queda cada dato.** Un solo bucket, y dev y prod no comparten ninguna carpeta: todo cuelga de `s3://<LAKE>/<entorno>/<capa>/<tabla>/` (`<LAKE>` es tu bucket, el `lake_bucket` del [Paso 10](#paso-10)).
+>
+> | Quién escribe | Carpeta |
+> |---|---|
+> | Todo lo que corres desde el Code Editor (terminal, notebook, `make correr`, Airflow del Code Editor), con cualquier cómputo | `dev/bronze/`, `dev/silver/` y `dev/gold/`; carga en `BIGDATA.DEV` |
+> | El Airflow de la VM (entorno `prod`), solo después de un PR y del CI/CD | `prod/bronze/`, `prod/silver/` y `prod/gold/`; carga en `BIGDATA.PROD` |
+>
+> El entorno **no se elige**: desde el Code Editor siempre es `dev`. Cada función de la casa que lee o escribe imprime la ruta completa (`LEE`, `ESCRIBE`, `BORRA`...). Para ver la tabla de tu entorno: `cd ~/bigdata && make rutas ENTORNO=dev` en la terminal, o `donde_estoy("dev")` en un notebook (`from pipeline.herramientas.rutas import donde_estoy`). Si tu bucket viene del diseño anterior (con `bronze/` y `muestra/` en la raíz), mira [rutas_del_lake.md](rutas_del_lake.md).
 
-**❌ Si falla:** [`TIMEOUT`](problemas.md#p-timeout-muestra) (repite `make muestra`; retoma desde lo que ya descargó) · [Cerré la terminal mientras corría `make muestra`](problemas.md#p-cerre-terminal-muestra) (usa `make muestra-solo`) · [`ModuleNotFoundError: pipeline`](problemas.md#p-modulenotfound) · [`AccessDenied` al lanzar jobs Glue](problemas.md#p-accessdenied-presupuesto)
+**❌ Si falla:** `No pude bajar hadoop-aws-3.3.4.jar` (revisa tu conexión y repite el comando: es seguro repetirlo) · [`ModuleNotFoundError: pipeline`](problemas.md#p-modulenotfound)
 
 **Siguiente:** [Paso 13](#paso-13)
 
@@ -738,57 +741,93 @@ Apply complete! Resources: 0 added, 1 changed, 0 destroyed.
 ## Parte 4 · Desarrollar y publicar
 
 <a id="paso-13"></a>
-### Paso 13 de 14 · Desarrolla en local y dev
+### Paso 13 de 14 · Corre el pipeline en dev
 
-**Para qué:** correr el pipeline sobre la muestra (gratis) y luego en la nube, con el Airflow de dev.
+**Para qué:** correr los cuatro pasos del pipeline (bronze, silver, gold y Snowflake) en dev, primero desde la terminal y luego con el Airflow del Code Editor.
 
-**Tiempo:** `make run-local LIMITE=100` ~30 s · un run con `glue_small` 10-15 min.
+**Tiempo:** `make correr` con `code_editor` y 1 000 filas, unos minutos por paso (la primera vez baja el crudo de enero, ~450 MB) · un run con `glue_small`, 10-15 min.
 
-**Costo:** `glue_small` cuesta centavos.
+**Costo:** `code_editor` no cuesta nada extra; `glue_small` cuesta centavos.
 
-**Antes:** nada especial para el modo local: la muestra se descarga sola la primera vez. El [Paso 12](#paso-12) solo hace falta para la nube.
+**Antes:** `make jars-s3a` del [Paso 12](#paso-12) y, si tu cuenta viene de las clases 1 a 6, `make migrar-clase07`.
 
 **Ventanas:** 💻 **Terminal del Code Editor** · 🧭 **Navegador** (UI de Airflow) · ❄️ **Snowsight** (solo en 13.2)
 
-<a id="paso-13-1"></a>
-#### 13.1 · Corre el pipeline en local
+**Lo que se elige y lo que no.** El **entorno** no se elige: todo lo que corres desde el Code Editor es `dev`. Lo que sí se elige son cuatro perillas, que viven en `pipeline.yaml` (en la raíz del repositorio) y que cualquier comando o el formulario del DAG puede sobrescribir:
 
-Son dos comandos distintos: `make run-local` termina solo; `make airflow-local` queda corriendo y deja libre la terminal.
+| Perilla | Qué decide | Valores |
+|---|---|---|
+| `computo` | Dónde se calcula | `code_editor` (Spark en esta máquina, sobre S3) · `glue_small`, `glue_medium` o `glue_large` (**workers** de Glue: 2, 4 o 6) |
+| `limite` | Cuántas filas se leen de cada fuente | `1000`, `100000` o `todos` (`todos` solo con Glue) |
+| `mes` | Qué mes procesar | `AAAA-MM`; vacío = los meses de `config/dev.yaml` (en dev, `2024-01`) |
+| `reprocesar` | Si se ignora la tabla de control | `true` o `false` |
+
+<a id="paso-13-1"></a>
+#### 13.1 · Corre el pipeline desde la terminal
+
+Son dos cosas distintas: `make correr` termina solo; `make airflow-local` queda corriendo y deja libre la terminal.
 
 <a id="paso-13-1-local"></a>
-##### A · `make run-local` (termina solo)
+##### A · `make correr` (termina solo)
 
 💻 **Terminal del Code Editor**
 
-1. Corre la prueba rápida con `LIMITE=100`:
+1. Mira primero qué va a ejecutar, sin correrlo:
    ```bash
    cd ~/bigdata
-   make run-local LIMITE=100
+   make -n correr PASO=bronze
+   ```
+2. Corre el paso bronze (con lo que diga `pipeline.yaml`: `code_editor` y 1 000 filas):
+   ```bash
+   cd ~/bigdata
+   make correr PASO=bronze
    ```
 
 > [!NOTE]
-> Los avisos `WARN` de **Spark** (motor que procesa los datos en tu Code Editor) son normales.
+> Los avisos `WARN` de **Spark** (motor que procesa los datos en tu Code Editor) son normales. La primera vez baja el crudo de enero a `s3://<LAKE>/dev/bronze/_crudo/` (unos minutos).
 
-**✅ Debes ver:** el final de `make run-local LIMITE=100` (tarda ~30 s):
+**✅ Debes ver:** el encabezado de la corrida, las líneas `LEE` y `ESCRIBE` con rutas `s3://...` y, al final, el cierre con una línea por tabla (el bucket y las cifras son los tuyos):
 ```text
-INFO Muestra descargada (origen: el bucket público del curso, s3://.../muestra) a /home/sagemaker-user/bigdata/lake/muestra (50 archivos)   <- solo la primera vez
-INFO Paso=silver env=local engine=local meses=2024-01
-INFO Calidad OK [silver]: 100 filas
-INFO Paso=gold env=local engine=local meses=2024-01
-INFO Calidad OK [gold]: 79 filas
+==================================================================
+ Entorno    : DEV
+ Cómputo    : code_editor
+ Paso       : bronze
+ Mes        : 2024-01
+ Límite     : 1000
+ Reprocesar : false
+ Lee        : s3://bigdata-lake-123456789012-us-east-2/dev/bronze/_crudo/fhvhv/mes=2024-01/
+              ...
+ Escribe    : s3://bigdata-lake-123456789012-us-east-2/dev/bronze/fhvhv/mes=2024-01/
+              ...
+ Control    : BIGDATA.CONTROL_DEV.WATERMARK
+==================================================================
+...
+ Cierre     : paso=bronze mes=2024-01
+   fhvhv        leyó=1000       escribió=1000       REGISTRÓ en la tabla de control
+   taxi_zones   leyó=265        escribió=265        REGISTRÓ en la tabla de control
+   clima        leyó=31         escribió=31         REGISTRÓ en la tabla de control
+==================================================================
 ```
 
-**❌ Si falla:** [`No hay muestra ... ni en tu bucket ni en el bucket público`](problemas.md#p-sin-muestra) · [`make test` o `make run-local` fallan por Java](problemas.md#p-java)
+3. Repite el mismo comando. Ahora la tabla de control ya tiene el mes y **la puerta lo salta**:
+   ```bash
+   cd ~/bigdata
+   make correr PASO=bronze
+   ```
+   Cada línea del cierre dice `SE SALTÓ (ya registrado y reprocesar=false)`.
+4. Sigue con los otros pasos, uno por uno: `make correr PASO=silver`, `make correr PASO=gold` y `make correr PASO=snowflake`. Sin `PASO` corre los cuatro en orden. Para cambiar una perilla, ponla en el comando (`make correr PASO=silver COMPUTO=glue_small REPROCESAR=true`); gana sobre `pipeline.yaml`.
+
+**❌ Si falla:** `Faltan los jars de S3A` (corre `cd ~/bigdata && make jars-s3a`) · [`make test` o `make correr` fallan por Java](problemas.md#p-java) · [`No hay ningún lote completo en s3://.../dev/bronze/...`](problemas.md#p-sin-lote-en-dev)
 
 <a id="paso-13-1-airflow"></a>
 ##### B · `make airflow-local` (queda corriendo; la terminal sigue libre)
 
 💻 **Terminal del Code Editor**
 
-1. Enciende el Airflow de dev:
+1. Enciende el Airflow del Code Editor:
    ```bash
    cd ~/bigdata
-   make airflow-local    # Airflow de dev
+   make airflow-local
    ```
 
 Tarda ~1 min; la instalación solo ocurre la primera vez y tarda unos minutos.
@@ -801,24 +840,14 @@ Tarda ~1 min; la instalación solo ocurre la primera vez y tarda unos minutos.
 
 2. Abre la URL de `make airflow-local` en una pestaña nueva.
 3. Entra con usuario `admin` y la contraseña que imprimió `make airflow-local`.
-4. Abre **Dags**.
+4. Haz clic en **Dags**.
 5. Activa el interruptor de `pipeline_taxi`. Los DAGs nuevos aparecen **pausados** (la página Home dice `Active Dags 0`).
-6. Entra al **DAG** (lista de tareas de Airflow con orden fijo) `pipeline_taxi`.
-7. Pulsa **Trigger** (▶). Se abre el formulario de parámetros (`computo`, `mes`, `limite`).
-8. Elige `computo = spark_local` (tabla de abajo).
-9. Deja `mes` y `limite` vacíos. <!-- AUTOR: confirmar `mes` y `limite` en la prueba local -->
-10. Pulsa el segundo botón **Trigger** para lanzar el run.
+6. Entra al **DAG** (lista de tareas de Airflow con orden fijo) `pipeline_taxi`. Sus cuatro tareas se llaman igual que las funciones: `correr_bronze`, `correr_silver`, `correr_gold` y `cargar_snowflake`.
+7. Haz clic en **Trigger** (▶). Se abre el formulario, con los valores que tiene `pipeline.yaml`.
+8. Revisa `computo`, `limite`, `mes` y `reprocesar` (tabla de arriba). El formulario **no tiene entorno**: es dev.
+9. Haz clic en el segundo botón **Trigger** para lanzar el run.
 
-> [!NOTE]
-> El Airflow del Code Editor es siempre el entorno **dev** (no se elige al lanzar). Lo que eliges es el parámetro `computo`, que decide con qué recursos se calcula:
-
-| Parámetro | Qué decide | Valores |
-|---|---|---|
-| `computo` | Con qué recursos se calcula. | `spark_local`: Spark en el Code Editor sobre la muestra (gratis). Como mucho 10 000 filas por fuente. El resultado queda en `./lake` (la carpeta `lake` dentro de `~/bigdata`) y no se carga en Snowflake. · `glue_small`, `glue_medium` o `glue_large`: **workers** (trabajadores de cómputo de Glue): 2, 4 o 6. Escribe en `s3://<LAKE>/dev/` (`<LAKE>` es el bucket `bigdata-lake-<CUENTA>-us-east-2` que el [Paso 10](#paso-10) imprime como `lake_bucket`) y carga en `BIGDATA.DEV`. |
-| `mes` | Qué mes procesar. | Vacío = todos los meses del entorno (en dev, solo `2024-01`), o un mes concreto en formato `YYYY-MM`. |
-| `limite` (opcional) | Máximo de viajes a procesar. | Vacío = sin recorte. |
-
-**✅ Debes ver:** el run en el DAG. Con `spark_local` ocurre lo contrario que con `glue_small` (13.2): las tareas de la rama de Glue quedan en `skipped` y `cargar_gold` no carga datos en Snowflake.
+**✅ Debes ver:** las cuatro tareas en verde (`success`) y, en el log de cada una, el mismo encabezado y cierre que en la terminal. Con la puerta cerrada (el mes ya registrado y `reprocesar` sin marcar), las tareas terminan en verde con `SE SALTÓ` en el log.
 
 **❌ Si falla:** [la UI sale en blanco o "Unsupported URL path"](problemas.md#p-airflow-ui-blanco) · ["Invalid or Expired Auth Token"](problemas.md#p-auth-token)
 
@@ -828,34 +857,35 @@ Tarda ~1 min; la instalación solo ocurre la primera vez y tarda unos minutos.
 🧭 **Navegador** (UI de Airflow)
 
 1. Vuelve a la pestaña de Airflow y entra al DAG `pipeline_taxi`.
-2. Pulsa **Trigger** (▶). Se abre el formulario de parámetros (`computo`, `mes`, `limite`).
-3. Elige `computo = glue_small` (con `spark_local` no se modifica la tabla que verificas al final de este paso).
-4. Deja `mes` y `limite` vacíos (qué significa cada uno: [tabla de 13.1](#paso-13-1)).
-5. Pulsa el segundo botón **Trigger** para lanzar el run.
+2. Haz clic en **Trigger** (▶). Se abre el formulario.
+3. Elige `computo = glue_small`.
+4. Si ya habías corrido ese mes, marca `reprocesar` (si no, la puerta lo salta: la tabla de control es la misma con cualquier cómputo).
+5. Deja `limite` en `1000` y `mes` en `2024-01`.
+6. Haz clic en el segundo botón **Trigger** para lanzar el run.
 
-**✅ Debes ver:** en un run exitoso con `glue_small` (10-15 min): `preparar_entorno`, `elegir_computo`, `bronze`, `silver`, `gold` y `cargar_gold` en verde (`success`); `silver_spark_local` y `gold_spark_local` en rosa (`skipped`), porque son la rama de `spark_local`.
+> [!NOTE]
+> Dev tiene su propio bronze: la primera vez, bronze descarga enero (unos 450 MB) a `s3://<LAKE>/dev/bronze/_crudo/`. Dev nunca lee ni escribe en `prod/`. Con `glue_*`, el código que corre en Glue es el de tu árbol de trabajo (se sube a `code/dev/`), no el de `main`.
 
-**❌ Si falla:** [el DAG falla en `cargar_gold`](problemas.md#p-cargar-gold)
+**✅ Debes ver:** en un run exitoso con `glue_small` (10-15 min): las cuatro tareas en verde (`success`).
+
+**❌ Si falla:** [el DAG falla en `cargar_snowflake`](problemas.md#p-cargar-gold)
 
 ❄️ **Snowsight**
 
 1. Abre una hoja con **+ > SQL Worksheet**.
-2. Pega este bloque (usa el rol `BIGDATA_DEV` y el warehouse `BIGDATA_WH`):
+2. Pega este bloque (rol, warehouse y base de datos se dicen siempre):
    ```sql
    USE ROLE BIGDATA_DEV;
    USE WAREHOUSE BIGDATA_WH;
-   SELECT COUNT(*), MIN(fecha), MAX(fecha) FROM BIGDATA.DEV.DAILY_ZONE_METRICS;
+   USE DATABASE BIGDATA;
+   SELECT COUNT(*), SUM(VIAJES), MIN(FECHA), MAX(FECHA) FROM BIGDATA.DEV.TARIFA_POR_MILLA_BARRIO;
    ```
-3. Pulsa **Run All** (la flecha junto a ▶).
+3. Haz clic en **Run All** (la flecha junto a ▶).
 
-**✅ Debes ver:** con `glue_small` (todo enero de 2024):
-```text
-COUNT(*) | MIN(FECHA) | MAX(FECHA)
-15909    | 2024-01-01 | 2024-01-31
-```
+**✅ Debes ver:** una fila con las filas de gold de enero (una por fecha, barrio y franja del día), la suma de viajes y el rango de fechas de 2024-01.
 
 > [!NOTE]
-> La tabla la crea el propio DAG en `cargar_gold` la primera vez.
+> `TARIFA_POR_MILLA_BARRIO` es la tabla de ejemplo de la casa. La crea el paso `snowflake` la primera vez. Las tablas de tu equipo se llaman como tú las nombres y viven en `BIGDATA.DEV`.
 
 **Siguiente:** [Paso 14](#paso-14)
 
@@ -978,17 +1008,17 @@ Abres un **pull request (PR)**: una solicitud para revisar tus cambios antes de 
 5. Abre **Dags**.
 6. Entra al **DAG** `pipeline_taxi`.
 7. Pulsa **Trigger** (▶). <!-- AUTOR: ¿el DAG de prod aparece pausado, como en 13.1? confirmar -->
-8. Se abre el formulario de parámetros (`computo`, `mes`, `limite`): elige `computo = glue_medium` (o `glue_large`) y, por ejemplo, `mes = 2024-01`.
+8. Se abre el formulario de parámetros (`computo`, `limite`, `mes`, `reprocesar`): deja `computo = glue_medium` (o elige otro `glue_*`), `limite = todos` y `mes = 2024-01`.
 9. Pulsa el segundo botón **Trigger** para lanzar el run.
 
 > [!NOTE]
-> En prod el entorno es fijo (`prod`, en la VM), solo hay `computo = glue_medium` o `glue_large`, y no hay límite de filas. El DAG no tiene rama local.
+> En prod el entorno es fijo (`prod`, en la VM), el `computo` es siempre un `glue_*` (por defecto `glue_medium`) y el `limite` es siempre `todos`. Prod no lee `pipeline.yaml`. Escribe en `s3://<LAKE>/prod/` (bronze, silver y gold), anota en `BIGDATA.CONTROL_PROD.WATERMARK` y carga en `BIGDATA.PROD`; no toca `dev/`.
 >
-> La conexión de Snowflake ya está en el secreto `bigdata/snowflake`, escrito por `make snowflake` (ver [airflow/README.md](../airflow/README.md)).
+> La conexión de Snowflake de prod ya está en el secreto `bigdata/snowflake_prod` (rol `BIGDATA_PROD`), escrito por `make snowflake` (ver [airflow/README.md](../airflow/README.md)).
 
-**✅ Debes ver:** en un run exitoso solo seis tareas, todas en `success`: `preparar_entorno`, `elegir_computo`, `bronze`, `silver`, `gold` y `cargar_gold`. Con `glue_medium` y `mes=2024-01` tarda ~5 min y `BIGDATA.PROD` queda con 15909 filas.
+**✅ Debes ver:** en un run exitoso, cuatro tareas, todas en `success`: `correr_bronze`, `correr_silver`, `correr_gold` y `cargar_snowflake`. Con `glue_medium` y `mes=2024-01`, `BIGDATA.PROD.TARIFA_POR_MILLA_BARRIO` queda con las filas de gold de enero.
 
-**❌ Si falla:** [el DAG falla en `cargar_gold`](problemas.md#p-cargar-gold) · ["Invalid or Expired Auth Token"](problemas.md#p-auth-token) · [la UI sale en blanco](problemas.md#p-airflow-ui-blanco)
+**❌ Si falla:** [el DAG falla en `cargar_snowflake`](problemas.md#p-cargar-gold) · ["Invalid or Expired Auth Token"](problemas.md#p-auth-token) · [la UI sale en blanco](problemas.md#p-airflow-ui-blanco)
 
 **Siguiente:** [Listo](#listo)
 
@@ -1032,5 +1062,7 @@ Cada término se explica en línea donde aparece por primera vez; esta tabla los
 | **DAG** | Lista de tareas de Airflow con orden fijo; el nuestro se llama `pipeline_taxi`. | [Paso 13.1](#paso-13-1) |
 | **pull request (PR)** | Solicitud para revisar tus cambios antes de incorporarlos a `main`. | [Paso 14.3](#paso-14-3) |
 | **merge** | Incorporar los cambios de una rama o PR a `main`. | [Paso 14.3](#paso-14-3) |
-| **entorno (local, dev, prod)** | Dónde corre el código: tu Code Editor (local), pruebas en AWS (dev) o producción (prod). | [README](../README.md#que-vas-a-construir) |
+| **entorno (dev, prod)** | Dónde quedan los datos: `dev` (lo que corres desde tu Code Editor) o `prod` (lo que despliega el CI/CD en la VM). No se elige: es automático. | [README](../README.md#que-vas-a-construir) |
+| **cómputo** | Quién calcula: `code_editor` (Spark en tu máquina) o `glue_small`, `glue_medium`, `glue_large`. Es independiente del entorno. | [Paso 13](#paso-13) |
+| **tabla de control** | Tabla de Snowflake por entorno (`CONTROL_DEV`, `CONTROL_PROD`) donde cada paso anota lo que termina bien; es la puerta que decide si un mes se salta. | [Paso 13.1](#paso-13-1) |
 | **pipeline** | Serie de pasos que toma datos crudos, los limpia y los deja listos para analizar. | [README](../README.md#que-vas-a-construir) |

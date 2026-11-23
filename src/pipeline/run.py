@@ -1,78 +1,81 @@
-"""CLI del pipeline.
+"""CLI del pipeline: una capa fina sobre pipeline.correr.correr_paso.
 
-    python -m pipeline.run --step {bronze,muestra,silver,gold,all} --env {local,dev,prod} \
-        --engine {local,glue} [--mes YYYY-MM] [--limite N] [--lake-bucket NOMBRE]
+    python -m pipeline.run [--paso {bronze,silver,gold,snowflake}] [--computo C] [--mes AAAA-MM]
+                           [--limite {1000,100000,todos}] [--reprocesar [true|false]]
 
-- Sin --mes se procesan todos los meses de config/<env>.yaml, en UNA pasada de Spark por paso.
-- all = bronze + silver + gold (en local: silver + gold sobre la muestra; no hay bronze).
-- bronze y muestra solo en dev/prod (en la nube). bronze descarga el crudo y crea un lote nuevo
-  con metadatos; no usa --limite. muestra lee bronze; --limite recorta aún más los viajes.
+- Sin --paso se corren los cuatro, en orden: bronze, silver, gold y snowflake.
+- Lo que no pidas sale de pipeline.yaml (raíz del repo): argumento > pipeline.yaml > defecto.
+- El entorno NO se elige: desde el Code Editor siempre es dev.
+- El cómputo sí: code_editor, glue_small, glue_medium o glue_large.
 Requiere PYTHONPATH=src (o ejecutar desde el paquete instalado).
 """
 
 from __future__ import annotations
 
 import argparse
-import logging
-import os
 import sys
 
-from pipeline import bronze, engine, gold, muestra, silver
-from pipeline.settings import ENTORNOS, cargar, validar_mes
+from pipeline.herramientas.corrida import (
+    COMPUTOS,
+    LIMITES,
+    PASOS,
+    EntornoNoPermitido,
+    LimiteNoPermitido,
+)
+from pipeline.herramientas.rutas import ConfigError, validar_mes
 
-PASOS = {"bronze": bronze, "muestra": muestra, "silver": silver, "gold": gold}
-MOTORES = ("local", "glue")
-SOLO_NUBE = ("bronze", "muestra")
-log = logging.getLogger("pipeline")
+
+def _verdadero_o_falso(texto: str) -> bool:
+    if texto.lower() in ("true", "si", "sí", "1"):
+        return True
+    if texto.lower() in ("false", "no", "0"):
+        return False
+    raise argparse.ArgumentTypeError("usa true o false")
 
 
 def build_parser() -> argparse.ArgumentParser:
-    p = argparse.ArgumentParser(description="Pipeline bronze/silver/gold (FHVHV)")
-    p.add_argument("--step", required=True, choices=[*PASOS, "all"])
-    p.add_argument("--env", required=True, choices=ENTORNOS)
-    p.add_argument("--engine", required=True, choices=MOTORES)
-    p.add_argument("--mes", type=validar_mes, default=None, help="YYYY-MM (un solo mes)")
-    p.add_argument(
-        "--limite",
-        type=int,
-        default=None,
-        help="máximo de viajes a procesar (reemplaza muestra.max_rows del entorno)",
+    p = argparse.ArgumentParser(
+        prog="python -m pipeline.run", description="Pipeline bronze/silver/gold/snowflake (FHVHV)"
     )
     p.add_argument(
-        "--lake-bucket",
+        "--paso",
+        choices=PASOS,
         default=None,
-        help="nombre del bucket del lake (equivale a LAKE_BUCKET)",
+        help="un paso; sin él se corren los cuatro, en orden",
+    )
+    p.add_argument("--computo", choices=COMPUTOS, default=None, help="dónde se calcula")
+    p.add_argument("--mes", type=validar_mes, default=None, help="AAAA-MM")
+    p.add_argument("--limite", choices=LIMITES, default=None, help="filas por fuente")
+    p.add_argument(
+        "--reprocesar",
+        nargs="?",
+        const=True,
+        default=None,
+        type=_verdadero_o_falso,
+        help="ignora la tabla de control (true) o la respeta (false)",
     )
     return p
 
 
-def pasos_de(step: str, env: str) -> list[str]:
-    if step == "all":
-        return ["silver", "gold"] if env == "local" else ["bronze", "silver", "gold"]
-    if env == "local" and step in SOLO_NUBE:
-        raise SystemExit(f"--step {step} no aplica en local: se ejecuta en dev/prod (Glue).")
-    return [step]
-
-
 def main(argv: list[str] | None = None) -> int:
-    args = build_parser().parse_args(argv)
-    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
-    if args.lake_bucket:
-        os.environ["LAKE_BUCKET"] = args.lake_bucket
+    parser = build_parser()
+    args = parser.parse_args(argv)
 
-    cfg = cargar(args.env)
-    meses = [args.mes] if args.mes else list(cfg["meses"])
-    pasos = pasos_de(args.step, args.env)
+    from pipeline.correr import correr_paso  # tardío: así `--help` no carga el pipeline
 
-    if args.env == "local":
-        muestra.sincronizar(cfg)
-
-    # Todos los pasos usan Spark, también bronze (convierte lo descargado a Parquet con metadatos).
-    spark = engine.get_spark(args.engine)
-    ns = argparse.Namespace(env=args.env, engine=args.engine, meses=meses, limite=args.limite)
-    for paso in pasos:
-        log.info("Paso=%s env=%s engine=%s meses=%s", paso, args.env, args.engine, ",".join(meses))
-        PASOS[paso].main(spark, cfg, ns)
+    pasos = [args.paso] if args.paso else list(PASOS)
+    try:
+        for paso in pasos:
+            correr_paso(
+                paso,
+                mes=args.mes,
+                computo=args.computo,
+                limite=args.limite,
+                reprocesar=args.reprocesar,
+            )
+    except (ConfigError, EntornoNoPermitido, LimiteNoPermitido) as error:
+        print(f"ERROR: {error}", file=sys.stderr)
+        return 2
     return 0
 
 

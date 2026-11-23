@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 440" font-family="Helvetica Neue, Arial, sans-serif">
+<title>Dos palancas para leer menos: meses y columnas</title><desc>Cuadrícula de dos por dos. Con una columna, un mes lee 53 MB y doce meses leen 641 MB. Con siete columnas, un mes lee 141 MB y doce meses superan 1 GB: la consulta queda CANCELLED con el mensaje Bytes scanned limit was exceeded. Abajo, el tope del workgroup: 1 GB por consulta.</desc>
+<defs><marker id="m_a" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#2340D8"/></marker><marker id="m_g" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#5F6672"/></marker><marker id="m_b" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#B4622F"/></marker><marker id="m_y" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#FFC83D"/></marker></defs>
+<text x="18" y="28" font-size="22" fill="#5F6672" text-anchor="start" font-weight="700">meses →</text>
+<text x="18" y="52" font-size="22" fill="#5F6672" text-anchor="start" font-weight="700">↓ columnas</text>
+<text x="450.0" y="40" font-size="22" fill="#15171C" text-anchor="middle" font-weight="700">1 mes · WHERE mes = '2024-01'</text>
+<text x="894.0" y="40" font-size="22" fill="#15171C" text-anchor="middle" font-weight="700">12 meses · sin filtro</text>
+<text x="18" y="129.0" font-size="22" fill="#15171C" text-anchor="start" font-weight="700">1 columna</text>
+<text x="18" y="159.0" font-size="22" fill="#5F6672" text-anchor="start">pickup_datetime</text>
+<text x="18" y="283.0" font-size="22" fill="#15171C" text-anchor="start" font-weight="700">7 columnas</text>
+<text x="18" y="313.0" font-size="22" fill="#5F6672" text-anchor="start">las del paso 8</text>
+<rect x="240" y="60" width="420" height="142" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
+<text x="450.0" y="134" font-size="44" fill="#15171C" text-anchor="middle" font-weight="700">53 MB</text>
+<text x="450.0" y="174" font-size="22" fill="#5F6672" text-anchor="middle">una carpeta, 1.1 s</text>
+<rect x="684" y="60" width="420" height="142" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
+<text x="894.0" y="134" font-size="44" fill="#15171C" text-anchor="middle" font-weight="700">641 MB</text>
+<text x="894.0" y="174" font-size="22" fill="#5F6672" text-anchor="middle">doce carpetas: 12 veces más</text>
+<rect x="240" y="214" width="420" height="142" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
+<text x="450.0" y="288" font-size="44" fill="#15171C" text-anchor="middle" font-weight="700">141 MB</text>
+<text x="450.0" y="328" font-size="22" fill="#5F6672" text-anchor="middle">una carpeta, 1.4 s</text>
+<rect x="684" y="214" width="420" height="142" rx="6" fill="#F8E0DC" stroke="#B3261E" stroke-width="3"/>
+<text x="894.0" y="276" font-size="44" fill="#B3261E" text-anchor="middle" font-weight="700">más de 1 GB</text>
+<text x="894.0" y="310" font-size="22" fill="#B3261E" text-anchor="middle" font-weight="700">CANCELLED</text>
+<text x="894.0" y="338" font-size="22" fill="#B3261E" text-anchor="middle">Bytes scanned limit was exceeded</text>
+<rect x="6" y="374" width="1108" height="56" rx="6" fill="#FFFFFF" stroke="#5F6672" stroke-width="1.5"/>
+<text x="560" y="410" font-size="22" fill="#15171C" text-anchor="middle" font-weight="700">Tope del workgroup: 1 GB leído por consulta (1 073 741 824 bytes)</text>
+</svg>

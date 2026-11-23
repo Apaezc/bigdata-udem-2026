@@ -24,3 +24,5 @@ pythonpath = ["src"]
 "curso/_deck/*.py" = ["E501", "E741"]
 # Diagramas SVG de los decks: etiquetas SVG y textos de las figuras en una línea.
 "curso/*/deck/diagramas/*.py" = ["E501"]
+# Generadores del guion: notas largas de las slides en una línea.
+"curso/*/deck*/generar_guion.py" = ["E501"]

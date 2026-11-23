@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 440" font-family="Helvetica Neue, Arial, sans-serif">
+<title>De hoy a la clase 7: del DAG local a Glue y las tres comprobaciones</title><desc>Dos filas. Hoy: el DAG ingesta_mensual en el Code Editor con Spark local y viajes de 1 000 filas. Clase 7: el DAG pipeline_taxi, que tiene el parámetro de cómputo, lanza los jobs de Glue sobre el mes completo; debajo, tres comprobaciones: filas de bronze, silver y gold contra la tabla de control, Athena sobre silver y Snowflake sobre gold.</desc>
+<defs><marker id="m_a" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#2340D8"/></marker><marker id="m_g" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#5F6672"/></marker><marker id="m_b" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#B4622F"/></marker><marker id="m_y" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#FFC83D"/></marker></defs>
+<text x="8" y="34" font-size="22" fill="#2340D8" text-anchor="start" font-weight="700">Hoy</text>
+<text x="8" y="61" font-size="22" fill="#15171C" text-anchor="start" font-weight="700">Code Editor</text>
+<rect x="190" y="6" width="350" height="64" rx="6" fill="#FFFFFF" stroke="#5F6672" stroke-width="1.5"/>
+<text x="365.0" y="46.0" font-size="22" fill="#15171C" text-anchor="middle" font-weight="700">DAG ingesta_mensual</text>
+<line x1="542" y1="38" x2="586" y2="38" stroke="#5F6672" stroke-width="2.5" marker-end="url(#m_g)"/>
+<rect x="588" y="6" width="196" height="64" rx="6" fill="#FFFFFF" stroke="#5F6672" stroke-width="1.5"/>
+<text x="686.0" y="46.0" font-size="22" fill="#15171C" text-anchor="middle" font-weight="700">Spark local</text>
+<line x1="786" y1="38" x2="832" y2="38" stroke="#5F6672" stroke-width="2.5" marker-end="url(#m_g)"/>
+<rect x="834" y="6" width="278" height="64" rx="6" fill="#FFFFFF" stroke="#5F6672" stroke-width="1.5"/>
+<text x="973.0" y="46.0" font-size="22" fill="#15171C" text-anchor="middle" font-weight="700">viajes de 1 000 filas</text>
+<text x="8" y="146" font-size="22" fill="#2340D8" text-anchor="start" font-weight="700">Clase 7</text>
+<text x="8" y="173" font-size="22" fill="#15171C" text-anchor="start" font-weight="700">Glue</text>
+<rect x="190" y="118" width="350" height="64" rx="6" fill="#FFFFFF" stroke="#5F6672" stroke-width="1.5"/>
+<text x="365.0" y="144.5" font-size="22" fill="#15171C" text-anchor="middle" font-weight="700">pipeline_taxi</text>
+<text x="365.0" y="171.5" font-size="22" fill="#5F6672" text-anchor="middle">con el parámetro de cómputo</text>
+<line x1="542" y1="150" x2="586" y2="150" stroke="#5F6672" stroke-width="2.5" marker-end="url(#m_g)"/>
+<rect x="588" y="118" width="196" height="64" rx="6" fill="#FFFFFF" stroke="#5F6672" stroke-width="1.5"/>
+<text x="686.0" y="158.0" font-size="22" fill="#15171C" text-anchor="middle" font-weight="700">Jobs de Glue</text>
+<line x1="786" y1="150" x2="832" y2="150" stroke="#5F6672" stroke-width="2.5" marker-end="url(#m_g)"/>
+<rect x="834" y="118" width="278" height="64" rx="6" fill="#FFFFFF" stroke="#5F6672" stroke-width="1.5"/>
+<text x="973.0" y="144.5" font-size="22" fill="#15171C" text-anchor="middle" font-weight="700">mes completo</text>
+<text x="973.0" y="171.5" font-size="22" fill="#5F6672" text-anchor="middle">o el año</text>
+<line x1="365" y1="72" x2="365" y2="116" stroke="#5F6672" stroke-width="3" marker-end="url(#m_g)"/>
+<text x="382" y="102" font-size="22" fill="#15171C" text-anchor="start" font-weight="700">cambia el DAG y dónde corre</text>
+<rect x="4" y="204" width="1112" height="232" rx="6" fill="#F0EEE7" stroke="none"/>
+<rect x="12" y="212" width="1096" height="44" rx="6" fill="#E3E6F6" stroke="#2340D8" stroke-width="2.5"/>
+<text x="560" y="241" font-size="22" fill="#2340D8" text-anchor="middle" font-weight="700">Filas de bronze, silver y gold contra la tabla de control</text>
+<line x1="360" y1="258" x2="360" y2="284" stroke="#2340D8" stroke-width="2.5" marker-end="url(#m_a)"/>
+<rect x="270" y="286" width="180" height="42" rx="6" fill="#B4622F" stroke="#B4622F" stroke-width="1.5"/>
+<text x="360.0" y="315.0" font-size="22" fill="#FFFFFF" text-anchor="middle" font-weight="700">Bronze</text>
+<line x1="650" y1="258" x2="650" y2="284" stroke="#2340D8" stroke-width="2.5" marker-end="url(#m_a)"/>
+<rect x="560" y="286" width="180" height="42" rx="6" fill="#6E7F94" stroke="#6E7F94" stroke-width="1.5"/>
+<text x="650.0" y="315.0" font-size="22" fill="#FFFFFF" text-anchor="middle" font-weight="700">Silver</text>
+<line x1="940" y1="258" x2="940" y2="284" stroke="#2340D8" stroke-width="2.5" marker-end="url(#m_a)"/>
+<rect x="850" y="286" width="180" height="42" rx="6" fill="#B07F0E" stroke="#B07F0E" stroke-width="1.5"/>
+<text x="940.0" y="315.0" font-size="22" fill="#FFFFFF" text-anchor="middle" font-weight="700">Gold</text>
+<line x1="650" y1="350" x2="650" y2="330" stroke="#5F6672" stroke-width="2.5" marker-end="url(#m_g)"/>
+<rect x="510" y="352" width="280" height="76" rx="6" fill="#FFFFFF" stroke="#5F6672" stroke-width="1.5"/>
+<text x="650.0" y="384.5" font-size="22" fill="#15171C" text-anchor="middle" font-weight="700">Athena sobre silver:</text>
+<text x="650.0" y="411.5" font-size="22" fill="#5F6672" text-anchor="middle">filas, repetidos, nulos</text>
+<line x1="940" y1="350" x2="940" y2="330" stroke="#5F6672" stroke-width="2.5" marker-end="url(#m_g)"/>
+<rect x="800" y="352" width="280" height="76" rx="6" fill="#FFFFFF" stroke="#5F6672" stroke-width="1.5"/>
+<text x="940.0" y="384.5" font-size="22" fill="#15171C" text-anchor="middle" font-weight="700">Snowflake sobre gold:</text>
+<text x="940.0" y="411.5" font-size="22" fill="#5F6672" text-anchor="middle">filas y huérfanos</text>
+<text x="20" y="380" font-size="22" fill="#15171C" text-anchor="start" font-weight="700">Tres comprobaciones</text>
+<text x="20" y="407" font-size="22" fill="#15171C" text-anchor="start" font-weight="700">de la clase 7</text>
+</svg>

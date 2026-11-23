@@ -161,45 +161,40 @@ Busca tu mensaje con **Ctrl+F**. Cada entrada muestra el mensaje exacto, su caus
 - **Qué hacer:** `cd ~/bigdata && make deploy`. Sube `pipeline.zip` con la carpeta `pipeline/`.
 - [Volver al paso 12](guia.md#paso-12)
 
-## Paso 12 · Muestra
+## Paso 12 · Muestra (retirada en la clase 7)
 
 <a id="p-timeout-muestra"></a>
-### `make muestra` termina en TIMEOUT
-
-- **Síntoma:** el paso termina en `TIMEOUT`.
-<!-- AUTOR: el original no indica la causa del TIMEOUT -->
-- **Qué hacer:** repítelo con `cd ~/bigdata && make muestra`. Retoma desde lo que ya descargó.
-- [Volver al paso 12](guia.md#paso-12)
-
 <a id="p-cerre-terminal-muestra"></a>
-### Cerré la terminal mientras corría `make muestra`
-
-- **Síntoma:** cerraste la terminal (o se cortó la conexión) mientras `make muestra` esperaba a Glue, y la salida nunca llegó a `==> muestra OK`. Con `cd ~/bigdata && make estado` ves el último run de `bigdata-large` en `SUCCEEDED`, pero no hay ningún run de `bigdata-medium` con el paso `muestra`.
-- **Causa:** `make muestra` lanza los dos pasos uno detrás de otro desde tu terminal. El job de bronze sigue corriendo en Glue aunque la cierres, pero el segundo paso solo lo lanza el script, y el script terminó con la terminal.
-- **Qué hacer:** lanza solo el paso que falta, cuando el bronze ya esté en `SUCCEEDED`:
-  ```bash
-  cd ~/bigdata
-  make muestra-solo
-  ```
-  Verás `==> Glue bigdata-medium --step muestra (run jr_...)` y, al terminar, `==> muestra OK`.
-- **Qué no hacer:** repetir `make muestra`. Cada ejecución del paso bronze crea otro lote completo del año en tu bucket, con su costo de almacenamiento y de Glue.
-- **Si `make muestra-solo` falla:** `No se pudo lanzar bigdata-medium` significa que hay otro run en curso o que el presupuesto bloqueó Glue (corre `make desbloquear` solo si fue el presupuesto). `muestra terminó en FAILED` significa que el job falló: abre los logs en CloudWatch (`/aws-glue/jobs/bigdata`).
-- [Volver al paso 12](guia.md#paso-12)
-
 <a id="p-sin-muestra"></a>
-### No hay muestra para correr en local
+### `make muestra`, `make muestra-solo` o `make run-local` dicen «No rule to make target»
 
-- **Síntoma:** `make run-local`: "No hay muestra ... ni en tu bucket ni en el bucket público del curso".
-- **Causa:** la muestra se descarga sola la primera vez, pero no se pudo leer ni tu bucket ni el bucket público (por ejemplo, sin internet).
-- **Qué hacer:** revisa tu conexión y vuelve a correr `cd ~/bigdata && make run-local`. Si sigue igual, borra `~/bigdata/lake/muestra` y avisa al instructor.
-- [Volver al paso 13.1](guia.md#paso-13-1)
+- **Síntoma:** el comando imprime `make: *** No rule to make target 'muestra'` (o `muestra-solo`, o `run-local`) y sale con error.
+- **Causa:** esos comandos se retiraron en la clase 7: ya no hay muestra ni modo local sobre el disco. Todo corre contra S3: dev en `s3://<LAKE>/dev/` y prod en `s3://<LAKE>/prod/`.
+- **Qué hacer:** usa `cd ~/bigdata && make correr PASO=bronze`. El crudo se descarga solo la primera vez. Si Spark se queja de los jars, corre antes `cd ~/bigdata && make jars-s3a`.
+- [Volver al paso 12](guia.md#paso-12) · [Volver al paso 13.1](guia.md#paso-13-1)
+
+<a id="p-sin-lote-en-dev"></a>
+### `No hay ningún lote completo en s3://.../dev/bronze/...`
+
+- **Síntoma:** un paso `silver` (o `muestra`) falla con `No hay ningún lote completo en s3://<LAKE>/dev/bronze/fhvhv/mes=2024-01`.
+- **Causa:** dev y prod no comparten carpetas. El crudo que ya tenías está en `prod/bronze/`, y dev solo lee `dev/bronze/`, que está vacío hasta que dev corra su propio paso `bronze`.
+- **Qué hacer:** corre primero el paso bronze en dev: `cd ~/bigdata && make correr PASO=bronze` (o la tarea `correr_bronze` del DAG `pipeline_taxi`). Descarga enero a `dev/bronze/_crudo/` y escribe el lote.
+- **Qué no hacer:** copiar a mano `prod/bronze/` hacia `dev/`: para eso está la tarea `bronze`. Si quieres ahorrar la descarga, los comandos están en [rutas_del_lake.md](rutas_del_lake.md#copiar-crudo-a-dev).
+- [Volver al paso 13.2](guia.md#paso-13-2)
+
+<a id="p-carpetas-antiguas"></a>
+### `Quedan carpetas del diseño anterior` (`make doctor`, `make estado` o `make deploy`)
+
+- **Síntoma:** el aviso lista `s3://<LAKE>/bronze/`, `muestra/`, `silver/` o `gold/` en la raíz del bucket.
+- **Causa:** tu bucket se llenó antes de que cada entorno tuviera su propia carpeta. Ya nadie lee esas carpetas: el pipeline lee y escribe solo bajo `dev/` o `prod/`.
+- **Qué hacer:** muévelas o bórralas con los comandos de [rutas_del_lake.md](rutas_del_lake.md#migrar). No es un error: solo ocupan espacio.
 
 ## Pipeline local (Java)
 
 <a id="p-java"></a>
 ### Java no es el correcto
 
-- **Síntoma:** `make test` o `make run-local` fallan por Java.
+- **Síntoma:** `make test` o `make correr` fallan por Java.
 - **Causa:** Java no está instalado o no es la versión validada (Java 17).
 - **Qué hacer:** instala Java 17 (versión con la que se validó PySpark 3.5) y revisa `cd ~/bigdata && java -version` y `JAVA_HOME`.
 - [Volver al paso 13.1](guia.md#paso-13-1)

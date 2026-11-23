@@ -4,7 +4,7 @@ Material de consulta. No hace falta leerlo para empezar: el recorrido está en l
 
 ## Índice
 
-- [Arquitectura](#arquitectura): diagrama y entornos (local, dev y prod).
+- [Arquitectura](#arquitectura): diagrama y entornos (dev y prod).
 - [Bronze: ingesta con metadatos](#bronze): dónde queda cada archivo, qué columnas se agregan y cómo se elige el lote.
 - [Configuración por estudiante](#configuracion): el archivo de configuración de AWS.
 - [Comandos de `make`](#make): qué hace cada comando y en qué paso se usa.
@@ -29,23 +29,23 @@ Material de consulta. No hace falta leerlo para empezar: el recorrido está en l
                                      v              v                v
  +--------------------------------------+    +------------------------------------------+
  | Code Editor (SageMaker, 8 GB)        |    | S3  bigdata-lake-<cuenta>-us-east-2      |
- |  - tu código, tests                  |    |  bronze/  (crudo + lotes, compartido)    |
- |  - Airflow de dev (make airflow-local)|-->|  muestra/ (~100 k filas, para local)     |
- |     computo=spark_local: Spark aquí, |    |  dev/  silver/ gold/                     |
- |       sobre la muestra (gratis)      |    |  prod/ silver/ gold/                     |
- |     computo=glue_small: 1 mes        |    +----------+-------------------------------+
+ |  - tu código, tests, notebooks       |    |  dev/  bronze silver gold                |
+ |  - Airflow de dev (make airflow-local)|-->|  prod/ bronze silver gold                |
+ |  - make correr, siempre entorno dev  |    |  (dev y prod no comparten carpetas)      |
+ |     computo=code_editor: Spark aquí  |    |  code/ dags/ logs/ tmp/: del lake        |
+ |     computo=glue_small|medium|large  |    +----------+-------------------------------+
  +------------------+-------------------+               | COPY INTO
                     | PR -> merge a main                 v
                     v                          +----------------------------+
  GitHub Actions (OIDC): CI, Deploy             | Snowflake BIGDATA.DEV /    |
    Terraform + código y DAGs a S3              |   BIGDATA.PROD             |
-   + enciende el Airflow de prod  ------+      |   DAILY_ZONE_METRICS       |
-                                        v      +----------------------------+
-                          +---------------------------+       ^
-                          | VM Airflow de prod (EC2)  |-------+
-                          | prod (fijo): glue_large   |  Glue 5.0 jobs
-                          | el año; apagado nocturno; |  bigdata-small|medium|large
-                          | acceso por túnel SSM      |
+   + enciende el Airflow de prod  ------+      |   tablas de cada equipo    |
+                                        v      |   CONTROL_DEV / CONTROL_PROD
+                          +---------------------------+  (tabla de control) |
+                          | VM Airflow de prod (EC2)  |-------+-------------+
+                          | prod (fijo): solo Glue,   |  Glue 5.0 jobs
+                          | límite todos; apagado     |  bigdata-small|medium|large
+                          | nocturno; túnel SSM       |
                           +---------------------------+
 
   Guardrails: Budget (gasto bruto) con bloqueo al 60 % + resource monitor de Snowflake
@@ -54,19 +54,36 @@ Material de consulta. No hace falta leerlo para empezar: el recorrido está en l
 <a id="arquitectura-entornos"></a>
 ### Entornos
 
-Hay tres entornos. Usan el mismo código con distinta configuración.
+Hay dos entornos, **dev** y **prod**. Usan el mismo código; lo que cambia es dónde quedan los datos. **El entorno no se elige:** todo lo que corres desde el Code Editor (terminal, notebook, `make correr`, Airflow del Code Editor) es dev; prod lo fija solo el despliegue en la VM después de un pull request y del CI/CD, y el código se niega a correr prod fuera de ahí.
 
-| Entorno | Airflow | Spark | Datos | Salida |
+| Entorno | Airflow | Cómputo | Datos | Salida |
 |---|---|---|---|---|
-| **local** | Code Editor (`make airflow-local`) | En el Code Editor | Muestra (~100 k filas) | `./lake` |
-| **dev** | Code Editor | Glue `small` | 1 mes completo | `s3://<LAKE>/dev/`, `BIGDATA.DEV` |
-| **prod** | VM dedicada (se enciende con el Deploy) | Glue `medium`/`large` | 12 meses | `s3://<LAKE>/prod/`, `BIGDATA.PROD` |
+| **dev** | Code Editor (`make airflow-local`), o ninguno (`make correr`, notebook) | `code_editor` (Spark en tu máquina, límite 1 000 o 100 000), `glue_small`, `glue_medium` o `glue_large` | Lo que diga `limite` (1 000, 100 000 o todos) | `s3://<LAKE>/dev/`, `BIGDATA.DEV`, `BIGDATA.CONTROL_DEV` |
+| **prod** | VM dedicada (se enciende con el Deploy) | Solo Glue (`glue_medium` por defecto) | Siempre todo (`limite = todos`) | `s3://<LAKE>/prod/`, `BIGDATA.PROD`, `BIGDATA.CONTROL_PROD` |
 
-- **local:** pruebas gratis en tu Code Editor, sobre la muestra. Escribe en `./lake`, la carpeta `lake` dentro de `~/bigdata`.
-- **dev:** pruebas en AWS sobre un mes completo. Escribe en `s3://<LAKE>/dev/` y carga en `BIGDATA.DEV`.
-- **prod:** el año completo, en la VM de Airflow de prod. Escribe en `s3://<LAKE>/prod/` y carga en `BIGDATA.PROD`.
+- **dev:** pruebas y desarrollo. El **cómputo** es independiente del entorno: puedes calcular con Spark del Code Editor o con Glue, y escribe siempre en `s3://<LAKE>/dev/` y carga en `BIGDATA.DEV`.
+- **prod:** el pipeline de verdad, en la VM de Airflow de prod. Lee `main` (lo que desplegó el CI/CD), escribe en `s3://<LAKE>/prod/` y carga en `BIGDATA.PROD`.
+- En Snowflake, el rol `BIGDATA_DEV` no puede escribir en `PROD` ni en `CONTROL_PROD`: esa es la barandilla real.
 
 `<LAKE>` es el bucket `bigdata-lake-<CUENTA>-us-east-2` que el [Paso 10](guia.md#paso-10) imprime como `lake_bucket`.
+
+<a id="rutas-del-lake"></a>
+### Dónde queda cada dato
+
+Un solo bucket, y **dev y prod no comparten ninguna carpeta**. La regla es una sola:
+
+```text
+s3://<LAKE>/<entorno>/<capa>/<tabla>/mes=AAAA-MM/      entorno = dev | prod
+                                                       capa = bronze | silver | gold
+```
+
+- Un paso de dev solo lee y escribe bajo `dev/`; uno de prod, solo bajo `prod/`.
+- `code/`, `dags/`, `logs/` y `tmp/` son del lake y no son de ningún entorno.
+- El crudo se descarga una sola vez, la primera vez que corre bronze en cada entorno, a `<entorno>/bronze/_crudo/`. Ya no hay muestra ni entorno `local` sobre el disco.
+- Las rutas se arman en un solo lugar (`ruta_lake` en `src/pipeline/herramientas/rutas.py`) y cada lectura o escritura de la casa imprime la ruta completa.
+- Para ver la tabla de un entorno: `make rutas ENTORNO=dev`, o `donde_estoy("dev")` (de `pipeline.herramientas`) en un notebook.
+
+Tabla completa, comandos para mover un bucket del diseño anterior y tablas de Athena: [rutas_del_lake.md](rutas_del_lake.md).
 
 <a id="arquitectura-piezas"></a>
 ### Piezas del repositorio
@@ -74,9 +91,9 @@ Hay tres entornos. Usan el mismo código con distinta configuración.
 | Pieza | Dónde | Qué hace |
 |---|---|---|
 | **Bootstrap** | `bootstrap/` | Plantilla de CloudFormation. Crea tu entorno de trabajo (SageMaker Code Editor), el acceso de GitHub Actions a AWS por OIDC (sin claves), el bucket de state de Terraform y un presupuesto con alertas. Incluye un script SQL para Snowflake. |
-| **Infraestructura** | `infra/aws`, `infra/snowflake` | Terraform. AWS: lake S3, catálogo Glue y Athena, jobs Glue, VM de Airflow opcional y guardrails de costo. Snowflake: warehouse XS, base `BIGDATA` (BRONZE/SILVER/GOLD para SQL; DEV/PROD para el pipeline; CONTROL con la tabla `WATERMARK` de la ingesta), rol `BIGDATA_DEV` y stages externos sobre `gold/`, `dev/gold/` y `prod/gold/`. |
-| **Pipeline** | `src/pipeline` | bronze (descarga el archivo intacto y lo convierte a Parquet con metadatos) -> silver (limpieza y enriquecimiento) -> gold (métricas diarias por zona y empresa), más el paso `muestra`. Corre con Spark local o en Glue. La configuración de cada entorno está en `src/pipeline/config/<entorno>.yaml`, donde `<entorno>` es local, dev o prod. |
-| **Orquestación** | `airflow/` | DAG `pipeline_taxi` con un camino por entorno (local, dev, prod). Snowpark Connect se compara aparte, en el laboratorio de la sesión 7. |
+| **Infraestructura** | `infra/aws`, `infra/snowflake` | Terraform. AWS: lake S3, catálogo Glue y Athena, jobs Glue, VM de Airflow opcional y guardrails de costo. Snowflake: warehouse XS, base `BIGDATA` (BRONZE/SILVER/GOLD para SQL; DEV y PROD para las tablas del pipeline; CONTROL_DEV y CONTROL_PROD con la tabla de control `WATERMARK`; CONTROL es la historia de la práctica), roles `BIGDATA_DEV` y `BIGDATA_PROD` y stages externos sobre `dev/gold/` y `prod/gold/`. |
+| **Pipeline** | `src/pipeline` | Cuatro pasos: bronze (descarga el archivo intacto y lo guarda en Parquet, un lote por ingesta) -> silver (espejo limpio de cada fuente, sin duplicados) -> gold (tablas de negocio) -> snowflake (crea y carga la tabla). Cada paso es una función (`correr_bronze`, `correr_silver`, `correr_gold`, `cargar_snowflake`) que corre con Spark del Code Editor o en Glue, cambiando solo `computo`. Las perillas están en `pipeline.yaml`; `config/dev.yaml` y `config/prod.yaml` solo traen los meses. La caja de herramientas es `pipeline.herramientas` ([herramientas.md](herramientas.md)). |
+| **Orquestación** | `airflow/` | DAG `pipeline_taxi` (una tarea por paso, con el nombre de la función), DAG `resetear_entorno` (borra todo el entorno de ese Airflow). Snowpark Connect se compara aparte, en el laboratorio de motores. |
 | **Automatización** | `Makefile`, `scripts/`, `.github/workflows/` | Comandos de `make`, sus scripts y los workflows de GitHub Actions. |
 
 ---
@@ -88,11 +105,11 @@ Bronze guarda los datos tal como llegan de la fuente, pero ahora los guarda **do
 
 ### Los dos pasos
 
-1. **Crudo intacto.** El archivo se descarga y se guarda sin modificar ni un byte, en `bronze/_crudo/`. Si el archivo ya está ahí, no se descarga otra vez.
+1. **Crudo intacto.** El archivo se descarga y se guarda sin modificar ni un byte, en `<entorno>/bronze/_crudo/`. Si el archivo ya está ahí, no se descarga otra vez.
 2. **Bronze en Parquet.** Spark lee el crudo y lo escribe en formato Parquet, con las columnas originales sin transformar más cinco columnas de metadatos. Cada ejecución crea una carpeta nueva, llamada **lote**, y nunca borra las anteriores.
 
 ```text
-bronze/
+<entorno>/bronze/                                    (dev/bronze/ o prod/bronze/)
   _crudo/                                        paso 1: archivos tal como se descargaron
     fhvhv/mes=2024-01/fhvhv_tripdata_2024-01.parquet
     clima/mes=2024-01/open_meteo_2024-01.json
@@ -116,19 +133,21 @@ El clima llega como un JSON con listas por día. En bronze se convierte a una fi
 
 **Cómo se calcula `_hash_fila`.** Se toman todas las columnas originales (sin contar los metadatos), cada una se convierte a texto, el valor nulo se reemplaza por el texto `<nulo>` y los textos se unen con `||`. Del texto resultante se calcula el SHA-256 y se guarda en hexadecimal (64 caracteres). La misma fila siempre da el mismo hash, aunque se ingeste en otro lote; si cambia un solo valor, el hash cambia. El marcador `<nulo>` evita que un nulo se confunda con un texto vacío. Las fechas se convierten a texto en UTC, porque el pipeline fija la zona horaria de Spark en UTC.
 
-### Qué lote lee silver
+### Qué lotes lee silver
 
-Silver y la muestra leen, **para cada mes, el lote más reciente**: el de mayor `lote=`. Como el identificador empieza con la fecha, el mayor es también el más nuevo. Cuando bronze termina de escribir un lote, publica en su carpeta el archivo `_LOTE_COMPLETO`. Un lote que no lo tiene (porque la ingesta falló mientras lo escribía) se ignora y se usa el anterior. Se usa un marcador propio porque Glue no escribe `_SUCCESS` en S3. Con los mismos datos, silver da el mismo resultado que antes de agregar los metadatos.
+Silver lee, **para cada mes, todos los lotes completos** de bronze y los junta. Cuando bronze termina de escribir un lote, publica en su carpeta el archivo `_LOTE_COMPLETO`. Un lote que no lo tiene (porque la ingesta falló mientras lo escribía) se ignora. Se usa un marcador propio porque Glue no escribe `_SUCCESS` en S3.
 
-Reingestar un mes (`--step bronze --mes 2024-01`) crea un lote nuevo sin tocar los anteriores. Como el crudo ya existe, no se vuelve a descargar. Para volver a descargar un archivo hay que borrar su archivo de `_crudo/` (con `aws s3 rm`).
+Eso tiene una consecuencia que se enseña en la clase 7: **si un mes se ingesta dos veces (`reprocesar=true`), bronze tiene dos lotes del mismo mes y silver los lee los dos**. Si silver no deduplica, cada fila queda dos veces, y gold, que une viajes, zonas y clima, multiplica los viajes por ocho. La función `deduplicar` de `silver.py` (que escribe cada equipo, a partir de `_hash_fila`) es la que hace de silver el espejo limpio de la fuente: pase lo que pase en bronze, silver queda igual.
+
+Reingestar un mes (`make correr PASO=bronze REPROCESAR=true`) crea un lote nuevo sin tocar los anteriores. Como el crudo ya existe, no se vuelve a descargar. Para volver a descargar un archivo hay que borrar su archivo de `_crudo/` (con `aws s3 rm`). Con `reprocesar=false`, la tabla de control salta el mes y no se crea ningún lote.
 
 ### Si ya tenías bronze de la versión anterior
 
-La versión anterior guardaba el archivo descargado directamente en `bronze/<fuente>/mes=AAAA-MM/<archivo>`. Al ejecutar `--step bronze` por primera vez, el pipeline **mueve** ese archivo a `_crudo/` en lugar de descargarlo otra vez, así que los ~5.4 GB del año no se bajan de nuevo. Mover es copiar dentro de S3 y borrar el original solo cuando la copia terminó bien: no quedan dos copias y no se paga almacenamiento doble. Después de la migración, en `bronze/<fuente>/mes=.../` solo quedan carpetas `lote=`. No necesitas borrar nada a mano.
+Si tu bucket tiene `bronze/` y `muestra/` en la raíz (antes de que cada entorno tuviera su carpeta), corre `make migrar-clase07` (detalle en [curso/clase07/README.md](../curso/clase07/README.md)): mueve el crudo a `prod/` sin volver a descargarlo. Los comandos a mano están en [rutas_del_lake.md](rutas_del_lake.md). Más atrás, una versión guardaba el archivo descargado directamente en `<bronze>/<fuente>/mes=AAAA-MM/<archivo>`. Al ejecutar bronze por primera vez, el pipeline **mueve** ese archivo a `_crudo/` en lugar de descargarlo otra vez, así que los ~5.4 GB del año no se bajan de nuevo. Mover es copiar dentro de S3 y borrar el original solo cuando la copia terminó bien: no quedan dos copias y no se paga almacenamiento doble. Después de la migración, en `bronze/<fuente>/mes=.../` solo quedan carpetas `lote=`. No necesitas borrar nada a mano.
 
-### En local
+### La muestra y el modo local (retirados)
 
-El modo local no tiene bronze: lee la **muestra**. No necesitas generarla: `make run-local` la descarga sola la primera vez. La busca primero en tu bucket (`s3://<LAKE>/muestra`, que genera `make muestra`) y, si ahí no hay una muestra con lotes completos (`_LOTE_COMPLETO`), la baja del bucket público del curso, con acceso anónimo y sin credenciales. La ubicación pública está en `muestra.publica` de `src/pipeline/config/local.yaml`, y el log dice de cuál bucket salió. La muestra tiene la misma estructura que bronze (carpetas `lote=`, con el mismo identificador del lote del que salió) y conserva las cinco columnas de metadatos; no incluye `_crudo/`. Si en tu Code Editor quedó una muestra de la versión anterior, `make run-local` la detecta, la borra y descarga la nueva (de tu bucket si ya la tiene en el formato nuevo, y si no del bucket público).
+Hasta la clase 6 existía una muestra (`prod/muestra/`) y un modo local que trabajaba sobre el disco. **Se retiraron en la clase 7.** Ahora el Code Editor corre Spark (`computo = code_editor`) leyendo y escribiendo directamente en `s3://<LAKE>/dev/`, con un `limite` de 1 000 o 100 000 filas por fuente para que sea rápido. Ver [Entornos](#arquitectura-entornos).
 
 ---
 
@@ -182,10 +201,11 @@ Ejecuta `make help` para ver la lista actualizada. La columna **Paso** dice dón
 | `make doctor` | Diagnóstico: versiones, entorno de Python (`.venv` con 3.12), AWS, Snowflake, Terraform, OIDC | [Paso 9](guia.md#paso-9) |
 | `make estado` | Estado de Airflow, últimos job runs de Glue, warehouse y costos | [Apagar](cada-sesion.md#apagar) |
 | `make test` | `ruff check`, `ruff format --check`, `pytest` (y tests de DAGs si Airflow está instalado) | — |
-| `make muestra` | Glue: bronze del año de prod + muestra en tu bucket (una vez por curso). El modo local ya no la necesita | [Paso 12](guia.md#paso-12) |
-| `make muestra-solo` | Glue: lanza solo el paso `muestra` (job `bigdata-medium`, entorno prod) y espera a que termine. Para quien cerró la terminal de `make muestra` con el bronze del año ya terminado | [Paso 12](guia.md#paso-12) |
-| `make run-local` | Pipeline en local sobre la muestra, que descarga sola la primera vez (`STEP=silver\|gold\|all`, `MES=YYYY-MM`, `LIMITE=N`). Sin `LIMITE` procesa toda la muestra | [Paso 13](guia.md#paso-13) |
-| `make airflow-local` / `-down` / `-estado` | Airflow de dev dentro del Code Editor (entorno dev; `computo` se elige al lanzar el DAG) | [Paso 13](guia.md#paso-13) · [Apagar](cada-sesion.md#apagar) (`-down`) |
+| `make correr` | Corre el pipeline en dev (`PASO=bronze\|silver\|gold\|snowflake`, `COMPUTO=`, `LIMITE=`, `MES=`, `REPROCESAR=`; lo que no pongas sale de `pipeline.yaml`; sin `PASO` corre los cuatro). El entorno no se elige: siempre es dev | [Paso 13](guia.md#paso-13) |
+| `make jars-s3a` | Baja una vez los dos jars que Spark necesita para leer y escribir en S3 (~280 MB, en `~/.spark-jars`) | [Paso 12](guia.md#paso-12) |
+| `make migrar-clase07` | Pasa tu cuenta del diseño de las clases 1 a 6 al de la clase 7 (mueve el crudo a `prod/bronze/`, esquemas de Snowflake, jars, Airflow) | [Clase 7](../curso/clase07/README.md) |
+| `make rutas` | Imprime en qué bucket y carpetas lee y escribe cada entorno (`ENTORNO=dev\|prod`; vacío = los dos; solo informativo) | [Dónde queda cada dato](#rutas-del-lake) |
+| `make airflow-local` / `-down` / `-estado` | Airflow de dev dentro del Code Editor (siempre entorno dev; `computo`, `limite`, `mes` y `reprocesar` se eligen al lanzar el DAG `pipeline_taxi`) | [Paso 13](guia.md#paso-13) · [Apagar](cada-sesion.md#apagar) (`-down`) |
 | `make deploy` | `terraform apply` de `infra/aws` (con la guardia de destrucción) y sincronización de código, DAGs y framework a S3 | [Paso 10](guia.md#paso-10) |
 | `make snowflake` | `terraform init` y `apply` de `infra/snowflake` (crea `AIRFLOW_SVC`), guarda sus outputs en S3, aplica la fase 2 de AWS y escribe la conexión de Airflow (`SIN_DEPLOY=true` omite el deploy) | [Paso 11](guia.md#paso-11) |
 | `make snowflake-secreto` | Escribe la conexión de `AIRFLOW_SVC` (llave privada incluida) en el secreto `bigdata/snowflake`; `make snowflake` ya lo hace | [Problemas](problemas.md#p-cargar-gold) |
@@ -233,12 +253,11 @@ Usa tu conexión de `snow` y los outputs del Paso 10, así que no hay que copiar
 Conexión de Airflow a Snowflake: no hay nada que hacer a mano. `make snowflake` crea el usuario `AIRFLOW_SVC` en Snowflake (genera su llave en `~/.snowflake/keys/airflow_svc_rsa_key.p8`), aplica la fase 2 de AWS y guarda la conexión en el secreto `bigdata/snowflake`, que usan el Airflow de dev y el de prod.
 
 <a id="make-muestra"></a>
-#### `make muestra` ([Paso 12](guia.md#paso-12))
+#### `make muestra` (retirado en la clase 7)
 
-- Glue baja el año de **FHVHV** (los viajes de Uber/Lyft de NYC publicados por la NYC TLC) a `bronze/_crudo/` (~5.4 GB). Si ya los tenías en la ruta anterior de `bronze/`, los mueve en lugar de descargarlos otra vez.
-- **Bronze** guarda cada archivo tal como llegó y además lo convierte a Parquet con metadatos (hash de cada fila, fecha de ingesta, lote). Detalle: [Bronze: ingesta con metadatos](#bronze).
-- Genera la **muestra** en `muestra/` de tu bucket: un subconjunto pequeño de los datos, con la misma estructura de bronze. Para trabajar en local no hace falta: sin ella, `make run-local` usa la del bucket público del curso.
-- Si cerraste la terminal a mitad de camino, `make muestra-solo` lanza únicamente este último paso, sin repetir el bronze del año. Ver [Cerré la terminal mientras corría `make muestra`](problemas.md#p-cerre-terminal-muestra).
+- Hasta la clase 6, Glue bajaba el año de **FHVHV** a `prod/bronze/` y generaba una muestra. **Ya no existe**: no hay muestra, ni bucket público de muestra, ni entorno `local`.
+- Ahora el crudo de cada mes se descarga **una sola vez**, la primera vez que corre bronze (`make correr PASO=bronze`, el notebook o el DAG), directo a `s3://<tu-bucket>/dev/bronze/_crudo/`. Si ya lo tenías en el bucket (diseño anterior), `make migrar-clase07` lo mueve a `prod/bronze/_crudo/` sin volver a descargarlo.
+- `make muestra`, `make muestra-solo` y `make run-local` ya no existen: `make` responde «No rule to make target». Usa `make correr`.
 
 ---
 

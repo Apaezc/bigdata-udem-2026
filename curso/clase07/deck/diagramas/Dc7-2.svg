@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 440" font-family="Helvetica Neue, Arial, sans-serif">
+<title>Qué da la casa y qué escribe el equipo en cada paso</title><desc>Cuatro columnas, una por paso. En cada una, arriba la caja de la casa con las funciones ya hechas y abajo la caja del equipo con lo que escribe: agregar_metadatos en bronze, deduplicar en silver, la tabla de gold propia en gold y el CREATE TABLE propio en snowflake. Abajo, una nota: agregar_metadatos y deduplicar hoy no hacen nada a propósito; debe_ingestar y registrar_ingesta ya vienen resueltas.</desc>
+<defs><marker id="m_a" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#2340D8"/></marker><marker id="m_g" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#5F6672"/></marker><marker id="m_b" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#B4622F"/></marker><marker id="m_y" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#FFC83D"/></marker><marker id="m_r" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#B3261E"/></marker></defs>
+<rect x="6" y="6" width="262" height="54" rx="6" fill="#B4622F" stroke="#B4622F" stroke-width="1.5"/>
+<text x="137.0" y="41.0" font-size="22" fill="#FFFFFF" text-anchor="middle" font-weight="700">Bronze</text>
+<rect x="6" y="70" width="262" height="168" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
+<text x="137.0" y="108.0" font-size="22" fill="#15171C" text-anchor="middle" font-weight="700">De la casa</text>
+<text x="137.0" y="135.0" font-size="22" fill="#5F6672" text-anchor="middle">traer_crudo_*</text>
+<text x="137.0" y="162.0" font-size="22" fill="#5F6672" text-anchor="middle">leer_crudo</text>
+<text x="137.0" y="189.0" font-size="22" fill="#5F6672" text-anchor="middle">escribir_bronze</text>
+<text x="137.0" y="216.0" font-size="22" fill="#5F6672" text-anchor="middle">la tabla de control</text>
+<rect x="6" y="250" width="262" height="76" rx="6" fill="#FFFFFF" stroke="#15171C" stroke-width="3"/>
+<text x="137.0" y="282.5" font-size="22" fill="#15171C" text-anchor="middle" font-weight="700">Del equipo</text>
+<text x="137.0" y="309.5" font-size="22" fill="#5F6672" text-anchor="middle">agregar_metadatos</text>
+<rect x="286" y="6" width="262" height="54" rx="6" fill="#6E7F94" stroke="#6E7F94" stroke-width="1.5"/>
+<text x="417.0" y="41.0" font-size="22" fill="#FFFFFF" text-anchor="middle" font-weight="700">Silver</text>
+<rect x="286" y="70" width="262" height="168" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
+<text x="417.0" y="108.0" font-size="22" fill="#15171C" text-anchor="middle" font-weight="700">De la casa</text>
+<text x="417.0" y="135.0" font-size="22" fill="#5F6672" text-anchor="middle">leer_capa</text>
+<text x="417.0" y="162.0" font-size="22" fill="#5F6672" text-anchor="middle">escribir_capa</text>
+<text x="417.0" y="189.0" font-size="22" fill="#5F6672" text-anchor="middle">limpiar_viajes</text>
+<text x="417.0" y="216.0" font-size="22" fill="#5F6672" text-anchor="middle">main de silver</text>
+<rect x="286" y="250" width="262" height="76" rx="6" fill="#FFFFFF" stroke="#15171C" stroke-width="3"/>
+<text x="417.0" y="282.5" font-size="22" fill="#15171C" text-anchor="middle" font-weight="700">Del equipo</text>
+<text x="417.0" y="309.5" font-size="22" fill="#5F6672" text-anchor="middle">deduplicar</text>
+<rect x="566" y="6" width="262" height="54" rx="6" fill="#B07F0E" stroke="#B07F0E" stroke-width="1.5"/>
+<text x="697.0" y="41.0" font-size="22" fill="#FFFFFF" text-anchor="middle" font-weight="700">Gold</text>
+<rect x="566" y="70" width="262" height="168" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
+<text x="697.0" y="108.0" font-size="22" fill="#15171C" text-anchor="middle" font-weight="700">De la casa</text>
+<text x="697.0" y="135.0" font-size="22" fill="#5F6672" text-anchor="middle">leer_capa</text>
+<text x="697.0" y="162.0" font-size="22" fill="#5F6672" text-anchor="middle">escribir_capa</text>
+<text x="697.0" y="189.0" font-size="22" fill="#5F6672" text-anchor="middle">ejemplo: tarifa por</text>
+<text x="697.0" y="216.0" font-size="22" fill="#5F6672" text-anchor="middle">milla por barrio</text>
+<rect x="566" y="250" width="262" height="76" rx="6" fill="#FFFFFF" stroke="#15171C" stroke-width="3"/>
+<text x="697.0" y="282.5" font-size="22" fill="#15171C" text-anchor="middle" font-weight="700">Del equipo</text>
+<text x="697.0" y="309.5" font-size="22" fill="#5F6672" text-anchor="middle">tu tabla de gold</text>
+<rect x="846" y="6" width="262" height="54" rx="6" fill="#F0EEE7" stroke="#15171C" stroke-width="2.5"/>
+<text x="977.0" y="41.0" font-size="22" fill="#15171C" text-anchor="middle" font-weight="700">Snowflake</text>
+<rect x="846" y="70" width="262" height="168" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
+<text x="977.0" y="108.0" font-size="22" fill="#15171C" text-anchor="middle" font-weight="700">De la casa</text>
+<text x="977.0" y="135.0" font-size="22" fill="#5F6672" text-anchor="middle">esquema_de_tabla</text>
+<text x="977.0" y="162.0" font-size="22" fill="#5F6672" text-anchor="middle">cargar_gold</text>
+<text x="977.0" y="189.0" font-size="22" fill="#5F6672" text-anchor="middle">ejemplo de</text>
+<text x="977.0" y="216.0" font-size="22" fill="#5F6672" text-anchor="middle">CREATE TABLE</text>
+<rect x="846" y="250" width="262" height="76" rx="6" fill="#FFFFFF" stroke="#15171C" stroke-width="3"/>
+<text x="977.0" y="282.5" font-size="22" fill="#15171C" text-anchor="middle" font-weight="700">Del equipo</text>
+<text x="977.0" y="309.5" font-size="22" fill="#5F6672" text-anchor="middle">tu CREATE TABLE</text>
+<text x="560" y="372" font-size="22" fill="#15171C" text-anchor="middle" font-weight="700">Problemas a propósito: agregar_metadatos y deduplicar hoy no hacen nada.</text>
+<text x="560" y="408" font-size="22" fill="#5F6672" text-anchor="middle">debe_ingestar y registrar_ingesta ya vienen resueltas.</text>
+</svg>

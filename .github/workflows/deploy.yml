@@ -119,21 +119,31 @@ jobs:
             exit 1
           fi
 
+      # El código de prod (pipeline.zip, DAGs, framework, code/airflow/*) lo publica solo este workflow
+      # y solo desde main: un dispatch desde otra rama aplica Terraform pero no toca el código de prod.
+      # El código de dev vive aparte (s3://<lake>/code/dev/) y lo sube make correr, nunca este workflow.
       - name: Empaquetar src/pipeline
+        if: github.ref == 'refs/heads/main'
         run: |
           set -euo pipefail
           mkdir -p build
           rm -f build/pipeline.zip
           (cd src && zip -r -q ../build/pipeline.zip pipeline -x '*/__pycache__/*' '*.pyc')
 
-      - name: Subir código, DAGs y framework a S3
+      - name: Subir código, DAGs y framework a S3 (solo main)
+        if: github.ref == 'refs/heads/main'
         run: |
           set -euo pipefail
           aws s3 cp build/pipeline.zip "s3://${LAKE_BUCKET}/code/pipeline.zip"
           aws s3 cp src/pipeline/run_glue.py "s3://${LAKE_BUCKET}/code/run_glue.py"
           aws s3 sync airflow/dags "s3://${LAKE_BUCKET}/dags/" --delete --exclude '*__pycache__*'
           aws s3 sync airflow/framework "s3://${LAKE_BUCKET}/code/airflow/framework/" --delete --exclude '*__pycache__*'
+          # La VM necesita el paquete pipeline (las tareas importan pipeline.herramientas).
+          aws s3 sync src/pipeline "s3://${LAKE_BUCKET}/code/airflow/pipeline/" --delete --exclude '*__pycache__*' --exclude '*.pyc'
           aws s3 cp airflow/docker-compose.yaml "s3://${LAKE_BUCKET}/code/airflow/docker-compose.yaml"
+          aws s3 cp airflow/vm/airflow-refresh.sh "s3://${LAKE_BUCKET}/code/airflow/airflow-refresh.sh"
+          aws s3 cp infra/aws/modules/airflow_vm/refresh-bootstrap.sh "s3://${LAKE_BUCKET}/code/airflow/airflow-bootstrap.sh"
+          aws s3 cp airflow/vm/instalar-bootstrap.sh "s3://${LAKE_BUCKET}/code/airflow/instalar-bootstrap.sh"
           echo "Código sincronizado en s3://${LAKE_BUCKET}/"
 
       # Prod se enciende cuando llega a main un cambio del pipeline o de los DAGs (o a mano con
@@ -162,7 +172,7 @@ jobs:
           fi
 
       - name: Encender Airflow de prod
-        if: steps.prod.outputs.encender == 'true'
+        if: steps.prod.outputs.encender == 'true' && github.ref == 'refs/heads/main'
         run: |
           set -euo pipefail
           source "$GITHUB_WORKSPACE/scripts/lib.sh"

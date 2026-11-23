@@ -1,14 +1,6 @@
-# Entorno prod: Glue `medium`/`large` sobre el año completo; lo lanza el Airflow de prod.
-# bronze es compartido con dev; silver y gold van bajo prod/.
-entorno: prod
-rutas:
-  bronze: s3://{lake_bucket}/bronze
-  silver: s3://{lake_bucket}/prod/silver
-  gold: s3://{lake_bucket}/prod/gold
-muestra:
-  max_rows: null
-  objetivo_filas: 100000
-  destino: s3://{lake_bucket}/muestra
+# Entorno prod: los meses que procesa el DAG de la VM cuando no se pide un mes.
+# Prod no lee pipeline.yaml: siempre usa Glue y procesa todo (limite todos).
+# Las rutas NO se escriben aquí: las arma rutas.ruta_lake().
 meses:
   - "2024-01"
   - "2024-02"

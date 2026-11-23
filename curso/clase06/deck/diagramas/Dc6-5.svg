@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 440" font-family="Helvetica Neue, Arial, sans-serif">
+<title>Dónde vive cada cosa: S3, el disco del Code Editor y Snowflake</title><desc>Tres zonas. A la izquierda, el bucket de S3 bigdata-lake-&lt;CUENTA&gt;-us-east-2 con el bronze del año (239 470 448 viajes), que Athena lee. En el centro, el disco del Code Editor: ~/datos_clase05/ con bronze_alumno, silver_alumno y gold_alumno, que escribe el DAG ingesta_mensual (viajes 1 000 filas, silver 1 000, gold 281), y ~/datos_clase06/lake_lab, que escribe el lab. A la derecha, el DAG, el lab y la tabla de control de Snowflake BIGDATA.CONTROL.WATERMARK, con flechas punteadas de consulta y registro desde el DAG y el lab.</desc>
+<defs><marker id="m_a" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#2340D8"/></marker><marker id="m_g" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#5F6672"/></marker><marker id="m_b" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#B4622F"/></marker><marker id="m_y" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#FFC83D"/></marker></defs>
+<rect x="6" y="14" width="372" height="196" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
+<text x="22" y="46" font-size="22" fill="#15171C" text-anchor="start" font-weight="700">Bucket de S3</text>
+<text x="22" y="75" font-size="22" fill="#15171C" text-anchor="start">bigdata-lake-&lt;CUENTA&gt;-us-east-2</text>
+<rect x="22" y="100" width="340" height="92" rx="6" fill="#B4622F" stroke="#B4622F" stroke-width="1.5"/>
+<text x="192" y="134" font-size="22" fill="#FFFFFF" text-anchor="middle" font-weight="700">bronze del año</text>
+<text x="192" y="168" font-size="22" fill="#FFFFFF" text-anchor="middle">239 470 448 viajes</text>
+<line x1="192" y1="296" x2="192" y2="212" stroke="#5F6672" stroke-width="2.5" marker-end="url(#m_g)"/>
+<text x="206" y="262" font-size="22" fill="#15171C" text-anchor="start" font-weight="700">lee</text>
+<rect x="92" y="298" width="200" height="56" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
+<text x="192.0" y="334.0" font-size="22" fill="#15171C" text-anchor="middle" font-weight="700">Athena</text>
+<rect x="398" y="14" width="350" height="236" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
+<text x="414" y="46" font-size="22" fill="#15171C" text-anchor="start" font-weight="700">Disco del Code Editor</text>
+<text x="414" y="75" font-size="22" fill="#15171C" text-anchor="start" font-family="SF Mono, Menlo, Consolas, monospace">~/datos_clase05/</text>
+<rect x="414" y="94" width="206" height="42" rx="6" fill="#B4622F" stroke="#B4622F" stroke-width="1.5"/>
+<text x="517" y="123" font-size="22" fill="#FFFFFF" text-anchor="middle" font-weight="700" font-family="SF Mono, Menlo, Consolas, monospace">bronze_alumno</text>
+<text x="634" y="123" font-size="22" fill="#15171C" text-anchor="start">1 000 filas</text>
+<rect x="414" y="144" width="206" height="42" rx="6" fill="#6E7F94" stroke="#6E7F94" stroke-width="1.5"/>
+<text x="517" y="173" font-size="22" fill="#FFFFFF" text-anchor="middle" font-weight="700" font-family="SF Mono, Menlo, Consolas, monospace">silver_alumno</text>
+<text x="634" y="173" font-size="22" fill="#15171C" text-anchor="start">1 000 filas</text>
+<rect x="414" y="194" width="206" height="42" rx="6" fill="#B07F0E" stroke="#B07F0E" stroke-width="1.5"/>
+<text x="517" y="223" font-size="22" fill="#FFFFFF" text-anchor="middle" font-weight="700" font-family="SF Mono, Menlo, Consolas, monospace">gold_alumno</text>
+<text x="634" y="223" font-size="22" fill="#15171C" text-anchor="start">281 filas</text>
+<rect x="398" y="270" width="350" height="90" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
+<text x="414" y="304" font-size="22" fill="#15171C" text-anchor="start" font-weight="700" font-family="SF Mono, Menlo, Consolas, monospace">~/datos_clase06/lake_lab</text>
+<text x="414" y="340" font-size="22" fill="#5F6672" text-anchor="start">silver y gold del lab</text>
+<rect x="842" y="14" width="272" height="76" rx="6" fill="#FFFFFF" stroke="#2340D8" stroke-width="2.5" stroke-dasharray="9 6"/>
+<text x="978" y="46" font-size="22" fill="#2340D8" text-anchor="middle" font-weight="700">DAG</text>
+<text x="978" y="74" font-size="22" fill="#2340D8" text-anchor="middle" font-weight="700">ingesta_mensual</text>
+<rect x="842" y="284" width="272" height="76" rx="6" fill="#FFFFFF" stroke="#5F6672" stroke-width="2"/>
+<text x="978" y="330" font-size="22" fill="#15171C" text-anchor="middle" font-weight="700">Lab</text>
+<line x1="840" y1="52" x2="750" y2="52" stroke="#5F6672" stroke-width="3" marker-end="url(#m_g)"/>
+<text x="795" y="38" font-size="22" fill="#15171C" text-anchor="middle" font-weight="700">escribe</text>
+<line x1="840" y1="322" x2="750" y2="322" stroke="#5F6672" stroke-width="3" marker-end="url(#m_g)"/>
+<text x="795" y="308" font-size="22" fill="#15171C" text-anchor="middle" font-weight="700">escribe</text>
+<rect x="842" y="150" width="272" height="100" rx="6" fill="#E3E6F6" stroke="#2340D8" stroke-width="2.5"/>
+<text x="978" y="176" font-size="22" fill="#2340D8" text-anchor="middle" font-weight="700">Snowflake</text>
+<text x="978" y="206" font-size="22" fill="#2340D8" text-anchor="middle" font-family="SF Mono, Menlo, Consolas, monospace">BIGDATA.CONTROL.</text>
+<text x="978" y="234" font-size="22" fill="#2340D8" text-anchor="middle" font-family="SF Mono, Menlo, Consolas, monospace">WATERMARK</text>
+<line x1="900" y1="92" x2="900" y2="148" stroke="#2340D8" stroke-width="2.5" stroke-dasharray="7 6" marker-end="url(#m_a)" marker-start="url(#m_a)"/>
+<line x1="900" y1="282" x2="900" y2="252" stroke="#2340D8" stroke-width="2.5" stroke-dasharray="7 6" marker-end="url(#m_a)" marker-start="url(#m_a)"/>
+<text x="912" y="126" font-size="22" fill="#2340D8" text-anchor="start">consulta / registra</text>
+<text x="912" y="268" font-size="22" fill="#2340D8" text-anchor="start">consulta / registra</text>
+</svg>

@@ -9,12 +9,12 @@ AWS_REGION ?= us-east-2
 export PREFIX AWS_REGION
 export PATH := $(CURDIR)/.venv/bin:$(PATH)
 
-.PHONY: help setup reparar-entorno config doctor estado test secrets publicar-bootstrap retirar-bootstrap muestra muestra-solo run-local deploy airflow-on airflow-off airflow-local airflow-local-down airflow-local-estado \
+.PHONY: help setup reparar-entorno config doctor estado test secrets publicar-bootstrap retirar-bootstrap rutas correr jars-s3a migrar-clase07 actualizar-vm deploy airflow-on airflow-off airflow-local airflow-local-down airflow-local-estado \
 	airflow-habilitar airflow-deshabilitar snowflake snowflake-secreto snowflake-conexion \
 	airflow-tunel airflow-password desbloquear snowflake-ampliar-cuota destroy limpieza-total
 
 help: ## Muestra los targets disponibles
-	@grep -hE '^[a-zA-Z_-]+:.*## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*## "} {printf "  %-24s %s\n", $$1, $$2}'
+	@grep -hE '^[a-zA-Z0-9_-]+:.*## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*## "} {printf "  %-24s %s\n", $$1, $$2}'
 
 setup: ## Verifica herramientas, alinea AWS_REGION y crea la configuración de AWS en S3 si no existe
 	bash scripts/setup.sh
@@ -34,25 +34,32 @@ estado: ## Airflow (on/off + URL), últimos job runs de Glue, warehouse y costos
 test: ## Ruff y pytest
 	bash scripts/test.sh
 
-muestra: ## Glue: bronze del año de prod + muestra para local (una vez por curso)
-	bash scripts/muestra.sh
+correr: ## Corre el pipeline en dev (PASO=bronze|silver|gold|snowflake COMPUTO= LIMITE= MES= REPROCESAR=); sin nada usa pipeline.yaml
+	PASO="$(PASO)" COMPUTO="$(COMPUTO)" LIMITE="$(LIMITE)" MES="$(MES)" REPROCESAR="$(REPROCESAR)" bash scripts/correr.sh
 
-muestra-solo: ## Glue: solo el paso muestra (si cerraste la terminal de make muestra con el bronze ya terminado)
-	bash scripts/muestra.sh --solo-muestra
+jars-s3a: ## Baja una vez los jars que Spark necesita para leer y escribir en S3 (~280 MB, en ~/.spark-jars)
+	bash scripts/jars-s3a.sh
+
+migrar-clase07: ## Pasa tu cuenta al diseño de la clase 7 (mueve el crudo a prod/bronze, esquemas de Snowflake, jars)
+	bash scripts/migrar-clase07.sh
+
+actualizar-vm: ## Deja la VM de Airflow de prod con el secreto y el código de la clase 7 (una vez)
+	bash scripts/actualizar-vm.sh
+
+rutas: ## Dónde lee y escribe cada entorno: bucket y carpetas (ENTORNO=dev|prod; vacío = los dos; solo informativo)
+	bash scripts/rutas.sh $(ENTORNO)
 
 secrets: ## Carga AWS_ROLE_ARN y TF_STATE_BUCKET en tu fork (desde el bootstrap, con gh)
 	bash scripts/secrets.sh
 
-publicar-bootstrap: ## SOLO INSTRUCTOR: publica la plantilla (versión fija) para el enlace Launch Stack
+# Targets de instructor: sin '##' para que no salgan en make help (se siguen corriendo por su nombre).
+publicar-bootstrap: # SOLO INSTRUCTOR: publica la plantilla (versión fija) para el enlace Launch Stack
 	bash scripts/publicar-bootstrap.sh
 
-retirar-bootstrap: ## SOLO INSTRUCTOR: retira la plantilla publicada (al cerrar la semana de inscripción)
+retirar-bootstrap: # SOLO INSTRUCTOR: retira la plantilla publicada (al cerrar la semana de inscripción)
 	bash scripts/publicar-bootstrap.sh --retirar
 
-run-local: ## Pipeline en local sobre la muestra (STEP=all|silver|gold MES=YYYY-MM LIMITE=N)
-	STEP=$(STEP) MES=$(MES) LIMITE=$(LIMITE) bash scripts/run-local.sh
-
-deploy: ## terraform apply de infra/aws y sincronización de código, DAGs y framework a S3
+deploy: ## terraform apply de infra/aws (el código de prod lo publica solo el CI/CD al hacer merge a main)
 	bash scripts/deploy.sh
 
 airflow-on: ## Enciende la instancia de Airflow e imprime la URL
@@ -100,5 +107,5 @@ snowflake-conexion: ## Configura la conexión por defecto de snow (llave en ~/.s
 destroy: ## Vacía el lake y destruye Snowflake y AWS; opcional: bootstrap y state (confirmación escrita)
 	bash scripts/destroy.sh
 
-limpieza-total: ## SOLO INSTRUCTOR: deja la cuenta como nueva tras make destroy (Snowflake, EFS, state, validación, secrets)
+limpieza-total: # SOLO INSTRUCTOR: deja la cuenta como nueva tras make destroy (Snowflake, EFS, state, validación, secrets)
 	bash scripts/limpieza-total.sh

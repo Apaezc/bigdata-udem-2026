@@ -72,11 +72,26 @@ resource "snowflake_grant_privileges_to_account_role" "dev_database" {
   }
 }
 
+# Privilegios de BIGDATA_DEV por esquema. Las claves son las de snowflake_schema.layer (no se
+# renombra nada: Terraform solo cambia los privilegios en el lugar, sin destroy). PROD queda en
+# solo lectura: sin CREATE, el rol de dev no puede crear objetos allí (INSERT/DELETE tampoco se
+# conceden). Escribir en PROD es del rol BIGDATA_PROD.
+locals {
+  crear_objetos = ["USAGE", "CREATE TABLE", "CREATE VIEW", "CREATE STAGE", "CREATE FILE FORMAT"]
+  privilegios_dev_por_esquema = {
+    BRONZE = local.crear_objetos
+    SILVER = local.crear_objetos
+    GOLD   = local.crear_objetos
+    DEV    = local.crear_objetos
+    PROD   = ["USAGE"]
+  }
+}
+
 resource "snowflake_grant_privileges_to_account_role" "dev_schemas" {
   for_each = snowflake_schema.layer
 
   account_role_name = snowflake_account_role.dev.name
-  privileges        = ["USAGE", "CREATE TABLE", "CREATE VIEW", "CREATE STAGE", "CREATE FILE FORMAT"]
+  privileges        = local.privilegios_dev_por_esquema[each.key]
 
   on_schema {
     schema_name = "${snowflake_database.bigdata.name}.${each.key}"
@@ -86,7 +101,7 @@ resource "snowflake_grant_privileges_to_account_role" "dev_schemas" {
 # ---------- Usuario de servicio de Airflow (dev en el Code Editor y prod en la VM) ----------
 # Autentica con key-pair. La llave privada vive solo en ~/.snowflake/keys/airflow_svc_rsa_key.p8;
 # scripts/snowflake.sh la copia al secreto <prefix>/snowflake de Secrets Manager (conexión snowflake_default).
-# Usa BIGDATA_DEV: crea y recarga las tablas de BIGDATA.DEV / BIGDATA.PROD (copy_gold.sql).
+# Usa BIGDATA_DEV: crea y recarga las tablas de BIGDATA.DEV / BIGDATA.PROD (herramientas/bodega.py).
 
 resource "snowflake_service_user" "airflow" {
   count = var.airflow_public_key == null ? 0 : 1
@@ -159,8 +174,36 @@ resource "snowflake_grant_privileges_to_account_role" "dev_stage_entorno" {
   }
 }
 
+# INFER_SCHEMA (bodega.py) exige USAGE sobre el formato de archivo, además del stage.
+resource "snowflake_grant_privileges_to_account_role" "dev_file_format_entorno" {
+  for_each = local.entornos
+
+  account_role_name = snowflake_account_role.dev.name
+  privileges        = ["USAGE"]
+
+  on_schema_object {
+    object_type = "FILE FORMAT"
+    object_name = snowflake_file_format_parquet.entorno[each.key].fully_qualified_name
+  }
+}
+
+# BIGDATA_DEV lee lo que ya hay en PROD (lo futuro lo cubre dev_future_select).
+resource "snowflake_grant_privileges_to_account_role" "dev_prod_select_existente" {
+  for_each = toset(["TABLES", "VIEWS"])
+
+  account_role_name = snowflake_account_role.dev.name
+  privileges        = ["SELECT"]
+
+  on_schema_object {
+    all {
+      object_type_plural = each.key
+      in_schema          = snowflake_schema.layer["PROD"].fully_qualified_name
+    }
+  }
+}
+
 # ---------- Tabla de control de la ingesta: BIGDATA.CONTROL.WATERMARK ----------
-# La usa src/pipeline/watermark.py: registra qué mes de cada fuente ya se ingestó. El esquema y la
+# La usó la práctica de ingesta de las clases 5 y 6: registraba qué mes de cada fuente ya se ingestó. El esquema y la
 # tabla los crea Terraform porque la base BIGDATA es de TERRAFORM_ROLE y ACCOUNTADMIN no puede
 # crear esquemas dentro de ella. Los roles de abajo solo reciben permisos sobre lo que ya existe.
 
@@ -206,7 +249,7 @@ resource "snowflake_table" "watermark" {
   }
 }
 
-# Quién escribe en la tabla de control: ACCOUNTADMIN (el rol que usa watermark.py desde el Code
+# Quién escribe en la tabla de control: ACCOUNTADMIN (el rol que usaba la práctica de las clases 5 y 6 desde el Code
 # Editor) y BIGDATA_DEV (el rol de AIRFLOW_SVC, que ingesta desde Airflow).
 locals {
   roles_control = toset(["ACCOUNTADMIN", snowflake_account_role.dev.name])
@@ -305,7 +348,7 @@ resource "snowflake_stage_external_s3" "lake_gold" {
 }
 
 # ---------- Stages del pipeline por entorno: BIGDATA.<DEV|PROD>.LAKE_GOLD -> s3://<lake>/<env>/gold/ ----------
-# Los usa airflow/dags/sql/copy_gold.sql (cargar_dev / cargar_prod).
+# Los usa src/pipeline/herramientas/bodega.py (tarea cargar_gold).
 
 resource "snowflake_file_format_parquet" "entorno" {
   for_each = local.entornos
@@ -328,5 +371,248 @@ resource "snowflake_stage_external_s3" "lake_entorno" {
 
   file_format {
     format_name = snowflake_file_format_parquet.entorno[each.key].fully_qualified_name
+  }
+}
+
+# ---------- Tablas de control por entorno: BIGDATA.CONTROL_DEV / CONTROL_PROD . WATERMARK ----------
+# Clase 7: una tabla de control por entorno (src/pipeline/herramientas/control.py). Van en un recurso
+# aparte de snowflake_schema.layer para que dev_schemas no les dé CREATE. El esquema CONTROL y
+# snowflake_table.watermark (clases 5 y 6) no se tocan: son historia (clases 5 y 6) y no las usa el pipeline.
+
+locals {
+  # Mismas 10 columnas, en este orden, en las dos tablas (diseño técnico, 1.6).
+  columnas_control = [
+    { name = "FUENTE", type = "VARCHAR" },
+    { name = "CAPA", type = "VARCHAR" },
+    { name = "TABLA", type = "VARCHAR" },
+    { name = "MES", type = "VARCHAR" },
+    { name = "FILAS", type = "NUMBER(38,0)" },
+    { name = "INICIO", type = "TIMESTAMP_NTZ(9)" },
+    { name = "REPROCESAR", type = "BOOLEAN" },
+    { name = "COMPUTO", type = "VARCHAR" },
+    { name = "LIMITE", type = "VARCHAR" },
+    { name = "LEIDAS", type = "NUMBER(38,0)" },
+  ]
+}
+
+resource "snowflake_schema" "control_entorno" {
+  for_each = toset(["CONTROL_DEV", "CONTROL_PROD"])
+
+  database = snowflake_database.bigdata.name
+  name     = each.key
+  comment  = "Tabla de control del pipeline, entorno ${lower(trimprefix(each.key, "CONTROL_"))}"
+}
+
+resource "snowflake_table" "watermark_entorno" {
+  for_each = snowflake_schema.control_entorno
+
+  database = snowflake_database.bigdata.name
+  schema   = each.value.name
+  name     = "WATERMARK"
+  comment  = "Una fila por paso terminado (tabla, capa, mes): decide si se salta o se procesa"
+
+  dynamic "column" {
+    for_each = local.columnas_control
+
+    content {
+      name = column.value.name
+      type = column.value.type
+    }
+  }
+}
+
+# ---------- Rol de producción y su usuario de servicio ----------
+# BIGDATA_PROD escribe en BIGDATA.PROD y BIGDATA.CONTROL_PROD; no tiene nada en DEV ni CONTROL_DEV.
+# Solo lo usa AIRFLOW_PROD_SVC (la VM). Ningún estudiante lo recibe.
+
+resource "snowflake_account_role" "prod" {
+  name    = "BIGDATA_PROD"
+  comment = "Rol de producción: lo usa solo la VM de Airflow; escribe en PROD y CONTROL_PROD"
+}
+
+# Llave privada en ~/.snowflake/keys/airflow_prod_svc_rsa_key.p8; snowflake-secreto.sh la copia al
+# secreto <prefix>/snowflake_prod de Secrets Manager.
+resource "snowflake_service_user" "airflow_prod" {
+  count = var.airflow_prod_public_key == null ? 0 : 1
+
+  name              = "AIRFLOW_PROD_SVC"
+  default_warehouse = snowflake_warehouse.bigdata.name
+  default_role      = snowflake_account_role.prod.name
+  rsa_public_key    = var.airflow_prod_public_key
+  comment           = "Usuario de servicio de Airflow en producción (curso Big Data)"
+}
+
+resource "snowflake_grant_account_role" "prod_airflow" {
+  count = var.airflow_prod_public_key == null ? 0 : 1
+
+  role_name = snowflake_account_role.prod.name
+  user_name = snowflake_service_user.airflow_prod[0].name
+}
+
+resource "snowflake_grant_privileges_to_account_role" "prod_warehouse" {
+  account_role_name = snowflake_account_role.prod.name
+  privileges        = ["USAGE"]
+
+  on_account_object {
+    object_type = "WAREHOUSE"
+    object_name = snowflake_warehouse.bigdata.name
+  }
+}
+
+resource "snowflake_grant_privileges_to_account_role" "prod_database" {
+  account_role_name = snowflake_account_role.prod.name
+  privileges        = ["USAGE"]
+
+  on_account_object {
+    object_type = "DATABASE"
+    object_name = snowflake_database.bigdata.name
+  }
+}
+
+resource "snowflake_grant_privileges_to_account_role" "prod_integration" {
+  account_role_name = snowflake_account_role.prod.name
+  privileges        = ["USAGE"]
+
+  on_account_object {
+    object_type = "INTEGRATION"
+    object_name = snowflake_storage_integration_aws.s3.name
+  }
+}
+
+resource "snowflake_grant_privileges_to_account_role" "prod_schema" {
+  account_role_name = snowflake_account_role.prod.name
+  privileges        = local.crear_objetos
+
+  on_schema {
+    schema_name = snowflake_schema.layer["PROD"].fully_qualified_name
+  }
+}
+
+resource "snowflake_grant_privileges_to_account_role" "prod_future_select" {
+  for_each = toset(["TABLES", "VIEWS"])
+
+  account_role_name = snowflake_account_role.prod.name
+  privileges        = ["SELECT"]
+
+  on_schema_object {
+    future {
+      object_type_plural = each.key
+      in_schema          = snowflake_schema.layer["PROD"].fully_qualified_name
+    }
+  }
+}
+
+# Stage BIGDATA.PROD.LAKE_GOLD (s3://<lake>/prod/gold/) y su formato: los usa cargar_snowflake.
+resource "snowflake_grant_privileges_to_account_role" "prod_stage" {
+  account_role_name = snowflake_account_role.prod.name
+  privileges        = ["USAGE", "READ"]
+
+  on_schema_object {
+    object_type = "STAGE"
+    object_name = snowflake_stage_external_s3.lake_entorno["PROD"].fully_qualified_name
+  }
+}
+
+resource "snowflake_grant_privileges_to_account_role" "prod_file_format" {
+  account_role_name = snowflake_account_role.prod.name
+  privileges        = ["USAGE"]
+
+  on_schema_object {
+    object_type = "FILE FORMAT"
+    object_name = snowflake_file_format_parquet.entorno["PROD"].fully_qualified_name
+  }
+}
+
+# ---------- Quién puede qué en CONTROL_DEV y CONTROL_PROD ----------
+# BIGDATA_DEV escribe en CONTROL_DEV y solo lee CONTROL_PROD (sin INSERT ni DELETE: el rol de dev
+# no puede adulterar la tabla de prod). BIGDATA_PROD escribe solo en CONTROL_PROD. ACCOUNTADMIN lee.
+locals {
+  acceso_control = {
+    dev_control_dev    = { rol = snowflake_account_role.dev.name, esquema = "CONTROL_DEV", tablas = ["SELECT", "INSERT", "DELETE"] }
+    dev_control_prod   = { rol = snowflake_account_role.dev.name, esquema = "CONTROL_PROD", tablas = ["SELECT"] }
+    prod_control_prod  = { rol = snowflake_account_role.prod.name, esquema = "CONTROL_PROD", tablas = ["SELECT", "INSERT", "DELETE"] }
+    admin_control_dev  = { rol = "ACCOUNTADMIN", esquema = "CONTROL_DEV", tablas = ["SELECT"] }
+    admin_control_prod = { rol = "ACCOUNTADMIN", esquema = "CONTROL_PROD", tablas = ["SELECT"] }
+  }
+}
+
+resource "snowflake_grant_privileges_to_account_role" "control_entorno_esquema" {
+  for_each = local.acceso_control
+
+  account_role_name = each.value.rol
+  privileges        = ["USAGE"]
+
+  on_schema {
+    schema_name = snowflake_schema.control_entorno[each.value.esquema].fully_qualified_name
+  }
+}
+
+resource "snowflake_grant_privileges_to_account_role" "control_entorno_tablas" {
+  for_each = local.acceso_control
+
+  account_role_name = each.value.rol
+  privileges        = each.value.tablas
+
+  on_schema_object {
+    all {
+      object_type_plural = "TABLES"
+      in_schema          = snowflake_schema.control_entorno[each.value.esquema].fully_qualified_name
+    }
+  }
+
+  depends_on = [snowflake_table.watermark_entorno]
+}
+
+resource "snowflake_grant_privileges_to_account_role" "control_entorno_tablas_futuras" {
+  for_each = local.acceso_control
+
+  account_role_name = each.value.rol
+  privileges        = each.value.tablas
+
+  on_schema_object {
+    future {
+      object_type_plural = "TABLES"
+      in_schema          = snowflake_schema.control_entorno[each.value.esquema].fully_qualified_name
+    }
+  }
+}
+
+# ---------- ACCOUNTADMIN lee PROD (USAGE y SELECT) ----------
+# Para inspeccionar el entorno de producción desde Snowsight sin cambiar de rol.
+
+resource "snowflake_grant_privileges_to_account_role" "admin_prod_schema" {
+  account_role_name = "ACCOUNTADMIN"
+  privileges        = ["USAGE"]
+
+  on_schema {
+    schema_name = snowflake_schema.layer["PROD"].fully_qualified_name
+  }
+}
+
+resource "snowflake_grant_privileges_to_account_role" "admin_prod_select" {
+  for_each = toset(["TABLES", "VIEWS"])
+
+  account_role_name = "ACCOUNTADMIN"
+  privileges        = ["SELECT"]
+
+  on_schema_object {
+    all {
+      object_type_plural = each.key
+      in_schema          = snowflake_schema.layer["PROD"].fully_qualified_name
+    }
+  }
+}
+
+resource "snowflake_grant_privileges_to_account_role" "admin_prod_select_futuro" {
+  for_each = toset(["TABLES", "VIEWS"])
+
+  account_role_name = "ACCOUNTADMIN"
+  privileges        = ["SELECT"]
+
+  on_schema_object {
+    future {
+      object_type_plural = each.key
+      in_schema          = snowflake_schema.layer["PROD"].fully_qualified_name
+    }
   }
 }

@@ -1,132 +1,79 @@
-"""Capa bronze: ingesta con metadatos (solo env dev/prod).
+"""Capa bronze: trae el crudo y lo guarda tal cual, un lote nuevo en cada ingesta.
 
-Fuentes:
-- NYC TLC High Volume For-Hire Vehicles (FHVHV: Uber, Lyft...), Parquet mensual (~450 MB).
-- NYC taxi zone lookup (CSV).
-- Open-Meteo archive API (JSON diario, NYC).
+Es la versión «lista para copiar» del cuaderno `01_construir_paso_a_paso`: el pipeline corre de
+punta a punta con ella, pero trae un problema A PROPÓSITO que se dice en voz alta en clase:
 
-La ingesta tiene dos pasos:
+    agregar_metadatos NO agrega las cinco columnas de metadatos (`_hash_fila` y compañía).
 
-1. Crudo intacto. El archivo se descarga con urllib en el driver y se guarda tal cual en
-   <bronze>/_crudo/... Si el archivo ya está ahí no se descarga otra vez. Si está en la ruta de la
-   versión anterior del pipeline (<bronze>/<fuente>/mes=.../<archivo>) se mueve a _crudo en lugar
-   de descargarlo de nuevo.
-2. Bronze en Parquet. Spark lee el crudo y lo escribe en <bronze>/<fuente>/mes=.../lote=<id>/ con
-   las columnas originales sin transformar más cinco columnas de metadatos (_fecha_ingesta,
-   _id_lote, _hash_fila, _fuente, _archivo_origen). Cada ejecución crea un lote nuevo y nunca
-   borra los anteriores: silver lee siempre el lote más reciente de cada mes.
+Sin `_hash_fila` silver no puede saber qué filas ya vio, así que al reprocesar un mes (otro lote
+de bronze) silver duplica. Tu trabajo es escribir `agregar_metadatos` (la marca
+`# PENDIENTE(equipo)` es lo que buscan las pruebas del equipo: bórrala cuando la tengas lista).
 
-Bronze es compartido por dev y prod. En local no hay bronze: se trabaja sobre la muestra
-(ver pipeline/muestra.py).
+Las otras dos funciones del equipo, `debe_ingestar` y `registrar_ingesta`, ya están hechas: son
+la puerta de la tabla de control (una llamada a `mes_ya_procesado` y una a `registrar_control`).
+
+La receta de `main`, por cada tabla (fhvhv, taxi_zones y clima):
+
+    debe_ingestar?  no -> SE SALTÓ
+                    sí -> traer_crudo_* -> leer_crudo -> agregar_metadatos -> escribir_bronze
+                          -> registrar_ingesta -> REGISTRÓ
+
+Bronze es solo de agregar: cada ingesta escribe un lote nuevo (lote=<id>/) y nunca borra los
+anteriores. Quien lee bronze (silver) junta todos los lotes completos del mes.
 """
 
 from __future__ import annotations
 
-import logging
-import secrets
-import shutil
-import tempfile
-import urllib.request
 from datetime import UTC, datetime
-from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-from pyspark.sql import Column, DataFrame, SparkSession
-from pyspark.sql import functions as F
-
-from pipeline import io
-from pipeline.settings import ultimo_dia_mes
-
-log = logging.getLogger(__name__)
-
-URL_VIAJES = "https://d37ci6vzurychx.cloudfront.net/trip-data/fhvhv_tripdata_{mes}.parquet"
-URL_ZONAS = "https://d37ci6vzurychx.cloudfront.net/misc/taxi_zone_lookup.csv"
-URL_CLIMA = (
-    "https://archive-api.open-meteo.com/v1/archive"
-    "?latitude=40.71&longitude=-74.01"
-    "&start_date={inicio}&end_date={fin}"
-    "&daily=precipitation_sum,temperature_2m_mean"
-    "&timezone=America%2FNew_York"
+from pipeline.herramientas.capas import (
+    COLUMNAS_METADATOS,
+    escribir_bronze,
+    hash_fila,
+    leer_crudo,
 )
-TIMEOUT_S = 300
+from pipeline.herramientas.control import (
+    consultar_control,
+    mes_ya_procesado,
+    registrar_control,
+)
+from pipeline.herramientas.corrida import Resultado
+from pipeline.herramientas.crudo import (
+    traer_crudo_clima,
+    traer_crudo_taxi_zones,
+    traer_crudo_viajes,
+    url_clima,
+    url_viajes,
+    url_zonas,
+)
+from pipeline.herramientas.rutas import (
+    MES_SIN_MES,
+    TABLA_CLIMA,
+    TABLA_VIAJES,
+    TABLA_ZONAS,
+)
 
-# Columnas que bronze agrega a las originales, en este orden.
-COLUMNAS_METADATOS = ["_fecha_ingesta", "_id_lote", "_hash_fila", "_fuente", "_archivo_origen"]
+if TYPE_CHECKING:  # pyspark solo hace falta para los tipos: este módulo carga también sin Spark
+    from pyspark.sql import DataFrame, SparkSession
 
-# Texto con el que el hash representa un valor nulo, y separador entre columnas.
-MARCADOR_NULO = "<nulo>"
-SEPARADOR_HASH = "||"
+    from pipeline.herramientas.corrida import Corrida
 
+# hash_fila y COLUMNAS_METADATOS no los usa este archivo todavía: son las piezas con las que el
+# equipo escribe agregar_metadatos.
+__all__ = [
+    "COLUMNAS_METADATOS",
+    "agregar_metadatos",
+    "debe_ingestar",
+    "hash_fila",
+    "main",
+    "registrar_ingesta",
+]
 
-# --- identificador del lote y URLs -----------------------------------------------------------
-
-
-def url_clima(mes: str) -> str:
-    inicio = f"{mes}-01"
-    fin = ultimo_dia_mes(mes).isoformat()
-    return URL_CLIMA.format(inicio=inicio, fin=fin)
-
-
-def nuevo_id_lote(ahora: datetime) -> str:
-    """Id de un lote: fecha UTC de la ingesta y 6 caracteres hexadecimales al azar.
-
-    Ejemplo: 20260115T143005Z_a3f9c1. Empieza con la fecha para que ordenar los ids como texto
-    los ordene también en el tiempo; el sufijo evita choques entre dos ingestas del mismo segundo.
-    """
-    fecha = ahora.strftime("%Y%m%dT%H%M%SZ")
-    sufijo = secrets.token_hex(3)
-    return f"{fecha}_{sufijo}"
-
-
-# --- paso 1: el archivo crudo ---------------------------------------------------------------
-
-
-def descargar(url: str, destino: str) -> None:
-    """Descarga url a un archivo temporal y lo publica en destino (ruta local o s3://)."""
-    with tempfile.TemporaryDirectory(prefix="bronze-") as tmp:
-        local = Path(tmp) / "archivo"
-        log.info("Descargando %s", url)
-        with urllib.request.urlopen(url, timeout=TIMEOUT_S) as resp, local.open("wb") as f:
-            shutil.copyfileobj(resp, f)
-        io.publicar(local, destino)
+CAPA = "bronze"
 
 
-def asegurar_crudo(url: str, destino: str, ruta_anterior: str) -> str:
-    """Deja el archivo crudo en destino, con el menor trabajo posible.
-
-    En orden: (1) si ya está en destino, no se hace nada; (2) si está en la ruta de la versión
-    anterior, se mueve a destino (así no se vuelven a descargar los 5.4 GB del año); (3) si no,
-    se descarga de la fuente.
-    """
-    if io.existe(destino):
-        log.info("El crudo ya existe, no se descarga: %s", destino)
-        return destino
-    if io.existe(ruta_anterior):
-        log.info("Se mueve el archivo de la versión anterior: %s -> %s", ruta_anterior, destino)
-        io.mover(ruta_anterior, destino)
-        return destino
-    descargar(url, destino)
-    log.info("Crudo descargado en %s", destino)
-    return destino
-
-
-# --- paso 2: columnas de metadatos ------------------------------------------------------------
-
-
-def hash_fila(columnas: list[str]) -> Column:
-    """SHA-256 (texto hexadecimal) de la fila completa.
-
-    Cada columna se convierte a texto, el nulo se reemplaza por MARCADOR_NULO (así un nulo no
-    se confunde con un texto vacío) y los textos se unen con '||'. Dos filas con los mismos
-    valores en las mismas columnas dan el mismo hash; si cambia un solo valor, cambia el hash.
-    """
-    textos = []
-    for nombre in columnas:
-        texto = F.col(nombre).cast("string")
-        texto_sin_nulos = F.coalesce(texto, F.lit(MARCADOR_NULO))
-        textos.append(texto_sin_nulos)
-    fila_unida = F.concat_ws(SEPARADOR_HASH, *textos)
-    return F.sha2(fila_unida, 256)
+# --- las tres funciones del equipo ------------------------------------------------------------
 
 
 def agregar_metadatos(
@@ -134,103 +81,140 @@ def agregar_metadatos(
 ) -> DataFrame:
     """Agrega las cinco columnas de metadatos a las columnas originales (que no se tocan).
 
-    El hash se calcula primero, solo con las columnas originales; por eso no depende de las
-    otras columnas de metadatos.
+    El orden de las columnas nuevas es el de COLUMNAS_METADATOS:
+    _fecha_ingesta, _id_lote, _hash_fila, _fuente, _archivo_origen.
+
+    El hash se calcula primero, solo con las columnas originales (`hash_fila(df.columns)`); así
+    no depende de las otras columnas de metadatos y dos ingestas del mismo archivo dan el mismo
+    hash fila por fila. Eso es lo que después permite deduplicar en silver.
     """
-    originales = df.columns
-    con_hash = df.withColumn("_hash_fila", hash_fila(originales))
-    return (
-        con_hash.withColumn("_fecha_ingesta", F.lit(fecha_ingesta).cast("timestamp"))
-        .withColumn("_id_lote", F.lit(id_lote))
-        .withColumn("_fuente", F.lit(fuente))
-        .withColumn("_archivo_origen", F.lit(archivo_origen))
-        .select(*originales, *COLUMNAS_METADATOS)
-    )
+    # PENDIENTE(equipo): hoy esta función devuelve df tal cual, sin metadatos. Por eso bronze
+    # no guarda de qué lote ni de qué archivo vino cada fila, y silver no puede deduplicar.
+    return df
 
 
-def clima_a_filas(clima_raw: DataFrame) -> DataFrame:
-    """Convierte el JSON de Open-Meteo (listas dentro de 'daily') en una fila por día.
+def debe_ingestar(corrida: Corrida, tabla: str, mes: str) -> bool:
+    """La puerta de bronze: True = ingestar este mes, False = saltarlo.
 
-    Solo cambia la forma: (fecha, lluvia_mm, temperatura) con los mismos valores del JSON. Los
-    dos números se declaran double para que todos los meses tengan el mismo tipo (Spark infiere
-    long si en un mes todos los valores vienen sin decimales).
+    La regla (la de la tabla de control) es una sola: si ya hay un registro de bronze para
+    (tabla, mes) y no se pidió reprocesar, se salta; en cualquier otro caso se ingesta.
+    `mes_ya_procesado` ya contiene esa regla: aquí solo se invierte la pregunta.
     """
-    # posexplode + element_at en lugar de explode(arrays_zip(...alias...)): Snowpark Connect
-    # nombra los campos del struct "time AS fecha" y d.fecha deja de resolverse.
-    dias = clima_raw.select(
-        F.posexplode(F.col("daily.time")).alias("i", "fecha"),
-        F.col("daily.precipitation_sum").alias("lluvia"),
-        F.col("daily.temperature_2m_mean").alias("temp"),
-    )
-    return dias.select(
-        F.col("fecha"),
-        F.element_at("lluvia", F.col("i") + 1).cast("double").alias("lluvia_mm"),
-        F.element_at("temp", F.col("i") + 1).cast("double").alias("temperatura"),
-    )
+    ya_esta_registrado = mes_ya_procesado(corrida, tabla, CAPA, mes)
+    if ya_esta_registrado:
+        return False
+    return True
 
 
-def escribir_lote(df: DataFrame, carpeta_lote: str, archivos: int | None = None) -> None:
-    """Escribe el lote (Parquet + marcador de lote completo) y lo anota en el log."""
-    io.escribir_lote(df, carpeta_lote, archivos)
-    log.info("Lote escrito en %s", carpeta_lote)
-
-
-# --- una función por fuente -------------------------------------------------------------------
-
-
-def ingestar_viajes(
-    spark: SparkSession, base: str, mes: str, id_lote: str, fecha_ingesta: datetime
+def registrar_ingesta(
+    corrida: Corrida,
+    tabla: str,
+    mes: str,
+    fuente: str,
+    leidas: int,
+    filas: int,
+    inicio: datetime,
 ) -> None:
-    nombre = io.nombre_viajes(mes)
-    url = URL_VIAJES.format(mes=mes)
-    crudo = asegurar_crudo(
-        url,
-        io.ruta_crudo(base, io.VIAJES, nombre, mes),
-        io.ruta_anterior(base, io.VIAJES, nombre, mes),
+    """Anota en la tabla de control que bronze terminó bien este mes.
+
+    Solo se llama DESPUÉS de escribir el lote: si la escritura falla no queda registro y el mes
+    se puede volver a intentar. `filas` son las escritas; `leidas` es solo informativo.
+    """
+    registrar_control(corrida, tabla, CAPA, mes, filas, inicio, fuente, leidas)
+
+
+# --- el paso ----------------------------------------------------------------------------------
+
+
+def _cifras_del_ultimo_registro(
+    corrida: Corrida, tabla: str, mes_en_control: str
+) -> tuple[int, int]:
+    """(leídas, escritas) del último registro de bronze, para mostrarlas cuando se salta."""
+    registros = consultar_control(corrida.entorno, tabla, CAPA, mes_en_control)
+    if len(registros) == 0:
+        return 0, 0
+    ultimo = registros[-1]
+    escritas = ultimo.get("filas") or 0
+    leidas = ultimo.get("leidas")
+    if leidas is None:
+        leidas = escritas
+    return leidas, escritas
+
+
+def _ingestar_tabla(
+    spark: SparkSession,
+    corrida: Corrida,
+    tabla: str,
+    mes: str,
+    fuente: str,
+    traer_crudo,
+) -> Resultado:
+    """Ingesta una tabla de un mes: puerta, crudo, metadatos, lote nuevo y registro."""
+    # taxi_zones no se parte por mes: en el lake no lleva mes y en la tabla de control es 'sin_mes'.
+    if tabla == TABLA_ZONAS:
+        mes_en_lake = None
+        mes_en_control = MES_SIN_MES
+    else:
+        mes_en_lake = mes
+        mes_en_control = mes
+
+    if not debe_ingestar(corrida, tabla, mes_en_control):
+        leidas, escritas = _cifras_del_ultimo_registro(corrida, tabla, mes_en_control)
+        return Resultado(tabla, CAPA, mes_en_control, leidas, escritas, "SE SALTÓ")
+
+    inicio = datetime.now(UTC).replace(microsecond=0)
+    ruta_del_crudo = traer_crudo()
+    archivo_origen = ruta_del_crudo.rstrip("/").rsplit("/", 1)[-1]
+
+    crudo = leer_crudo(spark, corrida.entorno, tabla, mes_en_lake, corrida.limite_filas)
+    leidas = crudo.count()
+    con_metadatos = agregar_metadatos(
+        crudo, fuente, archivo_origen, corrida.id_lote, corrida.fecha_ingesta
     )
-    original = spark.read.parquet(crudo)
-    con_metadatos = agregar_metadatos(original, url, nombre, id_lote, fecha_ingesta)
-    escribir_lote(con_metadatos, io.dir_lote(base, io.VIAJES, id_lote, mes))
+    filas = escribir_bronze(con_metadatos, corrida.entorno, tabla, mes_en_lake, corrida.id_lote)
+    registrar_ingesta(corrida, tabla, mes_en_control, fuente, leidas, filas, inicio)
+    return Resultado(tabla, CAPA, mes_en_control, leidas, filas, "REGISTRÓ")
 
 
-def ingestar_zonas(spark: SparkSession, base: str, id_lote: str, fecha_ingesta: datetime) -> None:
-    crudo = asegurar_crudo(
-        URL_ZONAS,
-        io.ruta_crudo(base, io.ZONAS, io.NOMBRE_ZONAS),
-        io.ruta_anterior(base, io.ZONAS, io.NOMBRE_ZONAS),
-    )
-    # Sin inferSchema: todas las columnas quedan como texto, igual que en el CSV.
-    original = spark.read.option("header", True).csv(crudo)
-    con_metadatos = agregar_metadatos(original, URL_ZONAS, io.NOMBRE_ZONAS, id_lote, fecha_ingesta)
-    escribir_lote(con_metadatos, io.dir_lote(base, io.ZONAS, id_lote), archivos=1)
+def main(spark: Any, corrida: Corrida) -> list[Resultado]:
+    """Bronze de los meses de la corrida: fhvhv y clima por mes, y taxi_zones una vez.
 
+    No imprime banner ni cierre (eso lo hace pipeline.correr); devuelve un Resultado por tabla.
+    """
+    resultados: list[Resultado] = []
+    entorno = corrida.entorno
 
-def ingestar_clima(
-    spark: SparkSession, base: str, mes: str, id_lote: str, fecha_ingesta: datetime
-) -> None:
-    nombre = io.nombre_clima(mes)
-    url = url_clima(mes)
-    crudo = asegurar_crudo(
-        url,
-        io.ruta_crudo(base, io.CLIMA, nombre, mes),
-        io.ruta_anterior(base, io.CLIMA, nombre, mes),
-    )
-    json_crudo = spark.read.option("multiLine", True).json(crudo)
-    original = clima_a_filas(json_crudo)
-    con_metadatos = agregar_metadatos(original, url, nombre, id_lote, fecha_ingesta)
-    escribir_lote(con_metadatos, io.dir_lote(base, io.CLIMA, id_lote, mes), archivos=1)
-
-
-def main(spark: Any, cfg: dict, args: Any) -> None:
-    base = cfg["rutas"]["bronze"]
-    # Un solo id y una sola fecha para toda la ejecución: todo lo que se ingesta junto
-    # queda con el mismo lote.
-    fecha_ingesta = datetime.now(UTC).replace(microsecond=0)
-    id_lote = nuevo_id_lote(fecha_ingesta)
-    log.info("Ingesta con lote %s en %s, meses %s", id_lote, base, ",".join(args.meses))
-
-    ingestar_zonas(spark, base, id_lote, fecha_ingesta)
-    # Un mes a la vez: cada mes escribe su propia carpeta lote= y la memoria no crece con el rango.
-    for mes in args.meses:
-        ingestar_viajes(spark, base, mes, id_lote, fecha_ingesta)
-        ingestar_clima(spark, base, mes, id_lote, fecha_ingesta)
+    for indice, mes in enumerate(corrida.meses):
+        resultados.append(
+            _ingestar_tabla(
+                spark,
+                corrida,
+                TABLA_VIAJES,
+                mes,
+                url_viajes(mes),
+                lambda mes=mes: traer_crudo_viajes(entorno, mes),
+            )
+        )
+        # Las zonas no cambian con el mes: se ingestan una sola vez por corrida.
+        if indice == 0:
+            resultados.append(
+                _ingestar_tabla(
+                    spark,
+                    corrida,
+                    TABLA_ZONAS,
+                    mes,
+                    url_zonas(),
+                    lambda: traer_crudo_taxi_zones(entorno),
+                )
+            )
+        resultados.append(
+            _ingestar_tabla(
+                spark,
+                corrida,
+                TABLA_CLIMA,
+                mes,
+                url_clima(mes),
+                lambda mes=mes: traer_crudo_clima(entorno, mes),
+            )
+        )
+    return resultados

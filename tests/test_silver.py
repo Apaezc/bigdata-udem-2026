@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from pyspark.sql import functions as F
 
-from pipeline.silver import clima_diario, enriquecer, limpiar_viajes
+from pipeline.silver import clima_diario, enriquecer, limpiar_taxi_zones, limpiar_viajes
 
 MESES = ["2024-01"]
 
@@ -141,3 +141,72 @@ def test_enriquecer_conserva_filas_y_asigna_zona_y_lluvia(
         )
     )
     assert cruce.where("lluvia_mm <> lluvia_esperada OR lluvia_mm IS NULL").count() == 0
+
+
+# --- metadatos de bronze: se conservan si existen y no estorban si no --------------------------
+
+METADATOS = ["_hash_fila", "_id_lote", "_fecha_ingesta"]
+
+
+def test_limpiar_viajes_conserva_los_metadatos_cuando_existen(spark):
+    df = spark.createDataFrame([_viaje("2024-01-10 10:00:00")], COLS_ENTRADA)
+    con_metadatos = (
+        df.withColumn("_hash_fila", F.lit("h1"))
+        .withColumn("_id_lote", F.lit("lote1"))
+        .withColumn("_fecha_ingesta", F.current_timestamp())
+        .withColumn("_fuente", F.lit("url"))
+    )
+
+    limpio = limpiar_viajes(con_metadatos, MESES)
+
+    assert limpio.columns[-len(METADATOS) - 1 :] == [*METADATOS, "pickup_date"]
+    assert "_fuente" not in limpio.columns  # solo pasan los tres que se usan aguas abajo
+    assert limpio.first()["_hash_fila"] == "h1"
+
+
+def test_limpiar_viajes_no_falla_si_la_entrada_no_trae_metadatos(spark):
+    df = spark.createDataFrame([_viaje("2024-01-10 10:00:00")], COLS_ENTRADA)
+    limpio = limpiar_viajes(df, MESES)
+    assert not set(METADATOS) & set(limpio.columns)
+    assert limpio.count() == 1
+
+
+def test_clima_diario_conserva_los_metadatos_cuando_existen(muestra_clima):
+    con_metadatos = muestra_clima.withColumn("_hash_fila", F.lit("h")).withColumn(
+        "_id_lote", F.lit("lote1")
+    )
+    clima = clima_diario(con_metadatos)
+    assert clima.columns == ["fecha", "lluvia_mm", "temp_media_c", "_hash_fila", "_id_lote"]
+
+
+def test_limpiar_taxi_zones_castea_el_id_y_conserva_las_columnas(muestra_zonas):
+    zonas = limpiar_taxi_zones(muestra_zonas)
+    assert zonas.columns == ["LocationID", "Borough", "Zone", "service_zone"]
+    assert dict(zonas.dtypes)["LocationID"] == "int"
+    assert zonas.count() == muestra_zonas.count()
+
+
+def test_limpiar_taxi_zones_conserva_los_metadatos_cuando_existen(muestra_zonas):
+    con_metadatos = muestra_zonas.withColumn("_hash_fila", F.lit("h")).withColumn(
+        "_fecha_ingesta", F.current_timestamp()
+    )
+    zonas = limpiar_taxi_zones(con_metadatos)
+    assert zonas.columns == [
+        "LocationID",
+        "Borough",
+        "Zone",
+        "service_zone",
+        "_hash_fila",
+        "_fecha_ingesta",
+    ]
+
+
+def test_enriquecer_deja_pasar_los_metadatos_de_los_viajes(spark, muestra_zonas, muestra_clima):
+    viajes = limpiar_viajes(
+        spark.createDataFrame([_viaje("2024-01-10 10:00:00")], COLS_ENTRADA).withColumn(
+            "_hash_fila", F.lit("h1")
+        ),
+        MESES,
+    )
+    silver = enriquecer(viajes, limpiar_taxi_zones(muestra_zonas), clima_diario(muestra_clima))
+    assert silver.first()["_hash_fila"] == "h1"

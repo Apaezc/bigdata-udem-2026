@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 440" font-family="Helvetica Neue, Arial, sans-serif">
+<title>Idempotencia: un mecanismo por capa</title><desc>Tres columnas, una por mecanismo. Silver y gold: reemplazar la partición del día o del mes. Bronze: cada ingesta escribe un lote nuevo y silver lee el último lote completo, marcado con _LOTE_COMPLETO. Tabla de control: solo se registra al terminar bien, y se consulta antes de trabajar. Abajo, el caso de la pregunta del descanso: una tarea que falla a mitad deja un lote sin marcador y ninguna fila en la tabla.</desc>
+<defs><marker id="m_a" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#2340D8"/></marker><marker id="m_g" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#5F6672"/></marker><marker id="m_b" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#B4622F"/></marker><marker id="m_y" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#FFC83D"/></marker></defs>
+<rect x="4" y="4" width="336" height="44" rx="6" fill="#15171C" stroke="none"/>
+<text x="172.0" y="34" font-size="22" fill="#FFFFFF" text-anchor="middle" font-weight="700">Silver y gold</text>
+<rect x="352" y="4" width="396" height="44" rx="6" fill="#15171C" stroke="none"/>
+<text x="550.0" y="34" font-size="22" fill="#FFFFFF" text-anchor="middle" font-weight="700">Bronze</text>
+<rect x="764" y="4" width="352" height="44" rx="6" fill="#15171C" stroke="none"/>
+<text x="940.0" y="34" font-size="22" fill="#FFFFFF" text-anchor="middle" font-weight="700">Tabla de control</text>
+<rect x="14" y="62" width="316" height="42" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
+<text x="172" y="91" font-size="22" fill="#5F6672" text-anchor="middle" font-family="SF Mono, Menlo, Consolas, monospace">pickup_date=2024-02-05</text>
+<line x1="40" y1="108" x2="40" y2="168" stroke="#5F6672" stroke-width="3" marker-end="url(#m_g)"/>
+<text x="56" y="144" font-size="22" fill="#15171C" text-anchor="start" font-weight="700">sobrescribe, no suma</text>
+<rect x="14" y="172" width="316" height="42" rx="6" fill="#E4E8EE" stroke="#6E7F94" stroke-width="3"/>
+<text x="172" y="201" font-size="22" fill="#15171C" text-anchor="middle" font-weight="700" font-family="SF Mono, Menlo, Consolas, monospace">pickup_date=2024-02-05</text>
+<text x="172" y="256" font-size="22" fill="#5F6672" text-anchor="middle">gold hace lo mismo con</text>
+<text x="172" y="283" font-size="22" fill="#5F6672" text-anchor="middle">la carpeta mes=2024-02</text>
+<rect x="366" y="62" width="130" height="38" rx="6" fill="#F6E9E0" stroke="#B4622F" stroke-width="2"/>
+<text x="431" y="89" font-size="22" fill="#15171C" text-anchor="middle" font-family="SF Mono, Menlo, Consolas, monospace">lote=…</text>
+<rect x="366" y="108" width="130" height="38" rx="6" fill="#F6E9E0" stroke="#B4622F" stroke-width="2"/>
+<text x="431" y="135" font-size="22" fill="#15171C" text-anchor="middle" font-family="SF Mono, Menlo, Consolas, monospace">lote=…</text>
+<rect x="366" y="154" width="130" height="38" rx="6" fill="#F6E9E0" stroke="#B4622F" stroke-width="2"/>
+<text x="431" y="181" font-size="22" fill="#15171C" text-anchor="middle" font-family="SF Mono, Menlo, Consolas, monospace">lote=…</text>
+<rect x="506" y="154" width="226" height="38" rx="6" fill="#B4622F" stroke="#B4622F" stroke-width="1.5"/>
+<text x="619" y="181" font-size="22" fill="#FFFFFF" text-anchor="middle" font-weight="700" font-family="SF Mono, Menlo, Consolas, monospace">_LOTE_COMPLETO</text>
+<text x="506" y="232" font-size="22" fill="#B4622F" text-anchor="start" font-weight="700">↑ silver lee este lote</text>
+<rect x="366" y="252" width="130" height="38" rx="6" fill="#F8F7F3" stroke="#D9D6CC" stroke-width="2"/>
+<text x="431" y="279" font-size="22" fill="#5F6672" text-anchor="middle" font-family="SF Mono, Menlo, Consolas, monospace">lote=…</text>
+<line x1="372" y1="284" x2="490" y2="258" stroke="#5F6672" stroke-width="3"/>
+<text x="506" y="279" font-size="22" fill="#5F6672" text-anchor="start">a medias: nadie la lee</text>
+<text x="940" y="78" font-size="22" fill="#2340D8" text-anchor="middle">se consulta antes de trabajar</text>
+<line x1="940" y1="90" x2="940" y2="120" stroke="#2340D8" stroke-width="2.5" marker-end="url(#m_a)"/>
+<rect x="780" y="124" width="320" height="108" rx="6" fill="#FFFFFF" stroke="#2340D8" stroke-width="2.5"/>
+<line x1="780" y1="160" x2="1100" y2="160" stroke="#2340D8" stroke-width="1.5"/>
+<text x="796" y="150" font-size="22" fill="#5F6672" text-anchor="start" font-weight="700">capa · mes</text>
+<text x="796" y="190" font-size="22" fill="#15171C" text-anchor="start">bronze · 2024-02</text>
+<text x="796" y="224" font-size="22" fill="#15171C" text-anchor="start">silver · 2024-02</text>
+<line x1="940" y1="272" x2="940" y2="234" stroke="#2340D8" stroke-width="2.5" marker-end="url(#m_a)"/>
+<text x="940" y="298" font-size="22" fill="#2340D8" text-anchor="middle">se escribe solo al</text>
+<text x="940" y="325" font-size="22" fill="#2340D8" text-anchor="middle">terminar bien</text>
+<rect x="4" y="336" width="1112" height="100" rx="6" fill="#F0EEE7" stroke="none"/>
+<text x="20" y="368" font-size="22" fill="#15171C" text-anchor="start" font-weight="700">Caso del descanso:</text>
+<text x="20" y="396" font-size="22" fill="#15171C" text-anchor="start">la tarea falla a la mitad y bronze queda con un lote sin sello; la tabla no tiene fila;</text>
+<text x="20" y="424" font-size="22" fill="#15171C" text-anchor="start">el reintento escribe un lote nuevo y registra.</text>
+</svg>

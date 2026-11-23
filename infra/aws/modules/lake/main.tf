@@ -10,7 +10,7 @@ locals {
   snowflake_phase2    = var.snowflake_iam_user_arn != "" && var.snowflake_external_id != ""
   snowflake_principal = local.snowflake_phase2 ? var.snowflake_iam_user_arn : "arn:aws:iam::${local.account_id}:root"
   snowflake_ext_id    = local.snowflake_phase2 ? var.snowflake_external_id : "0000"
-  # gold/ (sesiones de SQL) y gold del pipeline por entorno.
+  # gold/ (sesiones de SQL, stage GOLD.LAKE_GOLD) y gold del pipeline por entorno.
   prefijos_snowflake = ["gold/", "dev/gold/", "prod/gold/"]
 }
 
@@ -42,15 +42,27 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "lake" {
   }
 }
 
-# Prefijos "carpeta" persistentes. tmp/ y logs/ no tienen marcador porque su lifecycle los
-# expira; code/ y dags/ tampoco, porque "aws s3 sync --delete" (deploy) borraria el marcador y
-# Terraform lo recrearia en cada apply.
-resource "aws_s3_object" "prefijos" {
-  for_each = toset(["bronze/", "silver/", "gold/"])
+# Prefijos "carpeta" persistentes: uno por entorno. Dentro de cada uno el pipeline crea
+# bronze/, silver/, gold/ y muestra/ al escribir (src/pipeline/herramientas/rutas.py, ruta_lake). tmp/ y
+# logs/ no tienen marcador porque su lifecycle los expira; code/ y dags/ tampoco, porque
+# "aws s3 sync --delete" (deploy) borraria el marcador y Terraform lo recrearia en cada apply.
+resource "aws_s3_object" "entornos" {
+  for_each = toset(["dev/", "prod/"])
 
   bucket  = aws_s3_bucket.lake.id
   key     = each.value
   content = ""
+}
+
+# Diseño anterior: marcadores bronze/, silver/ y gold/ en la raíz del bucket. Terraform deja de
+# manejarlos SIN borrarlos (así make deploy no tropieza con la guardia de destrucción). En una
+# cuenta nueva no existen; en una cuenta vieja se borran con los comandos de docs/rutas_del_lake.md.
+removed {
+  from = aws_s3_object.prefijos
+
+  lifecycle {
+    destroy = false
+  }
 }
 
 resource "aws_s3_bucket_lifecycle_configuration" "lake" {
