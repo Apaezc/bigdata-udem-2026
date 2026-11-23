@@ -41,39 +41,6 @@ from pipeline.herramientas.rutas import (
 
 CAPA = "gold"
 
-# --- clases anteriores (sin cambios) ----------------------------------------------------------
-
-COLUMNAS = [
-    "fecha",
-    "zona",
-    "empresa",
-    "viajes",
-    "ingreso_total",
-    "propina_promedio",
-    "distancia_promedio",
-    "lluvia_mm",
-]
-
-
-def metricas_diarias_zona(silver: DataFrame) -> DataFrame:
-    """Agrupa silver por fecha (pickup_date), zona y empresa.
-
-    ingreso_total = suma de total_pagado; propina_promedio = promedio de propina;
-    distancia_promedio = promedio de distancia_mi (millas); lluvia_mm = precipitación del día.
-    """
-    return (
-        silver.groupBy(F.col("pickup_date").alias("fecha"), "zona", "empresa")
-        .agg(
-            F.count(F.lit(1)).alias("viajes"),
-            F.round(F.sum("total_pagado"), 2).alias("ingreso_total"),
-            F.round(F.avg("propina"), 2).alias("propina_promedio"),
-            F.round(F.avg("distancia_mi"), 2).alias("distancia_promedio"),
-            F.max("lluvia_mm").alias("lluvia_mm"),
-        )
-        .select(*COLUMNAS)
-    )
-
-
 # --- el ejemplo de la casa: tarifa por milla por barrio y franja ------------------------------
 
 COLUMNAS_TARIFA_POR_MILLA = [
@@ -134,10 +101,9 @@ def tarifa_por_milla_por_barrio(enriquecido: DataFrame) -> DataFrame:
 
 
 # nombre de la tabla en gold -> función que la arma a partir del enriquecido. El equipo agrega la
-# suya aquí; metricas_diarias_zona queda comentada porque ya no se ejecuta por defecto.
+# suya aquí.
 TABLAS_GOLD = {
     "tarifa_por_milla_barrio": tarifa_por_milla_por_barrio,
-    # "metricas_diarias_zona": metricas_diarias_zona,  # espera silver con zona (clases 1 a 6)
 }
 
 

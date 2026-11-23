@@ -46,15 +46,14 @@ def test_reprocesar_sin_valor_es_verdadero_y_con_false_es_falso():
     assert build_parser().parse_args([]).reprocesar is None
 
 
-def test_step_sigue_valiendo_como_paso():
-    assert build_parser().parse_args(["--step", "gold"]).paso == "gold"
-
-
 @pytest.mark.parametrize(
     "argv",
     [
         ["--paso", "muestra"],
         ["--paso", "todo"],
+        ["--step", "gold"],
+        ["--env", "prod"],
+        ["--engine", "glue"],
         ["--computo", "spark_local"],
         ["--limite", "5"],
         ["--mes", "2024-13"],
@@ -66,23 +65,6 @@ def test_los_valores_que_no_existen_se_rechazan(argv, llamadas):
         main(argv)
     assert salida.value.code == 2
     assert llamadas == []
-
-
-def test_env_ya_no_existe_y_el_mensaje_explica_el_cambio(capsys, llamadas):
-    with pytest.raises(SystemExit):
-        main(["--paso", "silver", "--env", "prod"])
-    error = capsys.readouterr().err
-    assert "--env ya no existe" in error
-    assert "siempre dev" in error
-    assert llamadas == []
-
-
-def test_engine_ya_no_existe_y_el_mensaje_apunta_a_computo(capsys, llamadas):
-    with pytest.raises(SystemExit):
-        main(["--engine", "glue"])
-    error = capsys.readouterr().err
-    assert "--engine ya no existe" in error
-    assert "--computo" in error
 
 
 def test_un_error_de_configuracion_sale_con_codigo_2_y_mensaje(monkeypatch, capsys):

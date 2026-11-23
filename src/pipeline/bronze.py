@@ -20,10 +20,6 @@ La receta de `main`, por cada tabla (fhvhv, taxi_zones y clima):
 
 Bronze es solo de agregar: cada ingesta escribe un lote nuevo (lote=<id>/) y nunca borra los
 anteriores. Quien lee bronze (silver) junta todos los lotes completos del mes.
-
-Nombres de las clases 1 a 6 que siguen importables desde aquí (ahora viven en la caja de
-herramientas): URL_VIAJES, URL_ZONAS, URL_CLIMA, url_clima, nuevo_id_lote (de corrida), descargar,
-COLUMNAS_METADATOS, MARCADOR_NULO, SEPARADOR_HASH, hash_fila y clima_a_filas.
 """
 
 from __future__ import annotations
@@ -33,9 +29,6 @@ from typing import TYPE_CHECKING, Any
 
 from pipeline.herramientas.capas import (
     COLUMNAS_METADATOS,
-    MARCADOR_NULO,
-    SEPARADOR_HASH,
-    clima_a_filas,
     escribir_bronze,
     hash_fila,
     leer_crudo,
@@ -45,12 +38,8 @@ from pipeline.herramientas.control import (
     mes_ya_procesado,
     registrar_control,
 )
-from pipeline.herramientas.corrida import Resultado, nuevo_id_lote
+from pipeline.herramientas.corrida import Resultado
 from pipeline.herramientas.crudo import (
-    URL_CLIMA,
-    URL_VIAJES,
-    URL_ZONAS,
-    descargar,
     traer_crudo_clima,
     traer_crudo_taxi_zones,
     traer_crudo_viajes,
@@ -70,23 +59,15 @@ if TYPE_CHECKING:  # pyspark solo hace falta para los tipos: este módulo carga 
 
     from pipeline.herramientas.corrida import Corrida
 
-# Lo que bronze.py deja importable para las clases anteriores (ver el comienzo del archivo).
+# hash_fila y COLUMNAS_METADATOS no los usa este archivo todavía: son las piezas con las que el
+# equipo escribe agregar_metadatos.
 __all__ = [
     "COLUMNAS_METADATOS",
-    "MARCADOR_NULO",
-    "SEPARADOR_HASH",
-    "URL_CLIMA",
-    "URL_VIAJES",
-    "URL_ZONAS",
     "agregar_metadatos",
-    "clima_a_filas",
     "debe_ingestar",
-    "descargar",
     "hash_fila",
     "main",
-    "nuevo_id_lote",
     "registrar_ingesta",
-    "url_clima",
 ]
 
 CAPA = "bronze"

@@ -57,10 +57,10 @@ def test_tocar_s3_sin_jars_dice_que_corra_make_jars_s3a(tmp_path, monkeypatch):
 
 
 def test_sin_s3_no_se_exigen_los_jars(spark):
-    """El laboratorio de la clase 6 (get_spark('local')) sigue funcionando sin los jars."""
-    sesion = get_spark("local")
+    """Una sesión que no toca s3:// funciona sin los jars."""
+    sesion = get_spark("code_editor")
     assert sesion.range(3).count() == 3
-    assert get_spark("code_editor").conf.get("spark.sql.session.timeZone") == "UTC"
+    assert sesion.conf.get("spark.sql.session.timeZone") == "UTC"
     assert spark.conf.get("spark.sql.sources.partitionOverwriteMode") == "dynamic"
 
 
