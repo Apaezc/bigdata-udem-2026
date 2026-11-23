@@ -340,7 +340,7 @@ Copia el notebook a una carpeta tuya, para no tocar el del repositorio:
 
 ```bash
 mkdir -p ~/clase07_mis_notebooks
-cp ~/bigdata/curso/clase07/01_construir_paso_a_paso.ipynb ~/clase07_mis_notebooks/
+mkdir -p ~/clase07_mis_notebooks && cp ~/bigdata/curso/clase07/01_construir_paso_a_paso.ipynb ~/clase07_mis_notebooks/
 ```
 
 En el explorador de archivos de la izquierda, abre `clase07_mis_notebooks`, haz doble clic en el notebook y, arriba a la derecha, elige el kernel **Python (bigdata)**. No elijas los que dicen *Glue* o *SparkMagic*: abren una sesión de AWS Glue que cobra mientras está abierta. Ejecuta una celda con **Shift + Enter**.

@@ -181,7 +181,7 @@
   {
    "tipo": "codigo",
    "titulo": "Copias el notebook y apagas Airflow para ejecutar las Celdas 1 a 8",
-   "sql": "# En la terminal del Code Editor, una línea a la vez y Enter:\nmkdir -p ~/clase07_mis_notebooks\ncp ~/bigdata/curso/clase07/01_*.ipynb ~/clase07_mis_notebooks/\ncd ~/bigdata && make airflow-local-down",
+   "sql": "# En la terminal del Code Editor (copia el bloque entero):\nmkdir -p ~/clase07_mis_notebooks && \\\n  cp ~/bigdata/curso/clase07/01_*.ipynb ~/clase07_mis_notebooks/\ncd ~/bigdata && make airflow-local-down",
    "resaltar": [
     3,
     4
