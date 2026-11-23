@@ -701,7 +701,12 @@ def lanzar_en_glue(paso: str, corrida: Corrida) -> None:
             argumentos["--extra-py-files"] = codigo
         desde = datetime.now(UTC).replace(tzinfo=None, microsecond=0)
         respuesta = glue.start_job_run(
-            JobName=job, Arguments=argumentos, NumberOfWorkers=workers, Timeout=plazo
+            JobName=job,
+            Arguments=argumentos,
+            # Glue exige el tipo de worker cuando se cambia el número de workers en la corrida.
+            WorkerType="G.1X",
+            NumberOfWorkers=workers,
+            Timeout=plazo,
         )
         run_id = respuesta["JobRunId"]
         consola = (
