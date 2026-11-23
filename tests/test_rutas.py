@@ -9,7 +9,7 @@ from datetime import date
 
 import pytest
 
-from pipeline.settings import (
+from pipeline.herramientas.rutas import (
     CAPAS,
     ENTORNOS,
     ConfigError,
@@ -128,12 +128,12 @@ def test_en_prod_sin_variable_no_se_adivina_el_bucket(entorno_limpio, monkeypatc
 
 
 def test_si_sts_falla_el_mensaje_dice_que_hacer(entorno_limpio, monkeypatch):
-    import pipeline.settings as settings
+    import pipeline.herramientas.rutas as rutas
 
     def sin_credenciales():
         raise RuntimeError("sin credenciales")
 
-    monkeypatch.setattr(settings, "_bucket_por_sts", sin_credenciales)
+    monkeypatch.setattr(rutas, "_bucket_por_sts", sin_credenciales)
     with pytest.raises(ConfigError, match="credenciales de AWS"):
         bucket_del_lake()
 

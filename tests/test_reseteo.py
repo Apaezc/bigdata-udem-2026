@@ -14,7 +14,7 @@ import pytest
 
 from pipeline.herramientas import reseteo
 from pipeline.herramientas.corrida import EntornoNoPermitido
-from pipeline.settings import ConfigError
+from pipeline.herramientas.rutas import ConfigError
 
 BUCKET = "bucket-de-prueba"
 

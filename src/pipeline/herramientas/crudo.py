@@ -27,9 +27,9 @@ from pipeline.herramientas.rutas import (
     TABLA_ZONAS,
     ruta_del_crudo,
     ruta_lake,
+    ultimo_dia_mes,
     validar_mes,
 )
-from pipeline.settings import ultimo_dia_mes
 
 log = logging.getLogger(__name__)
 

@@ -31,7 +31,7 @@ from typing import Any
 
 from pipeline import io
 from pipeline.herramientas.control import exigir_rol_del_entorno, tabla_de_control
-from pipeline.settings import ConfigError, bucket_del_lake, prefijo_lake, raiz_de_prueba
+from pipeline.herramientas.rutas import ConfigError, bucket_del_lake, prefijo_lake, raiz_de_prueba
 
 ENTORNOS = ("dev", "prod")
 BASE_DATOS = "BIGDATA"

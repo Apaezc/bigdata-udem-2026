@@ -158,7 +158,7 @@ lake_bucket() {
 }
 
 # --- Rutas del lake ---------------------------------------------------------------------------
-# Misma regla que ruta_lake (src/pipeline/settings.py): s3://<lake>/<entorno>/<capa>/<tabla>/...
+# Misma regla que ruta_lake (src/pipeline/herramientas/rutas.py): s3://<lake>/<entorno>/<capa>/<tabla>/...
 # dev y prod no comparten ningún prefijo. code/, dags/, logs/ y tmp/ son del lake, no de un entorno.
 ENTORNOS_LAKE="dev prod"
 CAPAS_LAKE="bronze silver gold"

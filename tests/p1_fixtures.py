@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-import pipeline.settings as settings
+import pipeline.herramientas.rutas as rutas
 
 BUCKET_DE_PRUEBA = "bigdata-lake-123456789012-us-east-2"
 
@@ -39,7 +39,7 @@ def entorno_limpio(monkeypatch):
         llamadas_a_sts.append("sts")
         return BUCKET_DE_PRUEBA
 
-    monkeypatch.setattr(settings, "_bucket_por_sts", sts_falso)
+    monkeypatch.setattr(rutas, "_bucket_por_sts", sts_falso)
     return llamadas_a_sts
 
 

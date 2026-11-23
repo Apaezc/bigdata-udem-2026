@@ -359,7 +359,7 @@ def _meses_para_el_cli(valores: dict[str, Any], entorno: str) -> list[str]:
     if valores["mes"]:
         return [valores["mes"]]
     preparar_importaciones()
-    from pipeline.settings import meses_del_entorno
+    from pipeline.herramientas.rutas import meses_del_entorno
 
     return meses_del_entorno(entorno)
 

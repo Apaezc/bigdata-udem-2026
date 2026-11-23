@@ -23,7 +23,7 @@ from pipeline.herramientas.corrida import (
     EntornoNoPermitido,
     LimiteNoPermitido,
 )
-from pipeline.settings import ConfigError, validar_mes
+from pipeline.herramientas.rutas import ConfigError, validar_mes
 
 MENSAJE_SIN_ENTORNO = (
     "--env ya no existe: el entorno no se elige. Lo que corres desde el Code Editor es siempre "

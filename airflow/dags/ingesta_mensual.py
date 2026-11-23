@@ -126,7 +126,7 @@ def tarea_ingestar_clima(repo_src, base_bronze, tabla, mes, reprocesar):
 
     sys.path.insert(0, repo_src)
     from pipeline import ingesta_alumno as alumno
-    from pipeline.settings import validar_mes
+    from pipeline.herramientas.rutas import validar_mes
 
     reprocesar = str(reprocesar).lower() == "true"
     if not mes:
@@ -156,7 +156,7 @@ def tarea_ingestar_viajes(repo_src, base_bronze, tabla, mes, reprocesar, limite_
 
     sys.path.insert(0, repo_src)
     from pipeline import ingesta_alumno as alumno
-    from pipeline.settings import validar_mes
+    from pipeline.herramientas.rutas import validar_mes
 
     reprocesar = str(reprocesar).lower() == "true"
     if not mes:

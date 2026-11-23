@@ -24,7 +24,7 @@ from pipeline.herramientas.corrida import (
     cierre,
     lanzar_en_glue,
 )
-from pipeline.settings import ConfigError, raiz_de_prueba
+from pipeline.herramientas.rutas import ConfigError, raiz_de_prueba
 
 PERILLAS = ("mes", "computo", "limite", "reprocesar")
 

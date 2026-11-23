@@ -24,7 +24,7 @@ s3://<LAKE>/<entorno>/<capa>/<tabla>/mes=AAAA-MM/...
 Tres consecuencias:
 
 1. Un paso de dev solo lee y escribe bajo `dev/`. Uno de prod, solo bajo `prod/`. No existe ninguna carpeta que los dos usen. **El entorno no se elige:** lo que corres desde el Code Editor es siempre dev; prod lo fija solo el despliegue en la VM.
-2. Las rutas se arman en un solo lugar: la función `ruta_lake` de `src/pipeline/settings.py`. Los archivos YAML de `config/` ya no llevan rutas, y ningún otro módulo escribe un `s3://` a mano.
+2. Las rutas se arman en un solo lugar: la función `ruta_lake` de `src/pipeline/herramientas/rutas.py`. Los archivos YAML de `config/` ya no llevan rutas, y ningún otro módulo escribe un `s3://` a mano.
 3. Los prefijos `code/`, `dags/`, `logs/` y `tmp/` no son de ningún entorno. Son del propio lake: el código que ejecuta Glue, los DAGs, los logs de Spark y los temporales.
 
 Ya no existe el entorno `local` sobre el disco ni la muestra: el Code Editor corre Spark (`computo = code_editor`) leyendo y escribiendo en `s3://<LAKE>/dev/`.

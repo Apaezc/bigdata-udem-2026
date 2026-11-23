@@ -6,7 +6,7 @@ locals {
   script_s3  = "s3://${var.lake_bucket}/code/run_glue.py"
 
   # Prefijos de datos del pipeline: uno por entorno (dev/ y prod/). Dentro de cada uno van
-  # bronze/ (con _crudo/), silver/ y gold/ (src/pipeline/settings.py, ruta_lake). Ya no hay carpetas
+  # bronze/ (con _crudo/), silver/ y gold/ (src/pipeline/herramientas/rutas.py, ruta_lake). Ya no hay carpetas
   # de datos compartidas en la raíz del bucket.
   # "code" cubre code/pipeline.zip (prod, lo sube el CI/CD) y code/dev/pipeline.zip (dev, lo sube
   # lanzar_en_glue desde el Code Editor): GetObject sobre code/* y ListBucket sobre code/*.

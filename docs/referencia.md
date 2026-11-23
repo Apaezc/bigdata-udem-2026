@@ -80,7 +80,7 @@ s3://<LAKE>/<entorno>/<capa>/<tabla>/mes=AAAA-MM/      entorno = dev | prod
 - Un paso de dev solo lee y escribe bajo `dev/`; uno de prod, solo bajo `prod/`.
 - `code/`, `dags/`, `logs/` y `tmp/` son del lake y no son de ningún entorno.
 - El crudo se descarga una sola vez, la primera vez que corre bronze en cada entorno, a `<entorno>/bronze/_crudo/`. Ya no hay muestra ni entorno `local` sobre el disco.
-- Las rutas se arman en un solo lugar (`ruta_lake` en `src/pipeline/settings.py`) y cada lectura o escritura de la casa imprime la ruta completa.
+- Las rutas se arman en un solo lugar (`ruta_lake` en `src/pipeline/herramientas/rutas.py`) y cada lectura o escritura de la casa imprime la ruta completa.
 - Para ver la tabla de un entorno: `make rutas ENTORNO=dev`, o `donde_estoy("dev")` (de `pipeline.herramientas`) en un notebook.
 
 Tabla completa, comandos para mover un bucket del diseño anterior y tablas de Athena: [rutas_del_lake.md](rutas_del_lake.md).

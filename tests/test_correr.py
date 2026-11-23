@@ -23,7 +23,7 @@ from pipeline.herramientas.corrida import (
     lanzar_en_glue,
     rutas_del_paso,
 )
-from pipeline.settings import ConfigError
+from pipeline.herramientas.rutas import ConfigError
 
 pytest_plugins = ["p1_fixtures"]
 
@@ -529,6 +529,6 @@ def test_el_zip_de_dev_trae_el_codigo_del_arbol_de_trabajo(tmp_path):
         assert len(nombres) == cuantos
         assert "pipeline/correr.py" in nombres
         assert "pipeline/herramientas/__init__.py" in nombres
-        contenido = zip_.read("pipeline/settings.py").decode("utf-8")
+        contenido = zip_.read("pipeline/herramientas/rutas.py").decode("utf-8")
     assert "def ruta_lake" in contenido
     assert io.StringIO  # (el zip se arma con zipfile, sin archivos temporales de más)

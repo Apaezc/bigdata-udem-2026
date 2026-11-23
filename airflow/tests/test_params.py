@@ -404,7 +404,7 @@ def test_code_editor_llama_al_cli_con_el_python_del_repo_y_dev_forzado(lanzadore
 def test_code_editor_con_mes_vacio_corre_cada_mes_del_entorno(lanzadores):
     from framework import tasks
 
-    from pipeline.settings import meses_del_entorno
+    from pipeline.herramientas.rutas import meses_del_entorno
 
     tasks.ejecutar_paso("correr_gold", "dev", _params(mes=""))
     meses = [c[0][c[0].index("--mes") + 1] for c in lanzadores["cli"]]

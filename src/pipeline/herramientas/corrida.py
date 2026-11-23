@@ -29,7 +29,7 @@ from pathlib import Path
 
 import yaml
 
-from pipeline.settings import (
+from pipeline.herramientas.rutas import (
     ENTORNOS,
     MES_SIN_MES,
     TABLA_CLIMA,

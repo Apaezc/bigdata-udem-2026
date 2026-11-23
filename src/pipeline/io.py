@@ -1,6 +1,6 @@
 """Lectura y escritura de las capas en el lake (s3://; file:// solo en pruebas) y rutas de bronze.
 
-Las rutas base (<bronze>, <silver>, <gold>) las arma settings.ruta_lake() según el entorno; aquí
+Las rutas base (<bronze>, <silver>, <gold>) las arma rutas.ruta_lake() según el entorno; aquí
 solo se arma lo que cuelga de ellas. Cada función de este archivo que lee o escribe dice en voz
 alta la ruta completa (LEE, ESCRIBE, BORRA...): fíjate en la salida para saber dónde estás.
 
@@ -34,10 +34,8 @@ import tempfile
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from pipeline.settings import (
+from pipeline.herramientas.rutas import (
     TABLA_CLIMA,
-    TABLA_GOLD,
-    TABLA_SILVER,
     TABLA_VIAJES,
     TABLA_ZONAS,
     rango_meses,
@@ -50,6 +48,10 @@ log = logging.getLogger(__name__)
 
 PREFIJO_FILE = "file://"
 
+# Nombres de silver y gold de las clases 5 y 6. El pipeline nuevo ya no los usa: silver es espejo
+# (silver/fhvhv, silver/clima, silver/taxi_zones).
+TABLA_SILVER = "fhvhv_trips"
+TABLA_GOLD = "daily_zone_metrics"
 CARPETA_CAPA = {"silver": TABLA_SILVER, "gold": TABLA_GOLD}
 
 

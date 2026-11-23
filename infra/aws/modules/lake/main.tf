@@ -43,7 +43,7 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "lake" {
 }
 
 # Prefijos "carpeta" persistentes: uno por entorno. Dentro de cada uno el pipeline crea
-# bronze/, silver/, gold/ y muestra/ al escribir (src/pipeline/settings.py, ruta_lake). tmp/ y
+# bronze/, silver/, gold/ y muestra/ al escribir (src/pipeline/herramientas/rutas.py, ruta_lake). tmp/ y
 # logs/ no tienen marcador porque su lifecycle los expira; code/ y dags/ tampoco, porque
 # "aws s3 sync --delete" (deploy) borraria el marcador y Terraform lo recrearia en cada apply.
 resource "aws_s3_object" "entornos" {
