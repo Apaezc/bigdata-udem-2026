@@ -42,7 +42,7 @@
 --
 --   Gold crece con el cubo de los lotes porque enriquecer une los viajes con las zonas y con el
 --   clima, y esas tres tablas de silver están repetidas (silver no deduplica). Los factores
---   ×2, ×8 y ×27 se midieron en la cuenta de pruebas.
+--   ×2 y ×8 se midieron en el ensayo del 22 y 23 de noviembre; ×27 es lo esperado con un tercer lote.
 -- =====================================================================
 
 

@@ -2,9 +2,9 @@
 
 Esta guía recorre la clase 7 en la máquina real del Code Editor, con la cuenta de prueba y **en el orden de la clase**. Ejecuta cada bloque y copia la salida que pide la línea **«Pega»**. Lo que no sale como se espera también sirve: pégalo tal cual. Las cifras que el deck dice «se anotan en el ensayo» salen de aquí.
 
-Tiempo estimado: unas 3 horas y media, sin contar las esperas de Glue y del CI. Se hace dos veces: el domingo (con la cuenta en el diseño viejo) y el lunes antes de clase (con la cuenta ya migrada). **Costo:** el paso 11 usa Glue; el 12 enciende la VM de prod.
+Tiempo estimado: unas 3 horas y media, sin contar las esperas de Glue y del CI. Se hace dos veces: el domingo (con la cuenta en el diseño viejo) y el lunes antes de clase (con la cuenta ya migrada). **Costo:** el paso 11 usa Glue. El paso 12 (PR, CI, Deploy y prod) **ya no es de la clase 7: pasó a la clase 8** (martes 24 de noviembre, borrador en `curso/clase08/borrador_prod.md`); ensáyalo para esa clase, no para el lunes. La clase 7 cierra con una sola slide que anuncia el camino a prod.
 
-La secuencia de la clase: (1) empezar limpio con `resetear_entorno` en dev; (2) Notebook 1 con `limite` 1000, en el dev de verdad; (3) `resetear_entorno` en dev otra vez y copiar a los `.py`; (4) las tareas del DAG una por una con `airflow tasks test`, con Athena entre cada una; (5) crear la tabla en Snowflake y correr el DAG completo desde la interfaz; (6) resetear y correr todo otra vez (funciona una vez); (7) correr con `reprocesar=true` y ver los duplicados; después, dimensionamiento y prod.
+La secuencia de la clase: (1) empezar limpio con `resetear_entorno` en dev; (2) Notebook 1 con `limite` 1000, en el dev de verdad; (3) `resetear_entorno` en dev otra vez y copiar a los `.py`; (4) las tareas del DAG una por una con `airflow tasks test`, con Athena entre cada una; (5) crear la tabla en Snowflake y correr el DAG completo desde la interfaz; (6) resetear y correr todo otra vez (funciona una vez); (7) correr con `reprocesar=true` y ver los duplicados; después, dimensionamiento (con dev limpio y Airflow apagado antes de cada medida con `code_editor`) y la slide de cierre que anuncia prod para la clase 8.
 
 ## 0. Traer la rama y revisar el entorno
 
@@ -186,7 +186,7 @@ cd ~/bigdata && time make correr LIMITE=todos COMPUTO=glue_large
 
 **Pega:** la tabla (tiempo `real` y el de cada paso del cierre), la duración del job de Glue frente al total, `free -h` en las filas de `code_editor`, y qué pasa con `LIMITE=todos COMPUTO=code_editor` (debe fallar diciendo que no cabe).
 
-## 12. PR, CI, Deploy y prod
+## 12. PR, CI, Deploy y prod (clase 8, no se hace el lunes)
 
 ```bash
 cd ~/bigdata && git switch main && git pull && git switch -c ensayo-clase07-a-prod

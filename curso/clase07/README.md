@@ -1,8 +1,8 @@
-# Clase 7 · Un pipeline completo de punta a punta, en dev, y cómo pasarlo a prod
+# Clase 7 · Un pipeline completo de punta a punta, en dev, y cómo dejarlo listo para prod
 
 Big Data e Ingeniería de Datos (UdeM) · lunes 23 de noviembre de 2026
 
-**La pregunta de la clase:** ¿cómo construyo, pruebo y llevo a producción un pipeline de datos sin duplicar nada y sabiendo cuánto cómputo necesito?
+**La pregunta de la clase:** ¿cómo construyo y pruebo en dev un pipeline de datos, sin duplicar nada y sabiendo cuánto cómputo necesito, para llevarlo a producción en la clase 8?
 
 Esta carpeta tiene todo lo que usas hoy. Este archivo explica dos cosas: **qué hay** y **cómo dejar tu cuenta lista antes de la clase** (el lake cambió de forma y tu cuenta todavía tiene la forma de las clases 1 a 6). Hazlo en orden y no te saltes la sección «Antes de seguir».
 
@@ -29,6 +29,7 @@ Esta carpeta tiene todo lo que usas hoy. Este archivo explica dos cosas: **qué 
 | `athena/01_tablas.sql` | Declara en Athena las siete tablas del lake de un entorno (`dev_...` o `prod_...`): bronze por lotes, silver y gold. |
 | `athena/02_duplicados_y_conciliacion.sql` | Las consultas de cada punto de control (después de bronze, silver y gold, y después de reprocesar) para ver lotes, filas, duplicados y la conciliación. |
 | `deck/` | Las slides de la clase (`index.html`) y el guion del orador (`guion.md`). |
+| `deck_corto/` | Versión de 40 slides de la misma clase (240 min con el descanso de 20 min), con su guion. |
 | `prueba_ensayo.md` | Guía de ensayo del instructor. No es para estudiantes. |
 
 <a id="migrar"></a>
@@ -163,7 +164,7 @@ Qué hace, en seis pasos:
 |---|---|
 | 0 · Revisión | Comprueba tu cuenta y tu bucket. Se detiene si dejaste un merge de git a medias |
 | 1 · S3 | Mueve el **crudo** de `bronze/` a `prod/bronze/` (los lotes viejos se quedan sin usar), borra `muestra/`, y borra los restos de `silver/` y `gold/` de la raíz si solo tienen marcadores |
-| 2 · Snowflake, tabla vieja | Borra `BIGDATA.PROD.DAILY_ZONE_METRICS`, una prueba del 20 de noviembre |
+| 2 · Snowflake, tabla vieja | Borra `BIGDATA.PROD.DAILY_ZONE_METRICS`, una prueba del 20 de noviembre. Si el script dice que no pudo borrarla, es normal (nunca existió en tu cuenta) y no hace daño: sigue |
 | 3 · Infraestructura | Corre `make snowflake`: crea los esquemas `DEV`, `PROD`, `CONTROL_DEV` y `CONTROL_PROD`, los roles `BIGDATA_DEV` y `BIGDATA_PROD` y las tablas de control |
 | 4 · Spark | Corre `make jars-s3a`: baja una vez los dos archivos que Spark necesita para escribir en S3 (unos 280 MB) |
 | 5 · Airflow | Reinicia el Airflow del Code Editor |
@@ -179,16 +180,14 @@ Qué hace, en seis pasos:
 ```text
 ==> Paso 6 de 6: comprobación
 ...
-Raíz del bucket (debe verse code/ dags/ dev/ logs/ prod/ tmp/):
+Raíz del bucket (debe verse code/ dags/ logs/ prod/; dev/ y tmp/ aparecen cuando corras algo):
                            PRE code/
                            PRE dags/
-                           PRE dev/
                            PRE logs/
                            PRE prod/
-                           PRE tmp/
 
 ==> Migración terminada.
-Siguiente:  cd ~/bigdata && make correr PASO=bronze
+Siguiente:  sigue con la clase: resetear_entorno dev
 ```
 
 (El `PRE bronze/` y `PRE muestra/` ya no deben aparecer. Si aparece `bronze/` con carpetas `lote=...` adentro, es normal: son los lotes viejos, que nadie lee.)
@@ -370,8 +369,8 @@ En esta máquina solo cabe un proceso de Spark a la vez. Si el notebook anterior
 8. Resetear y correr todo otra vez: funciona una vez.
 9. **Reprocesar a propósito** (`reprocesar=true`): bronze guarda los dos lotes, silver los espeja sin deduplicar y gold multiplica; medido: silver ×2 y gold ×8. Se ve en Athena y en Snowflake.
 10. `make correr` y `glue_small`, y el ejercicio de dimensionamiento: cuánto tarda cada combinación de límite y cómputo.
-11. Llevar todo a prod: pull request, CI/CD, DAG en la VM; y validar con Athena y Snowflake.
+11. Cierre: la escalera de dev a prod. Llevar todo a prod (pull request, CI/CD, DAG en la VM) y validarlo con Athena y Snowflake **pasó a la clase 8**; el borrador está en `curso/clase08/borrador_prod.md`.
 
 Las dos reglas que se repiten: el límite recorta **solo bronze**, y **sin `reprocesar` la segunda corrida se salta**: los duplicados aparecen solo al forzarlo.
 
-**Clase 8 (martes 24):** se muestra el DAG que resetea todo, ahora en prod, y arranca el Taller 2.
+**Clase 8 (martes 24):** se lleva este pipeline a prod por pull request, CI/CD y el DAG en la VM, se valida con Athena y Snowflake, se muestra el DAG que resetea todo en prod y arranca el Taller 2.

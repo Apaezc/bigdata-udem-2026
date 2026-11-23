@@ -27,7 +27,7 @@ if [[ -f "$ROOT_DIR/.git/MERGE_HEAD" ]]; then
   echo "  git status                       # mira qué archivos tienen conflicto" >&2
   echo "  git checkout --theirs <archivo>  # para los de la casa (src/, airflow/, scripts/, tests/, Makefile)" >&2
   echo "  git add -A && git commit -m \"Trae la clase 7 de la casa\"" >&2
-  echo "Detalle: curso/clase07/README.md (sección «Traer el esqueleto nuevo al fork»)." >&2
+  echo "Detalle: curso/clase07/README.md (sección «Paso 2 · Traer el código nuevo a tu fork»)." >&2
   exit 1
 fi
 
@@ -117,7 +117,7 @@ PYEOF
   then
     :
   else
-    aviso "No se pudo borrar BIGDATA.PROD.DAILY_ZONE_METRICS. No frena la migración: avisa al instructor al terminar."
+    aviso "No se pudo borrar BIGDATA.PROD.DAILY_ZONE_METRICS (normal si nunca existió en tu cuenta, o si el rol de dev no la ve). No hace daño: la tabla vieja no se usa. Sigue con la migración; no hace falta avisar a nadie."
   fi
 fi
 
@@ -142,8 +142,8 @@ msg "Paso 6 de 6: comprobación"
 make doctor
 make rutas
 echo
-echo "Raíz del bucket (debe verse code/ dags/ dev/ logs/ prod/ tmp/):"
+echo "Raíz del bucket (debe verse code/ dags/ logs/ prod/; dev/ y tmp/ aparecen cuando corras algo):"
 aws s3 ls "s3://$LAKE/"
 echo
 msg "Migración terminada."
-echo "Siguiente:  cd ~/bigdata && make correr PASO=bronze"
+echo "Siguiente:  sigue con la clase: resetear_entorno dev"

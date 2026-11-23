@@ -246,7 +246,7 @@ Además: el PR del cambio debe aparecer fusionado (*merged*) en el historial del
 Conciliar es comprobar que las cifras cuadran de una capa a la siguiente. Lo mínimo que se espera:
 
 - **Bronze a silver:** filas de bronze, menos las que silver descartó (cada tipo de descarte contado), igual a las filas de silver. La diferencia debe quedar explicada, no «aproximadamente igual». Ojo: las tablas `dev_bronze_*` de Athena leen **todos los lotes** de bronze (silver también los lee todos); el archivo original completo está en `dev_crudo_fhvhv`. Con `limite` el lote es más pequeño que el crudo, porque el límite se aplica solo en bronze.
-- **Silver a gold:** la suma de viajes en silver es igual a la suma de la columna de viajes en gold. (Si no cuadra y es un múltiplo exacto, silver tiene duplicados: revisen `deduplicar`.)
+- **Silver a gold:** las filas de viajes en silver son iguales a la suma de la columna viajes de gold. (Si no cuadra y es un múltiplo exacto, silver tiene duplicados: revisen `deduplicar`.)
 - **Gold a Snowflake:** filas y viajes de la tabla del equipo en Snowflake igual a lo que gold escribió.
 
 **Cómo se usa la tabla de control** (`BIGDATA.CONTROL_DEV.WATERMARK`, una tabla por entorno). Cada paso que termina bien anota una fila; **reprocesar no borra nada**, así que una misma clave puede tener varias filas. Las reglas de lectura:
