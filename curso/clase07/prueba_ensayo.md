@@ -78,7 +78,7 @@ Las Celdas 35 y 36 del Notebook 1 ya se ejecutaron en el paso 3 (comparación co
 cd ~/bigdata && time make test
 ```
 
-**Pega:** el resumen de pytest con `-rs` (las líneas `SKIPPED` y `N passed, N skipped`: deben ser 23 omitidas, 10 `PENDIENTE` y 13 de la práctica) y el tiempo.
+**Pega:** el resumen de pytest con `-rs` (las líneas `SKIPPED` y `N passed, N skipped`: deben ser 10 omitidas, todas `PENDIENTE`) y el tiempo.
 
 ## 5. Las tareas del DAG, una por una, con Athena entre cada una
 

@@ -63,7 +63,7 @@
     ]
    },
    "min": 2,
-   "notas": "Retractación 1. En el deck de la clase 6 y en el Taller dijimos que el pipeline correría en Glue «con las funciones del equipo». Lo que eso quiere decir es «con el código de tu fork». En Glue corre bronze.py de la casa, que hace lo mismo que las cuatro funciones de ingesta de la clase 5; esas funciones siguen corriendo en la práctica de ingesta (el DAG ingesta_mensual, solo en el Airflow del Code Editor). Su código vuelve a escena en el Taller, en bronze.py, silver.py, gold.py y carga.py. Retractación 2. Dijimos que tus funciones recibían base_bronze=s3://<bucket>/bronze y que Athena leía tu bronze: no. Tu bronze_alumno se quedó en el disco del Code Editor; Athena lee el crudo (_crudo/) del lake. Desde hoy el lake está separado por entorno: s3://<lake>/dev/... y s3://<lake>/prod/... Retractación 3. El lab de la clase 6 era una versión para entender, no lo que corre en Glue; la tabla «función del lab, función de la casa» está en el README. Y el silver de la casa filtra pero no deduplica: los 13 907 descartes de enero (19 663 930 viajes en bronze y 19 650 023 en silver) vienen de los filtros, no de duplicados. Tiempo: 2 min. Siguiente: Tres aclaraciones más: control, modo local y rol.",
+   "notas": "Retractación 1. En el deck de la clase 6 y en el Taller dijimos que el pipeline correría en Glue «con las funciones del equipo». Lo que eso quiere decir es «con el código de tu fork». En Glue corre bronze.py de la casa, que hace lo mismo que las cuatro funciones de ingesta de la clase 5; esas funciones ya no están en el repositorio: se quedaron en el material de las clases 5 y 6, que se ve funcionando con la etiqueta antes-limpieza-clase07. Su código vuelve a escena en el Taller, en bronze.py, silver.py, gold.py y carga.py. Retractación 2. Dijimos que tus funciones recibían base_bronze=s3://<bucket>/bronze y que Athena leía tu bronze: no. Tu bronze_alumno se quedó en el disco del Code Editor; Athena lee el crudo (_crudo/) del lake. Desde hoy el lake está separado por entorno: s3://<lake>/dev/... y s3://<lake>/prod/... Retractación 3. El lab de la clase 6 era una versión para entender, no lo que corre en Glue; la tabla «función del lab, función de la casa» está en el README. Y el silver de la casa filtra pero no deduplica: los 13 907 descartes de enero (19 663 930 viajes en bronze y 19 650 023 en silver) vienen de los filtros, no de duplicados. Tiempo: 2 min. Siguiente: Tres aclaraciones más: control, modo local y rol.",
    "id": "5"
   },
   {
@@ -125,7 +125,7 @@
     ]
    },
    "min": 1,
-   "notas": "Esta tabla es la misma del README de la clase 7. Primera fila: el lake. Segunda: silver ya no está particionado por día de recogida; es el espejo de bronze, una tabla por fuente (fhvhv, clima, taxi_zones) con carpeta mes=AAAA-MM. Tercera: la tabla de control de la práctica (BIGDATA.CONTROL.WATERMARK) queda como historia; las del pipeline son una por entorno. Cuarta: DAILY_ZONE_METRICS deja de ser «la tabla»; cada equipo nombra las suyas y viven en BIGDATA.DEV o BIGDATA.PROD. Quinta: make muestra y make run-local quedan como avisos que salen con error; se usa make correr. Si alguien tiene un .sql de la clase 6 de Athena, ya no funciona: apuntaba a bronze/ de la raíz; hoy se usan los de curso/clase07/athena. Tiempo: 1 min. Siguiente: Antes de seguir, comprueba tu migración.",
+   "notas": "Esta tabla es la misma del README de la clase 7. Primera fila: el lake. Segunda: silver ya no está particionado por día de recogida; es el espejo de bronze, una tabla por fuente (fhvhv, clima, taxi_zones) con carpeta mes=AAAA-MM. Tercera: la tabla de control de la práctica (BIGDATA.CONTROL.WATERMARK) queda como historia; las del pipeline son una por entorno. Cuarta: DAILY_ZONE_METRICS deja de ser «la tabla»; cada equipo nombra las suyas y viven en BIGDATA.DEV o BIGDATA.PROD. Quinta: make muestra y make run-local ya no existen; se usa make correr. Si alguien tiene un .sql de la clase 6 de Athena, ya no funciona: apuntaba a bronze/ de la raíz; hoy se usan los de curso/clase07/athena. Tiempo: 1 min. Siguiente: Antes de seguir, comprueba tu migración.",
    "id": "7"
   },
   {
@@ -313,7 +313,7 @@
    ],
    "notebook": "Airflow del Code Editor",
    "min": 2,
-   "notas": "Los DAGs nuevos aparecen pausados: la página Home dice Active Dags 0 hasta que activas el interruptor. En la lista deben aparecer pipeline_taxi, resetear_entorno (pausado por diseño: hay que activarlo a propósito) y los de las clases 5 y 6, ingesta_mensual y hola_airflow (solo en este Airflow). Activamos pipeline_taxi ahora para no volver a esta pantalla después. Errores comunes: la UI sale en blanco o «Unsupported URL path» (la URL tiene que ser la del proxy del Code Editor, con /codeeditor/default/ports/8080/); «Invalid or Expired Auth Token» (se recarga la pestaña y se vuelve a entrar). Tiempo: 2 min. Siguiente: resetear_entorno borra todo el entorno de ese Airflow, y nada más.",
+   "notas": "Los DAGs nuevos aparecen pausados: la página Home dice Active Dags 0 hasta que activas el interruptor. En la lista deben aparecer pipeline_taxi, resetear_entorno (pausado por diseño: hay que activarlo a propósito). Activamos pipeline_taxi ahora para no volver a esta pantalla después. Errores comunes: la UI sale en blanco o «Unsupported URL path» (la URL tiene que ser la del proxy del Code Editor, con /codeeditor/default/ports/8080/); «Invalid or Expired Auth Token» (se recarga la pestaña y se vuelve a entrar). Tiempo: 2 min. Siguiente: resetear_entorno borra todo el entorno de ese Airflow, y nada más.",
    "id": "18"
   },
   {
@@ -1025,23 +1025,23 @@
    "explicacion": "Debes ver al final «passed» y «skipped»; ninguna línea FAILED. Las líneas SKIPPED con PENDIENTE son lo esperado.",
    "notebook": "Code Editor · terminal",
    "min": 2,
-   "notas": "Entrada: make test ejecuta ruff check, ruff format --check y pytest con -rs, que muestra el motivo de cada prueba omitida; y, si Airflow está instalado, las pruebas de los DAGs. Salida esperada (medida en el repositorio de la clase): 425 passed, 23 skipped. Los 23 skipped son 10 pruebas PENDIENTE (5 de agregar_metadatos, 4 de deduplicar y 1 de test_pasos que cuenta duplicados con la huella) y 13 de la práctica de ingesta de las clases 5 y 6 (calcular_hash_fila sin pegar). Las dos cosas son normales y no afectan al Taller. Errores comunes: FAILED en vez de SKIPPED (un conflicto mal resuelto en silver.py o gold.py: comparar con git diff upstream/main -- src/pipeline/silver.py); ruff que se queja de formato (ruff format src tests). La primera vez que corre en la sesión puede tardar unos minutos. Tiempo: 2 min. Siguiente: Cada prueba omitida dice por qué y qué función falta escribir.",
+   "notas": "Entrada: make test ejecuta ruff check, ruff format --check y pytest con -rs, que muestra el motivo de cada prueba omitida; y, si Airflow está instalado, las pruebas de los DAGs. Salida esperada (medida en el repositorio de la clase): 405 passed, 10 skipped. Los 10 skipped son pruebas PENDIENTE (5 de agregar_metadatos, 4 de deduplicar y 1 de test_pasos que cuenta duplicados con la huella). Son normales y no afectan al Taller. Errores comunes: FAILED en vez de SKIPPED (un conflicto mal resuelto en silver.py o gold.py: comparar con git diff upstream/main -- src/pipeline/silver.py); ruff que se queja de formato (ruff format src tests). La primera vez que corre en la sesión puede tardar unos minutos. Tiempo: 2 min. Siguiente: Cada prueba omitida dice por qué y qué función falta escribir.",
    "id": "63"
   },
   {
    "tipo": "codigo",
    "titulo": "Cada prueba omitida dice por qué y qué función falta escribir",
-   "sql": "SKIPPED [3] hueco.py:42: PENDIENTE: agregar_metadatos todavía\n    no agrega las columnas de metadatos\nSKIPPED [2] hueco.py:42: PENDIENTE: agregar_metadatos todavía\n    no calcula _hash_fila\nSKIPPED [4] hueco.py:42: PENDIENTE: deduplicar todavía\n    devuelve la tabla tal cual\n425 passed, 23 skipped",
+   "sql": "SKIPPED [3] hueco.py:42: PENDIENTE: agregar_metadatos todavía\n    no agrega las columnas de metadatos\nSKIPPED [2] hueco.py:42: PENDIENTE: agregar_metadatos todavía\n    no calcula _hash_fila\nSKIPPED [4] hueco.py:42: PENDIENTE: deduplicar todavía\n    devuelve la tabla tal cual\n405 passed, 10 skipped",
    "resaltar": [
     1,
     3,
     5,
     7
    ],
-   "explicacion": "Las SKIPPED de test_ingesta_alumno.py son de la práctica de las clases 5 y 6: también son normales.",
+   "explicacion": "Las 10 SKIPPED son funciones de tu equipo que todavía no escribes: también son normales.",
    "notebook": "Code Editor · terminal",
    "min": 1,
-   "notas": "Salida real del resumen de pytest -rs sobre el repositorio de la clase (los textos se recortan con puntos suspensivos para que quepan). Lectura: tres pruebas esperan que agregar_metadatos agregue las columnas; dos que calcule _hash_fila; cuatro que deduplicar deje una fila por huella; una de la casa que cuenta duplicados no puede correr sin metadatos. Una vez que tu equipo escriba agregar_metadatos y deduplicar, esas líneas desaparecen y el resumen sube a 435 passed. Este es el criterio de trabajo del Taller: la prueba ya está escrita, falta la función. Tiempo: 1 min. Siguiente: Si el pipeline corre dos veces y todo sale en verde, ¿cómo sé que no duplicó nada?",
+   "notas": "Salida real del resumen de pytest -rs sobre el repositorio de la clase (los textos se recortan con puntos suspensivos para que quepan). Lectura: tres pruebas esperan que agregar_metadatos agregue las columnas; dos que calcule _hash_fila; cuatro que deduplicar deje una fila por huella; una de la casa que cuenta duplicados no puede correr sin metadatos. Una vez que tu equipo escriba agregar_metadatos y deduplicar, esas líneas desaparecen y el resumen sube a 415 passed. Este es el criterio de trabajo del Taller: la prueba ya está escrita, falta la función. Tiempo: 1 min. Siguiente: Si el pipeline corre dos veces y todo sale en verde, ¿cómo sé que no duplicó nada?",
    "id": "64"
   },
   {
