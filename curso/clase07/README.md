@@ -361,11 +361,11 @@ En esta máquina solo cabe un proceso de Spark a la vez. Si tienes abierto otro 
 1. Apertura: qué dijimos en las clases 5 y 6 y qué cambia; dev y prod; dónde se cambia cada cosa.
 2. **Empezamos limpios:** `resetear_entorno` en dev (el DAG que borra todo el entorno de ese Airflow).
 3. **Notebook 1:** se construye y se prueba cada función con 1 000 viajes, en el dev de verdad: Spark del Code Editor escribe en `s3://<lake>/dev/` y la tabla de control es `BIGDATA.CONTROL_DEV.WATERMARK`. No se escribe nada en el disco. El límite se aplica solo en bronze.
-4. **`resetear_entorno` en dev otra vez:** el notebook dejó datos reales (crudo, un lote de bronze, filas de control y la tabla vacía de gold); se borran para que las tareas del DAG partan de cero.
+4. **`resetear_entorno` en dev otra vez:** el notebook dejó datos reales (crudo, un lote de bronze, filas de control); se borran para que las tareas del DAG partan de cero.
 5. **Del notebook al `.py`:** las celdas finales del Notebook 1 dicen qué funciones cambiaste (`DISTINTO`) y corren las pruebas del equipo; se abren `bronze.py` y `silver.py` (son las mismas funciones), se ve cómo se copia un cambio y se corre `make test` (salen `PENDIENTE`).
 6. **Las tareas del DAG, una por una** (`airflow tasks test`): primero bronze y Athena; luego silver y Athena; luego gold y Athena. Ahí se notan los problemas: bronze sin huella y qué hace la tabla de control.
-7. Crear la tabla en Snowflake y correr el DAG completo desde la interfaz: con `reprocesar` sin marcar, bronze, silver y gold **se saltan** y solo carga Snowflake.
-8. Resetear y correr todo otra vez: funciona una vez.
+7. Ejecutar en Snowsight el `CREATE TABLE` (el código nunca crea la tabla; si falta, `cargar_snowflake` falla e imprime el SQL) y correr el DAG completo desde la interfaz: con `reprocesar` sin marcar, bronze, silver y gold **se saltan** y solo carga Snowflake.
+8. Resetear (que también borra la tabla de Snowflake), ejecutar otra vez el `CREATE TABLE` en Snowsight y correr todo otra vez: funciona una vez.
 9. **Reprocesar a propósito** (`reprocesar=true`): bronze guarda los dos lotes, silver los espeja sin deduplicar y gold multiplica; medido: silver ×2 y gold ×8. Se ve en Athena y en Snowflake.
 10. `make correr` y `glue_small`, y el ejercicio de dimensionamiento: cuánto tarda cada combinación de límite y cómputo.
 11. Cierre: la escalera de dev a prod. Llevar todo a prod (pull request, CI/CD, DAG en la VM) y validarlo con Athena y Snowflake **pasó a la clase 8**; el borrador está en `curso/clase08/borrador_prod.md`.

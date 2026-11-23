@@ -893,22 +893,22 @@
    },
    "notebook": "01_construir_paso_a_paso",
    "min": 1,
-   "notas": "Problema: gold vive en S3 como Parquet. Para consultarlo con SQL en Snowflake hay que crear una tabla con las mismas columnas y tipos compatibles y cargarla. Si las columnas no coinciden, la carga se detiene antes de tocar nada y dice qué falta; antes, una columna nueva simplemente desaparecía sin aviso. Spark dice qué tipo tiene cada columna (dtypes); Snowflake usa otros nombres para lo mismo: date es DATE, string es VARCHAR, bigint es NUMBER(38,0) y double es FLOAT. El paso snowflake hace tres cosas en este orden: verificar_esquema_con_athena (compara las columnas de gold, tal como las ve Athena, con las de la tabla), crear_tabla (el CREATE TABLE con IF NOT EXISTS) y cargar_gold (reemplaza ese mes en la tabla con los Parquet de gold). Tiempo: 1 min. Siguiente: Ejecutas las Celdas 32 a 34: la tabla de Snowflake.",
+   "notas": "Problema: gold vive en S3 como Parquet. Para consultarlo con SQL en Snowflake hay que crear una tabla con las mismas columnas y tipos compatibles y cargarla. Si las columnas no coinciden, la carga se detiene antes de tocar nada y dice qué falta; antes, una columna nueva simplemente desaparecía sin aviso. Spark dice qué tipo tiene cada columna (dtypes); Snowflake usa otros nombres para lo mismo: date es DATE, string es VARCHAR, bigint es NUMBER(38,0) y double es FLOAT. La tabla la creas tú, a mano, en Snowsight: el código nunca crea tablas. El paso snowflake hace dos cosas en este orden: verificar_esquema_con_athena (compara las columnas de gold, tal como las ve Athena, con las de la tabla) y cargar_gold (reemplaza ese mes en la tabla con los Parquet de gold). Si la tabla no existe, cargar_gold se detiene con un error que imprime el SQL exacto que hay que ejecutar en Snowsight. Tiempo: 1 min. Siguiente: Ejecutas las Celdas 32 a 34: el CREATE TABLE de Snowflake.",
    "id": "50"
   },
   {
    "tipo": "pasos",
-   "titulo": "Ejecutas las Celdas 32 a 34: la tabla de Snowflake",
+   "titulo": "Ejecutas las Celdas 32 a 34: el CREATE TABLE de Snowflake",
    "ventana": "Notebook 1",
    "pasos": [
     "Ejecuta la Celda 32: arma el CREATE TABLE.",
     "Ejecuta la Celda 33: dice True.",
-    "Ejecuta la Celda 34: crea la tabla vacía en BIGDATA.DEV."
+    "Ejecuta la Celda 34: imprime el SQL; lo ejecutarás en Snowsight."
    ],
    "aqui": "gold",
    "notebook": "01_construir_paso_a_paso",
    "min": 1,
-   "notas": "Celda 32: se imprimen los dtypes de tu gold, la equivalencia y el CREATE TABLE con el hueco {tabla}. Celda 33: se escribe DDL_TARIFA_POR_MILLA y TABLAS_A_CARGAR igual que en carga.py y se compara el CREATE TABLE armado con él ignorando espacios; debe decir True. Celda 34: nombre_tabla_snowflake(\"dev\", \"tarifa_por_milla_barrio\") da BIGDATA.DEV.TARIFA_POR_MILLA_BARRIO; crear_tabla ejecuta el CREATE TABLE (solo acepta CREATE TABLE; rechaza CREATE OR REPLACE, que borraría la tabla con sus datos) y dice en voz alta qué crea; con IF NOT EXISTS, repetir la celda no hace daño. esquema_de_tabla devuelve las siete columnas con sus tipos. La tabla queda vacía: todavía no escribimos gold en S3; la cargará el paso snowflake. Error común: «insufficient privileges» significa que la conexión no usó BIGDATA_DEV; se revisa el secreto con make snowflake. Tiempo: 1 min. Siguiente: La Celda 35 compara con los .py: «igual» es el repositorio, «DISTINTO» es lo que cambiaste.",
+   "notas": "Celda 32: se imprimen los dtypes de tu gold, la equivalencia y el CREATE TABLE con el hueco {tabla}. Celda 33: se escribe DDL_TARIFA_POR_MILLA y TABLAS_A_CARGAR igual que en carga.py y se compara el CREATE TABLE armado con él ignorando espacios; debe decir True. Celda 34: nombre_tabla_snowflake(\"dev\", \"tarifa_por_milla_barrio\") da BIGDATA.DEV.TARIFA_POR_MILLA_BARRIO y la celda imprime el SQL exacto, con USE ROLE, USE WAREHOUSE y USE DATABASE. El código no crea la tabla: la crearás tú en Snowsight más adelante, justo antes del DAG completo; aquí solo se ve el SQL. Tiempo: 1 min. Siguiente: La Celda 35 compara con los .py: «igual» es el repositorio, «DISTINTO» es lo que cambiaste.",
    "id": "51"
   },
   {
@@ -951,7 +951,7 @@
    ],
    "notebook": "01_construir_paso_a_paso",
    "min": 1,
-   "notas": "Hemos probado la lógica de las cuatro partes del pipeline: bronze (con su puerta y su registro), silver (con el problema de los dos lotes), gold (con una pregunta de la casa) y snowflake (con su CREATE TABLE), y comprobamos qué funciones del notebook difieren de los .py. Apagamos Spark para liberar la memoria: en esta máquina solo cabe una sesión a la vez, y make test y los comandos de make abren la suya. Antes de seguir: este notebook dejó datos de verdad en dev (el crudo, un lote de bronze, filas de la tabla de control, incluidos los meses de ensayo de 2023, y la tabla vacía de gold), así que lo siguiente es resetear dev. Resumen en dos frases: el Notebook 1 es tu banco de trabajo, donde cada función se construye, se cambia y se prueba; y lo que cambias se copia al .py. Tiempo: 1 min. Siguiente: Reseteas dev otra vez para borrar lo que dejó el Notebook 1.",
+   "notas": "Hemos probado la lógica de las cuatro partes del pipeline: bronze (con su puerta y su registro), silver (con el problema de los dos lotes), gold (con una pregunta de la casa) y snowflake (con su CREATE TABLE), y comprobamos qué funciones del notebook difieren de los .py. Apagamos Spark para liberar la memoria: en esta máquina solo cabe una sesión a la vez, y make test y los comandos de make abren la suya. Antes de seguir: este notebook dejó datos de verdad en dev (el crudo, un lote de bronze, filas de la tabla de control, incluidos los meses de ensayo de 2023), así que lo siguiente es resetear dev. Resumen en dos frases: el Notebook 1 es tu banco de trabajo, donde cada función se construye, se cambia y se prueba; y lo que cambias se copia al .py. Tiempo: 1 min. Siguiente: Reseteas dev otra vez para borrar lo que dejó el Notebook 1.",
    "id": "52"
   },
   {
@@ -1301,21 +1301,21 @@
     }
    ],
    "min": 2,
-   "notas": "Resumen de lo que ya se nota con un solo lote, antes de cerrar este bloque. Primero: bronze no guarda la huella ni el lote (consulta A3): es el primer problema a propósito. Segundo: la tabla de control anota una fila por cada tabla de cada tarea terminada, y es lo que decide más adelante si un mes se salta. Tercero: el límite se aplica solo en bronze, justo después de leer la fuente y antes de transformar o escribir; silver y gold leen todo lo que hay en bronze. Todavía no hay duplicados porque solo hay un lote. Para verlos hay que repetir bronze con reprocesar=true: pero antes, probemos el DAG completo desde la interfaz. Tiempo: 2 min. Siguiente: Creas la tabla de Snowflake con el CREATE TABLE de la casa.",
+   "notas": "Resumen de lo que ya se nota con un solo lote, antes de cerrar este bloque. Primero: bronze no guarda la huella ni el lote (consulta A3): es el primer problema a propósito. Segundo: la tabla de control anota una fila por cada tabla de cada tarea terminada, y es lo que decide más adelante si un mes se salta. Tercero: el límite se aplica solo en bronze, justo después de leer la fuente y antes de transformar o escribir; silver y gold leen todo lo que hay en bronze. Todavía no hay duplicados porque solo hay un lote. Para verlos hay que repetir bronze con reprocesar=true: pero antes, probemos el DAG completo desde la interfaz. Tiempo: 2 min. Siguiente: Ejecutas en Snowsight el CREATE TABLE: el código nunca crea la tabla.",
    "id": "81"
   },
   {
    "tipo": "codigo",
-   "titulo": "Creas la tabla de Snowflake con el CREATE TABLE de la casa",
+   "titulo": "Ejecutas en Snowsight el CREATE TABLE: el código nunca crea la tabla",
    "sql": "USE ROLE BIGDATA_DEV;\nUSE WAREHOUSE BIGDATA_WH;\nUSE DATABASE BIGDATA;\n\nCREATE TABLE IF NOT EXISTS BIGDATA.DEV.TARIFA_POR_MILLA_BARRIO (\n  FECHA DATE, BOROUGH VARCHAR, FRANJA VARCHAR,\n  VIAJES NUMBER(38,0), DISTANCIA_TOTAL_MI FLOAT,\n  INGRESO_TOTAL FLOAT, TARIFA_POR_MILLA FLOAT);",
    "resaltar": [
     5
    ],
-   "explicacion": "Con IF NOT EXISTS es seguro repetirla: si el notebook ya la creó, no hace nada.",
+   "explicacion": "Cópialo tal cual y ejecútalo en Snowsight. Con IF NOT EXISTS es seguro repetirlo.",
    "aqui": "gold",
    "notebook": "Snowsight",
    "min": 2,
-   "notas": "Problema: gold está en S3, pero para consultarlo con SQL en Snowflake hace falta una tabla con las mismas columnas y tipos. La casa trae el CREATE TABLE en carga.py (DDL_TARIFA_POR_MILLA); aquí lo ejecutamos a mano en Snowsight para ver el momento en que nace la tabla. Con IF NOT EXISTS no pasa nada si el Notebook 1 ya la creó con crear_tabla. El paso snowflake del pipeline también la crea si no existe; hacerlo a mano es solo para verla. Equivalencias: date DATE, string VARCHAR, bigint NUMBER(38,0), double FLOAT. La tabla queda vacía hasta que el paso snowflake cargue gold. Si te saltas este paso, no pasa nada: cuando la tabla no existe, cargar_snowflake avisa con un AVISO y la crea con CREATE TABLE IF NOT EXISTS BIGDATA.DEV.TARIFA_POR_MILLA_BARRIO antes de cargar. En el ensayo, corrida sola, tardó 22 s y cargó 5 filas. Tiempo: 2 min. Siguiente: Lanzas el DAG completo con el formulario.",
+   "notas": "Problema: gold está en S3, pero para consultarlo con SQL en Snowflake hace falta una tabla con las mismas columnas y tipos. Decisión de diseño: el código nunca crea tablas; la tabla se crea a mano, en Snowsight, con este SQL, una vez por tabla. Abre una hoja de SQL en Snowsight, pega estas líneas y ejecútalas todas. Es el mismo texto que imprime la Celda 34 del notebook y el que imprime el error de cargar_snowflake cuando la tabla falta (viene de DDL_TARIFA_POR_MILLA, en carga.py). Equivalencias: date DATE, string VARCHAR, bigint NUMBER(38,0), double FLOAT. La tabla queda vacía hasta que el paso snowflake cargue gold. Si te saltas este paso, cargar_snowflake falla a propósito, antes de tocar nada, con un error que imprime este mismo SQL y dice: luego vuelve a correr cargar_snowflake. Ojo: resetear_entorno con borrar dev también borra esta tabla, así que después de cada reseteo hay que ejecutar el SQL otra vez. Con tu tabla de gold propia, el SQL es el mismo con tus columnas. Tiempo: 2 min. Siguiente: Lanzas el DAG completo con el formulario.",
    "id": "82"
   },
   {
@@ -1407,7 +1407,7 @@
    ],
    "notebook": "Airflow del Code Editor",
    "min": 2,
-   "notas": "Las tareas que se saltan terminan en segundos y en verde: un salto no es un error. En el log de correr_bronze se ve el encabezado y un cierre con SE SALTÓ (ya registrado y reprocesar=false); igual para silver y gold. cargar_snowflake sí trabaja: verificar_esquema_con_athena (compara las columnas de gold con las de la tabla), crear_tabla (IF NOT EXISTS) y cargar_gold (COPY INTO a una tabla temporal y, en una transacción, reemplaza el mes). Cierra con REGISTRÓ. Mientras corre, el color de cada tarea es un estado: verde success, azul claro running, gris queued, rojo failed, naranja up_for_retry. Error común: cargar_snowflake en rojo con ColumnasDistintas (la tabla no tiene una columna que gold trae; el error sugiere el ALTER TABLE) o con «insufficient privileges» (no se usó el rol BIGDATA_DEV). Tiempo: 2 min. Siguiente: En Snowsight, rol, warehouse y base se dicen siempre antes de consultar la tabla.",
+   "notas": "Las tareas que se saltan terminan en segundos y en verde: un salto no es un error. En el log de correr_bronze se ve el encabezado y un cierre con SE SALTÓ (ya registrado y reprocesar=false); igual para silver y gold. cargar_snowflake sí trabaja: verificar_esquema_con_athena (compara las columnas de gold con las de la tabla) y cargar_gold (COPY INTO a una tabla temporal y, en una transacción, reemplaza el mes). Cierra con REGISTRÓ. Mientras corre, el color de cada tarea es un estado: verde success, azul claro running, gris queued, rojo failed, naranja up_for_retry. Error común: cargar_snowflake en rojo con ColumnasDistintas (la tabla no tiene una columna que gold trae; el error sugiere el ALTER TABLE), «no existe o tu rol no la ve» (falta ejecutar el CREATE TABLE en Snowsight: el error imprime el SQL) o con «insufficient privileges» (no se usó el rol BIGDATA_DEV). Tiempo: 2 min. Siguiente: En Snowsight, rol, warehouse y base se dicen siempre antes de consultar la tabla.",
    "id": "86"
   },
   {
@@ -1423,21 +1423,22 @@
    "aqui": "gold",
    "notebook": "Snowsight",
    "min": 2,
-   "notas": "Dónde: Snowsight, en el navegador; + > SQL Worksheet. Entrada: las tres primeras sentencias eligen rol, warehouse y base de datos. Se escriben siempre: ACCOUNTADMIN no puede crear ni alterar en BIGDATA.DEV, y BIGDATA_WH es el warehouse que tiene el freno de costo. La consulta cuenta las filas de gold (5 en el ensayo), suma la columna VIAJES (1 000) y da el rango de fechas. Salida esperada: la suma de VIAJES es igual a N, las filas de silver de viajes; las fechas van de 2024-01-01 a 2024-01-31 (con 1 000 filas, solo las fechas que haya entre esas filas). Error común: «insufficient privileges»: no se usó USE ROLE BIGDATA_DEV. Tiempo: 2 min. Siguiente: Reseteas dev otra vez y corres todo con el formulario.",
+   "notas": "Dónde: Snowsight, en el navegador; + > SQL Worksheet. Entrada: las tres primeras sentencias eligen rol, warehouse y base de datos. Se escriben siempre: ACCOUNTADMIN no puede crear ni alterar en BIGDATA.DEV, y BIGDATA_WH es el warehouse que tiene el freno de costo. La consulta cuenta las filas de gold (5 en el ensayo), suma la columna VIAJES (1 000) y da el rango de fechas. Salida esperada: la suma de VIAJES es igual a N, las filas de silver de viajes; las fechas van de 2024-01-01 a 2024-01-31 (con 1 000 filas, solo las fechas que haya entre esas filas). Error común: «insufficient privileges»: no se usó USE ROLE BIGDATA_DEV. Tiempo: 2 min. Siguiente: Reseteas dev, recreas la tabla y corres todo con el formulario.",
    "id": "87"
   },
   {
    "tipo": "pasos",
-   "titulo": "Reseteas dev otra vez y corres todo con el formulario",
+   "titulo": "Reseteas dev, recreas la tabla y corres todo con el formulario",
    "ventana": "Navegador · Airflow",
    "pasos": [
-    "Lanza resetear_entorno con borrar dev y Conservar el crudo.",
-    "Lanza pipeline_taxi con Reprocesar sin marcar.",
-    "Abre los cuatro logs: todos REGISTRÓ, en unos 2 min 15 s."
+    "Lanza resetear_entorno: borrar dev, Conservar el crudo.",
+    "En Snowsight, ejecuta de nuevo el CREATE TABLE.",
+    "Lanza pipeline_taxi sin Reprocesar.",
+    "Los cuatro logs dicen REGISTRÓ."
    ],
    "notebook": "Airflow del Code Editor",
    "min": 3,
-   "notas": "Problema: hasta ahora corrimos las tareas una por una y el DAG completo saltó tres de ellas. Para ver el pipeline completo funcionar de principio a fin, y una sola vez, partimos de cero otra vez: resetear_entorno con la confirmación borrar dev y Conservar el crudo marcada (así no se vuelve a descargar el archivo); después pipeline_taxi desde el formulario con Reprocesar sin marcar. Con dev vacío y la tabla de control vacía, las cuatro tareas trabajan y registran: REGISTRÓ en cada log. Es la corrida limpia de referencia: bronze escribió un solo lote, silver y gold quedaron con sus cifras de un lote, y Snowflake con las filas de gold. Cifras del ensayo (22 y 23 de noviembre, airflow dags test): el log de contar de resetear_entorno dijo 16 registros de control, 1 tabla de Snowflake y 32 objetos de S3; la corrida limpia del DAG completo tardó 2 min 15 s. Tiempo: 3 min. Siguiente: Compruebas en Athena: con un lote, la relación es 1.",
+   "notas": "Problema: hasta ahora corrimos las tareas una por una y el DAG completo saltó tres de ellas. Para ver el pipeline completo funcionar de principio a fin, y una sola vez, partimos de cero otra vez: resetear_entorno con la confirmación borrar dev y Conservar el crudo marcada (así no se vuelve a descargar el archivo); el reseteo también borra la tabla de Snowflake, así que se ejecuta otra vez en Snowsight el mismo CREATE TABLE de antes (el código no la crea); después pipeline_taxi desde el formulario con Reprocesar sin marcar. Con dev vacío y la tabla de control vacía, las cuatro tareas trabajan y registran: REGISTRÓ en cada log. Es la corrida limpia de referencia: bronze escribió un solo lote, silver y gold quedaron con sus cifras de un lote, y Snowflake con las filas de gold. Cifras del ensayo (22 y 23 de noviembre, airflow dags test): el log de contar de resetear_entorno dijo 16 registros de control, 1 tabla de Snowflake y 32 objetos de S3; la corrida limpia del DAG completo tardó 2 min 15 s. Tiempo: 3 min. Siguiente: Compruebas en Athena: con un lote, la relación es 1.",
    "id": "88"
   },
   {
@@ -1793,14 +1794,14 @@
    "titulo": "Te toca una fila: la corres y anotas el tiempo",
    "ventana": "Terminal del Code Editor",
    "pasos": [
-    "Resetea dev y apaga Airflow.",
-    "Tu fila es el resto de tu lista entre 7.",
-    "Escribe time make correr con LIMITE y COMPUTO.",
+    "Resetea dev, crea la tabla, apaga Airflow.",
+    "Tu fila: el resto de tu lista entre 7.",
+    "Corre time make correr con LIMITE y COMPUTO.",
     "Anota el tiempo real."
    ],
    "notebook": "Code Editor · terminal",
    "min": 3,
-   "notas": "Cada persona mide una de las siete combinaciones y los resultados se juntan en una hoja compartida: así tenemos la tabla completa sin que nadie corra siete veces. Cada medida parte de un dev limpio (resetear_entorno con Conservar el crudo) y, para code_editor, con Airflow apagado (make airflow-local-down): sin reseteo la puerta salta las cuatro capas y mides solo el salto, y con Airflow encendido Spark no cabe. Comando, por ejemplo: time make correr LIMITE=100000 COMPUTO=code_editor; o time make correr LIMITE=todos COMPUTO=glue_medium. El comando time imprime tres líneas: real es el tiempo transcurrido, y es el que se anota. Aviso de costo: las filas con todos cuestan más; solo las corren las personas a quienes les toca. Con code_editor solo valen 1000 o 100000 (todos se rechaza). Tiempo: 3 min. Siguiente: Primera parte: con 1 000 y 100 000 filas, ¿conviene Glue?",
+   "notas": "Cada persona mide una de las siete combinaciones y los resultados se juntan en una hoja compartida: así tenemos la tabla completa sin que nadie corra siete veces. Cada medida parte de un dev limpio (resetear_entorno con Conservar el crudo y, después, el CREATE TABLE ejecutado otra vez en Snowsight, porque el reseteo borra la tabla de Snowflake y el código no la crea) y, para code_editor, con Airflow apagado (make airflow-local-down): sin reseteo la puerta salta las cuatro capas y mides solo el salto, y con Airflow encendido Spark no cabe. Comando, por ejemplo: time make correr LIMITE=100000 COMPUTO=code_editor; o time make correr LIMITE=todos COMPUTO=glue_medium. El comando time imprime tres líneas: real es el tiempo transcurrido, y es el que se anota. Aviso de costo: las filas con todos cuestan más; solo las corren las personas a quienes les toca. Con code_editor solo valen 1000 o 100000 (todos se rechaza). Tiempo: 3 min. Siguiente: Primera parte: con 1 000 y 100 000 filas, ¿conviene Glue?",
    "id": "106"
   },
   {
@@ -1945,7 +1946,7 @@
    "alt": "Cuatro columnas, una por paso. En cada una, arriba la caja de la casa con las funciones ya hechas y abajo la caja del equipo con lo que escribe: agregar_metadatos en bronze, deduplicar en silver, la tabla de gold propia en gold y el CREATE TABLE propio en snowflake. Abajo, una nota: agregar_metadatos y deduplicar hoy no hacen nada a propósito; debe_ingestar y registrar_ingesta ya vienen resueltas.",
    "pie": "Tus funciones del equipo: agregar_metadatos, deduplicar, tu gold y tu CREATE TABLE.",
    "min": 3,
-   "notas": "Puente al Taller 2. Lo que da la casa (arriba de cada columna): las herramientas de pipeline.herramientas (traer_crudo, leer_crudo, escribir_bronze, leer_capa, escribir_capa, la tabla de control, crear_tabla, cargar_gold), el ejemplo de gold y su CREATE TABLE, los DAG. Lo que escribe el equipo (abajo): agregar_metadatos en bronze.py, deduplicar en silver.py, su propia tabla de gold en gold.py y su CREATE TABLE en carga.py. Las pruebas ya están escritas: pasan de PENDIENTE a OK cuando escriben las dos funciones. Evidencia: sale de la cuenta del anfitrión, con el Airflow del Code Editor y glue_small; prod no es requisito. Las tablas de cada equipo llevan el nombre del equipo en BIGDATA.DEV. docs/herramientas.md es la hoja de consulta con las 12 funciones. Tiempo: 3 min. Siguiente: Para mañana: pipeline_taxi corre en el Airflow del anfitrión.",
+   "notas": "Puente al Taller 2. Lo que da la casa (arriba de cada columna): las herramientas de pipeline.herramientas (traer_crudo, leer_crudo, escribir_bronze, leer_capa, escribir_capa, la tabla de control, esquema_de_tabla, cargar_gold), el ejemplo de gold y su CREATE TABLE, los DAG. Lo que escribe el equipo (abajo): agregar_metadatos en bronze.py, deduplicar en silver.py, su propia tabla de gold en gold.py y su CREATE TABLE en carga.py. Las pruebas ya están escritas: pasan de PENDIENTE a OK cuando escriben las dos funciones. Evidencia: sale de la cuenta del anfitrión, con el Airflow del Code Editor y glue_small; prod no es requisito. Las tablas de cada equipo llevan el nombre del equipo en BIGDATA.DEV. docs/herramientas.md es la hoja de consulta con las 12 funciones. Tiempo: 3 min. Siguiente: Para mañana: pipeline_taxi corre en el Airflow del anfitrión.",
    "id": "128"
   },
   {

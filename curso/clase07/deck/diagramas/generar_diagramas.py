@@ -293,7 +293,7 @@ def dc7_2(ruta):
         (
             "Snowflake",
             None,
-            ["crear_tabla", "cargar_gold", "ejemplo de", "CREATE TABLE"],
+            ["esquema_de_tabla", "cargar_gold", "ejemplo de", "CREATE TABLE"],
             "tu CREATE TABLE",
         ),
     )

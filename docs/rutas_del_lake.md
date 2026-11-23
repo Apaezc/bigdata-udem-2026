@@ -88,7 +88,7 @@ gold    s3://bigdata-lake-123456789012-us-east-2/dev/gold           <tabla>/mes=
 Del lake, no de un entorno: code/, dags/, logs/, tmp/
 ```
 
-**2. Cada lectura y escritura dice su ruta completa.** Las funciones de la casa (`traer_crudo_*`, `leer_crudo`, `leer_capa`, `escribir_bronze`, `escribir_capa`, `crear_tabla`, `cargar_gold` y la tabla de control) escriben una línea con el verbo y la ruta antes de actuar. En un notebook aparece en la salida de la celda; en una corrida de Glue o de Airflow, en el log de la tarea:
+**2. Cada lectura y escritura dice su ruta completa.** Las funciones de la casa (`traer_crudo_*`, `leer_crudo`, `leer_capa`, `escribir_bronze`, `escribir_capa`, `cargar_gold` y la tabla de control) escriben una línea con el verbo y la ruta antes de actuar. En un notebook aparece en la salida de la celda; en una corrida de Glue o de Airflow, en el log de la tarea:
 
 ```text
 LEE      s3://bigdata-lake-123456789012-us-east-2/dev/bronze/fhvhv/mes=2024-01/lote=20261120T150102Z_a3f9c1  (bronze de fhvhv)

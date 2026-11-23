@@ -4,7 +4,7 @@ Esta guía recorre la clase 7 en la máquina real del Code Editor, con la cuenta
 
 Tiempo estimado: unas 3 horas y media, sin contar las esperas de Glue y del CI. Se hace dos veces: el domingo (con la cuenta en el diseño viejo) y el lunes antes de clase (con la cuenta ya migrada). **Costo:** el paso 11 usa Glue. El paso 12 (PR, CI, Deploy y prod) **ya no es de la clase 7: pasó a la clase 8** (martes 24 de noviembre, borrador en `curso/clase08/borrador_prod.md`); ensáyalo para esa clase, no para el lunes. La clase 7 cierra con una sola slide que anuncia el camino a prod.
 
-La secuencia de la clase: (1) empezar limpio con `resetear_entorno` en dev; (2) Notebook 1 con `limite` 1000, en el dev de verdad; (3) `resetear_entorno` en dev otra vez y copiar a los `.py`; (4) las tareas del DAG una por una con `airflow tasks test`, con Athena entre cada una; (5) crear la tabla en Snowflake y correr el DAG completo desde la interfaz; (6) resetear y correr todo otra vez (funciona una vez); (7) correr con `reprocesar=true` y ver los duplicados; después, dimensionamiento (con dev limpio y Airflow apagado antes de cada medida con `code_editor`) y la slide de cierre que anuncia prod para la clase 8.
+La secuencia de la clase: (1) empezar limpio con `resetear_entorno` en dev; (2) Notebook 1 con `limite` 1000, en el dev de verdad; (3) `resetear_entorno` en dev otra vez y copiar a los `.py`; (4) las tareas del DAG una por una con `airflow tasks test`, con Athena entre cada una; (5) ejecutar en Snowsight el `CREATE TABLE` (el código nunca crea la tabla) y correr el DAG completo desde la interfaz; (6) resetear, ejecutar otra vez el `CREATE TABLE` y correr todo otra vez (funciona una vez); (7) correr con `reprocesar=true` y ver los duplicados; después, dimensionamiento (con dev limpio y Airflow apagado antes de cada medida con `code_editor`) y la slide de cierre que anuncia prod para la clase 8.
 
 ## 0. Traer la rama y revisar el entorno
 
@@ -118,9 +118,9 @@ cd ~/bigdata && time airflow tasks test pipeline_taxi correr_gold 2024-01-01 --t
 
 Consultas C1 y C2 y, en Snowsight, E1 otra vez. **Pega:** cierre, tiempo y la relación de C1 (debe ser 1).
 
-## 6. Crear la tabla en Snowflake y el DAG completo desde la interfaz
+## 6. El CREATE TABLE en Snowsight y el DAG completo desde la interfaz
 
-En Snowsight, el `CREATE TABLE IF NOT EXISTS BIGDATA.DEV.TARIFA_POR_MILLA_BARRIO` (el de `carga.py`). En la interfaz, lanza `pipeline_taxi` con `code_editor`, `1000`, `2024-01` y **Reprocesar sin marcar**.
+En Snowsight, ejecuta `USE ROLE BIGDATA_DEV; USE WAREHOUSE BIGDATA_WH; USE DATABASE BIGDATA;` y el `CREATE TABLE IF NOT EXISTS BIGDATA.DEV.TARIFA_POR_MILLA_BARRIO` (el de `carga.py`, el mismo que imprime la Celda 34 y el error de `cargar_snowflake` si la tabla falta). El código nunca crea la tabla. En la interfaz, lanza `pipeline_taxi` con `code_editor`, `1000`, `2024-01` y **Reprocesar sin marcar**.
 
 **Debe pasar:** `correr_bronze`, `correr_silver` y `correr_gold` terminan en segundos con `SE SALTÓ`; `cargar_snowflake` trabaja y registra. Después, E3 (`COUNT(*)`, `SUM(VIAJES)`) y E1.
 

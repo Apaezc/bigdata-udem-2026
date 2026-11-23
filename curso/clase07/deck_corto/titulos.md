@@ -27,8 +27,8 @@ Léelos de corrido: juntos cuentan la clase entera.
 23. Corres tres tareas y lees cada cierre
 24. Para ver qué dejó cada tarea, declaras siete tablas en Athena
 25. El primer punto de control muestra un lote de 1 000 filas, pero sin huella ni lote
-26. Con el DAG completo sin reprocesar, tres tareas saltan y solo carga Snowflake
-27. Reseteas dev y corres todo una vez: con un lote, todo cuadra
+26. Antes del DAG completo, ejecutas en Snowsight el CREATE TABLE: el código nunca crea la tabla
+27. Con el DAG completo tres tareas saltan, y tras resetear las cuatro registran
 28. Reprocesar exige todo el DAG marcado, porque la puerta protege cada capa
 29. En gold, 1 000 viajes reales aparecen como 8 000, y Snowflake carga esa cifra inflada
 30. Sin deduplicar, cada reproceso multiplica silver por N y gold por N al cubo

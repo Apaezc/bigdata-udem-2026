@@ -85,7 +85,7 @@ def test_pipeline_corre_con_los_huecos_vacios(lake):
 
     r_carga = lake.carga()
     assert _decisiones(r_carga) == ["REGISTRÓ"]
-    assert [llamada[0] for llamada in lake.llamadas_a_snowflake] == ["athena", "crear", "cargar"]
+    assert [llamada[0] for llamada in lake.llamadas_a_snowflake] == ["athena", "cargar"]
 
     # La tabla de control quedó con un registro por capa, tabla y mes.
     registrados = {(r["capa"], r["tabla"], r["mes"]) for r in lake.control.registros}
@@ -384,7 +384,6 @@ def test_las_cuatro_funciones_de_correr_py_corren_el_pipeline_con_banner_y_cierr
     from pipeline import carga, correr
 
     monkeypatch.setattr(carga, "verificar_esquema_con_athena", lambda *a, **k: None)
-    monkeypatch.setattr(carga, "crear_tabla", lambda *a, **k: None)
     monkeypatch.setattr(carga, "cargar_gold", lambda *a, **k: 5)
     perillas = {"mes": MES, "computo": "code_editor", "limite": "1000", "reprocesar": False}
 

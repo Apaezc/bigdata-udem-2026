@@ -1,7 +1,10 @@
-"""Todo lo que habla con Snowflake: la conexión del entorno, crear tablas y cargar gold.
+"""Todo lo que habla con Snowflake: la conexión del entorno, leer esquemas y cargar gold.
 
 La conexión sale siempre del secreto del entorno en Secrets Manager (BIGDATA_DEV en dev,
 BIGDATA_PROD en prod), nunca de connections.toml: `abrir_conexion_de_entorno`.
+
+Este módulo nunca crea tablas: la tabla de Snowflake la creas tú, a mano, en Snowsight. Si falta,
+la carga se detiene y el error trae el SQL exacto para correr allá.
 
 La carga de gold (Parquet en S3) a una tabla de Snowflake no pierde columnas en silencio.
 
@@ -205,16 +208,30 @@ def _columnas_de_gold(
     return {fila[0]: fila[1] for fila in filas}
 
 
-def _columnas_de_tabla(cursor: Any, tabla: str) -> dict[str, str]:
-    """Columnas y tipos de la tabla de Snowflake (DESCRIBE TABLE: nombre en [0], tipo en [1])."""
+def _columnas_de_tabla(
+    cursor: Any, tabla: str, sql_para_crearla: str | None = None
+) -> dict[str, str]:
+    """Columnas y tipos de la tabla de Snowflake (DESCRIBE TABLE: nombre en [0], tipo en [1]).
+
+    Si no existe, el error trae (cuando se conoce) el SQL para crearla a mano en Snowsight.
+    """
     try:
         cursor.execute(f"DESCRIBE TABLE {tabla}")
         filas = cursor.fetchall()
     except Exception as error:
-        raise RuntimeError(
-            f"No se pudo leer la tabla {tabla}: no existe o tu rol no la ve. Créala primero con "
-            f"tu CREATE TABLE (mira docs/herramientas.md). Detalle: {error}"
-        ) from error
+        mensaje = (
+            f"No se pudo leer la tabla {tabla}: no existe o tu rol no la ve. "
+            "El código no crea tablas: créala tú en Snowsight."
+        )
+        if sql_para_crearla:
+            mensaje += (
+                "\n\nEjecuta esto en Snowsight:\n\n"
+                f"{sql_para_crearla}\n\n"
+                "Luego vuelve a correr cargar_snowflake."
+            )
+        else:
+            mensaje += " Mira docs/herramientas.md."
+        raise RuntimeError(f"{mensaje}\nDetalle: {error}") from error
     return {fila[0]: fila[1] for fila in filas}
 
 
@@ -305,29 +322,6 @@ def _abrir_conexion_para(tabla: str) -> Any:
     return abrir_conexion_de_entorno(_entorno_de_la_tabla(tabla))
 
 
-def crear_tabla(ddl: str, conexion: Any = None) -> None:
-    """Ejecuta tu CREATE TABLE en Snowflake (mejor con IF NOT EXISTS).
-
-    `CREATE OR REPLACE` se rechaza a propósito: borraría la tabla con sus datos.
-    """
-    texto = " ".join(ddl.split())
-    if not re.match(r"CREATE TABLE ", texto, re.IGNORECASE):
-        raise ValueError(
-            "crear_tabla solo ejecuta un CREATE TABLE (sin OR REPLACE), por ejemplo "
-            f"'CREATE TABLE IF NOT EXISTS BIGDATA.DEV.MI_TABLA (...)'. Llegó: {texto[:60]!r}"
-        )
-    archivos.anunciar("CREA", texto.split("(")[0].strip(), "tabla en Snowflake si no existe")
-    cerrar_al_final = conexion is None
-    if conexion is None:
-        nombre = re.search(r"(?:IF NOT EXISTS\s+)?([A-Za-z0-9_$.]+)\s*\(", texto)
-        conexion = _abrir_conexion_para(nombre.group(1) if nombre else "")
-    try:
-        conexion.cursor().execute(ddl)
-    finally:
-        if cerrar_al_final:
-            conexion.close()
-
-
 def esquema_de_tabla(tabla: str, conexion: Any = None) -> dict[str, str]:
     """{columna: tipo} de una tabla de Snowflake. Falla con un mensaje claro si no existe."""
     if not PATRON_IDENTIFICADOR.match(tabla):
@@ -362,14 +356,15 @@ def cargar_gold(
     columna_fecha    columna DATE de la tabla; se usa para borrar el mes antes de insertar.
     opciones         stage (por defecto @<base>.<esquema>.LAKE_GOLD, tomado del nombre de la
                      tabla), formato_archivo (por defecto <base>.<esquema>.PARQUET_FF) y
-                     crear_si_no_existe (CREATE TABLE IF NOT EXISTS ... para la tabla de la casa).
+                     sql_para_crearla (texto con el CREATE TABLE que se muestra si la tabla no
+                     existe: el código nunca la crea).
 
     Falla con ColumnasDistintas, sin tocar la tabla, si las columnas de S3 y de la tabla no
     coinciden. Falla con cualquier error de COPY o de la transacción, también sin tocarla.
     """
     stage = opciones.pop("stage", None)
     formato_archivo = opciones.pop("formato_archivo", None)
-    crear_si_no_existe = opciones.pop("crear_si_no_existe", None)
+    sql_para_crearla = opciones.pop("sql_para_crearla", None)
     if opciones:
         raise TypeError(f"cargar_gold no conoce estas opciones: {', '.join(sorted(opciones))}")
     if not PATRON_IDENTIFICADOR.match(tabla_snowflake):
@@ -399,13 +394,11 @@ def cargar_gold(
     try:
         cursor = conexion.cursor()
 
-        # 1. La tabla de la casa se crea sola; la del estudiante ya debe existir.
-        if crear_si_no_existe:
-            cursor.execute(crear_si_no_existe)
+        # 1. La tabla ya debe existir (la creas tú en Snowsight); si no, el error dice cómo.
+        en_tabla = _columnas_de_tabla(cursor, tabla_snowflake, sql_para_crearla)
 
         # 2. Comparar columnas ANTES de tocar nada.
         en_s3 = _columnas_de_gold(cursor, ubicacion, carpeta_tabla, formato_archivo)
-        en_tabla = _columnas_de_tabla(cursor, tabla_snowflake)
         diferencias = comparar_columnas(en_s3, en_tabla)
         hay_diferencias = (
             diferencias["solo_s3"]

@@ -1,4 +1,4 @@
-"""bodega: comparación de columnas, crear_tabla y carga atómica, con una conexión falsa."""
+"""bodega: comparación de columnas y carga atómica (nunca crea tablas), con una conexión falsa."""
 
 from __future__ import annotations
 
@@ -11,7 +11,6 @@ from pipeline.herramientas.bodega import (
     ColumnasDistintas,
     cargar_gold,
     comparar_columnas,
-    crear_tabla,
     esquema_de_tabla,
 )
 
@@ -251,18 +250,17 @@ def test_opciones_desconocidas_de_cargar_gold_fallan_antes_de_conectarse():
         cargar_gold(TABLA, "daily_zone_metrics", rapido=True)
 
 
-def test_las_opciones_stage_y_crear_si_no_existe_se_respetan():
+def test_las_opciones_stage_y_formato_se_respetan():
     cursor = CursorFalso(TIPOS_BASE, TABLA_BASE)
 
     _cargar(
         cursor,
         stage="@OTRA.BASE.STAGE",
         formato_archivo="OTRA.BASE.FORMATO",
-        crear_si_no_existe="CREATE TABLE IF NOT EXISTS BIGDATA.DEV.GOLD_ALUMNO (FECHA DATE)",
     )
 
-    assert cursor.sentencias[0].startswith("CREATE TABLE IF NOT EXISTS BIGDATA.DEV.GOLD_ALUMNO")
-    assert "@OTRA.BASE.STAGE/daily_zone_metrics/" in cursor.sentencias[1]
+    assert not any(sentencia.startswith("CREATE TABLE IF") for sentencia in cursor.sentencias)
+    assert any("@OTRA.BASE.STAGE/daily_zone_metrics/" in x for x in cursor.sentencias)
     assert cursor.valores_infer[1] == "OTRA.BASE.FORMATO"
 
 
@@ -289,50 +287,7 @@ def test_sin_conexion_se_abre_la_del_entorno_de_la_tabla_y_se_cierra(monkeypatch
     assert conexion.cerrada is True
 
 
-# --- crear_tabla y esquema_de_tabla -------------------------------------------------------------
-
-DDL = "CREATE TABLE IF NOT EXISTS BIGDATA.DEV.GOLD_ALUMNO (FECHA DATE, VIAJES NUMBER(38,0))"
-
-
-def test_crear_tabla_ejecuta_el_ddl_con_la_conexion_dada():
-    cursor = CursorFalso({}, {})
-    conexion = ConexionFalsa(cursor)
-
-    crear_tabla(DDL, conexion)
-
-    assert cursor.sentencias == [DDL]
-    assert conexion.cerrada is False
-
-
-def test_crear_tabla_sin_conexion_abre_la_del_entorno_y_la_cierra(monkeypatch):
-    cursor = CursorFalso({}, {})
-    conexion = ConexionFalsa(cursor)
-    pedidas = []
-    monkeypatch.setattr(
-        bodega, "abrir_conexion_de_entorno", lambda entorno: pedidas.append(entorno) or conexion
-    )
-
-    crear_tabla(DDL.replace(".DEV.", ".PROD."))
-
-    assert pedidas == ["prod"]
-    assert conexion.cerrada is True
-
-
-@pytest.mark.parametrize(
-    "sentencia",
-    [
-        "CREATE OR REPLACE TABLE BIGDATA.DEV.GOLD_ALUMNO (FECHA DATE)",
-        "DROP TABLE BIGDATA.DEV.GOLD_ALUMNO",
-        "DELETE FROM BIGDATA.DEV.GOLD_ALUMNO",
-    ],
-)
-def test_crear_tabla_solo_acepta_create_table(sentencia):
-    cursor = CursorFalso({}, {})
-
-    with pytest.raises(ValueError, match="solo ejecuta un CREATE TABLE"):
-        crear_tabla(sentencia, ConexionFalsa(cursor))
-
-    assert cursor.sentencias == []
+# --- esquema_de_tabla ---------------------------------------------------------------------------
 
 
 def test_esquema_de_tabla_devuelve_columna_y_tipo():
@@ -347,6 +302,20 @@ def test_esquema_de_tabla_inexistente_explica_como_crearla():
 
     with pytest.raises(RuntimeError, match="no existe o tu rol no la ve"):
         esquema_de_tabla(TABLA, ConexionFalsa(cursor))
+
+
+def test_cargar_gold_con_tabla_inexistente_muestra_el_sql_y_no_carga():
+    cursor = CursorFalso(TIPOS_BASE, TABLA_BASE, falla_en="DESCRIBE TABLE")
+    sql = "USE ROLE BIGDATA_DEV;\nCREATE TABLE IF NOT EXISTS BIGDATA.DEV.GOLD_ALUMNO (FECHA DATE);"
+
+    with pytest.raises(RuntimeError) as error:
+        cargar_gold(
+            TABLA, "daily_zone_metrics", conexion=ConexionFalsa(cursor), sql_para_crearla=sql
+        )
+
+    assert sql in str(error.value)
+    assert "vuelve a correr cargar_snowflake" in str(error.value)
+    assert not any(x.startswith(("COPY", "INSERT", "DELETE")) for x in cursor.sentencias)
 
 
 def test_esquema_de_tabla_rechaza_nombres_raros():

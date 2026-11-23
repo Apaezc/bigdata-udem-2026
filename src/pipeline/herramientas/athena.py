@@ -91,7 +91,8 @@ def verificar_esquema_con_athena(
     """Compara las columnas de la tabla de Athena con las de la tabla de Snowflake.
 
     Lanza ColumnasDistintas, sin tocar nada, si no coinciden. Si Athena no responde, o si la tabla
-    de Snowflake todavía no existe (se crea justo después con el DDL), avisa y sigue.
+    de Snowflake todavía no existe (la creas tú en Snowsight), avisa y sigue
+    (cargar_gold se detiene).
     """
     en_athena = esquema_de_athena(tabla_athena)
     if en_athena is None:
@@ -102,7 +103,7 @@ def verificar_esquema_con_athena(
     except RuntimeError:
         print(
             f"AVISO    {tabla_snowflake} no existe todavía: nada que comparar con "
-            f"{tabla_athena}. Se crea con tu CREATE TABLE y la carga vuelve a comparar."
+            f"{tabla_athena}. Créala tú en Snowsight; la carga se detiene si falta."
         )
         return
 

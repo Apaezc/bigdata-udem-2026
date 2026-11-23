@@ -107,9 +107,6 @@ class LakeDePrueba:
         self.monkeypatch.setattr(
             carga, "verificar_esquema_con_athena", lambda *a, **k: llamadas.append(("athena", a))
         )
-        self.monkeypatch.setattr(
-            carga, "crear_tabla", lambda *a, **k: llamadas.append(("crear", a))
-        )
 
         def cargar_falso(tabla, carpeta, mes=None, conexion=None, **opciones):
             llamadas.append(("cargar", (tabla, carpeta, mes)))

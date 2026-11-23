@@ -17,7 +17,7 @@ Cada función que lee, escribe, consulta o borra **dice en voz alta dónde** (`L
 - [Leer y escribir el lake](#lake): `leer_crudo`, `escribir_bronze`, `leer_capa`, `escribir_capa`
 - [La huella de una fila](#hash): `hash_fila` y `COLUMNAS_METADATOS`
 - [La tabla de control](#control): `mes_ya_procesado`, `registrar_control`
-- [Snowflake](#snowflake): `crear_tabla`, `cargar_gold`
+- [Snowflake](#snowflake): `cargar_gold`
 - [Los pasos como funciones](#pasos): `correr_bronze`, `correr_silver`, `correr_gold`, `cargar_snowflake`
 - [Probar tus funciones desde un notebook](#notebook): `usar_mis_funciones`, `probar_mis_funciones`
 
@@ -49,7 +49,6 @@ Tres reglas de la caja: los equipos importan con el nombre del archivo (`from pi
 | `registrar_control(corrida, tabla, capa, mes, filas, inicio, fuente, leidas=None)` | Anota que el paso terminó bien | Todos los pasos | `pipeline.herramientas.control` (`control.py`) |
 | `leer_capa(spark, entorno, capa, tabla, mes=None, lotes="todos")` | Lee bronze, silver o gold | Silver y gold | `pipeline.herramientas.capas` (`capas.py`) |
 | `escribir_capa(df, entorno, capa, tabla, mes=None)` | Escribe silver o gold reemplazando el mes | Silver y gold | `pipeline.herramientas.capas` (`capas.py`) |
-| `crear_tabla(ddl)` | Ejecuta tu `CREATE TABLE` en Snowflake | Snowflake | `pipeline.herramientas.bodega` (`bodega.py`) |
 | `cargar_gold(tabla_snowflake, carpeta_gold, mes=None, ...)` | Carga gold desde S3 a una tabla de Snowflake | Snowflake | `pipeline.herramientas.bodega` (`bodega.py`) |
 
 `COLUMNAS_METADATOS` es la lista de las cinco columnas que bronze agrega (también de `pipeline.herramientas.capas`). El resto de lo que hay en `src/pipeline/herramientas/` es importable pero no se enseña.
@@ -190,7 +189,7 @@ USE WAREHOUSE BIGDATA_WH;
 USE DATABASE BIGDATA;
 ```
 
-**`crear_tabla(ddl)`** ejecuta tu `CREATE TABLE` (mejor con `IF NOT EXISTS`). Rechaza `CREATE OR REPLACE`, que borraría la tabla con sus datos. Abre la conexión sola, con el rol del entorno de la tabla.
+**La tabla la creas tú, a mano, en Snowsight.** El código nunca crea tablas. Si la tabla no existe, `cargar_gold` (y por tanto `cargar_snowflake`) se detiene sin tocar nada y el error imprime el SQL exacto que debes ejecutar, empezando por el rol, el warehouse y la base. Lo ejecutas en Snowsight y vuelves a correr `cargar_snowflake`. Con `IF NOT EXISTS`, repetirlo no hace daño. Ojo: `resetear_entorno` con `borrar dev` también borra las tablas de `BIGDATA.DEV`, así que después de cada reseteo hay que ejecutar el `CREATE TABLE` otra vez.
 
 **`cargar_gold(tabla_snowflake, carpeta_gold, mes=None, ...)`** lleva los Parquet de gold (S3) a una tabla de Snowflake. Es la misma que usa el paso `snowflake` del pipeline (el DAG, `make correr PASO=snowflake` y el notebook), así que en todos lados se comporta igual. Se llamaba `cargar_gold_a_snowflake` en las clases anteriores; el nombre viejo sigue valiendo.
 
@@ -207,7 +206,7 @@ Nunca ignora una columna en silencio.
 Cada equipo **nombra sus tablas** y viven en `BIGDATA.DEV` (y, ya promovidas, en `BIGDATA.PROD`). Aquí el ejemplo de la casa; cambia el nombre por el de tu tabla.
 
 1. Escribe la función de tu gold en `gold.py` y súmala a `TABLAS_GOLD` y a `LLAVES_DE_GOLD`. Corre el paso gold.
-2. Escribe el `CREATE TABLE` de tu tabla en `carga.py`, con las columnas de tu gold, y súmalo a `TABLAS_A_CARGAR`. La equivalencia de tipos:
+2. Escribe el `CREATE TABLE` de tu tabla en `carga.py`, con las columnas de tu gold, y súmalo a `TABLAS_A_CARGAR` (ahí solo se guarda el texto: el código lo muestra, nunca lo ejecuta). La equivalencia de tipos:
 
    | Spark (gold) | Snowflake |
    |---|---|
@@ -219,22 +218,30 @@ Cada equipo **nombra sus tablas** y viven en `BIGDATA.DEV` (y, ya promovidas, en
 3. El nombre completo de la tabla sale de una función, para que no se escriba a mano:
 
    ```python
-   from pipeline.herramientas.bodega import crear_tabla
    from pipeline.herramientas.rutas import nombre_tabla_snowflake
 
    tabla = nombre_tabla_snowflake("dev", "tarifa_por_milla_barrio")
    print(tabla)  # BIGDATA.DEV.TARIFA_POR_MILLA_BARRIO
    ```
 
-4. Crea la tabla y carga un mes:
+4. Crea la tabla **en Snowsight** (una sola vez; el código no la crea) con este SQL, y luego carga un mes. El texto exacto de tu tabla lo imprime `sql_para_snowsight` (o el error de `cargar_snowflake` si falta):
+
+   ```sql
+   USE ROLE BIGDATA_DEV;
+   USE WAREHOUSE BIGDATA_WH;
+   USE DATABASE BIGDATA;
+
+   CREATE TABLE IF NOT EXISTS BIGDATA.DEV.TARIFA_POR_MILLA_BARRIO (
+     FECHA DATE, BOROUGH VARCHAR, FRANJA VARCHAR,
+     VIAJES NUMBER(38,0), DISTANCIA_TOTAL_MI FLOAT,
+     INGRESO_TOTAL FLOAT, TARIFA_POR_MILLA FLOAT);
+   ```
 
    ```python
-   from pipeline.carga import DDL_TARIFA_POR_MILLA
-   from pipeline.herramientas.bodega import cargar_gold, crear_tabla
+   from pipeline.herramientas.bodega import cargar_gold
    from pipeline.herramientas.rutas import nombre_tabla_snowflake
 
    tabla = nombre_tabla_snowflake("dev", "tarifa_por_milla_barrio")
-   crear_tabla(DDL_TARIFA_POR_MILLA.format(tabla=tabla))
    filas = cargar_gold(
        tabla,  # siempre BASE.ESQUEMA.TABLA
        "tarifa_por_milla_barrio",  # carpeta dentro de s3://<lake>/dev/gold/
