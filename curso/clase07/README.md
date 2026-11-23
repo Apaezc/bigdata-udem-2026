@@ -109,13 +109,13 @@ En un merge, `--ours` es **tu fork** y `--theirs` es **la casa** (el repositorio
 | Archivo en conflicto | Por qué | Qué hacer |
 |---|---|---|
 | `src/pipeline/silver.py` | La casa agregó `deduplicar`, `limpiar_taxi_zones` y un `main` nuevo; tu equipo editó `limpiar_viajes` o `enriquecer` | `git checkout --theirs src/pipeline/silver.py` y vuelve a poner tu cambio (abajo) |
-| `src/pipeline/gold.py` | La casa agregó `tarifa_por_milla_por_barrio` y un `main` nuevo; tu equipo editó `metricas_diarias_zona` o `COLUMNAS` | Igual: `--theirs` y vuelve a poner tu cambio |
+| `src/pipeline/gold.py` | La casa agregó `tarifa_por_milla_por_barrio` y un `main` nuevo; tu equipo editó `metricas_diarias_zona` o `COLUMNAS` | Igual: `--theirs`; esas dos funciones de la clase 6 ya no están en la casa (tu tabla de gold va en `TABLAS_GOLD`) |
 | `tests/test_silver.py` y `tests/test_gold.py` | Las pruebas cambiaron | `--theirs` y vuelve a agregar las tuyas al final |
 | `src/pipeline/bronze.py` | Pasó a ser el esqueleto con las funciones del equipo | `--theirs` |
 | Cualquier otro de `src/`, `airflow/`, `Makefile`, `scripts/`, `infra/` o `tests/` | Cambios de la casa | `--theirs`; no se editan a mano |
 | Algo dentro de `taller2/` | No debería chocar | Avisa al instructor |
 
-Cómo volver a poner tu cambio en `silver.py` o `gold.py`: las funciones `limpiar_viajes`, `clima_diario` y `enriquecer` (en silver) y `metricas_diarias_zona` y `COLUMNAS` (en gold) **conservan nombre y firma**, así que tu cambio cabe en el mismo lugar.
+Cómo volver a poner tu cambio en `silver.py` o `gold.py`: las funciones `limpiar_viajes`, `clima_diario` y `enriquecer` (en silver) **conservan nombre y firma**, así que tu cambio cabe en el mismo lugar. En gold, `metricas_diarias_zona` y `COLUMNAS` eran de la clase 6 y ya no están: si tu equipo las tenía, copia tu función a `gold.py` y súmala a `TABLAS_GOLD` y `LLAVES_DE_GOLD`.
 
 ```bash
 cd ~/bigdata
@@ -136,7 +136,7 @@ make test
 git push origin main
 ```
 
-**Debes ver en `make test`:** las pruebas pasan y algunas salen con `SKIPPED ... PENDIENTE: ...`. Es **lo esperado**: son las pruebas de las funciones que tu equipo todavía no ha escrito (los metadatos de bronze y `deduplicar` de silver). No es un error. Las 13 omitidas de la práctica de ingesta de las clases 5 y 6 también son normales.
+**Debes ver en `make test`:** las pruebas pasan y algunas salen con `SKIPPED ... PENDIENTE: ...`. Es **lo esperado**: son las pruebas de las funciones que tu equipo todavía no ha escrito (los metadatos de bronze y `deduplicar` de silver). No es un error.
 
 **Si prefieres no usar la terminal** y tu fork no tiene conflictos: en GitHub, en la página de tu fork, haz clic en **Sync fork** y luego en **Update branch**. Después, en el Code Editor, `cd ~/bigdata && git pull`.
 
@@ -282,7 +282,7 @@ Las clases 1 a 6 no se reescriben: lo que dijimos entonces sigue siendo cierto d
 | Gold `daily_zone_metrics` | Gold de la casa: `tarifa_por_milla_barrio`. Cada equipo nombra las suyas |
 | `spark_local`, `--env local`, `get_spark("local")` | Cómputo `code_editor` (`"local"` sigue valiendo como alias) |
 | `--step`, `--env`, `--engine` | `--paso`. No hay `--env` ni `--engine`: el entorno no se elige y el cómputo se llama `--computo` |
-| `make muestra`, `make run-local` | `make correr` (los comandos viejos avisan y no hacen nada) |
+| `make muestra`, `make run-local` | `make correr` (los comandos viejos ya no existen) |
 | `BIGDATA.CONTROL.WATERMARK` | `BIGDATA.CONTROL_DEV.WATERMARK` y `BIGDATA.CONTROL_PROD.WATERMARK` (la vieja es la de la práctica de las clases 5 y 6) |
 | `BIGDATA.DEV.DAILY_ZONE_METRICS` como «la tabla» | Cada equipo nombra sus tablas; viven en `BIGDATA.DEV` o `BIGDATA.PROD` |
 | Rol `ACCOUNTADMIN` y warehouse `COMPUTE_WH` | `BIGDATA_DEV` y `BIGDATA_WH` para todo lo del Taller. Los otros son nombres de las clases 1 a 6 |
@@ -340,7 +340,7 @@ Copia el notebook a una carpeta tuya, para no tocar el del repositorio:
 
 ```bash
 mkdir -p ~/clase07_mis_notebooks
-cp ~/bigdata/curso/clase07/01_construir_paso_a_paso.ipynb ~/clase07_mis_notebooks/
+mkdir -p ~/clase07_mis_notebooks && cp ~/bigdata/curso/clase07/01_construir_paso_a_paso.ipynb ~/clase07_mis_notebooks/
 ```
 
 En el explorador de archivos de la izquierda, abre `clase07_mis_notebooks`, haz doble clic en el notebook y, arriba a la derecha, elige el kernel **Python (bigdata)**. No elijas los que dicen *Glue* o *SparkMagic*: abren una sesión de AWS Glue que cobra mientras está abierta. Ejecuta una celda con **Shift + Enter**.
@@ -351,7 +351,7 @@ En esta máquina solo cabe un proceso de Spark a la vez. Si tienes abierto otro 
 ## Lo que no vale después de migrar
 
 - **Los `.sql` de `curso/clase06/athena/` dejan de funcionar.** Apuntan a `bronze/` en la raíz del bucket, que ya no existe. Hoy usas los de `curso/clase07/athena/`, con tablas que se llaman `dev_...` y `prod_...`.
-- **La VM de prod puede listar `ingesta_mensual` en pausa.** Es un resto de la base de datos de Airflow de prod: el archivo ya no está. No importa y no hay que hacer nada.
+- **La VM de prod puede listar un DAG de las clases 5 y 6 en pausa.** Es un resto de la base de datos de Airflow de prod: el archivo ya no está. No importa y no hay que hacer nada.
 - **La práctica de ingesta de las clases 5 y 6 sigue corriendo**, pero solo en el Airflow del Code Editor y escribiendo en el disco. No es el pipeline. El pipeline se llama `pipeline_taxi`.
 - **Si lanzas el DAG en dev con Glue,** el código que corre es el de tu árbol de trabajo (se sube a `code/dev/`), no el de `main`. Lo que corre en prod es siempre el de `main`.
 
@@ -361,11 +361,11 @@ En esta máquina solo cabe un proceso de Spark a la vez. Si tienes abierto otro 
 1. Apertura: qué dijimos en las clases 5 y 6 y qué cambia; dev y prod; dónde se cambia cada cosa.
 2. **Empezamos limpios:** `resetear_entorno` en dev (el DAG que borra todo el entorno de ese Airflow).
 3. **Notebook 1:** se construye y se prueba cada función con 1 000 viajes, en el dev de verdad: Spark del Code Editor escribe en `s3://<lake>/dev/` y la tabla de control es `BIGDATA.CONTROL_DEV.WATERMARK`. No se escribe nada en el disco. El límite se aplica solo en bronze.
-4. **`resetear_entorno` en dev otra vez:** el notebook dejó datos reales (crudo, un lote de bronze, filas de control y la tabla vacía de gold); se borran para que las tareas del DAG partan de cero.
+4. **`resetear_entorno` en dev otra vez:** el notebook dejó datos reales (crudo, un lote de bronze, filas de control); se borran para que las tareas del DAG partan de cero.
 5. **Del notebook al `.py`:** las celdas finales del Notebook 1 dicen qué funciones cambiaste (`DISTINTO`) y corren las pruebas del equipo; se abren `bronze.py` y `silver.py` (son las mismas funciones), se ve cómo se copia un cambio y se corre `make test` (salen `PENDIENTE`).
 6. **Las tareas del DAG, una por una** (`airflow tasks test`): primero bronze y Athena; luego silver y Athena; luego gold y Athena. Ahí se notan los problemas: bronze sin huella y qué hace la tabla de control.
-7. Crear la tabla en Snowflake y correr el DAG completo desde la interfaz: con `reprocesar` sin marcar, bronze, silver y gold **se saltan** y solo carga Snowflake.
-8. Resetear y correr todo otra vez: funciona una vez.
+7. Ejecutar en Snowsight el `CREATE TABLE` (el código nunca crea la tabla; si falta, `cargar_snowflake` falla e imprime el SQL) y correr el DAG completo desde la interfaz: con `reprocesar` sin marcar, bronze, silver y gold **se saltan** y solo carga Snowflake.
+8. Resetear (que también borra la tabla de Snowflake), ejecutar otra vez el `CREATE TABLE` en Snowsight y correr todo otra vez: funciona una vez.
 9. **Reprocesar a propósito** (`reprocesar=true`): bronze guarda los dos lotes, silver los espeja sin deduplicar y gold multiplica; medido: silver ×2 y gold ×8. Se ve en Athena y en Snowflake.
 10. `make correr` y `glue_small`, y el ejercicio de dimensionamiento: cuánto tarda cada combinación de límite y cómputo.
 11. Cierre: la escalera de dev a prod. Llevar todo a prod (pull request, CI/CD, DAG en la VM) y validarlo con Athena y Snowflake **pasó a la clase 8**; el borrador está en `curso/clase08/borrador_prod.md`.

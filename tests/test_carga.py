@@ -1,4 +1,4 @@
-"""El paso snowflake (carga.py): verificar con Athena, crear la tabla y cargar gold, con control.
+"""El paso snowflake (carga.py): verificar con Athena y cargar gold, con control (no crea tablas).
 
 Athena y Snowflake son falsos (solo anotan cómo los llamaron); la tabla de control es la de memoria.
 """
@@ -14,6 +14,7 @@ import pytest
 from hueco import MES, corrida_a_mano
 from pipeline import carga
 from pipeline.gold import COLUMNAS_TARIFA_POR_MILLA
+from pipeline.herramientas import bodega
 
 pytest_plugins = ["p1_fixtures", "p4_fixtures"]
 
@@ -24,7 +25,7 @@ def lake_de_prueba(entorno_limpio, raiz_lake):
 
 
 class Falsos:
-    """Athena, crear_tabla y cargar_gold falsos: guardan las llamadas en orden."""
+    """Athena y cargar_gold falsos: guardan las llamadas en orden."""
 
     def __init__(self, monkeypatch, filas=7):
         self.llamadas: list[tuple] = []
@@ -36,24 +37,20 @@ class Falsos:
                 ("athena", athena, snowflake)
             ),
         )
-        monkeypatch.setattr(
-            carga,
-            "crear_tabla",
-            lambda ddl, conexion=None: self.llamadas.append(("crear", ddl)),
-        )
 
         def cargar(tabla, carpeta_gold, mes=None, conexion=None, **opciones):
             self.llamadas.append(("cargar", tabla, carpeta_gold, mes))
+            self.opciones = opciones
             return self.filas
 
         monkeypatch.setattr(carga, "cargar_gold", cargar)
 
 
-def test_main_verifica_crea_y_carga_en_ese_orden(control_en_memoria, monkeypatch):
+def test_main_verifica_y_carga_en_ese_orden(control_en_memoria, monkeypatch):
     falsos = Falsos(monkeypatch)
     resultados = carga.main(corrida_a_mano())
 
-    assert [llamada[0] for llamada in falsos.llamadas] == ["athena", "crear", "cargar"]
+    assert [llamada[0] for llamada in falsos.llamadas] == ["athena", "cargar"]
     assert resultados == [
         carga.Resultado("tarifa_por_milla_barrio", "snowflake", MES, 7, 7, "REGISTRÓ")
     ]
@@ -69,9 +66,12 @@ def test_la_tabla_de_snowflake_es_la_del_entorno(control_en_memoria, monkeypatch
         "dev_gold_tarifa_por_milla_barrio",
         "BIGDATA.DEV.TARIFA_POR_MILLA_BARRIO",
     )
-    crear = falsos.llamadas[1][1]
-    assert crear.startswith("CREATE TABLE IF NOT EXISTS BIGDATA.DEV.TARIFA_POR_MILLA_BARRIO (")
-    assert falsos.llamadas[2] == (
+    sql = falsos.opciones["sql_para_crearla"]
+    assert sql.startswith(
+        "USE ROLE BIGDATA_DEV;\nUSE WAREHOUSE BIGDATA_WH;\nUSE DATABASE BIGDATA;\n"
+        "CREATE TABLE IF NOT EXISTS BIGDATA.DEV.TARIFA_POR_MILLA_BARRIO ("
+    )
+    assert falsos.llamadas[1] == (
         "cargar",
         "BIGDATA.DEV.TARIFA_POR_MILLA_BARRIO",
         "tarifa_por_milla_barrio",
@@ -145,6 +145,48 @@ def test_el_ddl_crea_solo_si_no_existe():
 
 def test_tablas_a_cargar_tiene_la_de_la_casa():
     assert [e["gold"] for e in carga.TABLAS_A_CARGAR] == ["tarifa_por_milla_barrio"]
+
+
+def test_el_codigo_no_crea_tablas():
+    assert not hasattr(carga, "crear_tabla")
+    assert not hasattr(bodega, "crear_tabla")
+
+
+def test_sin_la_tabla_el_error_imprime_el_create_para_snowsight(control_en_memoria):
+    """cargar_gold real contra un Snowflake donde DESCRIBE TABLE falla: la tabla no existe."""
+
+    class Cursor:
+        sentencias: list[str] = []
+
+        def execute(self, sql, valores=None):
+            self.sentencias.append(sql)
+            if sql.startswith("DESCRIBE"):
+                raise RuntimeError("Table does not exist")
+
+    class Conexion:
+        def cursor(self):
+            return cursor
+
+    cursor = Cursor()
+    sql = carga.sql_para_snowsight(
+        "dev", "BIGDATA.DEV.TARIFA_POR_MILLA_BARRIO", carga.DDL_TARIFA_POR_MILLA
+    )
+    with pytest.raises(RuntimeError) as error:
+        bodega.cargar_gold(
+            "BIGDATA.DEV.TARIFA_POR_MILLA_BARRIO",
+            "tarifa_por_milla_barrio",
+            mes=MES,
+            conexion=Conexion(),
+            sql_para_crearla=sql,
+        )
+
+    mensaje = str(error.value)
+    assert "USE ROLE BIGDATA_DEV;" in mensaje
+    assert "USE WAREHOUSE BIGDATA_WH;" in mensaje
+    assert "USE DATABASE BIGDATA;" in mensaje
+    assert "CREATE TABLE IF NOT EXISTS BIGDATA.DEV.TARIFA_POR_MILLA_BARRIO (FECHA DATE" in mensaje
+    assert "vuelve a correr cargar_snowflake" in mensaje
+    assert not any(s.startswith(("CREATE", "COPY")) for s in cursor.sentencias)
 
 
 def test_el_paso_snowflake_no_importa_pyspark():

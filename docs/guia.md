@@ -731,7 +731,7 @@ Siguiente:  cd ~/bigdata && make correr PASO=bronze
 > | Todo lo que corres desde el Code Editor (terminal, notebook, `make correr`, Airflow del Code Editor), con cualquier cómputo | `dev/bronze/`, `dev/silver/` y `dev/gold/`; carga en `BIGDATA.DEV` |
 > | El Airflow de la VM (entorno `prod`), solo después de un PR y del CI/CD | `prod/bronze/`, `prod/silver/` y `prod/gold/`; carga en `BIGDATA.PROD` |
 >
-> El entorno **no se elige**: desde el Code Editor siempre es `dev`. Cada función de la casa que lee o escribe imprime la ruta completa (`LEE`, `ESCRIBE`, `BORRA`...). Para ver la tabla de tu entorno: `cd ~/bigdata && make rutas ENTORNO=dev` en la terminal, o `donde_estoy("dev")` en un notebook (`from pipeline.herramientas import donde_estoy`). Si tu bucket viene del diseño anterior (con `bronze/` y `muestra/` en la raíz), mira [rutas_del_lake.md](rutas_del_lake.md).
+> El entorno **no se elige**: desde el Code Editor siempre es `dev`. Cada función de la casa que lee o escribe imprime la ruta completa (`LEE`, `ESCRIBE`, `BORRA`...). Para ver la tabla de tu entorno: `cd ~/bigdata && make rutas ENTORNO=dev` en la terminal, o `donde_estoy("dev")` en un notebook (`from pipeline.herramientas.rutas import donde_estoy`). Si tu bucket viene del diseño anterior (con `bronze/` y `muestra/` en la raíz), mira [rutas_del_lake.md](rutas_del_lake.md).
 
 **❌ Si falla:** `No pude bajar hadoop-aws-3.3.4.jar` (revisa tu conexión y repite el comando: es seguro repetirlo) · [`ModuleNotFoundError: pipeline`](problemas.md#p-modulenotfound)
 

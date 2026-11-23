@@ -16,9 +16,6 @@ carga.py). Gold no tiene huecos.
 Un detalle que se ve al reprocesar: `enriquecer` une zonas y clima, así que si silver trae las
 tablas duplicadas (silver no deduplica todavía) cada viaje se repite una vez por cada fila
 repetida de zonas y de clima: con dos copias de cada tabla, ×2 · ×2 · ×2 = ×8 viajes.
-
-`metricas_diarias_zona` y `COLUMNAS` son de las clases anteriores: siguen aquí sin cambios (el
-laboratorio de la clase 6 las usa) pero ya no se ejecutan por defecto.
 """
 
 from __future__ import annotations
@@ -29,51 +26,17 @@ from pyspark.sql import DataFrame
 from pyspark.sql import functions as F
 
 from pipeline import quality, silver
-from pipeline.herramientas import (
+from pipeline.herramientas.capas import escribir_capa, leer_capa
+from pipeline.herramientas.control import con_control
+from pipeline.herramientas.corrida import Resultado
+from pipeline.herramientas.rutas import (
     TABLA_CLIMA,
     TABLA_VIAJES,
     TABLA_ZONAS,
-    Resultado,
-    con_control,
-    escribir_capa,
-    leer_capa,
     ruta_lake,
 )
 
 CAPA = "gold"
-
-# --- clases anteriores (sin cambios) ----------------------------------------------------------
-
-COLUMNAS = [
-    "fecha",
-    "zona",
-    "empresa",
-    "viajes",
-    "ingreso_total",
-    "propina_promedio",
-    "distancia_promedio",
-    "lluvia_mm",
-]
-
-
-def metricas_diarias_zona(silver: DataFrame) -> DataFrame:
-    """Agrupa silver por fecha (pickup_date), zona y empresa.
-
-    ingreso_total = suma de total_pagado; propina_promedio = promedio de propina;
-    distancia_promedio = promedio de distancia_mi (millas); lluvia_mm = precipitación del día.
-    """
-    return (
-        silver.groupBy(F.col("pickup_date").alias("fecha"), "zona", "empresa")
-        .agg(
-            F.count(F.lit(1)).alias("viajes"),
-            F.round(F.sum("total_pagado"), 2).alias("ingreso_total"),
-            F.round(F.avg("propina"), 2).alias("propina_promedio"),
-            F.round(F.avg("distancia_mi"), 2).alias("distancia_promedio"),
-            F.max("lluvia_mm").alias("lluvia_mm"),
-        )
-        .select(*COLUMNAS)
-    )
-
 
 # --- el ejemplo de la casa: tarifa por milla por barrio y franja ------------------------------
 
@@ -135,10 +98,9 @@ def tarifa_por_milla_por_barrio(enriquecido: DataFrame) -> DataFrame:
 
 
 # nombre de la tabla en gold -> función que la arma a partir del enriquecido. El equipo agrega la
-# suya aquí; metricas_diarias_zona queda comentada porque ya no se ejecuta por defecto.
+# suya aquí.
 TABLAS_GOLD = {
     "tarifa_por_milla_barrio": tarifa_por_milla_por_barrio,
-    # "metricas_diarias_zona": metricas_diarias_zona,  # espera silver con zona (clases 1 a 6)
 }
 
 

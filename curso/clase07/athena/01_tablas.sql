@@ -9,7 +9,7 @@
 --   Antes hay que decirle al catálogo (Glue) dónde están y qué columnas traen: eso hace
 --   CREATE EXTERNAL TABLE.
 --
--- LAS RUTAS (las arma src/pipeline/settings.py, función ruta_lake; <ENTORNO> = dev o prod)
+-- LAS RUTAS (las arma src/pipeline/herramientas/rutas.py, función ruta_lake; <ENTORNO> = dev o prod)
 --   s3://bigdata-lake-<CUENTA>-us-east-2/<ENTORNO>/
 --     bronze/fhvhv/mes=AAAA-MM/lote=<id>/        viajes, un lote por ingesta
 --     bronze/clima/mes=AAAA-MM/lote=<id>/        clima, una fila por día

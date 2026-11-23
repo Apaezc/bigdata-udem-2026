@@ -38,7 +38,7 @@
 <text x="977.0" y="41.0" font-size="22" fill="#15171C" text-anchor="middle" font-weight="700">Snowflake</text>
 <rect x="846" y="70" width="262" height="168" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
 <text x="977.0" y="108.0" font-size="22" fill="#15171C" text-anchor="middle" font-weight="700">De la casa</text>
-<text x="977.0" y="135.0" font-size="22" fill="#5F6672" text-anchor="middle">crear_tabla</text>
+<text x="977.0" y="135.0" font-size="22" fill="#5F6672" text-anchor="middle">esquema_de_tabla</text>
 <text x="977.0" y="162.0" font-size="22" fill="#5F6672" text-anchor="middle">cargar_gold</text>
 <text x="977.0" y="189.0" font-size="22" fill="#5F6672" text-anchor="middle">ejemplo de</text>
 <text x="977.0" y="216.0" font-size="22" fill="#5F6672" text-anchor="middle">CREATE TABLE</text>

@@ -10,8 +10,7 @@ from pathlib import Path
 
 import pytest
 
-from pipeline import io
-from pipeline.herramientas import crudo
+from pipeline.herramientas import archivos, crudo
 from pipeline.herramientas.rutas import ruta_del_crudo, ruta_lake
 
 MES = "2024-01"
@@ -25,7 +24,7 @@ def descargas(monkeypatch):
 
     def falsa(url, destino):
         pedidas.append(url)
-        carpeta = io.a_ruta_local(destino)
+        carpeta = archivos.a_ruta_local(destino)
         carpeta.parent.mkdir(parents=True, exist_ok=True)
         carpeta.write_text("contenido descargado", encoding="utf-8")
 
@@ -45,24 +44,26 @@ def test_si_no_esta_en_ninguna_parte_se_descarga(raiz_lake, descargas):
 
     assert ruta == ruta_del_crudo(ENTORNO, "fhvhv", MES)
     assert descargas == [crudo.url_viajes(MES)]
-    assert io.existe(ruta)
+    assert archivos.existe(ruta)
 
 
 def test_si_ya_esta_en_crudo_no_se_descarga(raiz_lake, descargas):
-    destino = io.a_ruta_local(ruta_del_crudo(ENTORNO, "clima", MES))
+    destino = archivos.a_ruta_local(ruta_del_crudo(ENTORNO, "clima", MES))
     destino.parent.mkdir(parents=True, exist_ok=True)
     destino.write_text("ya estaba", encoding="utf-8")
 
     ruta = crudo.traer_crudo_clima(ENTORNO, MES)
 
     assert descargas == []
-    assert io.a_ruta_local(ruta).read_text(encoding="utf-8") == "ya estaba"
+    assert archivos.a_ruta_local(ruta).read_text(encoding="utf-8") == "ya estaba"
 
 
 def test_si_esta_en_la_ruta_anterior_se_mueve_sin_descargar(raiz_lake, descargas):
     destino = ruta_del_crudo(ENTORNO, "fhvhv", MES)
     nombre = destino.rstrip("/").rsplit("/", 1)[-1]
-    anterior = io.a_ruta_local(io.unir(ruta_lake(ENTORNO, "bronze", "fhvhv", MES), nombre))
+    anterior = archivos.a_ruta_local(
+        archivos.unir(ruta_lake(ENTORNO, "bronze", "fhvhv", MES), nombre)
+    )
     anterior.parent.mkdir(parents=True, exist_ok=True)
     anterior.write_text("del diseño anterior", encoding="utf-8")
 
@@ -70,7 +71,7 @@ def test_si_esta_en_la_ruta_anterior_se_mueve_sin_descargar(raiz_lake, descargas
 
     assert descargas == []
     assert not Path(anterior).exists()
-    assert io.a_ruta_local(ruta).read_text(encoding="utf-8") == "del diseño anterior"
+    assert archivos.a_ruta_local(ruta).read_text(encoding="utf-8") == "del diseño anterior"
 
 
 def test_zonas_no_lleva_mes(raiz_lake, descargas):

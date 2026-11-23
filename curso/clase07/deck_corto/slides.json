@@ -181,7 +181,7 @@
   {
    "tipo": "codigo",
    "titulo": "Copias el notebook y apagas Airflow para ejecutar las Celdas 1 a 8",
-   "sql": "# En la terminal del Code Editor, una línea a la vez y Enter:\nmkdir -p ~/clase07_mis_notebooks\ncp ~/bigdata/curso/clase07/01_*.ipynb ~/clase07_mis_notebooks/\ncd ~/bigdata && make airflow-local-down",
+   "sql": "# En la terminal del Code Editor (copia el bloque entero):\nmkdir -p ~/clase07_mis_notebooks && \\\n  cp ~/bigdata/curso/clase07/01_*.ipynb ~/clase07_mis_notebooks/\ncd ~/bigdata && make airflow-local-down",
    "resaltar": [
     3,
     4
@@ -207,7 +207,7 @@
   {
    "tipo": "codigo",
    "titulo": "La puerta se construye con debe_ingestar y con registrar_ingesta, que anota solo después de escribir",
-   "sql": "from pipeline.herramientas import mes_ya_procesado\n\ndef debe_ingestar(corrida: Corrida, tabla: str, mes: str) -> bool:\n    ya_esta_registrado = mes_ya_procesado(corrida, tabla, CAPA, mes)\n    if ya_esta_registrado:\n        return False\n    return True\n\n# Se registra al final: si la escritura falla, no queda registro\nregistrar_ingesta(corrida, tabla, mes, fuente, leidas, filas, inicio)",
+   "sql": "from pipeline.herramientas.control import mes_ya_procesado\n\ndef debe_ingestar(corrida: Corrida, tabla: str, mes: str) -> bool:\n    ya_esta_registrado = mes_ya_procesado(corrida, tabla, CAPA, mes)\n    if ya_esta_registrado:\n        return False\n    return True\n\n# Se registra al final: si la escritura falla, no queda registro\nregistrar_ingesta(corrida, tabla, mes, fuente, leidas, filas, inicio)",
    "resaltar": [
     4,
     8
@@ -244,10 +244,10 @@
     5,
     9
    ],
-   "explicacion": "Ejecuta las Celdas 24 a 34: silver con uno y con dos lotes, gold y el CREATE TABLE de Snowflake.",
+   "explicacion": "Ejecuta las Celdas 24 a 34: silver con uno y con dos lotes, gold y el CREATE TABLE que se imprime.",
    "aqui": "gold",
    "notebook": "01_construir_paso_a_paso",
-   "notas": "Silver es el espejo limpio de bronze, una tabla por fuente y sin join: pone cada columna en su tipo y descarta viajes imposibles con limpiar_viajes, clima_diario y limpiar_taxi_zones. Celdas 24 y 25: con un lote, bronze y silver tienen 1 000 filas (en el ensayo no se descartó ninguno; el archivo de enero completo descarta 13 907 de 19 663 930); empresa dice Uber o Lyft, no HV0003. Celdas 26 y 27: con dos lotes, silver da el doble y deduplicar (la del notebook, igual que la del repositorio) devuelve las mismas filas: es el segundo problema a propósito. Gold responde una pregunta de negocio con una tabla pequeña; la de la casa es ¿a qué hora y barrio se paga más por milla?, y no es la del Taller: la tuya es otra. La tarifa por milla es el cociente de las sumas, no el promedio de las tarifas. Celdas 28 a 31: enriquecer, la franja, la función y la comparación, que dice True. Celdas 32 a 34: para cargar gold se crea en Snowflake una tabla con los mismos tipos (date DATE, string VARCHAR, bigint NUMBER(38,0), double FLOAT), vacía por ahora. Tiempo: 12 min. Siguiente: La Celda 35 dice qué cambiaste frente a los .py y la 36 corre las pruebas del equipo.",
+   "notas": "Silver es el espejo limpio de bronze, una tabla por fuente y sin join: pone cada columna en su tipo y descarta viajes imposibles con limpiar_viajes, clima_diario y limpiar_taxi_zones. Celdas 24 y 25: con un lote, bronze y silver tienen 1 000 filas (en el ensayo no se descartó ninguno; el archivo de enero completo descarta 13 907 de 19 663 930); empresa dice Uber o Lyft, no HV0003. Celdas 26 y 27: con dos lotes, silver da el doble y deduplicar (la del notebook, igual que la del repositorio) devuelve las mismas filas: es el segundo problema a propósito. Gold responde una pregunta de negocio con una tabla pequeña; la de la casa es ¿a qué hora y barrio se paga más por milla?, y no es la del Taller: la tuya es otra. La tarifa por milla es el cociente de las sumas, no el promedio de las tarifas. Celdas 28 a 31: enriquecer, la franja, la función y la comparación, que dice True. Celdas 32 a 34: para cargar gold hace falta en Snowflake una tabla con los mismos tipos (date DATE, string VARCHAR, bigint NUMBER(38,0), double FLOAT); la Celda 34 solo imprime el CREATE TABLE: el código nunca crea la tabla, la creas tú en Snowsight antes del DAG completo. Tiempo: 12 min. Siguiente: La Celda 35 dice qué cambiaste frente a los .py y la 36 corre las pruebas del equipo.",
    "min": 12,
    "id": "16"
   },
@@ -292,7 +292,7 @@
     "Lanza resetear_entorno para borrar dev.",
     "Apaga Airflow."
    ],
-   "notas": "Así se pasa un cambio: se prueba en el notebook, se copia la función completa, con su firma, al archivo que le toca (bronze.py, silver.py, gold.py o carga.py), y se borra la marca # PENDIENTE(equipo) si ya está escrita. make test corre Ruff y pytest y tarda unos minutos: al final «425 passed, 23 skipped», y cada SKIPPED dice por qué y qué función falta escribir; las de test_ingesta_alumno.py son de la práctica de las clases 5 y 6 y también son normales. Después, resetear dev, porque el Notebook 1 dejó datos de verdad en dev (el crudo, un lote de bronze, filas de la tabla de control, incluidos los meses de ensayo de 2023, y la tabla vacía de gold): si los dejamos, la primera tarea del DAG saltaría bronze porque la tabla ya dice que enero está hecho. Se enciende Airflow con make airflow-local, se lanza resetear_entorno con Solo listar desmarcada, Conservar el crudo marcada y la confirmación borrar dev, y se comprueba en el log lo que borró. Al terminar, make airflow-local-down: make test y airflow tasks test usan Spark y no caben con Airflow encendido (además, SQLite puede dar «database is locked»). Tiempo: 7 min. Siguiente: Si el pipeline corre dos veces y todo sale en verde, ¿cómo sé que no duplicó nada?",
+   "notas": "Así se pasa un cambio: se prueba en el notebook, se copia la función completa, con su firma, al archivo que le toca (bronze.py, silver.py, gold.py o carga.py), y se borra la marca # PENDIENTE(equipo) si ya está escrita. make test corre Ruff y pytest y tarda unos minutos: al final «405 passed, 10 skipped», y cada SKIPPED dice por qué y qué función falta escribir; son normales. Después, resetear dev, porque el Notebook 1 dejó datos de verdad en dev (el crudo, un lote de bronze, filas de la tabla de control, incluidos los meses de ensayo de 2023, y la tabla vacía de gold): si los dejamos, la primera tarea del DAG saltaría bronze porque la tabla ya dice que enero está hecho. Se enciende Airflow con make airflow-local, se lanza resetear_entorno con Solo listar desmarcada, Conservar el crudo marcada y la confirmación borrar dev, y se comprueba en el log lo que borró. Al terminar, make airflow-local-down: make test y airflow tasks test usan Spark y no caben con Airflow encendido (además, SQLite puede dar «database is locked»). Tiempo: 7 min. Siguiente: Si el pipeline corre dos veces y todo sale en verde, ¿cómo sé que no duplicó nada?",
    "min": 7,
    "id": "19"
   },
@@ -382,38 +382,38 @@
    "explicacion": "Sale un lote con 1 000 filas y 0 con huella: el primer problema ya se ve. Zonas da 265 y clima 31; Athena lee las carpetas lote=.",
    "aqui": "bronze",
    "notebook": "Consola AWS · Athena",
-   "notas": "Consultas A1 y A3 del archivo curso/clase07/athena/02_duplicados_y_conciliacion.sql. La columna oculta \"$path\" es la ruta s3:// del archivo del que sale cada fila, y la carpeta lote=<id> es el lote. Confirmado en el ensayo: un lote con 1 000 filas, taxi_zones 265, clima 31, y Athena lee bien las subcarpetas lote=. count(columna) cuenta solo los valores que no son NULL: salen 0 con huella y 0 con lote porque agregar_metadatos no hace nada. Es el primer problema, y ahora está a la vista. Silver y gold se comprueban con las consultas B1 y C1: silver deja 1 000, 265 y 31 filas sin descartar nada; gold suma 1 000 viajes en 5 filas, así que la relación entre viajes de gold y filas de silver es 1. Resumen con un solo lote: bronze no guarda huella ni lote, el control anota una fila por tarea, y el límite solo recorta bronze; silver y gold leen todo. Todavía no hay duplicados porque solo hay un lote. Tiempo: 6 min. Siguiente: Con el DAG completo sin reprocesar, tres tareas saltan y solo carga Snowflake.",
+   "notas": "Consultas A1 y A3 del archivo curso/clase07/athena/02_duplicados_y_conciliacion.sql. La columna oculta \"$path\" es la ruta s3:// del archivo del que sale cada fila, y la carpeta lote=<id> es el lote. Confirmado en el ensayo: un lote con 1 000 filas, taxi_zones 265, clima 31, y Athena lee bien las subcarpetas lote=. count(columna) cuenta solo los valores que no son NULL: salen 0 con huella y 0 con lote porque agregar_metadatos no hace nada. Es el primer problema, y ahora está a la vista. Silver y gold se comprueban con las consultas B1 y C1: silver deja 1 000, 265 y 31 filas sin descartar nada; gold suma 1 000 viajes en 5 filas, así que la relación entre viajes de gold y filas de silver es 1. Resumen con un solo lote: bronze no guarda huella ni lote, el control anota una fila por tarea, y el límite solo recorta bronze; silver y gold leen todo. Todavía no hay duplicados porque solo hay un lote. Tiempo: 6 min. Siguiente: Antes del DAG completo, ejecutas en Snowsight el CREATE TABLE: el código nunca crea la tabla.",
    "min": 6,
    "id": "25"
   },
   {
-   "tipo": "pasos",
-   "titulo": "Con el DAG completo sin reprocesar, tres tareas saltan y solo carga Snowflake",
-   "ventana": "Snowsight y Airflow",
-   "notebook": "Airflow del Code Editor",
-   "pasos": [
-    "Enciende Airflow: make airflow-local.",
-    "En Snowsight, crea la tabla (opcional).",
-    "Lanza pipeline_taxi: code_editor, 1000, 2024-01, sin Reprocesar.",
-    "En Grid: tres SE SALTÓ y cargar_snowflake REGISTRÓ."
+   "tipo": "codigo",
+   "titulo": "Antes del DAG completo, ejecutas en Snowsight el CREATE TABLE: el código nunca crea la tabla",
+   "sql": "USE ROLE BIGDATA_DEV;\nUSE WAREHOUSE BIGDATA_WH;\nUSE DATABASE BIGDATA;\n\nCREATE TABLE IF NOT EXISTS BIGDATA.DEV.TARIFA_POR_MILLA_BARRIO (\n  FECHA DATE, BOROUGH VARCHAR, FRANJA VARCHAR,\n  VIAJES NUMBER(38,0), DISTANCIA_TOTAL_MI FLOAT,\n  INGRESO_TOTAL FLOAT, TARIFA_POR_MILLA FLOAT);",
+   "resaltar": [
+    5
    ],
-   "notas": "Airflow se enciende hasta aquí: airflow tasks test no necesita el servidor web, y por eso las tareas sueltas corrieron sin él. Antes de lanzar desde la interfaz, revisa en Grid que no haya corridas en queued o running (pipeline_taxi tiene max_active_runs=1) y usa una fecha lógica nueva. Si la corrida queda en queued, en Grid marca como failed (o borra) las corridas 2024-01-01 a 2024-01-04 que dejó airflow tasks test y vuelve a lanzar. Problema: gold está en S3, pero para consultarlo con SQL hace falta una tabla en Snowflake con las mismas columnas y tipos. La casa trae el CREATE TABLE IF NOT EXISTS BIGDATA.DEV.TARIFA_POR_MILLA_BARRIO en carga.py; hacerlo a mano es solo para ver nacer la tabla (el CREATE TABLE está en src/pipeline/carga.py, DDL_TARIFA_POR_MILLA; es opcional): si te lo saltas, cargar_snowflake la crea sola (la línea CREA del log lo dice) (en el ensayo, corrida sola, 22 s y 5 filas). El formulario trae cuatro campos (Cómputo, Límite, Mes y Reprocesar) y ninguno es el entorno. Con Reprocesar sin marcar, bronze, silver y gold ya están registrados y se saltan en segundos; un salto no es un error. cargar_snowflake nunca corrió, así que trabaja: compara las columnas de gold con las de la tabla, carga el mes y registra. La puerta protege todas las capas: si cargar_snowflake ya se hubiera corrido sola, también diría SE SALTÓ. Después, en Snowsight (siempre USE ROLE BIGDATA_DEV, USE WAREHOUSE BIGDATA_WH y USE DATABASE BIGDATA), la tabla tiene 5 filas y SUM(VIAJES) = 1 000. Tiempo: 8 min. Siguiente: Reseteas dev y corres todo una vez: con un lote, todo cuadra.",
-   "min": 8,
-   "id": "26"
+   "explicacion": "Cópialo tal cual en una hoja de Snowsight y ejecútalo. Con IF NOT EXISTS es seguro repetirlo.",
+   "aqui": "gold",
+   "notebook": "Snowsight",
+   "min": 2,
+   "notas": "Problema: gold está en S3, pero para consultarlo con SQL en Snowflake hace falta una tabla con las mismas columnas y tipos. Decisión de diseño: el código nunca crea tablas; esta se crea a mano, en Snowsight, con este SQL (el mismo que imprime la Celda 34 y el que imprime el error de cargar_snowflake cuando la tabla falta; viene de DDL_TARIFA_POR_MILLA, en carga.py). Se pega y se ejecuta todo de una vez; con IF NOT EXISTS no pasa nada si ya existe. Si te lo saltas, cargar_snowflake falla a propósito, sin tocar nada, con un error que imprime este mismo SQL y dice: luego vuelve a correr cargar_snowflake. La tabla queda vacía hasta que el paso snowflake cargue gold. Ojo: resetear_entorno con borrar dev también borra esta tabla, así que después de cada reseteo hay que ejecutarlo otra vez. Tiempo: 2 min. Siguiente: Con el DAG completo tres tareas saltan, y tras resetear las cuatro registran",
+   "id": "25b"
   },
   {
    "tipo": "pasos",
-   "titulo": "Reseteas dev y corres todo una vez: con un lote, todo cuadra",
-   "ventana": "Airflow y Athena",
+   "titulo": "Con el DAG completo tres tareas saltan, y tras resetear las cuatro registran",
+   "ventana": "Snowsight, Airflow y Athena",
    "notebook": "Airflow del Code Editor",
    "pasos": [
-    "Resetea con borrar dev y Conservar el crudo.",
-    "Lanza pipeline_taxi sin Reprocesar: cuatro REGISTRÓ, 2 min 15 s.",
-    "En Athena, gold suma 1 000 viajes: relación 1."
+    "Lanza pipeline_taxi sin Reprocesar.",
+    "Grid: tres SE SALTÓ, cargar_snowflake REGISTRÓ.",
+    "Resetea dev, repite el CREATE TABLE y relanza.",
+    "Athena: gold suma 1 000 viajes."
    ],
-   "notas": "Problema: hasta ahora corrimos las tareas una por una y el DAG completo saltó tres de ellas. Para ver el pipeline funcionar de principio a fin, y una sola vez, partimos de cero otra vez. Cifra del ensayo (airflow dags test): la corrida limpia tardó 2 min 15 s. Con dev vacío, las cuatro tareas trabajan y registran. En Athena: un solo lote, silver con 1 000 filas y gold con 5 filas que suman 1 000 viajes: la relación es 1. Esta es la corrida que funciona UNA vez, la línea base contra la que se mide todo lo demás. Tiempo: 8 min. Siguiente: Reprocesar exige todo el DAG marcado, porque la puerta protege cada capa.",
-   "min": 8,
-   "id": "27"
+   "notas": "Airflow se enciende hasta aquí: airflow tasks test no necesita el servidor web, y por eso las tareas sueltas corrieron sin él. Antes de lanzar desde la interfaz, revisa en Grid que no haya corridas en queued o running (pipeline_taxi tiene max_active_runs=1) y usa una fecha lógica nueva. Si la corrida queda en queued, en Grid marca como failed (o borra) las corridas 2024-01-01 a 2024-01-04 que dejó airflow tasks test y vuelve a lanzar. La tabla ya la creaste en Snowsight con el SQL de la slide anterior; si falta, cargar_snowflake se detiene con un error que imprime ese SQL (en el ensayo, corrida sola, 22 s y 5 filas). El formulario trae cuatro campos (Cómputo, Límite, Mes y Reprocesar) y ninguno es el entorno. Con Reprocesar sin marcar, bronze, silver y gold ya están registrados y se saltan en segundos; un salto no es un error. cargar_snowflake nunca corrió, así que trabaja: compara las columnas de gold con las de la tabla, carga el mes y registra. La puerta protege todas las capas: si cargar_snowflake ya se hubiera corrido sola, también diría SE SALTÓ. Después, en Snowsight (siempre USE ROLE BIGDATA_DEV, USE WAREHOUSE BIGDATA_WH y USE DATABASE BIGDATA), la tabla tiene 5 filas y SUM(VIAJES) = 1 000. Segunda parte, tras el reseteo: Problema: hasta ahora corrimos las tareas una por una y el DAG completo saltó tres de ellas. Para ver el pipeline funcionar de principio a fin, y una sola vez, partimos de cero otra vez; el reseteo también borra la tabla de Snowflake, así que se ejecuta de nuevo el CREATE TABLE de la slide anterior (el código no la crea). Cifra del ensayo (airflow dags test): la corrida limpia tardó 2 min 15 s. Con dev vacío, las cuatro tareas trabajan y registran. En Athena: un solo lote, silver con 1 000 filas y gold con 5 filas que suman 1 000 viajes: la relación es 1. Esta es la corrida que funciona UNA vez, la línea base contra la que se mide todo lo demás. Tiempo: 14 min. Siguiente: Reprocesar exige todo el DAG marcado, porque la puerta protege cada capa",
+   "min": 14,
+   "id": "26"
   },
   {
    "tipo": "pasos",
@@ -512,13 +512,13 @@
   {
    "tipo": "codigo",
    "titulo": "Con make -n ves lo que hará make correr, lo corres con glue_small y mides el tiempo",
-   "sql": "# Antes de medir: resetear_entorno (borrar dev, Conservar el crudo) y luego:\ncd ~/bigdata && make airflow-local-down\nmake -n correr PASO=silver COMPUTO=glue_small REPROCESAR=true\ntime make correr LIMITE=1000 COMPUTO=code_editor\ntime make correr LIMITE=1000 COMPUTO=glue_small REPROCESAR=true",
+   "sql": "# Antes de medir: resetear_entorno (borrar dev, Conservar el crudo),\n# el CREATE TABLE otra vez en Snowsight (el reseteo borra la tabla) y luego:\ncd ~/bigdata && make airflow-local-down\nmake -n correr PASO=silver COMPUTO=glue_small REPROCESAR=true\ntime make correr LIMITE=1000 COMPUTO=code_editor\ntime make correr LIMITE=1000 COMPUTO=glue_small REPROCESAR=true",
    "resaltar": [
-    2,
-    4,
-    5
+    3,
+    5,
+    6
    ],
-   "explicacion": "Cada medida parte de dev limpio: resetea con Conservar el crudo y apaga Airflow antes de usar code_editor. Sin reseteo, la puerta salta y mides solo el salto.",
+   "explicacion": "Cada medida parte de dev limpio: resetea, recrea la tabla y apaga Airflow antes de usar code_editor. Sin reseteo, la puerta salta y mides solo el salto.",
    "aqui": "silver",
    "notebook": "Code Editor · terminal",
    "notas": "make -n (dry run) imprime las órdenes que ejecutaría y no ejecuta ninguna; make correr pasa las cinco variables a scripts/correr.sh, y las vacías significan «usa pipeline.yaml». Con COMPUTO=glue_small, lanzar_en_glue sube el código de tu árbol a s3://<lake>/code/dev/pipeline.zip y llama StartJobRun; nunca toca code/pipeline.zip, que es el de prod. El lanzador tenía un fallo, no pasaba el WorkerType y Glue lo exige; ya está corregido en el repositorio (G.1X). Dentro del job corre el mismo paso con la misma puerta: si silver ya está registrado y no pides reprocesar, se salta, pero el arranque del job se paga igual: esa es la primera lección (se ve en un dev sin resetear). Ojo: bronze tiene ya dos lotes; reprocesar silver los vuelve a espejar ×2. Por eso se mide desde dev limpio. Y antes de usar code_editor se apaga Airflow (make airflow-local-down): Spark y Airflow juntos no caben. Cada persona mide una fila de la tabla siguiente, partiendo de un dev limpio, y anota el tiempo real en la hoja compartida. LIMITE=todos con code_editor se rechaza: no cabe. Aviso de costo: solo corren las filas con todos las personas a quienes les toca. Tiempo: 12 min. Siguiente: Primera parte: con 1 000 y 100 000 filas, ¿conviene Glue?",

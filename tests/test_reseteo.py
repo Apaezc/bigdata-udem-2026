@@ -12,9 +12,9 @@ from __future__ import annotations
 
 import pytest
 
-from pipeline.herramientas import reseteo
+from pipeline.herramientas import bodega, reseteo
 from pipeline.herramientas.corrida import EntornoNoPermitido
-from pipeline.settings import ConfigError
+from pipeline.herramientas.rutas import ConfigError
 
 BUCKET = "bucket-de-prueba"
 
@@ -168,11 +168,11 @@ def test_si_s3_devuelve_claves_ajenas_se_detiene(monkeypatch):
 
 @pytest.mark.parametrize("entorno", ["local", "staging", "", "DEV", "dev/../prod"])
 def test_un_entorno_raro_no_pasa(s3, entorno):
-    with pytest.raises(ValueError):
+    with pytest.raises(ConfigError):
         reseteo.borrar_capas_s3(entorno, solo_listar=False)
-    with pytest.raises(ValueError):
+    with pytest.raises(ConfigError):
         reseteo.borrar_tablas_snowflake(entorno, solo_listar=False, conexion=object())
-    with pytest.raises(ValueError):
+    with pytest.raises(ConfigError):
         reseteo.esquema_del_entorno(entorno)
     assert s3.prefijos_listados == [] and s3.llamadas_de_borrado == []
 
@@ -295,7 +295,7 @@ def test_un_nombre_con_comillas_se_escapa():
 def test_sin_conexion_abre_la_del_entorno_y_la_cierra(monkeypatch):
     con = ConexionFalsa(tablas=["T1"])
     pedidas = []
-    monkeypatch.setattr(reseteo, "_abrir_conexion", lambda entorno: pedidas.append(entorno) or con)
+    monkeypatch.setattr(bodega, "abrir_conexion_de_entorno", lambda e: pedidas.append(e) or con)
     reseteo.borrar_tablas_snowflake("dev")
     assert pedidas == ["dev"]
     assert con.cerrada is True

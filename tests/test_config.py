@@ -17,7 +17,7 @@ from pipeline.herramientas.corrida import (
     entorno_actual,
     valores_de_pipeline_yaml,
 )
-from pipeline.settings import ConfigError
+from pipeline.herramientas.rutas import ConfigError
 
 # Las fixtures entorno_limpio y poner_yaml viven en tests/p1_fixtures.py.
 pytest_plugins = ["p1_fixtures"]
@@ -320,17 +320,17 @@ def test_con_raiz_de_prueba_no_se_pregunta_a_sts(entorno_limpio, poner_yaml, rai
 
 
 def test_si_sts_falla_no_se_rompe_la_configuracion(entorno_limpio, poner_yaml, monkeypatch):
-    import pipeline.settings as settings
+    import pipeline.herramientas.rutas as rutas
 
     def sts_sin_credenciales():
         raise RuntimeError("sin credenciales")
 
     poner_yaml(YAML_COMPLETO)
-    monkeypatch.setattr(settings, "_bucket_por_sts", sts_sin_credenciales)
+    monkeypatch.setattr(rutas, "_bucket_por_sts", sts_sin_credenciales)
     cargar_configuracion()  # el error claro sale al armar la primera ruta
     assert "LAKE_BUCKET" not in os.environ
     with pytest.raises(ConfigError, match="LAKE_BUCKET"):
-        settings.ruta_lake("dev", "bronze")
+        rutas.ruta_lake("dev", "bronze")
 
 
 def test_prod_usa_el_secreto_de_prod_y_no_adivina_el_bucket(entorno_limpio, monkeypatch):

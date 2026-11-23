@@ -22,6 +22,6 @@ export LAKE_BUCKET="${LAKE_BUCKET:-$(lake_bucket 2>/dev/null || true)}"
 
 for entorno in $entornos; do
   PYTHONPATH="$ROOT_DIR/src" "$VENV_DIR/bin/python" -c \
-    "from pipeline.herramientas import donde_estoy; donde_estoy('$entorno')"
+    "from pipeline.herramientas.rutas import donde_estoy; donde_estoy('$entorno')"
   echo
 done

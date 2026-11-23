@@ -12,7 +12,7 @@ from pyspark.sql import functions as F
 
 from hueco import saltar_si_pendiente
 from pipeline import silver
-from pipeline.herramientas import hash_fila
+from pipeline.herramientas.capas import hash_fila
 
 pytest_plugins = ["p1_fixtures", "p4_fixtures"]
 

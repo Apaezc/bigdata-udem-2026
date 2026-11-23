@@ -23,14 +23,12 @@ import pytest
 from hueco import MES, esta_pendiente
 from pipeline import bronze, silver
 from pipeline.gold import COLUMNAS_TARIFA_POR_MILLA
-from pipeline.herramientas import (
-    COLUMNAS_METADATOS,
-    TABLA_CLIMA,
-    TABLA_VIAJES,
-    TABLA_ZONAS,
+from pipeline.herramientas.capas import COLUMNAS_METADATOS
+from pipeline.herramientas.equipo import (
     probar_mis_funciones,
     usar_mis_funciones,
 )
+from pipeline.herramientas.rutas import TABLA_CLIMA, TABLA_VIAJES, TABLA_ZONAS
 
 pytest_plugins = ["p1_fixtures", "p4_fixtures"]
 
@@ -87,7 +85,7 @@ def test_pipeline_corre_con_los_huecos_vacios(lake):
 
     r_carga = lake.carga()
     assert _decisiones(r_carga) == ["REGISTRÓ"]
-    assert [llamada[0] for llamada in lake.llamadas_a_snowflake] == ["athena", "crear", "cargar"]
+    assert [llamada[0] for llamada in lake.llamadas_a_snowflake] == ["athena", "cargar"]
 
     # La tabla de control quedó con un registro por capa, tabla y mes.
     registrados = {(r["capa"], r["tabla"], r["mes"]) for r in lake.control.registros}
@@ -225,7 +223,7 @@ def test_el_hash_de_bronze_muestra_la_duplicacion_cuando_hay_metadatos(lake):
 SOLUCION_DEL_EQUIPO = """
 from pyspark.sql import functions as F
 
-from pipeline.herramientas import COLUMNAS_METADATOS, hash_fila
+from pipeline.herramientas.capas import COLUMNAS_METADATOS, hash_fila
 
 
 def agregar_metadatos(df, fuente, archivo_origen, id_lote, fecha_ingesta):
@@ -342,7 +340,7 @@ def test_probar_mis_funciones_sin_funciones_marca_pendiente_lo_que_falta():
     """Con las funciones de los .py: PENDIENTE donde sigue la marca, OK donde ya está resuelto."""
     codigo = (
         "import sys\n"
-        "from pipeline.herramientas import probar_mis_funciones\n"
+        "from pipeline.herramientas.equipo import probar_mis_funciones\n"
         "sys.exit(probar_mis_funciones())\n"
     )
     resultado = _correr_probar_mis_funciones(codigo)
@@ -360,7 +358,7 @@ def test_probar_mis_funciones_con_la_solucion_pasa_de_pendiente_a_ok(mis_funcion
         "import sys\n"
         f"sys.path.insert(0, {str(mis_funciones.archivo.parent)!r})\n"
         "import mis_funciones_del_cuaderno as mf\n"
-        "from pipeline.herramientas import probar_mis_funciones\n"
+        "from pipeline.herramientas.equipo import probar_mis_funciones\n"
         "sys.exit(probar_mis_funciones(agregar_metadatos=mf.agregar_metadatos,"
         " deduplicar=mf.deduplicar))\n"
     )
@@ -386,7 +384,6 @@ def test_las_cuatro_funciones_de_correr_py_corren_el_pipeline_con_banner_y_cierr
     from pipeline import carga, correr
 
     monkeypatch.setattr(carga, "verificar_esquema_con_athena", lambda *a, **k: None)
-    monkeypatch.setattr(carga, "crear_tabla", lambda *a, **k: None)
     monkeypatch.setattr(carga, "cargar_gold", lambda *a, **k: 5)
     perillas = {"mes": MES, "computo": "code_editor", "limite": "1000", "reprocesar": False}
 

@@ -80,7 +80,7 @@ s3://<LAKE>/<entorno>/<capa>/<tabla>/mes=AAAA-MM/      entorno = dev | prod
 - Un paso de dev solo lee y escribe bajo `dev/`; uno de prod, solo bajo `prod/`.
 - `code/`, `dags/`, `logs/` y `tmp/` son del lake y no son de ningún entorno.
 - El crudo se descarga una sola vez, la primera vez que corre bronze en cada entorno, a `<entorno>/bronze/_crudo/`. Ya no hay muestra ni entorno `local` sobre el disco.
-- Las rutas se arman en un solo lugar (`ruta_lake` en `src/pipeline/settings.py`) y cada lectura o escritura de la casa imprime la ruta completa.
+- Las rutas se arman en un solo lugar (`ruta_lake` en `src/pipeline/herramientas/rutas.py`) y cada lectura o escritura de la casa imprime la ruta completa.
 - Para ver la tabla de un entorno: `make rutas ENTORNO=dev`, o `donde_estoy("dev")` (de `pipeline.herramientas`) en un notebook.
 
 Tabla completa, comandos para mover un bucket del diseño anterior y tablas de Athena: [rutas_del_lake.md](rutas_del_lake.md).
@@ -93,7 +93,7 @@ Tabla completa, comandos para mover un bucket del diseño anterior y tablas de A
 | **Bootstrap** | `bootstrap/` | Plantilla de CloudFormation. Crea tu entorno de trabajo (SageMaker Code Editor), el acceso de GitHub Actions a AWS por OIDC (sin claves), el bucket de state de Terraform y un presupuesto con alertas. Incluye un script SQL para Snowflake. |
 | **Infraestructura** | `infra/aws`, `infra/snowflake` | Terraform. AWS: lake S3, catálogo Glue y Athena, jobs Glue, VM de Airflow opcional y guardrails de costo. Snowflake: warehouse XS, base `BIGDATA` (BRONZE/SILVER/GOLD para SQL; DEV y PROD para las tablas del pipeline; CONTROL_DEV y CONTROL_PROD con la tabla de control `WATERMARK`; CONTROL es la historia de la práctica), roles `BIGDATA_DEV` y `BIGDATA_PROD` y stages externos sobre `dev/gold/` y `prod/gold/`. |
 | **Pipeline** | `src/pipeline` | Cuatro pasos: bronze (descarga el archivo intacto y lo guarda en Parquet, un lote por ingesta) -> silver (espejo limpio de cada fuente, sin duplicados) -> gold (tablas de negocio) -> snowflake (crea y carga la tabla). Cada paso es una función (`correr_bronze`, `correr_silver`, `correr_gold`, `cargar_snowflake`) que corre con Spark del Code Editor o en Glue, cambiando solo `computo`. Las perillas están en `pipeline.yaml`; `config/dev.yaml` y `config/prod.yaml` solo traen los meses. La caja de herramientas es `pipeline.herramientas` ([herramientas.md](herramientas.md)). |
-| **Orquestación** | `airflow/` | DAG `pipeline_taxi` (una tarea por paso, con el nombre de la función), DAG `resetear_entorno` (borra todo el entorno de ese Airflow) y, solo en el Code Editor, las prácticas `ingesta_mensual` y `hola_airflow`. Snowpark Connect se compara aparte, en el laboratorio de motores. |
+| **Orquestación** | `airflow/` | DAG `pipeline_taxi` (una tarea por paso, con el nombre de la función), DAG `resetear_entorno` (borra todo el entorno de ese Airflow). Snowpark Connect se compara aparte, en el laboratorio de motores. |
 | **Automatización** | `Makefile`, `scripts/`, `.github/workflows/` | Comandos de `make`, sus scripts y los workflows de GitHub Actions. |
 
 ---
@@ -205,8 +205,6 @@ Ejecuta `make help` para ver la lista actualizada. La columna **Paso** dice dón
 | `make jars-s3a` | Baja una vez los dos jars que Spark necesita para leer y escribir en S3 (~280 MB, en `~/.spark-jars`) | [Paso 12](guia.md#paso-12) |
 | `make migrar-clase07` | Pasa tu cuenta del diseño de las clases 1 a 6 al de la clase 7 (mueve el crudo a `prod/bronze/`, esquemas de Snowflake, jars, Airflow) | [Clase 7](../curso/clase07/README.md) |
 | `make rutas` | Imprime en qué bucket y carpetas lee y escribe cada entorno (`ENTORNO=dev\|prod`; vacío = los dos; solo informativo) | [Dónde queda cada dato](#rutas-del-lake) |
-| `make muestra` y `make muestra-solo` | **Retirados en la clase 7.** Solo avisan y salen con error: ya no hay muestra; el crudo se descarga solo la primera vez que corre bronze | — |
-| `make run-local` | **Retirado en la clase 7.** Solo avisa y sale con error. Usa `make correr` | [Paso 13](guia.md#paso-13) |
 | `make airflow-local` / `-down` / `-estado` | Airflow de dev dentro del Code Editor (siempre entorno dev; `computo`, `limite`, `mes` y `reprocesar` se eligen al lanzar el DAG `pipeline_taxi`) | [Paso 13](guia.md#paso-13) · [Apagar](cada-sesion.md#apagar) (`-down`) |
 | `make deploy` | `terraform apply` de `infra/aws` (con la guardia de destrucción) y sincronización de código, DAGs y framework a S3 | [Paso 10](guia.md#paso-10) |
 | `make snowflake` | `terraform init` y `apply` de `infra/snowflake` (crea `AIRFLOW_SVC`), guarda sus outputs en S3, aplica la fase 2 de AWS y escribe la conexión de Airflow (`SIN_DEPLOY=true` omite el deploy) | [Paso 11](guia.md#paso-11) |
@@ -259,7 +257,7 @@ Conexión de Airflow a Snowflake: no hay nada que hacer a mano. `make snowflake`
 
 - Hasta la clase 6, Glue bajaba el año de **FHVHV** a `prod/bronze/` y generaba una muestra. **Ya no existe**: no hay muestra, ni bucket público de muestra, ni entorno `local`.
 - Ahora el crudo de cada mes se descarga **una sola vez**, la primera vez que corre bronze (`make correr PASO=bronze`, el notebook o el DAG), directo a `s3://<tu-bucket>/dev/bronze/_crudo/`. Si ya lo tenías en el bucket (diseño anterior), `make migrar-clase07` lo mueve a `prod/bronze/_crudo/` sin volver a descargarlo.
-- `make muestra`, `make muestra-solo` y `make run-local` quedan como avisos que explican esto y salen con error.
+- `make muestra`, `make muestra-solo` y `make run-local` ya no existen: `make` responde «No rule to make target». Usa `make correr`.
 
 ---
 

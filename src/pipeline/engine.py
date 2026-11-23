@@ -10,9 +10,8 @@
   Snowflake (connections.toml) o de SNOWFLAKE_DATABASE / SNOWFLAKE_SCHEMA / SNOWFLAKE_WAREHOUSE /
   SNOWFLAKE_ROLE / SNOWFLAKE_CONNECTION_NAME si están definidas. Se requiere database y schema.
 
-Alias por compatibilidad con las clases 1 a 6: "local" = code_editor y "glue" = Glue. Los jars de
-S3A se exigen SOLO cuando se va a tocar s3:// (toca_s3=True): el laboratorio de la clase 6, que
-usa get_spark("local") sin S3, sigue funcionando sin ellos.
+Los jars de S3A se exigen SOLO cuando se va a tocar s3:// (toca_s3=True): una sesión sin S3 (las
+pruebas, un cuaderno que solo lee archivos del disco) funciona sin ellos.
 
 Variables: PIPELINE_JARS_DIR (por defecto ~/.spark-jars) y PIPELINE_S3A_CREDENCIALES=boto3
 (respaldo: usa las credenciales de boto3 en lugar de la cadena por defecto de AWS).
@@ -28,7 +27,7 @@ from pathlib import Path
 from pyspark.sql import SparkSession
 
 COMPUTOS_DE_GLUE = ("glue_small", "glue_medium", "glue_large")
-MOTORES = ("code_editor", "local", "glue", *COMPUTOS_DE_GLUE, "snowpark_connect")
+MOTORES = ("code_editor", *COMPUTOS_DE_GLUE, "snowpark_connect")
 
 # Versiones exactas: pyspark 3.5.6 trae Hadoop 3.3.4, y hadoop-aws tiene que ser la misma.
 JARS_S3A = ("hadoop-aws-3.3.4.jar", "aws-java-sdk-bundle-1.12.262.jar")
@@ -57,7 +56,7 @@ def get_spark(engine: str, toca_s3: bool = False) -> SparkSession:
     """SparkSession del cómputo pedido. toca_s3=True exige los jars de S3A (code_editor)."""
     if engine not in MOTORES:
         raise ValueError(f"Motor desconocido '{engine}'. Válidos: {', '.join(MOTORES)}")
-    if engine in ("code_editor", "local"):
+    if engine == "code_editor":
         spark = _code_editor(toca_s3)
     elif engine == "snowpark_connect":
         spark = _snowpark_connect()

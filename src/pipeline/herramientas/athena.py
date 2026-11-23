@@ -17,12 +17,10 @@ from __future__ import annotations
 import re
 from typing import Any
 
-from pipeline import io
-from pipeline.herramientas import bodega
+from pipeline.herramientas import archivos, bodega
+from pipeline.herramientas.rutas import validar_capa, validar_entorno
 
 BASE_ATHENA = "bigdata_lake"
-ENTORNOS = ("dev", "prod")
-CAPAS = ("bronze", "silver", "gold")
 
 # Tipo de Glue -> tipo de Snowflake, para el ALTER TABLE que se sugiere.
 TIPOS_DE_SNOWFLAKE = {
@@ -44,11 +42,7 @@ TIPOS_DE_SNOWFLAKE = {
 
 def nombre_tabla_athena(entorno: str, capa: str, tabla: str) -> str:
     """'dev', 'silver', 'fhvhv' -> 'dev_silver_fhvhv' (así se llaman las tablas en Athena)."""
-    if entorno not in ENTORNOS:
-        raise ValueError(f"Entorno desconocido '{entorno}'. Válidos: {', '.join(ENTORNOS)}")
-    if capa not in CAPAS:
-        raise ValueError(f"Capa desconocida '{capa}'. Válidas: {', '.join(CAPAS)}")
-    return f"{entorno}_{capa}_{tabla}"
+    return f"{validar_entorno(entorno)}_{validar_capa(capa)}_{tabla}"
 
 
 def _cliente_de_glue() -> Any:
@@ -62,7 +56,7 @@ def esquema_de_athena(tabla: str, base: str = BASE_ATHENA) -> dict[str, str] | N
 
     None si la tabla no existe o no hay permiso para verla; en ese caso avisa por qué.
     """
-    io.anunciar("CONSULTA", f"athena://{base}.{tabla}", "catálogo de Glue, sin escanear S3")
+    archivos.anunciar("CONSULTA", f"athena://{base}.{tabla}", "catálogo de Glue, sin escanear S3")
     try:
         respuesta = _cliente_de_glue().get_table(DatabaseName=base, Name=tabla)
     except Exception as error:
@@ -97,7 +91,8 @@ def verificar_esquema_con_athena(
     """Compara las columnas de la tabla de Athena con las de la tabla de Snowflake.
 
     Lanza ColumnasDistintas, sin tocar nada, si no coinciden. Si Athena no responde, o si la tabla
-    de Snowflake todavía no existe (se crea justo después con el DDL), avisa y sigue.
+    de Snowflake todavía no existe (la creas tú en Snowsight), avisa y sigue
+    (cargar_gold se detiene).
     """
     en_athena = esquema_de_athena(tabla_athena)
     if en_athena is None:
@@ -108,7 +103,7 @@ def verificar_esquema_con_athena(
     except RuntimeError:
         print(
             f"AVISO    {tabla_snowflake} no existe todavía: nada que comparar con "
-            f"{tabla_athena}. Se crea con tu CREATE TABLE y la carga vuelve a comparar."
+            f"{tabla_athena}. Créala tú en Snowsight; la carga se detiene si falta."
         )
         return
 

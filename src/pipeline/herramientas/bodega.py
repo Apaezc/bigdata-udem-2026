@@ -1,4 +1,12 @@
-"""Carga de gold (Parquet en S3) a una tabla de Snowflake, sin perder columnas en silencio.
+"""Todo lo que habla con Snowflake: la conexión del entorno, leer esquemas y cargar gold.
+
+La conexión sale siempre del secreto del entorno en Secrets Manager (BIGDATA_DEV en dev,
+BIGDATA_PROD en prod), nunca de connections.toml: `abrir_conexion_de_entorno`.
+
+Este módulo nunca crea tablas: la tabla de Snowflake la creas tú, a mano, en Snowsight. Si falta,
+la carga se detiene y el error trae el SQL exacto para correr allá.
+
+La carga de gold (Parquet en S3) a una tabla de Snowflake no pierde columnas en silencio.
 
 El problema que resuelve: con COPY ... MATCH_BY_COLUMN_NAME, una columna nueva en gold que la
 tabla no tiene se ignora sin error, y el run queda en verde con datos incompletos. Aquí, antes de
@@ -16,10 +24,17 @@ la tabla queda como estaba. (TRUNCATE no sirve para esto: en Snowflake es DDL y 
 
 from __future__ import annotations
 
+import json
+import os
 import re
 from typing import Any
 
-from pipeline import io
+from pipeline.herramientas import archivos
+
+# Secreto de AWS Secrets Manager con la conexión (<prefix>/snowflake en dev, <prefix>/snowflake_prod
+# en prod). Si WATERMARK_SECRET está definida, gana sobre el defecto de cada entorno.
+VARIABLE_SECRETO = "WATERMARK_SECRET"
+PREFIJO_POR_DEFECTO = "bigdata"
 
 TABLA_TEMPORAL = "CARGA_GOLD_TMP"
 PATRON_MES = re.compile(r"^\d{4}-\d{2}$")
@@ -193,17 +208,107 @@ def _columnas_de_gold(
     return {fila[0]: fila[1] for fila in filas}
 
 
-def _columnas_de_tabla(cursor: Any, tabla: str) -> dict[str, str]:
-    """Columnas y tipos de la tabla de Snowflake (DESCRIBE TABLE: nombre en [0], tipo en [1])."""
+def _columnas_de_tabla(
+    cursor: Any, tabla: str, sql_para_crearla: str | None = None
+) -> dict[str, str]:
+    """Columnas y tipos de la tabla de Snowflake (DESCRIBE TABLE: nombre en [0], tipo en [1]).
+
+    Si no existe, el error trae (cuando se conoce) el SQL para crearla a mano en Snowsight.
+    """
     try:
         cursor.execute(f"DESCRIBE TABLE {tabla}")
         filas = cursor.fetchall()
     except Exception as error:
-        raise RuntimeError(
-            f"No se pudo leer la tabla {tabla}: no existe o tu rol no la ve. Créala primero con "
-            f"tu CREATE TABLE (mira docs/herramientas.md). Detalle: {error}"
-        ) from error
+        mensaje = (
+            f"No se pudo leer la tabla {tabla}: no existe o tu rol no la ve. "
+            "El código no crea tablas: créala tú en Snowsight."
+        )
+        if sql_para_crearla:
+            mensaje += (
+                "\n\nEjecuta esto en Snowsight:\n\n"
+                f"{sql_para_crearla}\n\n"
+                "Luego vuelve a correr cargar_snowflake."
+            )
+        else:
+            mensaje += " Mira docs/herramientas.md."
+        raise RuntimeError(f"{mensaje}\nDetalle: {error}") from error
     return {fila[0]: fila[1] for fila in filas}
+
+
+# --- conexión del entorno ----------------------------------------------------------------------
+
+
+def _leer_secreto(nombre_secreto: str) -> str:
+    """Lee el texto del secreto en AWS Secrets Manager (requiere secretsmanager:GetSecretValue)."""
+    import boto3  # import tardío: fuera de AWS no hace falta
+
+    cliente = boto3.client("secretsmanager")
+    return cliente.get_secret_value(SecretId=nombre_secreto)["SecretString"]
+
+
+def _llave_privada_der(pem: str) -> bytes:
+    """Convierte la llave privada PEM del secreto al formato DER que pide snowflake.connector."""
+    from cryptography.hazmat.primitives import serialization  # lo trae snowflake-connector
+
+    llave = serialization.load_pem_private_key(pem.encode(), password=None)
+    return llave.private_bytes(
+        encoding=serialization.Encoding.DER,
+        format=serialization.PrivateFormat.PKCS8,
+        encryption_algorithm=serialization.NoEncryption(),
+    )
+
+
+def _parametros_de_secreto(texto: str) -> dict:
+    """Convierte el JSON de conexión de Airflow en los parámetros de snowflake.connector.connect."""
+    conexion = json.loads(texto)
+    extra = conexion.get("extra") or {}
+    if isinstance(extra, str):
+        # Airflow también acepta el campo extra como texto JSON.
+        extra = json.loads(extra)
+
+    parametros = {"account": extra["account"], "user": conexion["login"]}
+    # Rol, warehouse y base los fija quien creó el secreto; solo se pasan los que vienen.
+    for campo in ("role", "warehouse", "database"):
+        if extra.get(campo):
+            parametros[campo] = extra[campo]
+
+    if extra.get("private_key_content"):
+        parametros["private_key"] = _llave_privada_der(extra["private_key_content"])
+    elif conexion.get("password"):
+        parametros["password"] = conexion["password"]
+    else:
+        raise ValueError("El secreto de Snowflake no trae private_key_content ni password.")
+    return parametros
+
+
+def _abrir_conexion_con_secreto(nombre_secreto: str) -> Any:
+    """Abre la conexión con los datos del secreto de Secrets Manager. Toca la red."""
+    import snowflake.connector
+
+    parametros = _parametros_de_secreto(_leer_secreto(nombre_secreto))
+    return snowflake.connector.connect(**parametros)
+
+
+def nombre_del_secreto(entorno: str = "dev") -> str:
+    """Secreto de Secrets Manager con la conexión del entorno.
+
+    Gana WATERMARK_SECRET si está definida. Si no, el defecto de cada entorno: en dev
+    '<PREFIX>/snowflake' (rol BIGDATA_DEV) y en prod '<PREFIX>/snowflake_prod' (rol BIGDATA_PROD).
+    """
+    desde_el_entorno = os.environ.get(VARIABLE_SECRETO)
+    if desde_el_entorno:
+        return desde_el_entorno
+    prefijo = os.environ.get("PREFIX") or PREFIJO_POR_DEFECTO
+    return f"{prefijo}/snowflake_prod" if entorno == "prod" else f"{prefijo}/snowflake"
+
+
+def abrir_conexion_de_entorno(entorno: str = "dev") -> Any:
+    """Conexión de Snowflake para un entorno, siempre por secreto y nunca por connections.toml.
+
+    La tabla de control y la carga de gold la usan: así corren con el rol BIGDATA_DEV (o
+    BIGDATA_PROD) y no con el ACCOUNTADMIN que trae connections.toml en el Code Editor.
+    """
+    return _abrir_conexion_con_secreto(nombre_del_secreto(entorno))
 
 
 def _entorno_de_la_tabla(tabla: str) -> str:
@@ -214,32 +319,7 @@ def _entorno_de_la_tabla(tabla: str) -> str:
 
 def _abrir_conexion_para(tabla: str) -> Any:
     """Conexión por secreto, con el rol del entorno de la tabla (nunca connections.toml)."""
-    from pipeline.watermark import abrir_conexion_de_entorno
-
     return abrir_conexion_de_entorno(_entorno_de_la_tabla(tabla))
-
-
-def crear_tabla(ddl: str, conexion: Any = None) -> None:
-    """Ejecuta tu CREATE TABLE en Snowflake (mejor con IF NOT EXISTS).
-
-    `CREATE OR REPLACE` se rechaza a propósito: borraría la tabla con sus datos.
-    """
-    texto = " ".join(ddl.split())
-    if not re.match(r"CREATE TABLE ", texto, re.IGNORECASE):
-        raise ValueError(
-            "crear_tabla solo ejecuta un CREATE TABLE (sin OR REPLACE), por ejemplo "
-            f"'CREATE TABLE IF NOT EXISTS BIGDATA.DEV.MI_TABLA (...)'. Llegó: {texto[:60]!r}"
-        )
-    io.anunciar("CREA", texto.split("(")[0].strip(), "tabla en Snowflake si no existe")
-    cerrar_al_final = conexion is None
-    if conexion is None:
-        nombre = re.search(r"(?:IF NOT EXISTS\s+)?([A-Za-z0-9_$.]+)\s*\(", texto)
-        conexion = _abrir_conexion_para(nombre.group(1) if nombre else "")
-    try:
-        conexion.cursor().execute(ddl)
-    finally:
-        if cerrar_al_final:
-            conexion.close()
 
 
 def esquema_de_tabla(tabla: str, conexion: Any = None) -> dict[str, str]:
@@ -276,14 +356,15 @@ def cargar_gold(
     columna_fecha    columna DATE de la tabla; se usa para borrar el mes antes de insertar.
     opciones         stage (por defecto @<base>.<esquema>.LAKE_GOLD, tomado del nombre de la
                      tabla), formato_archivo (por defecto <base>.<esquema>.PARQUET_FF) y
-                     crear_si_no_existe (CREATE TABLE IF NOT EXISTS ... para la tabla de la casa).
+                     sql_para_crearla (texto con el CREATE TABLE que se muestra si la tabla no
+                     existe: el código nunca la crea).
 
     Falla con ColumnasDistintas, sin tocar la tabla, si las columnas de S3 y de la tabla no
     coinciden. Falla con cualquier error de COPY o de la transacción, también sin tocarla.
     """
     stage = opciones.pop("stage", None)
     formato_archivo = opciones.pop("formato_archivo", None)
-    crear_si_no_existe = opciones.pop("crear_si_no_existe", None)
+    sql_para_crearla = opciones.pop("sql_para_crearla", None)
     if opciones:
         raise TypeError(f"cargar_gold no conoce estas opciones: {', '.join(sorted(opciones))}")
     if not PATRON_IDENTIFICADOR.match(tabla_snowflake):
@@ -306,20 +387,18 @@ def cargar_gold(
     if mes:
         ubicacion += f"mes={mes}/"
 
-    io.anunciar("CARGA", tabla_snowflake, f"desde {ubicacion}")
+    archivos.anunciar("CARGA", tabla_snowflake, f"desde {ubicacion}")
     cerrar_al_final = conexion is None
     if conexion is None:
         conexion = _abrir_conexion_para(tabla_snowflake)
     try:
         cursor = conexion.cursor()
 
-        # 1. La tabla de la casa se crea sola; la del estudiante ya debe existir.
-        if crear_si_no_existe:
-            cursor.execute(crear_si_no_existe)
+        # 1. La tabla ya debe existir (la creas tú en Snowsight); si no, el error dice cómo.
+        en_tabla = _columnas_de_tabla(cursor, tabla_snowflake, sql_para_crearla)
 
         # 2. Comparar columnas ANTES de tocar nada.
         en_s3 = _columnas_de_gold(cursor, ubicacion, carpeta_tabla, formato_archivo)
-        en_tabla = _columnas_de_tabla(cursor, tabla_snowflake)
         diferencias = comparar_columnas(en_s3, en_tabla)
         hay_diferencias = (
             diferencias["solo_s3"]
@@ -371,7 +450,3 @@ def cargar_gold(
     finally:
         if cerrar_al_final:
             conexion.close()
-
-
-# Nombre con el que se enseñaba en las clases anteriores; sigue funcionando.
-cargar_gold_a_snowflake = cargar_gold

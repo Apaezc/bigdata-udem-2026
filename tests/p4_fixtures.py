@@ -13,14 +13,13 @@ from pathlib import Path
 import pytest
 
 from hueco import ENTORNO, MES
-from pipeline import io
-from pipeline.herramientas import (
+from pipeline.herramientas import archivos
+from pipeline.herramientas.capas import leer_capa
+from pipeline.herramientas.corrida import Corrida, cargar_configuracion
+from pipeline.herramientas.rutas import (
     TABLA_CLIMA,
     TABLA_VIAJES,
     TABLA_ZONAS,
-    Corrida,
-    cargar_configuracion,
-    leer_capa,
     ruta_del_crudo,
     ruta_lake,
 )
@@ -66,7 +65,7 @@ def _poner_crudos_de_muestra(spark, tmp: Path) -> None:
         DATA / "open_meteo_sample.json": ruta_del_crudo(ENTORNO, TABLA_CLIMA, MES),
     }
     for origen, destino in destinos.items():
-        destino_local = io.a_ruta_local(destino)
+        destino_local = archivos.a_ruta_local(destino)
         destino_local.parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(origen, destino_local)
 
@@ -108,9 +107,6 @@ class LakeDePrueba:
         self.monkeypatch.setattr(
             carga, "verificar_esquema_con_athena", lambda *a, **k: llamadas.append(("athena", a))
         )
-        self.monkeypatch.setattr(
-            carga, "crear_tabla", lambda *a, **k: llamadas.append(("crear", a))
-        )
 
         def cargar_falso(tabla, carpeta, mes=None, conexion=None, **opciones):
             llamadas.append(("cargar", (tabla, carpeta, mes)))
@@ -125,7 +121,7 @@ class LakeDePrueba:
 
     def lotes_de_bronze(self, tabla: str) -> list[str]:
         mes = None if tabla == TABLA_ZONAS else MES
-        carpeta = io.a_ruta_local(ruta_lake(ENTORNO, "bronze", tabla, mes))
+        carpeta = archivos.a_ruta_local(ruta_lake(ENTORNO, "bronze", tabla, mes))
         return sorted(p.name for p in carpeta.iterdir() if p.name.startswith("lote="))
 
 

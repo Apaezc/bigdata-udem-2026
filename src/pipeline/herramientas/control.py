@@ -25,10 +25,9 @@ from collections.abc import Callable
 from datetime import UTC, datetime
 from typing import Any
 
-from pipeline import io, watermark
+from pipeline.herramientas import archivos, bodega
+from pipeline.herramientas.rutas import BASE_DATOS, validar_entorno
 
-BASE_DATOS = "BIGDATA"
-ENTORNOS = ("dev", "prod")
 ROL_DEL_ENTORNO = {"dev": "BIGDATA_DEV", "prod": "BIGDATA_PROD"}
 
 # Columnas de la tabla de control, en este orden (diseño técnico, 1.6).
@@ -45,6 +44,9 @@ COLUMNAS = [
     "LEIDAS",
 ]
 
+# Código de error de Snowflake cuando el objeto no existe o el rol no tiene permiso para verlo.
+ERRNO_TABLA_NO_VISIBLE = 2003
+
 SQL_CONSULTAR = """
     SELECT {columnas}
     FROM {tabla_control}
@@ -55,19 +57,20 @@ SQL_REGISTRAR = "INSERT INTO {tabla_control} ({columnas}) VALUES ({marcas})"
 SQL_VACIAR = "DELETE FROM {tabla_control}"
 
 
-def _validar_entorno(entorno: str) -> str:
-    if entorno not in ENTORNOS:
-        raise ValueError(f"Entorno desconocido '{entorno}'. Válidos: {', '.join(ENTORNOS)}")
-    return entorno
-
-
 def tabla_de_control(entorno: str) -> str:
     """'BIGDATA.CONTROL_DEV.WATERMARK' en dev; 'BIGDATA.CONTROL_PROD.WATERMARK' en prod."""
-    _validar_entorno(entorno)
+    validar_entorno(entorno)
     return f"{BASE_DATOS}.CONTROL_{entorno.upper()}.WATERMARK"
 
 
 # --- dónde se guardan los registros -------------------------------------------------------------
+
+
+def inicio_en_utc(inicio: datetime) -> datetime:
+    """Deja la hora de inicio en UTC y sin zona horaria, que es como la guarda la tabla."""
+    if inicio.tzinfo is None:
+        return inicio
+    return inicio.astimezone(UTC).replace(tzinfo=None)
 
 
 def _registro_a_diccionario(fila: tuple) -> dict:
@@ -91,7 +94,7 @@ class ControlEnSnowflake:
         """(conexión, si hay que cerrarla). La que llega por parámetro la cierra quien la abrió."""
         if self.conexion is not None:
             return self.conexion, False
-        conexion = watermark.abrir_conexion_de_entorno(entorno)
+        conexion = bodega.abrir_conexion_de_entorno(entorno)
         try:
             exigir_rol_del_entorno(entorno, conexion)
         except Exception:
@@ -106,7 +109,7 @@ class ControlEnSnowflake:
             try:
                 cursor.execute(sql, valores)
             except Exception as error:
-                if getattr(error, "errno", None) == watermark.ERRNO_TABLA_NO_VISIBLE:
+                if getattr(error, "errno", None) == ERRNO_TABLA_NO_VISIBLE:
                     raise RuntimeError(_mensaje_tabla_no_visible(entorno)) from error
                 raise
             if sql.lstrip().upper().startswith("SELECT"):
@@ -118,7 +121,7 @@ class ControlEnSnowflake:
 
     def consultar(self, entorno: str, tabla: str, capa: str, mes: str) -> list[dict]:
         tabla_control = tabla_de_control(entorno)
-        io.anunciar("CONSULTA", tabla_control, f"tabla={tabla} capa={capa} mes={mes}")
+        archivos.anunciar("CONSULTA", tabla_control, f"tabla={tabla} capa={capa} mes={mes}")
         sql = SQL_CONSULTAR.format(tabla_control=tabla_control, columnas=", ".join(COLUMNAS))
         return [
             _registro_a_diccionario(f) for f in self._ejecutar(entorno, sql, (tabla, capa, mes))
@@ -126,7 +129,9 @@ class ControlEnSnowflake:
 
     def registrar(self, entorno: str, registro: dict) -> None:
         tabla_control = tabla_de_control(entorno)
-        io.anunciar("REGISTRA", tabla_control, f"tabla={registro['tabla']} mes={registro['mes']}")
+        archivos.anunciar(
+            "REGISTRA", tabla_control, f"tabla={registro['tabla']} mes={registro['mes']}"
+        )
         sql = SQL_REGISTRAR.format(
             tabla_control=tabla_control,
             columnas=", ".join(COLUMNAS),
@@ -137,7 +142,7 @@ class ControlEnSnowflake:
 
     def vaciar(self, entorno: str) -> int:
         tabla_control = tabla_de_control(entorno)
-        io.anunciar("BORRA", tabla_control, "todos los registros")
+        archivos.anunciar("BORRA", tabla_control, "todos los registros")
         return self._ejecutar(entorno, SQL_VACIAR.format(tabla_control=tabla_control))[0][0]
 
 
@@ -152,7 +157,7 @@ class ControlEnMemoria:
         self.registros: list[dict] = []
 
     def consultar(self, entorno: str, tabla: str, capa: str, mes: str) -> list[dict]:
-        _validar_entorno(entorno)
+        validar_entorno(entorno)
         encontrados = [
             r
             for r in self.registros
@@ -161,11 +166,11 @@ class ControlEnMemoria:
         return [self._sin_entorno(r) for r in sorted(encontrados, key=lambda r: r["inicio"])]
 
     def registrar(self, entorno: str, registro: dict) -> None:
-        _validar_entorno(entorno)
+        validar_entorno(entorno)
         self.registros.append({"entorno": entorno, **registro})
 
     def vaciar(self, entorno: str) -> int:
-        _validar_entorno(entorno)
+        validar_entorno(entorno)
         borrados = [r for r in self.registros if r["entorno"] == entorno]
         self.registros = [r for r in self.registros if r["entorno"] != entorno]
         return len(borrados)
@@ -208,10 +213,10 @@ def exigir_rol_del_entorno(entorno: str, conexion: Any = None) -> None:
     """
     from pipeline.herramientas.corrida import EntornoNoPermitido
 
-    esperado = ROL_DEL_ENTORNO[_validar_entorno(entorno)]
+    esperado = ROL_DEL_ENTORNO[validar_entorno(entorno)]
     cerrar = conexion is None
     if conexion is None:
-        conexion = watermark.abrir_conexion_de_entorno(entorno)
+        conexion = bodega.abrir_conexion_de_entorno(entorno)
     try:
         cursor = conexion.cursor()
         cursor.execute("SELECT CURRENT_ROLE()")
@@ -268,7 +273,7 @@ def registrar_control(
         "tabla": tabla,
         "mes": mes,
         "filas": int(filas),
-        "inicio": watermark._inicio_en_utc(inicio),
+        "inicio": inicio_en_utc(inicio),
         "reprocesar": bool(corrida.reprocesar),
         "computo": corrida.computo,
         "limite": corrida.limite,

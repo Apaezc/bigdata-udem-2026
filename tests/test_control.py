@@ -9,8 +9,7 @@ from datetime import datetime
 
 import pytest
 
-from pipeline import watermark
-from pipeline.herramientas import control
+from pipeline.herramientas import bodega, control
 from pipeline.herramientas.control import (
     ControlEnMemoria,
     ControlEnSnowflake,
@@ -51,6 +50,7 @@ def _asegurar_modulo_corrida():
 
 _asegurar_modulo_corrida()
 from pipeline.herramientas.corrida import EntornoNoPermitido, Resultado  # noqa: E402
+from pipeline.herramientas.rutas import ConfigError  # noqa: E402
 
 
 @dataclass
@@ -87,8 +87,8 @@ def test_cada_entorno_tiene_su_tabla_de_control():
 
 
 def test_un_entorno_desconocido_se_rechaza():
-    with pytest.raises(ValueError, match="Entorno desconocido"):
-        tabla_de_control("local")
+    with pytest.raises(ConfigError, match="Entorno desconocido"):
+        tabla_de_control("qa")
 
 
 # --- la puerta: los tres casos de la regla del autor --------------------------------------------
@@ -316,7 +316,7 @@ def test_vaciar_en_snowflake_borra_solo_la_tabla_del_entorno():
 
 def test_tabla_inexistente_o_sin_permiso_explica_que_hay_que_correr_make_snowflake():
     class ObjetoNoExiste(Exception):
-        errno = watermark.ERRNO_TABLA_NO_VISIBLE
+        errno = control.ERRNO_TABLA_NO_VISIBLE
 
     conexion = ConexionFalsa(error=ObjetoNoExiste("does not exist or not authorized"))
 
@@ -332,7 +332,7 @@ def test_sin_conexion_se_abre_la_del_entorno_con_su_rol_y_se_cierra(monkeypatch)
         abiertas.append(entorno)
         return conexion
 
-    monkeypatch.setattr(watermark, "abrir_conexion_de_entorno", abrir)
+    monkeypatch.setattr(bodega, "abrir_conexion_de_entorno", abrir)
 
     consultar_control("prod", "fhvhv", "silver", "2024-01")
 
@@ -343,7 +343,7 @@ def test_sin_conexion_se_abre_la_del_entorno_con_su_rol_y_se_cierra(monkeypatch)
 
 def test_sin_conexion_con_accountadmin_se_niega_y_cierra(monkeypatch):
     conexion = ConexionFalsa(rol="ACCOUNTADMIN")
-    monkeypatch.setattr(watermark, "abrir_conexion_de_entorno", lambda entorno: conexion)
+    monkeypatch.setattr(bodega, "abrir_conexion_de_entorno", lambda entorno: conexion)
 
     with pytest.raises(EntornoNoPermitido, match="ACCOUNTADMIN"):
         consultar_control("dev", "fhvhv", "silver", "2024-01")
@@ -353,7 +353,7 @@ def test_sin_conexion_con_accountadmin_se_niega_y_cierra(monkeypatch):
 
 
 def test_un_backend_instalado_gana_sobre_snowflake(monkeypatch, memoria):
-    monkeypatch.setattr(watermark, "abrir_conexion_de_entorno", lambda e: pytest.fail("red"))
+    monkeypatch.setattr(bodega, "abrir_conexion_de_entorno", lambda e: pytest.fail("red"))
 
     assert consultar_control("dev", "fhvhv", "silver", "2024-01") == []
 

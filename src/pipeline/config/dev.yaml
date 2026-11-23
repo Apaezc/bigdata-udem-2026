@@ -1,5 +1,5 @@
 # Entorno dev: los meses que se procesan cuando no pides uno (mes vacío en pipeline.yaml).
 # Lo demás (cómputo, límite, reprocesar) se cambia en pipeline.yaml, en la raíz del repo.
-# Las rutas NO se escriben aquí: las arma settings.ruta_lake().
+# Las rutas NO se escriben aquí: las arma rutas.ruta_lake().
 meses:
   - "2024-01"

@@ -404,7 +404,7 @@ def test_code_editor_llama_al_cli_con_el_python_del_repo_y_dev_forzado(lanzadore
 def test_code_editor_con_mes_vacio_corre_cada_mes_del_entorno(lanzadores):
     from framework import tasks
 
-    from pipeline.settings import meses_del_entorno
+    from pipeline.herramientas.rutas import meses_del_entorno
 
     tasks.ejecutar_paso("correr_gold", "dev", _params(mes=""))
     meses = [c[0][c[0].index("--mes") + 1] for c in lanzadores["cli"]]
@@ -510,10 +510,10 @@ def test_las_constantes_del_dag_son_las_del_contrato_de_pipeline():
 
 
 def test_el_perfil_small_de_glue_tiene_el_plazo_de_15_minutos():
-    """profiles.yaml (que lee lanzar_en_glue) y el respaldo de corrida.py dicen lo mismo."""
+    """profiles.yaml (que lee lanzar_en_glue) y el respaldo de glue.py dicen lo mismo."""
     import yaml
 
-    from pipeline.herramientas.corrida import PERFILES_DE_GLUE
+    from pipeline.herramientas.glue import PERFILES_DE_GLUE
 
     perfiles = yaml.safe_load((AIRFLOW_ROOT / "framework" / "profiles.yaml").read_text())[
         "profiles"

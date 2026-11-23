@@ -1,16 +1,16 @@
-"""bodega: comparación de columnas, crear_tabla y carga atómica, con una conexión falsa."""
+"""bodega: comparación de columnas y carga atómica (nunca crea tablas), con una conexión falsa."""
 
 from __future__ import annotations
 
+import json
+
 import pytest
 
-from pipeline import watermark
+from pipeline.herramientas import bodega
 from pipeline.herramientas.bodega import (
     ColumnasDistintas,
     cargar_gold,
-    cargar_gold_a_snowflake,
     comparar_columnas,
-    crear_tabla,
     esquema_de_tabla,
 )
 
@@ -245,27 +245,22 @@ def test_el_alter_usa_el_tipo_real_de_cada_columna_nueva():
     assert "ADD COLUMN PROPINA REAL;" in mensaje
 
 
-def test_cargar_gold_a_snowflake_sigue_siendo_el_mismo_nombre_de_antes():
-    assert cargar_gold_a_snowflake is cargar_gold
-
-
 def test_opciones_desconocidas_de_cargar_gold_fallan_antes_de_conectarse():
     with pytest.raises(TypeError, match="no conoce estas opciones: rapido"):
         cargar_gold(TABLA, "daily_zone_metrics", rapido=True)
 
 
-def test_las_opciones_stage_y_crear_si_no_existe_se_respetan():
+def test_las_opciones_stage_y_formato_se_respetan():
     cursor = CursorFalso(TIPOS_BASE, TABLA_BASE)
 
     _cargar(
         cursor,
         stage="@OTRA.BASE.STAGE",
         formato_archivo="OTRA.BASE.FORMATO",
-        crear_si_no_existe="CREATE TABLE IF NOT EXISTS BIGDATA.DEV.GOLD_ALUMNO (FECHA DATE)",
     )
 
-    assert cursor.sentencias[0].startswith("CREATE TABLE IF NOT EXISTS BIGDATA.DEV.GOLD_ALUMNO")
-    assert "@OTRA.BASE.STAGE/daily_zone_metrics/" in cursor.sentencias[1]
+    assert not any(sentencia.startswith("CREATE TABLE IF") for sentencia in cursor.sentencias)
+    assert any("@OTRA.BASE.STAGE/daily_zone_metrics/" in x for x in cursor.sentencias)
     assert cursor.valores_infer[1] == "OTRA.BASE.FORMATO"
 
 
@@ -284,7 +279,7 @@ def test_sin_conexion_se_abre_la_del_entorno_de_la_tabla_y_se_cierra(monkeypatch
         pedidas.append(nombre_entorno)
         return conexion
 
-    monkeypatch.setattr(watermark, "abrir_conexion_de_entorno", abrir)
+    monkeypatch.setattr(bodega, "abrir_conexion_de_entorno", abrir)
 
     cargar_gold(tabla, "daily_zone_metrics")
 
@@ -292,60 +287,7 @@ def test_sin_conexion_se_abre_la_del_entorno_de_la_tabla_y_se_cierra(monkeypatch
     assert conexion.cerrada is True
 
 
-def test_nunca_se_abre_connections_toml(monkeypatch):
-    monkeypatch.setattr(
-        watermark, "_abrir_conexion", lambda nombre: pytest.fail("connections.toml")
-    )
-    conexion = ConexionFalsa(CursorFalso(TIPOS_BASE, TABLA_BASE))
-    monkeypatch.setattr(watermark, "abrir_conexion_de_entorno", lambda entorno: conexion)
-
-    cargar_gold(TABLA, "daily_zone_metrics")
-
-
-# --- crear_tabla y esquema_de_tabla -------------------------------------------------------------
-
-DDL = "CREATE TABLE IF NOT EXISTS BIGDATA.DEV.GOLD_ALUMNO (FECHA DATE, VIAJES NUMBER(38,0))"
-
-
-def test_crear_tabla_ejecuta_el_ddl_con_la_conexion_dada():
-    cursor = CursorFalso({}, {})
-    conexion = ConexionFalsa(cursor)
-
-    crear_tabla(DDL, conexion)
-
-    assert cursor.sentencias == [DDL]
-    assert conexion.cerrada is False
-
-
-def test_crear_tabla_sin_conexion_abre_la_del_entorno_y_la_cierra(monkeypatch):
-    cursor = CursorFalso({}, {})
-    conexion = ConexionFalsa(cursor)
-    pedidas = []
-    monkeypatch.setattr(
-        watermark, "abrir_conexion_de_entorno", lambda entorno: pedidas.append(entorno) or conexion
-    )
-
-    crear_tabla(DDL.replace(".DEV.", ".PROD."))
-
-    assert pedidas == ["prod"]
-    assert conexion.cerrada is True
-
-
-@pytest.mark.parametrize(
-    "sentencia",
-    [
-        "CREATE OR REPLACE TABLE BIGDATA.DEV.GOLD_ALUMNO (FECHA DATE)",
-        "DROP TABLE BIGDATA.DEV.GOLD_ALUMNO",
-        "DELETE FROM BIGDATA.DEV.GOLD_ALUMNO",
-    ],
-)
-def test_crear_tabla_solo_acepta_create_table(sentencia):
-    cursor = CursorFalso({}, {})
-
-    with pytest.raises(ValueError, match="solo ejecuta un CREATE TABLE"):
-        crear_tabla(sentencia, ConexionFalsa(cursor))
-
-    assert cursor.sentencias == []
+# --- esquema_de_tabla ---------------------------------------------------------------------------
 
 
 def test_esquema_de_tabla_devuelve_columna_y_tipo():
@@ -362,6 +304,91 @@ def test_esquema_de_tabla_inexistente_explica_como_crearla():
         esquema_de_tabla(TABLA, ConexionFalsa(cursor))
 
 
+def test_cargar_gold_con_tabla_inexistente_muestra_el_sql_y_no_carga():
+    cursor = CursorFalso(TIPOS_BASE, TABLA_BASE, falla_en="DESCRIBE TABLE")
+    sql = "USE ROLE BIGDATA_DEV;\nCREATE TABLE IF NOT EXISTS BIGDATA.DEV.GOLD_ALUMNO (FECHA DATE);"
+
+    with pytest.raises(RuntimeError) as error:
+        cargar_gold(
+            TABLA, "daily_zone_metrics", conexion=ConexionFalsa(cursor), sql_para_crearla=sql
+        )
+
+    assert sql in str(error.value)
+    assert "vuelve a correr cargar_snowflake" in str(error.value)
+    assert not any(x.startswith(("COPY", "INSERT", "DELETE")) for x in cursor.sentencias)
+
+
 def test_esquema_de_tabla_rechaza_nombres_raros():
     with pytest.raises(ValueError, match="Nombre de tabla inválido"):
         esquema_de_tabla("T; DROP TABLE X", ConexionFalsa(CursorFalso({}, {})))
+
+
+# --- la conexión del entorno: siempre por secreto, nunca connections.toml -------------------------
+
+
+def secreto_de_airflow(**cambios):
+    """JSON de conexión de Airflow como lo escribe scripts/snowflake.sh (sin llave real)."""
+    conexion = {
+        "conn_type": "snowflake",
+        "login": "AIRFLOW_SVC",
+        "extra": {
+            "account": "org-cuenta",
+            "warehouse": "BIGDATA_WH",
+            "database": "BIGDATA",
+            "role": "BIGDATA_DEV",
+            "private_key_content": "PEM",
+        },
+    }
+    conexion.update(cambios)
+    return json.dumps(conexion)
+
+
+def test_el_secreto_se_convierte_en_parametros_del_conector(monkeypatch):
+    monkeypatch.setattr(bodega, "_llave_privada_der", lambda pem: b"der:" + pem.encode())
+    parametros = bodega._parametros_de_secreto(secreto_de_airflow())
+    assert parametros == {
+        "account": "org-cuenta",
+        "user": "AIRFLOW_SVC",
+        "role": "BIGDATA_DEV",
+        "warehouse": "BIGDATA_WH",
+        "database": "BIGDATA",
+        "private_key": b"der:PEM",
+    }
+
+
+def test_el_secreto_con_password_y_sin_llave_usa_password():
+    texto = secreto_de_airflow(password="clave", extra={"account": "a"})
+    parametros = bodega._parametros_de_secreto(texto)
+    assert parametros == {"account": "a", "user": "AIRFLOW_SVC", "password": "clave"}
+
+
+def test_el_secreto_sin_llave_ni_password_falla_con_mensaje_claro():
+    with pytest.raises(ValueError, match="private_key_content ni password"):
+        bodega._parametros_de_secreto(secreto_de_airflow(extra={"account": "a"}))
+
+
+def test_el_secreto_por_defecto_de_cada_entorno(monkeypatch):
+    monkeypatch.delenv(bodega.VARIABLE_SECRETO, raising=False)
+    monkeypatch.delenv("PREFIX", raising=False)
+    assert bodega.nombre_del_secreto("dev") == "bigdata/snowflake"
+    assert bodega.nombre_del_secreto("prod") == "bigdata/snowflake_prod"
+
+    monkeypatch.setenv("PREFIX", "curso")
+    assert bodega.nombre_del_secreto("dev") == "curso/snowflake"
+    assert bodega.nombre_del_secreto("prod") == "curso/snowflake_prod"
+
+
+def test_la_variable_del_secreto_gana_sobre_el_defecto(monkeypatch):
+    monkeypatch.setenv(bodega.VARIABLE_SECRETO, "otro/secreto")
+    assert bodega.nombre_del_secreto("prod") == "otro/secreto"
+
+
+def test_la_conexion_de_entorno_usa_el_secreto_y_nunca_connections_toml(monkeypatch):
+    monkeypatch.delenv(bodega.VARIABLE_SECRETO, raising=False)
+    monkeypatch.delenv("PREFIX", raising=False)
+    abiertos = []
+    monkeypatch.setattr(bodega, "_abrir_conexion_con_secreto", lambda n: abiertos.append(n) or n)
+
+    assert bodega.abrir_conexion_de_entorno("dev") == "bigdata/snowflake"
+    assert bodega.abrir_conexion_de_entorno("prod") == "bigdata/snowflake_prod"
+    assert abiertos == ["bigdata/snowflake", "bigdata/snowflake_prod"]

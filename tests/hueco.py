@@ -17,7 +17,7 @@ from datetime import UTC, datetime
 
 import pytest
 
-from pipeline.herramientas import Corrida
+from pipeline.herramientas.corrida import Corrida
 
 MARCADOR = "# PENDIENTE(equipo)"
 MES = "2024-01"

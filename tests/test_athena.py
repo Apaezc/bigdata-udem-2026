@@ -6,6 +6,7 @@ import pytest
 
 from pipeline.herramientas import athena
 from pipeline.herramientas.bodega import ColumnasDistintas
+from pipeline.herramientas.rutas import ConfigError
 
 TABLA_ATHENA = "dev_gold_tarifa_por_milla_barrio"
 TABLA_SNOWFLAKE = "BIGDATA.DEV.TARIFA_POR_MILLA_BARRIO"
@@ -98,9 +99,9 @@ def test_nombre_de_la_tabla_en_athena():
 
 
 def test_nombre_con_entorno_o_capa_desconocidos_falla():
-    with pytest.raises(ValueError, match="Entorno desconocido"):
-        athena.nombre_tabla_athena("local", "silver", "fhvhv")
-    with pytest.raises(ValueError, match="Capa desconocida"):
+    with pytest.raises(ConfigError, match="Entorno desconocido"):
+        athena.nombre_tabla_athena("qa", "silver", "fhvhv")
+    with pytest.raises(ConfigError, match="Capa desconocida"):
         athena.nombre_tabla_athena("dev", "platino", "fhvhv")
 
 

@@ -203,7 +203,7 @@ resource "snowflake_grant_privileges_to_account_role" "dev_prod_select_existente
 }
 
 # ---------- Tabla de control de la ingesta: BIGDATA.CONTROL.WATERMARK ----------
-# La usa src/pipeline/watermark.py: registra qué mes de cada fuente ya se ingestó. El esquema y la
+# La usó la práctica de ingesta de las clases 5 y 6: registraba qué mes de cada fuente ya se ingestó. El esquema y la
 # tabla los crea Terraform porque la base BIGDATA es de TERRAFORM_ROLE y ACCOUNTADMIN no puede
 # crear esquemas dentro de ella. Los roles de abajo solo reciben permisos sobre lo que ya existe.
 
@@ -249,7 +249,7 @@ resource "snowflake_table" "watermark" {
   }
 }
 
-# Quién escribe en la tabla de control: ACCOUNTADMIN (el rol que usa watermark.py desde el Code
+# Quién escribe en la tabla de control: ACCOUNTADMIN (el rol que usaba la práctica de las clases 5 y 6 desde el Code
 # Editor) y BIGDATA_DEV (el rol de AIRFLOW_SVC, que ingesta desde Airflow).
 locals {
   roles_control = toset(["ACCOUNTADMIN", snowflake_account_role.dev.name])
@@ -377,7 +377,7 @@ resource "snowflake_stage_external_s3" "lake_entorno" {
 # ---------- Tablas de control por entorno: BIGDATA.CONTROL_DEV / CONTROL_PROD . WATERMARK ----------
 # Clase 7: una tabla de control por entorno (src/pipeline/herramientas/control.py). Van en un recurso
 # aparte de snowflake_schema.layer para que dev_schemas no les dé CREATE. El esquema CONTROL y
-# snowflake_table.watermark (clases 5 y 6) no se tocan: son historia y los sigue usando watermark.py.
+# snowflake_table.watermark (clases 5 y 6) no se tocan: son historia (clases 5 y 6) y no las usa el pipeline.
 
 locals {
   # Mismas 10 columnas, en este orden, en las dos tablas (diseño técnico, 1.6).
