@@ -510,10 +510,10 @@ def test_las_constantes_del_dag_son_las_del_contrato_de_pipeline():
 
 
 def test_el_perfil_small_de_glue_tiene_el_plazo_de_15_minutos():
-    """profiles.yaml (que lee lanzar_en_glue) y el respaldo de corrida.py dicen lo mismo."""
+    """profiles.yaml (que lee lanzar_en_glue) y el respaldo de glue.py dicen lo mismo."""
     import yaml
 
-    from pipeline.herramientas.corrida import PERFILES_DE_GLUE
+    from pipeline.herramientas.glue import PERFILES_DE_GLUE
 
     perfiles = yaml.safe_load((AIRFLOW_ROOT / "framework" / "profiles.yaml").read_text())[
         "profiles"

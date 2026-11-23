@@ -15,14 +15,15 @@ import pytest
 import pipeline.correr as correr
 import pipeline.herramientas.control as control
 import pipeline.herramientas.corrida as corrida_mod
+import pipeline.herramientas.glue as glue_mod
 from pipeline.herramientas.corrida import (
     Corrida,
     Resultado,
     banner,
     cierre,
-    lanzar_en_glue,
     rutas_del_paso,
 )
+from pipeline.herramientas.glue import lanzar_en_glue
 from pipeline.herramientas.rutas import ConfigError
 
 pytest_plugins = ["p1_fixtures"]
@@ -370,9 +371,9 @@ def glue_falso(bucket, monkeypatch):
     """boto3 falso: devuelve (s3, glue). time.sleep no espera."""
     s3, glue = S3Falso(), GlueFalso()
     clientes = {"s3": s3, "glue": glue}
-    monkeypatch.setattr(corrida_mod, "_cliente", lambda servicio: clientes[servicio])
-    monkeypatch.setattr(corrida_mod.time, "sleep", lambda segundos: None)
-    monkeypatch.setattr(corrida_mod, "_perfil_de_glue", lambda computo: ("bigdata-small", 2, 15))
+    monkeypatch.setattr(glue_mod, "_cliente", lambda servicio: clientes[servicio])
+    monkeypatch.setattr(glue_mod.time, "sleep", lambda segundos: None)
+    monkeypatch.setattr(glue_mod, "_perfil_de_glue", lambda computo: ("bigdata-small", 2, 15))
     return s3, glue
 
 
@@ -474,7 +475,7 @@ def test_el_cierre_sale_del_ultimo_registro_de_la_tabla_de_control(
 def test_si_el_job_falla_se_dice_por_que(glue_falso, control_de_glue, monkeypatch):
     glue = GlueFalso(estados=("RUNNING", "FAILED"), mensaje="Faltan los permisos de S3")
     monkeypatch.setattr(
-        corrida_mod, "_cliente", lambda servicio: S3Falso() if servicio == "s3" else glue
+        glue_mod, "_cliente", lambda servicio: S3Falso() if servicio == "s3" else glue
     )
     with pytest.raises(RuntimeError, match="terminó en FAILED: Faltan los permisos de S3"):
         lanzar_en_glue("silver", una_corrida())
@@ -497,10 +498,10 @@ def test_espera_con_get_job_run_hasta_que_termine(bucket, control_de_glue, monke
     glue = GlueFalso(estados=("STARTING", "RUNNING", "RUNNING", "SUCCEEDED"))
     esperas = []
     monkeypatch.setattr(
-        corrida_mod, "_cliente", lambda servicio: S3Falso() if servicio == "s3" else glue
+        glue_mod, "_cliente", lambda servicio: S3Falso() if servicio == "s3" else glue
     )
-    monkeypatch.setattr(corrida_mod, "_perfil_de_glue", lambda computo: ("bigdata-small", 2, 15))
-    monkeypatch.setattr(corrida_mod.time, "sleep", esperas.append)
+    monkeypatch.setattr(glue_mod, "_perfil_de_glue", lambda computo: ("bigdata-small", 2, 15))
+    monkeypatch.setattr(glue_mod.time, "sleep", esperas.append)
     lanzar_en_glue("silver", una_corrida())
     assert len(esperas) == 3
     assert glue.estados == ["SUCCEEDED"]
@@ -515,7 +516,7 @@ def test_glue_no_corre_snowflake_ni_code_editor(glue_falso):
 
 def test_el_perfil_de_glue_sale_de_profiles_yaml_o_del_respaldo(monkeypatch):
     monkeypatch.undo()
-    job, workers, plazo = corrida_mod._perfil_de_glue("glue_large")
+    job, workers, plazo = glue_mod._perfil_de_glue("glue_large")
     assert job.endswith("-large")
     assert workers == 6
     assert plazo == 30
@@ -523,7 +524,7 @@ def test_el_perfil_de_glue_sale_de_profiles_yaml_o_del_respaldo(monkeypatch):
 
 def test_el_zip_de_dev_trae_el_codigo_del_arbol_de_trabajo(tmp_path):
     destino = tmp_path / "pipeline.zip"
-    cuantos = corrida_mod._armar_zip_del_codigo(destino)
+    cuantos = glue_mod._armar_zip_del_codigo(destino)
     with zipfile.ZipFile(destino) as zip_:
         nombres = zip_.namelist()
         assert len(nombres) == cuantos

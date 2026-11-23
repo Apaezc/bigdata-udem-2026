@@ -22,8 +22,8 @@ from pipeline.herramientas.corrida import (
     banner,
     cargar_configuracion,
     cierre,
-    lanzar_en_glue,
 )
+from pipeline.herramientas.glue import lanzar_en_glue
 from pipeline.herramientas.rutas import ConfigError, raiz_de_prueba
 
 PERILLAS = ("mes", "computo", "limite", "reprocesar")
