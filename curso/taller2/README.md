@@ -107,7 +107,9 @@ Si ya firmaron en el contrato una idea que el pipeline no soporta tal cual (una 
 
 Para que el cambio llegue a la respuesta, estos son los pasos, en este orden. Todos los comandos empiezan con `cd ~/bigdata`.
 
-1. **`bronze.py` y `silver.py`.** Escriban `agregar_metadatos` y `deduplicar` (la clase 7 mostró cómo se prueban: `probar_mis_funciones` en un notebook o `make test`). Sus pruebas pasan de `PENDIENTE` a `OK`.
+**El banco de trabajo del equipo es el notebook** `curso/clase07/01_construir_paso_a_paso.ipynb` (cópienlo a una carpeta suya, como en la clase 7). Ahí cambian o agregan pasos a cada función, las prueban con `limite="1000"` contra el dev de verdad, y la Celda 35 les dice cuáles difieren de los `.py` (`DISTINTO`): esas son las que copian al archivo. La Celda 36 corre las pruebas del equipo con las funciones del notebook.
+
+1. **`bronze.py` y `silver.py`.** Escriban `agregar_metadatos` y `deduplicar` primero en el notebook (Celdas 18 y 27), pruébenlas con `probar_mis_funciones` (Celda 36) y cuando salgan `OK` copien cada función completa a su archivo y borren la marca `# PENDIENTE(equipo)`. Después `make test`: sus pruebas pasan de `PENDIENTE` a `OK`.
 2. **`silver.py` (solo si la pregunta lo necesita).** La columna nueva o la regla, dentro de `limpiar_viajes` o de `enriquecer`. Si el contrato tiene un cambio aquí, sigue valiendo: ahora se ejecuta en el paso gold.
 3. **`gold.py`.** Una función nueva que recibe el enriquecido y devuelve su tabla. Súmenla a `TABLAS_GOLD` con un nombre que lleve el de su equipo, y sus columnas llave a `LLAVES_DE_GOLD`.
 4. **`carga.py`.** El `CREATE TABLE` de su tabla, con las columnas de su gold y los tipos equivalentes (`date` es `DATE`; `string`, `VARCHAR`; `bigint` o `int`, `NUMBER(38,0)`; `double`, `FLOAT`), sumado a `TABLAS_A_CARGAR`.

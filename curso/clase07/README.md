@@ -24,8 +24,7 @@ Esta carpeta tiene todo lo que usas hoy. Este archivo explica dos cosas: **qué 
 
 | Archivo | Para qué sirve |
 |---|---|
-| `01_construir_paso_a_paso.ipynb` | Notebook 1. El instructor construye la lógica de cada función con 1 000 viajes: la puerta de la tabla de control, bronze, silver, gold y la tabla de Snowflake. Tú lo sigues celda por celda. |
-| `02_funciones_listas.ipynb` | Notebook 2. Las mismas funciones ya escritas, con sus problemas dichos en voz alta, y a qué archivo `.py` se copia cada una. Termina con las pruebas de `make test`. |
+| `01_construir_paso_a_paso.ipynb` | El notebook de la clase y **tu banco de trabajo** (también en el Taller 2). El instructor construye la lógica de cada función con 1 000 viajes: la puerta de la tabla de control, bronze, silver, gold y la tabla de Snowflake. Tú lo sigues celda por celda; al final compara cada función con la del `.py` (`igual` o `DISTINTO`) y corre las pruebas del equipo. |
 | `athena/01_tablas.sql` | Declara en Athena las siete tablas del lake de un entorno (`dev_...` o `prod_...`): bronze por lotes, silver y gold. |
 | `athena/02_duplicados_y_conciliacion.sql` | Las consultas de cada punto de control (después de bronze, silver y gold, y después de reprocesar) para ver lotes, filas, duplicados y la conciliación. |
 | `deck/` | Las slides de la clase (`index.html`) y el guion del orador (`guion.md`). |
@@ -337,16 +336,16 @@ y al final un cierre con una línea por tabla: cuántas filas leyó, cuántas es
 <a id="notebooks"></a>
 ## Cómo se abren los notebooks
 
-Copia los dos notebooks a una carpeta tuya, para no tocar los del repositorio:
+Copia el notebook a una carpeta tuya, para no tocar el del repositorio:
 
 ```bash
 mkdir -p ~/clase07_mis_notebooks
-cp ~/bigdata/curso/clase07/01_construir_paso_a_paso.ipynb ~/bigdata/curso/clase07/02_funciones_listas.ipynb ~/clase07_mis_notebooks/
+cp ~/bigdata/curso/clase07/01_construir_paso_a_paso.ipynb ~/clase07_mis_notebooks/
 ```
 
 En el explorador de archivos de la izquierda, abre `clase07_mis_notebooks`, haz doble clic en el notebook y, arriba a la derecha, elige el kernel **Python (bigdata)**. No elijas los que dicen *Glue* o *SparkMagic*: abren una sesión de AWS Glue que cobra mientras está abierta. Ejecuta una celda con **Shift + Enter**.
 
-En esta máquina solo cabe un proceso de Spark a la vez. Si el notebook anterior sigue abierto, ciérralo (cada notebook termina con una celda que lo apaga) o reinicia su kernel. Si Airflow del Code Editor está encendido, apágalo con `cd ~/bigdata && make airflow-local-down` antes de abrir un notebook, y vuelve a encenderlo cuando la clase lo pida.
+En esta máquina solo cabe un proceso de Spark a la vez. Si tienes abierto otro notebook con Spark encendido, ciérralo (este termina con una celda que lo apaga) o reinicia su kernel. Si Airflow del Code Editor está encendido, apágalo con `cd ~/bigdata && make airflow-local-down` antes de abrir un notebook, y vuelve a encenderlo cuando la clase lo pida.
 
 <a id="no-vale"></a>
 ## Lo que no vale después de migrar
@@ -361,9 +360,9 @@ En esta máquina solo cabe un proceso de Spark a la vez. Si el notebook anterior
 
 1. Apertura: qué dijimos en las clases 5 y 6 y qué cambia; dev y prod; dónde se cambia cada cosa.
 2. **Empezamos limpios:** `resetear_entorno` en dev (el DAG que borra todo el entorno de ese Airflow).
-3. **Notebook 1:** se construye cada función con 1 000 viajes, en el dev de verdad: Spark del Code Editor escribe en `s3://<lake>/dev/` y la tabla de control es `BIGDATA.CONTROL_DEV.WATERMARK`. No se escribe nada en el disco. El límite se aplica solo en bronze.
+3. **Notebook 1:** se construye y se prueba cada función con 1 000 viajes, en el dev de verdad: Spark del Code Editor escribe en `s3://<lake>/dev/` y la tabla de control es `BIGDATA.CONTROL_DEV.WATERMARK`. No se escribe nada en el disco. El límite se aplica solo en bronze.
 4. **`resetear_entorno` en dev otra vez:** el notebook dejó datos reales (crudo, un lote de bronze, filas de control y la tabla vacía de gold); se borran para que las tareas del DAG partan de cero.
-5. **Notebook 2** y pasar las funciones a los `.py`; `make test` (salen `PENDIENTE`).
+5. **Del notebook al `.py`:** las celdas finales del Notebook 1 dicen qué funciones cambiaste (`DISTINTO`) y corren las pruebas del equipo; se abren `bronze.py` y `silver.py` (son las mismas funciones), se ve cómo se copia un cambio y se corre `make test` (salen `PENDIENTE`).
 6. **Las tareas del DAG, una por una** (`airflow tasks test`): primero bronze y Athena; luego silver y Athena; luego gold y Athena. Ahí se notan los problemas: bronze sin huella y qué hace la tabla de control.
 7. Crear la tabla en Snowflake y correr el DAG completo desde la interfaz: con `reprocesar` sin marcar, bronze, silver y gold **se saltan** y solo carga Snowflake.
 8. Resetear y correr todo otra vez: funciona una vez.

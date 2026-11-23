@@ -2,8 +2,8 @@
 
     silver/fhvhv/mes=AAAA-MM/     silver/clima/mes=AAAA-MM/     silver/taxi_zones/
 
-Es la versión «lista para copiar» del cuaderno `02_funciones_listas`: el pipeline corre de punta a
-punta con ella, pero trae un problema A PROPÓSITO que se dice en voz alta en clase:
+Es la versión «lista para copiar» del cuaderno `01_construir_paso_a_paso`: el pipeline corre de
+punta a punta con ella, pero trae un problema A PROPÓSITO que se dice en voz alta en clase:
 
     deduplicar NO deduplica (devuelve la tabla tal cual).
 

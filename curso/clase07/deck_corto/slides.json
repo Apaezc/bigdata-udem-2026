@@ -7,7 +7,7 @@
    "titulo": "Big Data e Ingeniería de Datos",
    "subtitulo": "Clase 7 · Un pipeline completo en dev y cómo prepararlo para prod (versión corta)",
    "meta": "Posgrado UdeM · 23 nov 2026",
-   "notas": "Versión corta de la clase 7: 40 slides en lugar de 133, con el mismo orden, los mismos temas y los mismos diagramas. Cada título es una frase que continúa la anterior, así que leídos de corrido cuentan la clase entera. Las instrucciones paso a paso están condensadas: lo que no cabe en la slide está en estas notas. Antes de la clase, cada persona migró su cuenta (curso/clase07/README.md) y dejó abierto el Code Editor con una terminal; si el Space se apagó, se enciende con Run space. Secuencia: aclarar lo que cambia respecto a las clases 5 y 6; dónde corre cada cosa; empezar limpios; construir las funciones en el Notebook 1; pasarlas a los .py con el Notebook 2; correr las tareas del DAG una por una con Athena entre cada una; el DAG completo y los duplicados; make correr y el dimensionamiento; y dejarlo listo para llevarlo a prod con un pull request en la clase 8. Hoy el trabajo es individual y la única ayuda es el instructor. Tiempo: 1 min. Siguiente: ¿Cómo construyo un pipeline en dev, lo llevo a prod sin duplicar nada y sé cuánto cómputo necesita?",
+   "notas": "Versión corta de la clase 7: 40 slides en lugar de 133, con el mismo orden, los mismos temas y los mismos diagramas. Cada título es una frase que continúa la anterior, así que leídos de corrido cuentan la clase entera. Las instrucciones paso a paso están condensadas: lo que no cabe en la slide está en estas notas. Antes de la clase, cada persona migró su cuenta (curso/clase07/README.md) y dejó abierto el Code Editor con una terminal; si el Space se apagó, se enciende con Run space. Secuencia: aclarar lo que cambia respecto a las clases 5 y 6; dónde corre cada cosa; empezar limpios; construir y probar las funciones en el Notebook 1, que es tu banco de trabajo; pasarlas a los .py; correr las tareas del DAG una por una con Athena entre cada una; el DAG completo y los duplicados; make correr y el dimensionamiento; y dejarlo listo para llevarlo a prod con un pull request en la clase 8. Hoy el trabajo es individual y la única ayuda es el instructor. Tiempo: 1 min. Siguiente: ¿Cómo construyo un pipeline en dev, lo llevo a prod sin duplicar nada y sé cuánto cómputo necesita?",
    "min": 1,
    "id": "1"
   },
@@ -174,14 +174,14 @@
      ]
     }
    ],
-   "notas": "Transición, en voz alta: ahora continuamos con el Notebook 1. El notebook corre contra el dev de verdad: escribe en s3://<lake>/dev/ y anota en BIGDATA.CONTROL_DEV.WATERMARK. No hay laboratorio ni disco local. Por eso, al terminar, hay que resetear dev otra vez. Elige siempre el kernel Python (bigdata); los kernels Glue PySpark o SparkMagic abren una sesión de AWS Glue que cobra mientras está abierta. Tiempo: 3 min. Siguiente: Copias los notebooks y apagas Airflow para ejecutar las Celdas 1 a 8.",
+   "notas": "Transición, en voz alta: ahora continuamos con el Notebook 1. El notebook corre contra el dev de verdad: escribe en s3://<lake>/dev/ y anota en BIGDATA.CONTROL_DEV.WATERMARK. No hay laboratorio ni disco local. Por eso, al terminar, hay que resetear dev otra vez. Elige siempre el kernel Python (bigdata); los kernels Glue PySpark o SparkMagic abren una sesión de AWS Glue que cobra mientras está abierta. Tiempo: 3 min. Siguiente: Copias el notebook y apagas Airflow para ejecutar las Celdas 1 a 8.",
    "min": 3,
    "id": "11"
   },
   {
    "tipo": "codigo",
-   "titulo": "Copias los notebooks y apagas Airflow para ejecutar las Celdas 1 a 8",
-   "sql": "# En la terminal del Code Editor, una línea a la vez y Enter:\nmkdir -p ~/clase07_mis_notebooks\ncp ~/bigdata/curso/clase07/0*.ipynb ~/clase07_mis_notebooks/\ncd ~/bigdata && make airflow-local-down",
+   "titulo": "Copias el notebook y apagas Airflow para ejecutar las Celdas 1 a 8",
+   "sql": "# En la terminal del Code Editor, una línea a la vez y Enter:\nmkdir -p ~/clase07_mis_notebooks\ncp ~/bigdata/curso/clase07/01_*.ipynb ~/clase07_mis_notebooks/\ncd ~/bigdata && make airflow-local-down",
    "resaltar": [
     3,
     4
@@ -189,7 +189,7 @@
    "explicacion": "Abre 01_construir_paso_a_paso.ipynb, elige el kernel Python (bigdata) y ejecuta las Celdas 1 a 8: el encabezado muestra rutas s3 de dev y leer_crudo devuelve siempre las mismas 1 000 filas.",
    "aqui": "bronze",
    "notebook": "01_construir_paso_a_paso",
-   "notas": "Se copian los notebooks a una carpeta propia para que los cambios no entren a un commit por accidente. Se apaga Airflow porque en esta máquina solo cabe un proceso de Spark a la vez: Airflow del Code Editor ocupa buena parte de los 7.6 GB. Celdas 1 a 3: el encabezado dice entorno DEV, cómputo code_editor, paso, mes, límite 1000 y reprocesar false; las líneas Lee y Escribe salen de la misma función de rutas que usa el código y son s3://bigdata-lake-<tu cuenta>-us-east-2/dev/..., lo que prueba que escribimos en el dev de verdad. Celda 4: Spark local con 2 hilos. Celda 5: sube los tres archivos crudos a S3 (unos 450 MB la primera vez). Celdas 6 y 7: leer_crudo aplica el límite de forma determinista, coalesce(1).limit(n), y se comprueba leyendo dos veces: 1000 y True. Un limit suelto de Spark podría traer filas distintas cada vez, y más adelante vamos a comparar reprocesos. Celda 8: zonas 265 y clima 31. Error común: el AVISO «este kernel no es el del proyecto»: se elige Python (bigdata). Tiempo: 6 min. Siguiente: Para no duplicar, cada paso consulta una tabla de control, y la puerta tiene tres casos.",
+   "notas": "Se copia el notebook a una carpeta propia para que los cambios no entren a un commit por accidente. Se apaga Airflow porque en esta máquina solo cabe un proceso de Spark a la vez: Airflow del Code Editor ocupa buena parte de los 7.6 GB. Celdas 1 a 3: el encabezado dice entorno DEV, cómputo code_editor, paso, mes, límite 1000 y reprocesar false; las líneas Lee y Escribe salen de la misma función de rutas que usa el código y son s3://bigdata-lake-<tu cuenta>-us-east-2/dev/..., lo que prueba que escribimos en el dev de verdad. Celda 4: Spark local con 2 hilos. Celda 5: sube los tres archivos crudos a S3 (unos 450 MB la primera vez). Celdas 6 y 7: leer_crudo aplica el límite de forma determinista, coalesce(1).limit(n), y se comprueba leyendo dos veces: 1000 y True. Un limit suelto de Spark podría traer filas distintas cada vez, y más adelante vamos a comparar reprocesos. Celda 8: zonas 265 y clima 31. Error común: el AVISO «este kernel no es el del proyecto»: se elige Python (bigdata). Tiempo: 6 min. Siguiente: Para no duplicar, cada paso consulta una tabla de control, y la puerta tiene tres casos.",
    "min": 6,
    "id": "12"
   },
@@ -207,16 +207,15 @@
   {
    "tipo": "codigo",
    "titulo": "La puerta se construye con debe_ingestar y con registrar_ingesta, que anota solo después de escribir",
-   "sql": "def debe_ingestar(corrida, tabla, mes):\n    if corrida.reprocesar:\n        return True\n    registros = consultar_control(corrida.entorno, tabla, \"bronze\", mes)\n    return len(registros) == 0\n\n# Se registra al final: si la escritura falla, no queda registro\nregistrar_ingesta(corrida, tabla, mes, fuente, leidas, filas, inicio)",
+   "sql": "from pipeline.herramientas import mes_ya_procesado\n\ndef debe_ingestar(corrida: Corrida, tabla: str, mes: str) -> bool:\n    ya_esta_registrado = mes_ya_procesado(corrida, tabla, CAPA, mes)\n    if ya_esta_registrado:\n        return False\n    return True\n\n# Se registra al final: si la escritura falla, no queda registro\nregistrar_ingesta(corrida, tabla, mes, fuente, leidas, filas, inicio)",
    "resaltar": [
-    2,
-    3,
+    4,
     8
    ],
    "explicacion": "Ejecuta las Celdas 9 a 17: pruebas los tres casos con meses de 2023, para no tocar enero. Si la escritura se cae, el mes se reintenta.",
    "aqui": "bronze",
    "notebook": "01_construir_paso_a_paso",
-   "notas": "Celdas 9 y 10: consultar_control devuelve [] porque ningún paso ha terminado; los ensayos usan meses de 2023 (MES_ENSAYO) porque la tabla de control es la real y una fila de «ya procesado» para enero de 2024 sin datos detrás es justo el error que la tabla debe evitar. Celdas 11 a 13: la primera versión de debe_ingestar solo responde «¿hay registro?»; registrar_ingesta anota la fila de bronze; la clave es la combinación tabla, capa y mes, así que registrar fhvhv no bloquea el clima de enero. Celda 14: una ingesta de mentira que se cae a mitad: con falla=True no queda ningún registro; con falla=False, REGISTRÓ; otra vez, SE SALTÓ. Si hubiéramos registrado al principio, el reintento quedaría bloqueado. Celdas 15 a 17: la versión final suma reprocesar, que deja pasar sin mirar la tabla; las tres reglas dicen «coincide». Estas dos funciones son las mismas que ya trae bronze.py. Tiempo: 7 min. Siguiente: Bronze corre dos veces: registra y salta.",
+   "notas": "Celdas 9 y 10: consultar_control devuelve [] porque ningún paso ha terminado; los ensayos usan meses de 2023 (MES_ENSAYO) porque la tabla de control es la real y una fila de «ya procesado» para enero de 2024 sin datos detrás es justo el error que la tabla debe evitar. Celdas 11 a 13: la primera versión de debe_ingestar solo responde «¿hay registro?»; registrar_ingesta anota la fila de bronze; la clave es la combinación tabla, capa y mes, así que registrar fhvhv no bloquea el clima de enero. Celda 14: una ingesta de mentira que se cae a mitad: con falla=True no queda ningún registro; con falla=False, REGISTRÓ; otra vez, SE SALTÓ. Si hubiéramos registrado al principio, el reintento quedaría bloqueado. Celdas 15 a 17: la versión final invierte mes_ya_procesado, la herramienta de la casa que ya trae la regla completa (con reprocesar, deja pasar sin mirar la tabla); las tres reglas dicen «coincide». Estas dos funciones quedaron como las que trae bronze.py. Tiempo: 7 min. Siguiente: Bronze corre dos veces: registra y salta.",
    "min": 7,
    "id": "14"
   },
@@ -245,70 +244,56 @@
     5,
     9
    ],
-   "explicacion": "Ejecuta las Celdas 24 a 35: silver con uno y con dos lotes, gold, el CREATE TABLE de Snowflake y Shut Down Kernel.",
+   "explicacion": "Ejecuta las Celdas 24 a 34: silver con uno y con dos lotes, gold y el CREATE TABLE de Snowflake.",
    "aqui": "gold",
    "notebook": "01_construir_paso_a_paso",
-   "notas": "Silver es el espejo limpio de bronze, una tabla por fuente y sin join: pone cada columna en su tipo y descarta viajes imposibles con limpiar_viajes, clima_diario y limpiar_taxi_zones. Celdas 24 y 25: con un lote, bronze y silver tienen 1 000 filas (en el ensayo no se descartó ninguno; el archivo de enero completo descarta 13 907 de 19 663 930); empresa dice Uber o Lyft, no HV0003. Celdas 26 y 27: con dos lotes, silver da el doble y deduplicar devuelve las mismas filas: es el segundo problema a propósito. Gold responde una pregunta de negocio con una tabla pequeña; la de la casa es ¿a qué hora y barrio se paga más por milla?, y no es la del Taller: la tuya es otra. La tarifa por milla es el cociente de las sumas, no el promedio de las tarifas. Celdas 28 a 31: enriquecer, la franja, la función y la comparación, que dice True. Celdas 32 a 34: para cargar gold se crea en Snowflake una tabla con los mismos tipos (date DATE, string VARCHAR, bigint NUMBER(38,0), double FLOAT), vacía por ahora. Celda 35: apaga Spark y cierra el kernel para liberar la memoria. Tiempo: 12 min. Siguiente: Como el notebook escribió de verdad, reseteas dev y pasamos al Notebook 2.",
+   "notas": "Silver es el espejo limpio de bronze, una tabla por fuente y sin join: pone cada columna en su tipo y descarta viajes imposibles con limpiar_viajes, clima_diario y limpiar_taxi_zones. Celdas 24 y 25: con un lote, bronze y silver tienen 1 000 filas (en el ensayo no se descartó ninguno; el archivo de enero completo descarta 13 907 de 19 663 930); empresa dice Uber o Lyft, no HV0003. Celdas 26 y 27: con dos lotes, silver da el doble y deduplicar (la del notebook, igual que la del repositorio) devuelve las mismas filas: es el segundo problema a propósito. Gold responde una pregunta de negocio con una tabla pequeña; la de la casa es ¿a qué hora y barrio se paga más por milla?, y no es la del Taller: la tuya es otra. La tarifa por milla es el cociente de las sumas, no el promedio de las tarifas. Celdas 28 a 31: enriquecer, la franja, la función y la comparación, que dice True. Celdas 32 a 34: para cargar gold se crea en Snowflake una tabla con los mismos tipos (date DATE, string VARCHAR, bigint NUMBER(38,0), double FLOAT), vacía por ahora. Tiempo: 12 min. Siguiente: La Celda 35 dice qué cambiaste frente a los .py y la 36 corre las pruebas del equipo.",
    "min": 12,
    "id": "16"
   },
   {
-   "tipo": "comparacion",
-   "titulo": "Como el notebook escribió de verdad, reseteas dev y pasamos al Notebook 2",
-   "notebook": "Airflow del Code Editor",
-   "columnas": [
-    {
-     "titulo": "Primero",
-     "items": [
-      "resetear_entorno, borrar dev; make airflow-local-down."
-     ]
-    },
-    {
-     "titulo": "Vas a ver",
-     "items": [
-      "Las funciones y su .py."
-     ]
-    },
-    {
-     "titulo": "Al terminar",
-     "items": [
-      "Sabrás qué es de la casa y qué es tuyo."
-     ]
-    }
+   "tipo": "pasos",
+   "titulo": "La Celda 35 dice qué cambiaste frente a los .py y la 36 corre las pruebas del equipo",
+   "ventana": "Notebook 1",
+   "notebook": "01_construir_paso_a_paso",
+   "aqui": "bronze",
+   "pasos": [
+    "Celda 35: todo dice igual; DISTINTO sería lo que cambiaste.",
+    "Celda 36: 9 PENDIENTE y 9 OK.",
+    "Celda 37: Spark apagado."
    ],
-   "notas": "Transición, en voz alta: ahora continuamos con el Notebook 2. Pero antes: el Notebook 1 dejó datos de verdad en dev (el crudo, un lote de bronze, filas de la tabla de control, incluidos los meses de ensayo de 2023, y la tabla vacía de gold). Si los dejamos, la primera tarea del DAG saltaría bronze porque la tabla ya dice que enero está hecho. Se enciende Airflow con make airflow-local, se lanza resetear_entorno con Solo listar desmarcada, Conservar el crudo marcada y la confirmación borrar dev, y se comprueba en el log lo que borró. Al terminar, apaga Airflow con make airflow-local-down: el Notebook 2, make test y airflow tasks test usan Spark y no caben con Airflow encendido (además, SQLite puede dar «database is locked»). El Notebook 2 trae esas mismas funciones listas para pasarlas a los .py, con sus dos problemas dichos en voz alta. Tiempo: 5 min. Siguiente: En el Notebook 2, agregar_metadatos y deduplicar viven en los .py y hoy no hacen nada.",
+   "notas": "La Celda 35 compara el código de cada función del notebook con el del .py (firma y código) y el texto del CREATE TABLE: hoy dice igual en todas, porque las funciones del notebook son las que trae el repositorio. Cuando cambies una, dirá DISTINTO: esa es la que hay que copiar al .py. La Celda 36, probar_mis_funciones, pone las funciones del notebook un instante en los módulos del pipeline, corre las pruebas del equipo, imprime una línea por prueba (OK, PENDIENTE o FALLA) y deja todo como estaba: 9 PENDIENTE (cinco de agregar_metadatos y cuatro de deduplicar) y 9 OK; las PENDIENTE son los dos problemas dichos en voz alta. El notebook es tu banco de trabajo: ahí se cambia una función, se prueba con 1 000 viajes y recién entonces se copia. La Celda 37 apaga Spark para liberar la memoria, porque make test y los demás comandos abren el suyo. Tiempo: 5 min. Siguiente: Abre bronze.py y silver.py: es la misma función del notebook.",
    "min": 5,
    "id": "17"
   },
   {
    "tipo": "codigo",
-   "titulo": "En el Notebook 2, agregar_metadatos y deduplicar viven en los .py y hoy no hacen nada",
-   "sql": "# src/pipeline/bronze.py\ndef agregar_metadatos(df, fuente, archivo_origen, id_lote, fecha_ingesta):\n    # PENDIENTE(equipo): hoy devuelve df tal cual\n    return df\n\n# src/pipeline/silver.py\ndef deduplicar(df):\n    # PENDIENTE(equipo): hoy devuelve df tal cual\n    return df",
+   "titulo": "Abre bronze.py y silver.py: es la misma función del notebook",
+   "sql": "# src/pipeline/bronze.py · y en el notebook, Celda 18\ndef agregar_metadatos(df, fuente, archivo_origen, id_lote, fecha_ingesta):\n    # PENDIENTE(equipo): hoy devuelve df tal cual\n    return df\n\n# src/pipeline/silver.py · y en el notebook, Celda 27\ndef deduplicar(df):\n    # PENDIENTE(equipo): hoy devuelve df tal cual\n    return df",
    "resaltar": [
     3,
     8
    ],
-   "explicacion": "Cierra el notebook 1, abre el 2 y ejecuta las Celdas 1 a 11: las dos funciones salen PENDIENTE, y tu gold y el CREATE TABLE salen bien.",
+   "explicacion": "Misma firma y mismo cuerpo que en el notebook: por eso pasar una función es copiarla completa. Busca PENDIENTE(equipo) con Ctrl + F.",
    "aqui": "bronze",
-   "notebook": "02_funciones_listas",
-   "notas": "Celdas 1 y 2: Spark enciende sin tocar S3. Celdas 3 y 4: agregar_metadatos con su problema; la comparación dice que faltan las cinco columnas de metadatos. Celdas 5 a 7: deduplicar necesita la huella _hash_fila que agrega bronze; con cuatro filas, dos repetidas, entra 4, hay 2 huellas distintas y sale 4 (deben ser 2). Celdas 8 y 9: gold con cuatro viajes: 7.0 por milla en la mañana y 2.0 sin barrio. Celdas 10 y 11: el CREATE TABLE compara sus columnas con gold: True, con los nombres de dev y de prod. La marca PENDIENTE(equipo) la borra quien escriba la función. Estas dos funciones, agregar_metadatos y deduplicar, son lo que los equipos deben resolver: entregable 1, rúbrica 2. Tiempo: 5 min. Siguiente: Cierras el Notebook 2 y corres make test.",
-   "min": 5,
+   "notebook": "Code Editor · bronze.py",
+   "notas": "Problema: las funciones que probamos en el Notebook 1 tienen que vivir en los .py, porque el pipeline corre desde ahí. Ya están: en el explorador, bigdata > src > pipeline > bronze.py y silver.py; Ctrl + F y PENDIENTE(equipo) encuentra una vez agregar_metadatos y una vez deduplicar. Misma firma y mismo cuerpo que las Celdas 18 y 27 del notebook, y la Celda 35 lo comprobó con «igual». Los dos dicen return df: son los dos problemas a propósito, entregable 1, rúbrica 2: lo que los equipos deben resolver. Tiempo: 4 min. Siguiente: Copias tu cambio al .py, corres make test y reseteas dev antes de las tareas del DAG.",
+   "min": 4,
    "id": "18"
   },
   {
    "tipo": "pasos",
-   "titulo": "Cierras el Notebook 2 y corres make test",
-   "ventana": "Notebook 2 y terminal",
-   "notebook": "02_funciones_listas",
+   "titulo": "Copias tu cambio al .py, corres make test y reseteas dev antes de las tareas del DAG",
+   "ventana": "Code Editor y Airflow",
+   "notebook": "Code Editor · terminal",
    "pasos": [
-    "Celdas 12 y 13: 9 PENDIENTE y 9 OK.",
-    "Abre src/pipeline/bronze.py y busca PENDIENTE(equipo).",
-    "Kernel > Shut Down Kernel.",
+    "Copia la función DISTINTA a su .py.",
     "Ejecuta make test.",
-    "Verás passed y skipped, ningún FAILED."
+    "Lanza resetear_entorno para borrar dev.",
+    "Apaga Airflow."
    ],
-   "notas": "La Celda 12 compara cada función del notebook con la del .py (firma y código): estas funciones ya están en tus .py desde el git pull, copiar es repetir lo que ya trae el repositorio. La Celda 13, probar_mis_funciones, imprime una línea por prueba (OK, PENDIENTE o FALLA) y el resumen: 9 PENDIENTE y 9 OK. En el explorador, bigdata > src > pipeline > bronze.py, Ctrl + F y PENDIENTE(equipo): está en agregar_metadatos. make test corre Ruff y pytest y tarda unos minutos: al final «425 passed, 23 skipped», y cada SKIPPED dice por qué y qué función falta escribir; las de test_ingesta_alumno.py son de la práctica de las clases 5 y 6 y también son normales. Tiempo: 6 min. Siguiente: Si el pipeline corre dos veces y todo sale en verde, ¿cómo sé que no duplicó nada?",
-   "min": 6,
+   "notas": "Así se pasa un cambio: se prueba en el notebook, se copia la función completa, con su firma, al archivo que le toca (bronze.py, silver.py, gold.py o carga.py), y se borra la marca # PENDIENTE(equipo) si ya está escrita. make test corre Ruff y pytest y tarda unos minutos: al final «425 passed, 23 skipped», y cada SKIPPED dice por qué y qué función falta escribir; las de test_ingesta_alumno.py son de la práctica de las clases 5 y 6 y también son normales. Después, resetear dev, porque el Notebook 1 dejó datos de verdad en dev (el crudo, un lote de bronze, filas de la tabla de control, incluidos los meses de ensayo de 2023, y la tabla vacía de gold): si los dejamos, la primera tarea del DAG saltaría bronze porque la tabla ya dice que enero está hecho. Se enciende Airflow con make airflow-local, se lanza resetear_entorno con Solo listar desmarcada, Conservar el crudo marcada y la confirmación borrar dev, y se comprueba en el log lo que borró. Al terminar, make airflow-local-down: make test y airflow tasks test usan Spark y no caben con Airflow encendido (además, SQLite puede dar «database is locked»). Tiempo: 7 min. Siguiente: Si el pipeline corre dos veces y todo sale en verde, ¿cómo sé que no duplicó nada?",
+   "min": 7,
    "id": "19"
   },
   {

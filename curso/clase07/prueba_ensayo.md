@@ -51,13 +51,13 @@ En Snowsight: `SELECT COUNT(*) FROM BIGDATA.CONTROL_DEV.WATERMARK;` (0) y `SHOW 
 ## 3. Notebook 1 completo, en dev de verdad (slides del Notebook 1)
 
 ```bash
-mkdir -p ~/clase07_mis_notebooks && cp ~/bigdata/curso/clase07/0*.ipynb ~/clase07_mis_notebooks/
+mkdir -p ~/clase07_mis_notebooks && cp ~/bigdata/curso/clase07/01_construir_paso_a_paso.ipynb ~/clase07_mis_notebooks/
 cd ~/bigdata && make airflow-local-down
 ```
 
 Abre `01_construir_paso_a_paso.ipynb`, elige el kernel `.venv` y ejecuta las celdas **una por una**, cronometrando las lentas. El notebook corre contra el dev de verdad: escribe en `s3://<lake>/dev/` y anota en `BIGDATA.CONTROL_DEV.WATERMARK` (incluidas filas de ensayo de 2023), y **no debe escribir nada en el disco** (sin `/tmp/lake_clase07`); compruébalo en el paso 3b. Necesita los `.jar` de `make jars-s3a`.
 
-**Pega:** Celda 2 (encabezado con rutas `s3://`, sin `[RAÍZ DE PRUEBA]`), 5 (tiempo del crudo), 6 y 7, 9 (debe ser `[]`), 14, 16, 20 y 21 (encabezado y cierre; tiempo de la 20), 22 y 23, 24, 26 y 27, 30 y 31, 34 (`CREA` y siete columnas) y el tiempo total. Cierra con la Celda 35. Anota el tiempo de la Celda 20 (la primera corrida sube ~450 MB a S3) y confirma que las celdas 10 a 17 usan meses de 2023 y no dejan nada en enero.
+**Pega:** Celda 2 (encabezado con rutas `s3://`, sin `[RAÍZ DE PRUEBA]`), 5 (tiempo del crudo), 6 y 7, 9 (debe ser `[]`), 14, 16, 20 y 21 (encabezado y cierre; tiempo de la 20), 22 y 23, 24, 26 y 27, 30 y 31, 34 (`CREA` y siete columnas), 35 (todas deben decir `igual`) y 36 (`Resumen: 9 PENDIENTE, 9 OK`) y el tiempo total. Cierra con la Celda 37. Anota el tiempo de la Celda 20 (la primera corrida sube ~450 MB a S3) y confirma que las celdas 10 a 17 usan meses de 2023 y no dejan nada en enero.
 
 **3b. Comprobar que dev quedó con datos reales y que el disco no se tocó:**
 
@@ -70,9 +70,9 @@ En Snowsight: `SELECT TABLA, CAPA, MES, COUNT(*) FROM BIGDATA.CONTROL_DEV.WATERM
 
 **3c. Empezar limpio otra vez (slide de `resetear_entorno` después del notebook):** en Airflow del Code Editor, lanza `resetear_entorno` con `Solo listar` marcada (anota cuántos objetos, registros y tablas cuenta) y después con `Solo listar` desmarcada, `Conservar el crudo` marcada y `borrar dev`. Repite la consulta de control: debe dar 0 filas. **Pega:** `contar` y `resumen` de las dos corridas.
 
-## 4. Notebook 2 y `make test`
+## 4. Del notebook al `.py` y `make test`
 
-Abre `02_funciones_listas.ipynb` y usa Run All. **Pega:** las Celdas 4, 7, 9, 11, 12 y 13 completas (en la 13: `Resumen: 9 PENDIENTE, 9 OK`) y el tiempo. Cierra el kernel.
+Las Celdas 35 y 36 del Notebook 1 ya se ejecutaron en el paso 3 (comparación con los `.py` y `probar_mis_funciones`). Ahora abre `src/pipeline/bronze.py` y `silver.py` y comprueba que `agregar_metadatos` y `deduplicar` son la misma función que las Celdas 18 y 27. Prueba el cambio de punta a punta: en el notebook, agrega un comentario a `deduplicar` y vuelve a ejecutar la Celda 35 (debe decir `DISTINTO` solo en esa función); cópiala al `.py`, reinicia el kernel y la Celda 35 debe volver a `igual`. Revierte el cambio.
 
 ```bash
 cd ~/bigdata && time make test

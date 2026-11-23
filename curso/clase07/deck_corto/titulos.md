@@ -13,14 +13,14 @@ Léelos de corrido: juntos cuentan la clase entera.
 9. Para medir sin restos, empezamos limpios con resetear_entorno, que borra solo dev
 10. Enciendes Airflow, lanzas resetear_entorno para listar y luego para borrar dev
 11. Con dev limpio, construimos las funciones en el Notebook 1, con 1 000 viajes
-12. Copias los notebooks y apagas Airflow para ejecutar las Celdas 1 a 8
+12. Copias el notebook y apagas Airflow para ejecutar las Celdas 1 a 8
 13. Para no duplicar, cada paso consulta una tabla de control, y la puerta tiene tres casos
 14. La puerta se construye con debe_ingestar y con registrar_ingesta, que anota solo después de escribir
 15. Bronze corre dos veces: registra y salta
 16. Silver limpia, gold agrupa por fecha, barrio y franja y divide las sumas, y Snowflake recibe la tabla
-17. Como el notebook escribió de verdad, reseteas dev y pasamos al Notebook 2
-18. En el Notebook 2, agregar_metadatos y deduplicar viven en los .py y hoy no hacen nada
-19. Cierras el Notebook 2 y corres make test
+17. La Celda 35 dice qué cambiaste frente a los .py y la 36 corre las pruebas del equipo
+18. Abre bronze.py y silver.py: es la misma función del notebook
+19. Copias tu cambio al .py, corres make test y reseteas dev antes de las tareas del DAG
 20. Si el pipeline corre dos veces y todo sale en verde, ¿cómo sé que no duplicó nada?
 21. Ahora corremos las tareas del DAG una por una, con Athena entre cada una
 22. Preparas la terminal y lanzas una sola tarea con airflow tasks test, cada vez con otra fecha

@@ -417,20 +417,20 @@
     }
    ],
    "min": 1,
-   "notas": "Transición, en voz alta: ahora continuamos con el Notebook 1, 01_construir_paso_a_paso. Problema: un pipeline es una cadena de funciones; si las dejas correr sin haberlas entendido, el día que algo falle no sabrás por dónde empezar. Aquí las construimos una por una con 1 000 viajes en lugar de 20 millones y las probamos varias veces. El instructor conduce; cada persona sigue en su Code Editor, celda por celda, con Shift + Enter. Este notebook corre contra el dev de verdad, sin laboratorio: Spark del Code Editor lee y escribe en s3://<lake>/dev/ y la tabla de control es BIGDATA.CONTROL_DEV.WATERMARK (conexión por el secreto bigdata/snowflake, rol BIGDATA_DEV). No se escribe nada en el disco. Como lo que escribe es de verdad, al terminar volvemos a correr resetear_entorno en dev para empezar limpios antes de las tareas del DAG. El límite de 1 000 filas se aplica solo en bronze. Importa las herramientas de la casa y nunca las copia. Tiempo: 1 min. Siguiente: Copias los dos notebooks a una carpeta tuya para no tocar los del repositorio.",
+   "notas": "Transición, en voz alta: ahora continuamos con el Notebook 1, 01_construir_paso_a_paso. Problema: un pipeline es una cadena de funciones; si las dejas correr sin haberlas entendido, el día que algo falle no sabrás por dónde empezar. Aquí las construimos una por una con 1 000 viajes en lugar de 20 millones y las probamos varias veces. El instructor conduce; cada persona sigue en su Code Editor, celda por celda, con Shift + Enter. Este notebook corre contra el dev de verdad, sin laboratorio: Spark del Code Editor lee y escribe en s3://<lake>/dev/ y la tabla de control es BIGDATA.CONTROL_DEV.WATERMARK (conexión por el secreto bigdata/snowflake, rol BIGDATA_DEV). No se escribe nada en el disco. Como lo que escribe es de verdad, al terminar volvemos a correr resetear_entorno en dev para empezar limpios antes de las tareas del DAG. El límite de 1 000 filas se aplica solo en bronze. Importa las herramientas de la casa y nunca las copia. Tiempo: 1 min. Siguiente: Copias el notebook a una carpeta tuya para no tocar el del repositorio.",
    "id": "23"
   },
   {
    "tipo": "codigo",
-   "titulo": "Copias los dos notebooks a una carpeta tuya para no tocar los del repositorio",
-   "sql": "# En la terminal del Code Editor, una línea a la vez y Enter:\nmkdir -p ~/clase07_mis_notebooks\ncp ~/bigdata/curso/clase07/0*.ipynb ~/clase07_mis_notebooks/\nls ~/clase07_mis_notebooks",
+   "titulo": "Copias el notebook a una carpeta tuya para no tocar el del repositorio",
+   "sql": "# En la terminal del Code Editor, una línea a la vez y Enter:\nmkdir -p ~/clase07_mis_notebooks\ncp ~/bigdata/curso/clase07/01_*.ipynb ~/clase07_mis_notebooks/\nls ~/clase07_mis_notebooks",
    "resaltar": [
     3
    ],
-   "explicacion": "Debes ver los dos archivos .ipynb. Así tus cambios no entran a un commit por accidente.",
+   "explicacion": "Debes ver el archivo .ipynb. Así tus cambios no entran a un commit por accidente.",
    "notebook": "Code Editor · terminal",
    "min": 1,
-   "notas": "Dónde: la terminal del Code Editor. Problema: si editas el notebook dentro del repositorio, el siguiente git pull choca con tus cambios y el archivo puede entrar a un commit sin que lo notes. Entrada: mkdir -p crea la carpeta ~/clase07_mis_notebooks (la opción -p evita error si ya existe); cp copia los dos notebooks (0*.ipynb coincide con 01_ y 02_); ls los lista. Salida esperada: 01_construir_paso_a_paso.ipynb y 02_funciones_listas.ipynb. Error común: «No such file or directory» al copiar significa que el repositorio no está en ~/bigdata o que falta el git pull; se corre cd ~/bigdata && git pull. Tiempo: 1 min. Siguiente: Abres el notebook 1 y eliges el kernel.",
+   "notas": "Dónde: la terminal del Code Editor. Problema: si editas el notebook dentro del repositorio, el siguiente git pull choca con tus cambios y el archivo puede entrar a un commit sin que lo notes. Entrada: mkdir -p crea la carpeta ~/clase07_mis_notebooks (la opción -p evita error si ya existe); cp copia el notebook; ls lo lista. Salida esperada: 01_construir_paso_a_paso.ipynb. Este notebook es tu banco de trabajo: ahí cambias las funciones, las pruebas con 1 000 viajes y, cuando funcionan, las copias a los .py. Error común: «No such file or directory» al copiar significa que el repositorio no está en ~/bigdata o que falta el git pull; se corre cd ~/bigdata && git pull. Tiempo: 1 min. Siguiente: Abres el notebook 1 y eliges el kernel.",
    "id": "24"
   },
   {
@@ -445,7 +445,7 @@
    ],
    "notebook": "01_construir_paso_a_paso",
    "min": 1,
-   "notas": "Dónde: el Code Editor. El kernel es el programa Python que ejecuta las celdas; si eliges uno equivocado, las librerías no están instaladas. Se elige siempre Python (bigdata), que es el .venv del proyecto. No se eligen los kernels Glue PySpark o SparkMagic: abren una sesión de AWS Glue en la nube y esa sesión cobra mientras está abierta. Paso 4: en esta máquina solo cabe un proceso de Spark a la vez (7.6 GB compartidos con Airflow); por eso Airflow del Code Editor debe estar apagado mientras se usan los notebooks. Error común: no aparece Python (bigdata): corre cd ~/bigdata && make reparar-entorno y recarga la ventana. Medida en el ensayo del 22 y 23 de noviembre: Airflow del Code Editor ocupa unos 5 GB de los 7.6 GB de la máquina; con Spark encendido encima ya no queda holgura. En el ensayo, con Airflow sin servidor web y corriendo el DAG completo, la memoria disponible mínima fue de 3 890 MB. Tiempo: 1 min. Siguiente: Ejecutas las Celdas 1 a 3.",
+   "notas": "Dónde: el Code Editor. El kernel es el programa Python que ejecuta las celdas; si eliges uno equivocado, las librerías no están instaladas. Se elige siempre Python (bigdata), que es el .venv del proyecto. No se eligen los kernels Glue PySpark o SparkMagic: abren una sesión de AWS Glue en la nube y esa sesión cobra mientras está abierta. Paso 4: en esta máquina solo cabe un proceso de Spark a la vez (7.6 GB compartidos con Airflow); por eso Airflow del Code Editor debe estar apagado mientras se usa el notebook. Error común: no aparece Python (bigdata): corre cd ~/bigdata && make reparar-entorno y recarga la ventana. Medida en el ensayo del 22 y 23 de noviembre: Airflow del Code Editor ocupa unos 5 GB de los 7.6 GB de la máquina; con Spark encendido encima ya no queda holgura. En el ensayo, con Airflow sin servidor web y corriendo el DAG completo, la memoria disponible mínima fue de 3 890 MB. Tiempo: 1 min. Siguiente: Ejecutas las Celdas 1 a 3.",
    "id": "25"
   },
   {
@@ -630,22 +630,22 @@
    "aqui": "bronze",
    "notebook": "01_construir_paso_a_paso",
    "min": 2,
-   "notas": "Entrada (Celda 14): una ingesta de mentira que puede fallar a la mitad; empieza con una tabla de control vacía. Primero con falla=True: lanza el error, y después del fallo no queda ningún registro. Luego con falla=False: REGISTRÓ. Luego otra vez con falla=False: SE SALTÓ. Salida esperada: «La ingesta falló: se cayó la escritura a la mitad», «Registros después del fallo: 0», «Reintento: REGISTRÓ» y «Otro intento: SE SALTÓ». Si hubiéramos registrado al principio, el reintento habría quedado bloqueado por una fila que dice «procesado» sin que lo estuviera. Esta es la razón por la que el registro va al final. Tiempo: 2 min. Siguiente: La puerta final suma reprocesar: si vale true, deja pasar sin mirar la tabla.",
+   "notas": "Entrada (Celda 14): una ingesta de mentira que puede fallar a la mitad; empieza con una tabla de control vacía. Primero con falla=True: lanza el error, y después del fallo no queda ningún registro. Luego con falla=False: REGISTRÓ. Luego otra vez con falla=False: SE SALTÓ. Salida esperada: «La ingesta falló: se cayó la escritura a la mitad», «Registros después del fallo: 0», «Reintento: REGISTRÓ» y «Otro intento: SE SALTÓ». Si hubiéramos registrado al principio, el reintento habría quedado bloqueado por una fila que dice «procesado» sin que lo estuviera. Esta es la razón por la que el registro va al final. Tiempo: 2 min. Siguiente: La puerta final invierte mes_ya_procesado, que ya trae la regla de reprocesar.",
    "id": "36"
   },
   {
    "tipo": "codigo",
-   "titulo": "La puerta final suma reprocesar: si vale true, deja pasar sin mirar la tabla",
-   "sql": "def debe_ingestar(corrida, tabla, mes):\n    if corrida.reprocesar:\n        return True\n    registros = consultar_control(corrida.entorno, tabla, \"bronze\", mes)\n    return len(registros) == 0",
+   "titulo": "La puerta final invierte mes_ya_procesado, que ya trae la regla de reprocesar",
+   "sql": "from pipeline.herramientas import mes_ya_procesado\n\ndef debe_ingestar(corrida: Corrida, tabla: str, mes: str) -> bool:\n    ya_esta_registrado = mes_ya_procesado(corrida, tabla, CAPA, mes)\n    if ya_esta_registrado:\n        return False\n    return True",
    "resaltar": [
-    2,
-    3
+    4,
+    5
    ],
-   "explicacion": "Las tres filas de la regla: sin registro ingesta, con registro salta, con reprocesar ingesta siempre.",
+   "explicacion": "Las tres filas de la regla: sin registro ingesta, con registro salta, con reprocesar ingesta siempre. Es la versión que tiene bronze.py.",
    "aqui": "bronze",
    "notebook": "01_construir_paso_a_paso",
    "min": 2,
-   "notas": "Problema: hay motivos legítimos para repetir un mes: la fuente corrigió sus datos, se cambió el cómputo, el equipo quiere medir otra cosa. La versión 1 no permite repetir nunca. La corrida trae una perilla, reprocesar; si vale true, la puerta ignora la tabla de control. Reprocesar no borra nada: cada corrida deja su fila y la historia queda completa. Esta es la tercera fila de la regla. Entrada (Celda 15): se redefine la función; no imprime nada. Después (Celda 16) se prueban los tres casos contra mes_ya_procesado, la función de la casa que contiene la misma regla con la pregunta al revés. Tiempo: 2 min. Siguiente: Ejecutas las Celdas 15 a 17: pruebas las tres reglas.",
+   "notas": "Problema: hay motivos legítimos para repetir un mes: la fuente corrigió sus datos, se cambió el cómputo, el equipo quiere medir otra cosa. La versión 1 no permite repetir nunca. La corrida trae una perilla, reprocesar; si vale true, la puerta ignora la tabla de control. Reprocesar no borra nada: cada corrida deja su fila y la historia queda completa. La herramienta de la casa mes_ya_procesado(corrida, tabla, capa, mes) ya contiene las tres filas de la regla y responde True cuando hay que saltar; nuestra función solo invierte la pregunta. Esta es la versión exacta que tiene bronze.py. Entrada (Celda 15): se redefine la función; no imprime nada. Después (Celda 16) se prueban los tres casos contra lo que dice la tabla de verdad. Tiempo: 2 min. Siguiente: Ejecutas las Celdas 15 a 17: pruebas las tres reglas.",
    "id": "37"
   },
   {
@@ -653,14 +653,14 @@
    "titulo": "Ejecutas las Celdas 15 a 17: pruebas las tres reglas",
    "ventana": "Notebook 1",
    "pasos": [
-    "Ejecuta la Celda 15: redefine debe_ingestar con reprocesar.",
+    "Ejecuta la Celda 15: redefine debe_ingestar con mes_ya_procesado.",
     "Ejecuta la Celda 16: tres casos, y cada uno dice coincide.",
     "Ejecuta la Celda 17: enero de 2024 sigue sin registros."
    ],
    "aqui": "bronze",
    "notebook": "01_construir_paso_a_paso",
    "min": 1,
-   "notas": "Salida esperada de la Celda 16: tres filas. «False, False: ingesta, coincide»; «True, False: salta, coincide»; «True, True: ingesta, coincide». La función caso arma cada situación con su propio mes de ensayo de 2023 (la tabla es la real y no se vacía) y dataclasses.replace para copiar la corrida cambiando solo reprocesar. Si alguna fila dice DIFERENTE, hay un error en la versión final; revisa la Celda 15. Con esto, nuestras dos funciones (debe_ingestar y registrar_ingesta) son las mismas que ya trae bronze.py. La Celda 17 comprueba que los ensayos no tocaron enero de 2024: sin registros de bronze, la corrida de la parte 6 va a trabajar. Las filas de ensayo de 2023 se borran con resetear_entorno al final. Tiempo: 1 min. Siguiente: agregar_metadatos hoy no agrega nada, a propósito.",
+   "notas": "Salida esperada de la Celda 16: tres filas, con mi puerta y lo que debe ser. «False, False: ingesta, coincide»; «True, False: salta, coincide»; «True, True: ingesta, coincide». La función caso arma cada situación con su propio mes de ensayo de 2023 (la tabla es la real y no se vacía) y dataclasses.replace para copiar la corrida cambiando solo reprocesar. Si alguna fila dice DIFERENTE, hay un error en la versión final; revisa la Celda 15. Con esto, nuestras dos funciones (debe_ingestar y registrar_ingesta) quedaron como las que trae bronze.py; la Celda 35 lo comprueba al final. La Celda 17 comprueba que los ensayos no tocaron enero de 2024: sin registros de bronze, la corrida de la parte 6 va a trabajar. Las filas de ensayo de 2023 se borran con resetear_entorno al final. Tiempo: 1 min. Siguiente: agregar_metadatos hoy no agrega nada, a propósito.",
    "id": "38"
   },
   {
@@ -908,21 +908,50 @@
    "aqui": "gold",
    "notebook": "01_construir_paso_a_paso",
    "min": 1,
-   "notas": "Celda 32: se imprimen los dtypes de tu gold, la equivalencia y el CREATE TABLE con el hueco {tabla}. Celda 33: se compara con DDL_TARIFA_POR_MILLA de carga.py ignorando espacios; debe decir True. Celda 34: nombre_tabla_snowflake(\"dev\", \"tarifa_por_milla_barrio\") da BIGDATA.DEV.TARIFA_POR_MILLA_BARRIO; crear_tabla ejecuta el CREATE TABLE (solo acepta CREATE TABLE; rechaza CREATE OR REPLACE, que borraría la tabla con sus datos) y dice en voz alta qué crea; con IF NOT EXISTS, repetir la celda no hace daño. esquema_de_tabla devuelve las siete columnas con sus tipos. La tabla queda vacía: todavía no escribimos gold en S3; la cargará el paso snowflake. Error común: «insufficient privileges» significa que la conexión no usó BIGDATA_DEV; se revisa el secreto con make snowflake. Tiempo: 1 min. Siguiente: Ejecutas la Celda 35: apagas Spark.",
+   "notas": "Celda 32: se imprimen los dtypes de tu gold, la equivalencia y el CREATE TABLE con el hueco {tabla}. Celda 33: se escribe DDL_TARIFA_POR_MILLA y TABLAS_A_CARGAR igual que en carga.py y se compara el CREATE TABLE armado con él ignorando espacios; debe decir True. Celda 34: nombre_tabla_snowflake(\"dev\", \"tarifa_por_milla_barrio\") da BIGDATA.DEV.TARIFA_POR_MILLA_BARRIO; crear_tabla ejecuta el CREATE TABLE (solo acepta CREATE TABLE; rechaza CREATE OR REPLACE, que borraría la tabla con sus datos) y dice en voz alta qué crea; con IF NOT EXISTS, repetir la celda no hace daño. esquema_de_tabla devuelve las siete columnas con sus tipos. La tabla queda vacía: todavía no escribimos gold en S3; la cargará el paso snowflake. Error común: «insufficient privileges» significa que la conexión no usó BIGDATA_DEV; se revisa el secreto con make snowflake. Tiempo: 1 min. Siguiente: La Celda 35 compara con los .py: «igual» es el repositorio, «DISTINTO» es lo que cambiaste.",
    "id": "51"
   },
   {
+   "tipo": "codigo",
+   "titulo": "La Celda 35 compara con los .py: «igual» es el repositorio, «DISTINTO» es lo que cambiaste",
+   "sql": "agregar_metadatos          bronze.py  firma: igual     código: igual\ndebe_ingestar              bronze.py  firma: igual     código: igual\nregistrar_ingesta          bronze.py  firma: igual     código: igual\ndeduplicar                 silver.py  firma: igual     código: igual\n_franja_del_dia            gold.py    firma: igual     código: igual\ntarifa_por_milla_por_barrio gold.py   firma: igual     código: igual\nDDL_TARIFA_POR_MILLA       carga.py   texto: igual",
+   "resaltar": [
+    1,
+    4,
+    7
+   ],
+   "explicacion": "Hoy todas dicen igual. Cuando cambies una función en el notebook, dirá DISTINTO: esa es la que copias al .py.",
+   "notebook": "01_construir_paso_a_paso",
+   "min": 2,
+   "notas": "Problema: ¿cómo sé qué funciones cambié en el notebook y cuáles ya están en los archivos? La Celda 35 compara el código de cada función del notebook con el del módulo, ignorando los comentarios y las explicaciones entre comillas triples, y compara el texto del CREATE TABLE. Salida esperada hoy: «igual» en todas las líneas, porque las funciones del notebook son las mismas que trae el repositorio, con sus dos problemas dichos en voz alta. Cuando tu equipo cambie una función en el notebook (agregar_metadatos o deduplicar, por ejemplo), esa línea dirá DISTINTO: eso no es un error, es el aviso de que esa es la que hay que copiar al .py. Si dice igual, el .py ya la tiene. El notebook es tu banco de trabajo: ahí se cambia, se prueba con 1 000 viajes y recién entonces se copia. Tiempo: 2 min. Siguiente: Ejecutas la Celda 36: probar_mis_funciones corre las pruebas con las funciones del notebook.",
+   "id": "60"
+  },
+  {
    "tipo": "pasos",
-   "titulo": "Ejecutas la Celda 35: apagas Spark",
+   "titulo": "Ejecutas la Celda 36: probar_mis_funciones corre las pruebas con las funciones del notebook",
    "ventana": "Notebook 1",
    "pasos": [
-    "Ejecuta la Celda 35: imprime Spark apagado.",
+    "Ejecuta la Celda 36: corre las pruebas del equipo.",
+    "Lee una línea por prueba: OK, PENDIENTE o FALLA.",
+    "Comprueba el resumen: 9 PENDIENTE y 9 OK."
+   ],
+   "notebook": "01_construir_paso_a_paso",
+   "min": 2,
+   "notas": "probar_mis_funciones recibe las funciones de este notebook, las pone un instante en los módulos del pipeline, corre tests/test_equipo_bronze.py y tests/test_equipo_silver.py, imprime una línea por prueba y deja todo como estaba. Salida esperada (medida): 9 PENDIENTE y 9 OK; código de salida 0. Las PENDIENTE son las cinco pruebas de agregar_metadatos y las cuatro de deduplicar: justo los dos problemas que dijimos en voz alta. Las OK son las de la puerta y el registro (debe_ingestar, registrar_ingesta y las firmas del contrato). Cuando tu equipo escriba esas dos funciones y borre la marca # PENDIENTE(equipo), esas líneas pasarán a OK sin cambiar la prueba. Una prueba PENDIENTE no es un error: dice qué función falta escribir. Tiempo: 2 min. Siguiente: Ejecutas la Celda 37: apagas Spark.",
+   "id": "61"
+  },
+  {
+   "tipo": "pasos",
+   "titulo": "Ejecutas la Celda 37: apagas Spark",
+   "ventana": "Notebook 1",
+   "pasos": [
+    "Ejecuta la Celda 37: imprime Spark apagado.",
     "Haz clic en el menú Kernel.",
     "Elige Shut Down Kernel para liberar la memoria."
    ],
    "notebook": "01_construir_paso_a_paso",
    "min": 1,
-   "notas": "Hemos probado la lógica de las cuatro partes del pipeline: bronze (con su puerta y su registro), silver (con el problema de los dos lotes), gold (con una pregunta de la casa) y snowflake (con su CREATE TABLE). Apagamos Spark para liberar la memoria: en esta máquina solo cabe una sesión a la vez, y el Notebook 2 y los comandos de make abren la suya. Antes de seguir: este notebook dejó datos de verdad en dev (el crudo, un lote de bronze, filas de la tabla de control, incluidos los meses de ensayo de 2023, y la tabla vacía de gold), así que lo siguiente es resetear dev. Resumen en dos frases: el Notebook 1 mostró cómo funciona cada función; el Notebook 2 trae esas mismas funciones listas para pasarlas a los .py, con sus dos problemas dichos en voz alta. Tiempo: 1 min. Siguiente: Reseteas dev otra vez para borrar lo que dejó el Notebook 1.",
+   "notas": "Hemos probado la lógica de las cuatro partes del pipeline: bronze (con su puerta y su registro), silver (con el problema de los dos lotes), gold (con una pregunta de la casa) y snowflake (con su CREATE TABLE), y comprobamos qué funciones del notebook difieren de los .py. Apagamos Spark para liberar la memoria: en esta máquina solo cabe una sesión a la vez, y make test y los comandos de make abren la suya. Antes de seguir: este notebook dejó datos de verdad en dev (el crudo, un lote de bronze, filas de la tabla de control, incluidos los meses de ensayo de 2023, y la tabla vacía de gold), así que lo siguiente es resetear dev. Resumen en dos frases: el Notebook 1 es tu banco de trabajo, donde cada función se construye, se cambia y se prueba; y lo que cambias se copia al .py. Tiempo: 1 min. Siguiente: Reseteas dev otra vez para borrar lo que dejó el Notebook 1.",
    "id": "52"
   },
   {
@@ -937,148 +966,25 @@
    ],
    "notebook": "Airflow del Code Editor",
    "min": 3,
-   "notas": "Problema: el Notebook 1 escribió de verdad en dev: el archivo crudo, un lote de bronze, filas en BIGDATA.CONTROL_DEV.WATERMARK (las de enero y las de los meses de ensayo de 2023) y una tabla vacía en BIGDATA.DEV. Si dejamos eso, la primera tarea del DAG saltaría bronze porque la tabla de control ya dice que enero está hecho. Por eso corremos resetear_entorno otra vez, igual que al principio: Airflow ya estaba apagado porque Spark y Airflow no caben a la vez; se enciende con make airflow-local, se lanza resetear_entorno con Solo listar desmarcada, Conservar el crudo marcada (el archivo de enero no cambia) y la confirmación borrar dev. Salida esperada: seis tareas en verde y, en el log de contar, el lote de fhvhv, los registros de control y la tabla de gold. Después, dev está limpio: se apaga Airflow con make airflow-local-down (el Notebook 2, make test y airflow tasks test usan Spark, y con Airflow y su servidor encendidos hay riesgo de «database is locked» en SQLite) y copiamos las funciones a los .py. Error común: «La confirmación no coincide»: se escribió con mayúsculas, con tilde o con otra palabra; debe ser exactamente borrar dev. Tiempo: 3 min. Siguiente: Ahora continuamos con el Notebook 2: las funciones listas.",
+   "notas": "Problema: el Notebook 1 escribió de verdad en dev: el archivo crudo, un lote de bronze, filas en BIGDATA.CONTROL_DEV.WATERMARK (las de enero y las de los meses de ensayo de 2023) y una tabla vacía en BIGDATA.DEV. Si dejamos eso, la primera tarea del DAG saltaría bronze porque la tabla de control ya dice que enero está hecho. Por eso corremos resetear_entorno otra vez, igual que al principio: Airflow ya estaba apagado porque Spark y Airflow no caben a la vez; se enciende con make airflow-local, se lanza resetear_entorno con Solo listar desmarcada, Conservar el crudo marcada (el archivo de enero no cambia) y la confirmación borrar dev. Salida esperada: seis tareas en verde y, en el log de contar, el lote de fhvhv, los registros de control y la tabla de gold. Después, dev está limpio: se apaga Airflow con make airflow-local-down (make test y airflow tasks test usan Spark, y con Airflow y su servidor encendidos hay riesgo de «database is locked» en SQLite) y pasamos a ver cómo se copia una función del notebook a los .py. Error común: «La confirmación no coincide»: se escribió con mayúsculas, con tilde o con otra palabra; debe ser exactamente borrar dev. Tiempo: 3 min. Siguiente: Abre bronze.py y silver.py: es la misma función del notebook.",
    "id": "52b"
   },
   {
-   "tipo": "comparacion",
-   "titulo": "Ahora continuamos con el Notebook 2: las funciones listas",
-   "notebook": "02_funciones_listas",
-   "columnas": [
-    {
-     "titulo": "Vas a ver",
-     "items": [
-      "Las mismas funciones y su archivo .py."
-     ]
-    },
-    {
-     "titulo": "Al terminar",
-     "items": [
-      "Sabrás qué es de la casa y qué es tuyo."
-     ]
-    }
-   ],
-   "min": 1,
-   "notas": "Transición, en voz alta: ahora continuamos con el Notebook 2, 02_funciones_listas. Problema: un pipeline no corre desde un notebook; corre desde archivos .py que un DAG, un make o un job de Glue pueden llamar. Falta saber cuáles funciones van en cuáles archivos, con qué firma exacta, y qué hacen bien y qué hacen mal a propósito. Este notebook no lee ni escribe en S3: solo prueba funciones con filas escritas a mano. Cada celda de código empieza diciendo a qué archivo y a qué función se copia. Tiempo: 1 min. Siguiente: Abres el notebook 2 y ejecutas las Celdas 1 y 2.",
-   "id": "53"
-  },
-  {
-   "tipo": "pasos",
-   "titulo": "Abres el notebook 2 y ejecutas las Celdas 1 y 2",
-   "ventana": "Notebook 2",
-   "pasos": [
-    "Cierra el notebook 1 o apaga su kernel.",
-    "Abre 02_funciones_listas.ipynb y elige Python (bigdata).",
-    "Ejecuta las Celdas 1 y 2: Spark enciende sin tocar S3."
-   ],
-   "notebook": "02_funciones_listas",
-   "min": 1,
-   "notas": "Dónde: el Code Editor, la misma carpeta clase07_mis_notebooks. Aquí Spark se enciende con get_spark(\"code_editor\") sin toca_s3: no hacen falta los jars de S3A porque el notebook solo prueba funciones con filas escritas a mano. Si dejaste abierto el notebook 1 con Spark encendido, reinicia su kernel. Tiempo: 1 min. Siguiente: agregar_metadatos va en bronze.py y hoy no hace nada.",
-   "id": "54"
-  },
-  {
    "tipo": "codigo",
-   "titulo": "agregar_metadatos va en bronze.py y hoy no hace nada",
-   "sql": "def agregar_metadatos(\n    df: DataFrame, fuente: str, archivo_origen: str,\n    id_lote: str, fecha_ingesta: datetime\n) -> DataFrame:\n    # PENDIENTE(equipo): hoy devuelve df tal cual,\n    # sin metadatos. Silver no puede deduplicar.\n    return df",
+   "titulo": "Abre bronze.py y silver.py: es la misma función del notebook",
+   "sql": "# src/pipeline/bronze.py · y en el notebook, Celda 18\ndef agregar_metadatos(\n    df: DataFrame, fuente: str, archivo_origen: str,\n    id_lote: str, fecha_ingesta: datetime\n) -> DataFrame:\n    # PENDIENTE(equipo): hoy devuelve df tal cual\n    return df\n\n# src/pipeline/silver.py · y en el notebook, Celda 27\ndef deduplicar(df: DataFrame) -> DataFrame:\n    # PENDIENTE(equipo): hoy devuelve df tal cual\n    return df",
    "resaltar": [
-    5,
-    7
+    3,
+    7,
+    11,
+    13
    ],
-   "explicacion": "Copia a: src/pipeline/bronze.py, función agregar_metadatos. La marca PENDIENTE la borra quien la escriba.",
+   "explicacion": "Misma firma y mismo cuerpo que en el notebook: pasarla es copiarla completa.",
    "aqui": "bronze",
-   "notebook": "02_funciones_listas",
-   "min": 1,
-   "notas": "Cada celda de código del notebook 2 empieza con un comentario que dice a qué archivo y función se copia: aquí, src/pipeline/bronze.py, función agregar_metadatos. La firma es la del contrato, idéntica a la del .py: df, fuente, archivo_origen, id_lote y fecha_ingesta. Qué hace cuando está bien escrita: deja las columnas originales más las cinco de metadatos, en el orden de COLUMNAS_METADATOS; el hash se calcula primero, solo con las columnas originales, para que dos ingestas del mismo archivo den el mismo hash fila por fila. Qué hace hoy: nada. La marca # PENDIENTE(equipo) dentro del cuerpo es lo que buscan las pruebas del equipo; quien escriba la función de verdad la borra. Tiempo: 1 min. Siguiente: Ejecutas las Celdas 3 y 4: faltan las cinco columnas.",
-   "id": "55"
-  },
-  {
-   "tipo": "pasos",
-   "titulo": "Ejecutas las Celdas 3 y 4: faltan las cinco columnas",
-   "ventana": "Notebook 2",
-   "pasos": [
-    "Ejecuta la Celda 3: define la función con su problema.",
-    "Ejecuta la Celda 4: compara las columnas que debería tener.",
-    "Comprueba que Faltan lista las cinco de metadatos."
-   ],
-   "aqui": "bronze",
-   "notebook": "02_funciones_listas",
-   "min": 1,
-   "notas": "Salida esperada de la Celda 4: «Columnas que debería tener: [letra, numero, _fecha_ingesta, _id_lote, _hash_fila, _fuente, _archivo_origen]», «Columnas que tiene: [letra, numero]» y «Faltan: [_fecha_ingesta, _id_lote, _hash_fila, _fuente, _archivo_origen]». Es el problema hecho visible con dos filas escritas a mano. Tiempo: 1 min. Siguiente: deduplicar va en silver.py y hoy devuelve la tabla tal cual.",
-   "id": "56"
-  },
-  {
-   "tipo": "codigo",
-   "titulo": "deduplicar va en silver.py y hoy devuelve la tabla tal cual",
-   "sql": "def deduplicar(df: DataFrame) -> DataFrame:\n    # PENDIENTE(equipo): hoy devuelve df tal cual.\n    # Al reprocesar, silver tiene cada fila dos veces.\n    return df\n\n# Cuatro filas, dos repetidas:\n# entrada 4 | huellas distintas 2 | salida 4 (deben ser 2)",
-   "resaltar": [
-    2,
-    7
-   ],
-   "explicacion": "Copia a: src/pipeline/silver.py, función deduplicar. Necesita la huella _hash_fila que agrega bronze.",
-   "aqui": "silver",
-   "notebook": "02_funciones_listas",
-   "min": 1,
-   "notas": "Qué hace cuando está bien escrita: deja una fila por cada fila distinta. Silver lee todos los lotes de bronze del mes; si el mes entró dos veces, cada fila llega dos veces. deduplicar es lo que hace de silver el espejo limpio de la fuente: pase lo que pase en bronze, silver queda igual. Necesita la columna _hash_fila, que agrega bronze. Qué hace hoy: nada, y lo decimos en voz alta. Al reprocesar un mes, silver tiene cada fila dos veces y gold, que une viajes, zonas y clima, las multiplica otra vez: con dos lotes, los viajes de gold salen ×8. Celdas 6 y 7: se define la función y se prueba con cuatro filas que son dos repetidas; la huella la calcula hash_fila, la herramienta de la casa. Salida: «Filas después de deduplicar: 4 (deberían ser 2)». Tiempo: 1 min. Siguiente: Ejecutas las Celdas 8 y 9: gold con cuatro viajes.",
-   "id": "57"
-  },
-  {
-   "tipo": "pasos",
-   "titulo": "Ejecutas las Celdas 8 y 9: gold con cuatro viajes",
-   "ventana": "Notebook 2",
-   "pasos": [
-    "Ejecuta la Celda 8: define tu función de gold.",
-    "Ejecuta la Celda 9: sale una tabla de tres filas.",
-    "Comprueba 7.0 por milla en la mañana y 2.0 sin barrio."
-   ],
-   "aqui": "gold",
-   "notebook": "02_funciones_listas",
-   "min": 1,
-   "notas": "Copia a: src/pipeline/gold.py, el bloque completo de la Celda 8 (las constantes, _franja_del_dia, tarifa_por_milla_por_barrio, TABLAS_GOLD y LLAVES_DE_GOLD). Gold no tiene huecos: para agregar tu tabla escribes tu función y la sumas a TABLAS_GOLD (y a LLAVES_DE_GOLD, que dice qué columnas identifican una fila; gold exige que no se repitan ni sean nulas). La prueba de la Celda 9: cuatro viajes escritos a mano. Los viajes 1 y 2 caen en la misma franja (mañana) y el mismo barrio (Manhattan): 2 viajes, 5.0 millas y 35.0 pagados, es decir 7.0 por milla. El viaje 4 no tiene barrio y queda como Desconocido, en la madrugada: 8.0 entre 4.0 millas son 2.0 por milla. Salida: una tabla de tres filas y «OK: la tarifa por milla de la mañana es 7.0 y la del viaje sin barrio es 2.0.». Tiempo: 1 min. Siguiente: Ejecutas las Celdas 10 y 11: el CREATE TABLE.",
-   "id": "58"
-  },
-  {
-   "tipo": "pasos",
-   "titulo": "Ejecutas las Celdas 10 y 11: el CREATE TABLE",
-   "ventana": "Notebook 2",
-   "pasos": [
-    "Ejecuta la Celda 10: define el CREATE TABLE.",
-    "Ejecuta la Celda 11: compara sus columnas con gold.",
-    "Comprueba True y los nombres de dev y de prod."
-   ],
-   "aqui": "gold",
-   "notebook": "02_funciones_listas",
-   "min": 1,
-   "notas": "Copia a: src/pipeline/carga.py, las constantes DDL_TARIFA_POR_MILLA y TABLAS_A_CARGAR. El CREATE TABLE de la casa lleva IF NOT EXISTS, así que se puede ejecutar cuantas veces haga falta, y deja un hueco {tabla} que se llena con el nombre de la tabla del entorno. TABLAS_A_CARGAR dice qué tabla de gold va con qué CREATE TABLE; para cargar la tuya, agregas una entrada. Salida de la Celda 11: las siete columnas de las dos listas, «¿Coinciden? True», y los nombres BIGDATA.DEV.TARIFA_POR_MILLA_BARRIO y BIGDATA.PROD.TARIFA_POR_MILLA_BARRIO. Tiempo: 1 min. Siguiente: La Celda 12 compara cada función con la del .py: firma y código deben decir igual.",
-   "id": "59"
-  },
-  {
-   "tipo": "codigo",
-   "titulo": "La Celda 12 compara cada función con la del .py: firma y código deben decir igual",
-   "sql": "agregar_metadatos          bronze.py  firma: igual     código: igual\ndebe_ingestar              bronze.py  firma: igual     código: igual\nregistrar_ingesta          bronze.py  firma: igual     código: igual\ndeduplicar                 silver.py  firma: igual     código: igual\n_franja_del_dia            gold.py    firma: igual     código: igual\ntarifa_por_milla_por_barrio gold.py   firma: igual     código: igual\nDDL_TARIFA_POR_MILLA       carga.py   texto: igual",
-   "resaltar": [
-    1,
-    4,
-    7
-   ],
-   "explicacion": "Estas funciones ya están en tus .py desde el git pull. Copiar es repetir lo que ya trae el repositorio.",
-   "notebook": "02_funciones_listas",
-   "min": 1,
-   "notas": "Problema: ¿cómo sé que lo que está en el notebook es exactamente lo que está en los archivos? La Celda 12 compara el código de cada función del notebook con el del módulo, ignorando los comentarios y las explicaciones entre comillas triples, y compara el texto del CREATE TABLE. Salida esperada: «igual» en todas las líneas. Si alguna dice DISTINTO es porque tu .py ya tiene cambios tuyos: está bien, y la comparación te dice cuál. Esto responde la pregunta «¿qué es copiar al .py?»: estas funciones ya están en tus archivos, llegaron con el git pull, con sus dos problemas. Pasar un notebook a un .py es copiar la función con su firma, y el notebook es el lugar donde se prueba antes. En el Taller escribirás las dos pendientes: se prueban en el notebook y se copian a bronze.py y silver.py. Tiempo: 1 min. Siguiente: Ejecutas la Celda 13: probar_mis_funciones.",
-   "id": "60"
-  },
-  {
-   "tipo": "pasos",
-   "titulo": "Ejecutas la Celda 13: probar_mis_funciones",
-   "ventana": "Notebook 2",
-   "pasos": [
-    "Ejecuta la Celda 13, la última del notebook.",
-    "Lee una línea por prueba: OK, PENDIENTE o FALLA.",
-    "Comprueba el resumen: 9 PENDIENTE y 9 OK."
-   ],
-   "notebook": "02_funciones_listas",
-   "min": 1,
-   "notas": "probar_mis_funciones recibe las funciones del notebook, las pone un instante en los módulos del pipeline, corre tests/test_equipo_bronze.py y tests/test_equipo_silver.py, imprime una línea por prueba y deja todo como estaba. Salida esperada (medida): 9 PENDIENTE y 9 OK; código de salida 0. Las PENDIENTE son las cinco pruebas de agregar_metadatos y las cuatro de deduplicar: justo los dos problemas que dijimos en voz alta. Las OK son las de la puerta y el registro (debe_ingestar, registrar_ingesta y las firmas del contrato). Cuando tu equipo escriba esas dos funciones y borre la marca # PENDIENTE(equipo), esas líneas pasarán a OK sin cambiar la prueba. Una prueba PENDIENTE no es un error: dice qué función falta escribir. Tiempo: 1 min. Siguiente: Abres bronze.py y buscas la marca PENDIENTE.",
-   "id": "61"
+   "notebook": "Code Editor · bronze.py",
+   "min": 2,
+   "notas": "Problema: las funciones que probamos en el Notebook 1 tienen que vivir en los .py, porque el pipeline corre desde ahí. La buena noticia es que ya están: abre src/pipeline/bronze.py y src/pipeline/silver.py y compara con las celdas 18 y 27 del notebook. Misma firma, mismos parámetros y mismo cuerpo; la Celda 35 lo comprobó con «igual». Por eso pasar una función del notebook al .py es copiarla completa, desde el def hasta su último return, sin tocar la firma. Hoy las dos dicen return df con la marca # PENDIENTE(equipo): son los dos problemas a propósito. Tiempo: 2 min. Siguiente: Abres bronze.py y buscas la marca PENDIENTE.",
+   "id": "62a"
   },
   {
    "tipo": "pasos",
@@ -1091,8 +997,23 @@
    ],
    "notebook": "Code Editor · bronze.py",
    "min": 2,
-   "notas": "Dónde: el Code Editor. Problema: las funciones del notebook ya están en los .py; hay que saber dónde, para poder editarlas en el Taller. Paso 1 a 2: src/pipeline/bronze.py. En el encabezado del archivo está explicado el problema a propósito. Paso 3: buscar PENDIENTE(equipo); en bronze.py aparece una vez, dentro de agregar_metadatos; en silver.py aparece una vez, dentro de deduplicar. Paso 4: el cuerpo solo dice return df. Esto es lo que traen los .py del repositorio: exactamente la versión del Notebook 2, con sus dos problemas, en lugar de huecos vacíos. El pipeline corre, no agrega metadatos y duplica al reprocesar. Quien escriba la función de verdad borra la marca; las pruebas pasan de PENDIENTE a OK. Hoy no la escribimos. Tiempo: 2 min. Siguiente: make test corre Ruff y pytest; las pruebas de funciones sin escribir salen PENDIENTE.",
+   "notas": "Dónde: el Code Editor. Problema: las funciones del notebook y las de los .py son las mismas; hay que saber dónde, para poder editarlas en el Taller. Paso 1 a 2: src/pipeline/bronze.py. En el encabezado del archivo está explicado el problema a propósito. Paso 3: buscar PENDIENTE(equipo); en bronze.py aparece una vez, dentro de agregar_metadatos; en silver.py aparece una vez, dentro de deduplicar. Paso 4: el cuerpo solo dice return df. Esto es lo que traen los .py del repositorio: exactamente la misma función que acabas de probar en el Notebook 1, con sus dos problemas, en lugar de huecos vacíos. El pipeline corre, no agrega metadatos y duplica al reprocesar. Quien escriba la función de verdad borra la marca; las pruebas pasan de PENDIENTE a OK. Hoy no la escribimos. Tiempo: 2 min. Siguiente: Para pasar tu cambio, copias del notebook la función completa a su .py.",
    "id": "62"
+  },
+  {
+   "tipo": "pasos",
+   "titulo": "Para pasar tu cambio, copias del notebook la función completa a su .py",
+   "ventana": "Notebook 1",
+   "pasos": [
+    "Celda 35: DISTINTO marca lo que cambiaste.",
+    "Copia esa función completa a su .py.",
+    "Borra la marca PENDIENTE(equipo).",
+    "Ejecuta make test: pasa a OK."
+   ],
+   "notebook": "01_construir_paso_a_paso",
+   "min": 3,
+   "notas": "Esto es lo que se hace en el Taller, cada vez que tu equipo cambia una función. Primero se cambia y se prueba en el Notebook 1, con 1 000 viajes contra el dev de verdad; la Celda 36 (probar_mis_funciones) pasa la línea de esa prueba de PENDIENTE a OK. Después la Celda 35 dice DISTINTO en esa función: es el aviso de cuál hay que pasar. Se copia la función completa, con su firma, al archivo que dice el notebook (agregar_metadatos y debe_ingestar en bronze.py, deduplicar en silver.py, tu función de gold en gold.py, el CREATE TABLE y su entrada en carga.py), y se borra la marca # PENDIENTE(equipo) si ya está escrita, porque las pruebas buscan esa marca para decir PENDIENTE en lugar de FALLA. Para terminar, make test corre las mismas pruebas sobre los archivos. Si copias solo un pedazo de la función, la Celda 35 seguirá diciendo DISTINTO cuando vuelvas a correrla con el kernel nuevo. Tiempo: 3 min. Siguiente: make test corre Ruff y pytest; las pruebas de funciones sin escribir salen PENDIENTE.",
+   "id": "62b"
   },
   {
    "tipo": "codigo",
