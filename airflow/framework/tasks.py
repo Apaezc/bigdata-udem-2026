@@ -678,6 +678,9 @@ _CUERPOS_DEL_RESETEO = {
 
 def _cuerpo_del_reseteo(task_id: str, entorno: str, params: dict[str, Any], ti: Any = None) -> Any:
     cuerpo = _CUERPOS_DEL_RESETEO[task_id]
+    # Cada tarea corre en un proceso nuevo de Airflow: hay que volver a poner <repo>/src en el
+    # camino de importación antes de que cualquier tarea importe `pipeline`.
+    preparar_importaciones()
     if task_id in ("validar", "contar"):
         return cuerpo(entorno, dict(params))
     return cuerpo(entorno, dict(params), ti)
