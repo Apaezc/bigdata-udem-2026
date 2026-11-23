@@ -16,9 +16,6 @@ carga.py). Gold no tiene huecos.
 Un detalle que se ve al reprocesar: `enriquecer` une zonas y clima, así que si silver trae las
 tablas duplicadas (silver no deduplica todavía) cada viaje se repite una vez por cada fila
 repetida de zonas y de clima: con dos copias de cada tabla, ×2 · ×2 · ×2 = ×8 viajes.
-
-`metricas_diarias_zona` y `COLUMNAS` son de las clases anteriores: siguen aquí sin cambios (el
-laboratorio de la clase 6 las usa) pero ya no se ejecutan por defecto.
 """
 
 from __future__ import annotations

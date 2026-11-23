@@ -48,11 +48,6 @@ El Dockerfile es inline en el compose; no hay archivo extra.
 |---|---|---|
 | `pipeline_taxi` | los dos Airflow | `correr_bronze` → `correr_silver` → `correr_gold` → `cargar_snowflake` (el pipeline) |
 | `resetear_entorno` | los dos Airflow; cada uno resetea solo el suyo | vacía el entorno para repetir el pipeline desde cero |
-| `ingesta_mensual` | solo el Airflow del Code Editor | práctica de ingesta de las clases 5 y 6 (zonas, clima, viajes); escribe en disco |
-| `hola_airflow` | solo el Airflow del Code Editor | práctica de la clase 6 |
-
-`ingesta_mensual` y `hola_airflow` son ejercicios: el despliegue (`deploy.yml`, y `make deploy` con
-`CONFIRMAR_PROD=si`) no los sube a la VM y borra cualquier copia que haya quedado en `s3://<lake>/dags/`.
 
 ## `pipeline_taxi`: entorno y perillas
 
@@ -139,7 +134,7 @@ Validación sin levantar nada: `docker compose -f airflow/docker-compose.yaml --
 
 1. Terraform (`infra/aws/modules/airflow_vm`, con `enable_airflow = true`) crea la instancia (tag `Name=<prefix>-airflow`),
    el SG `<prefix>-airflow-sg` (sin ingress), los secretos y el apagado a las 23:00 (America/Bogota). Sin IP fija.
-2. `deploy.yml` (CI/CD, merge a `main`) sube a `s3://<lake>/`: `dags/` (DAGs, sin `ingesta_mensual` ni `hola_airflow`), `code/airflow/framework/` y `code/airflow/docker-compose.yaml`.
+2. `deploy.yml` (CI/CD, merge a `main`) sube a `s3://<lake>/`: `dags/` (los DAGs), `code/airflow/framework/` y `code/airflow/docker-compose.yaml`.
 3. User-data instala `/usr/local/bin/airflow-refresh.sh`, que copia esos objetos a `/opt/airflow/` y arma `snowflake.env`.
    Corre al crear la VM y antes de cada arranque de `airflow.service` (que levanta el compose); por cron, cada minuto, se
    sincronizan `dags/` y `framework/`. El `docker-compose.yaml` nuevo se aplica en el siguiente arranque.
@@ -158,7 +153,7 @@ en la VM quedan `/opt/airflow/dags` y `/opt/airflow/framework`, y en el repo `ai
 Al arrancar lee el secreto `${prefix}/snowflake`; si cambia, reinicia con `make airflow-local-down && make airflow-local`.
 Se detiene con `make airflow-local-down` y se cae si el Code Editor se apaga por inactividad.
 
-Además de `pipeline_taxi` y `resetear_entorno`, este Airflow tiene `ingesta_mensual` y `hola_airflow` (ejercicios de las clases 5 y 6).
+Este Airflow tiene los mismos dos DAGs que el de prod: `pipeline_taxi` y `resetear_entorno`.
 
 ## Supuestos a verificar
 

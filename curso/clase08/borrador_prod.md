@@ -122,7 +122,7 @@ Ventana: GitHub.
 2. Haz clic en Merge pull request y en Confirm merge.
 3. En Actions, espera el workflow Deploy en verde.
 
-**Notas del orador:** Nadie aprueba su propio cambio: es la segunda barandilla, después del CI. Para esta práctica, quien trabaja solo puede pedir la aprobación al compañero de al lado. Al hacer merge, el cambio entra a main. El workflow Deploy se dispara solo: planea y aplica Terraform (con la guardia de destrucción: aborta si el plan elimina algo), empaqueta src en code/pipeline.zip, sincroniza dags/, code/ y framework/ en S3 (sin ingesta_mensual ni hola_airflow) y, si el push cambió airflow/ o src/, enciende la VM de Airflow de prod. Ese Deploy es lo que pone en prod el código de main. Error común: el Deploy falla por falta de secrets; el instructor ayuda. Tiempo: 2 min. Siguiente: Apagas el Airflow de dev y abres el túnel, porque los dos usan el puerto 8080.
+**Notas del orador:** Nadie aprueba su propio cambio: es la segunda barandilla, después del CI. Para esta práctica, quien trabaja solo puede pedir la aprobación al compañero de al lado. Al hacer merge, el cambio entra a main. El workflow Deploy se dispara solo: planea y aplica Terraform (con la guardia de destrucción: aborta si el plan elimina algo), empaqueta src en code/pipeline.zip, sincroniza dags/, code/ y framework/ en S3 y, si el push cambió airflow/ o src/, enciende la VM de Airflow de prod. Ese Deploy es lo que pone en prod el código de main. Error común: el Deploy falla por falta de secrets; el instructor ayuda. Tiempo: 2 min. Siguiente: Apagas el Airflow de dev y abres el túnel, porque los dos usan el puerto 8080.
 
 ### Deck completo · slide 122: Apagas el Airflow de dev y abres el túnel, porque los dos usan el puerto 8080
 
@@ -148,7 +148,7 @@ Ventana: Terminal y navegador.
 2. Abre en el navegador la URL del túnel.
 3. Entra como admin con la contraseña de prod.
 
-**Notas del orador:** Salida de make airflow-password: «Usuario: admin» y «Contraseña: ...», leídas de Secrets Manager (el secreto <prefijo>/airflow-admin). La contraseña de prod es distinta a la de dev. En la lista de DAGs de prod deben verse pipeline_taxi y resetear_entorno (pausados al nacer); ingesta_mensual y hola_airflow no deben estar: el despliegue no los sube a la VM (puede quedar un resto pausado en la base de datos si venía de antes; no importa). El Airflow de prod es el entorno PROD: lo dice la descripción del DAG y el encabezado de cada tarea (PROD, con una advertencia). Errores comunes: la UI sale en blanco (la URL es la del túnel, no la de dev); «Invalid or Expired Auth Token». Tiempo: 1 min. Siguiente: Lanzas pipeline_taxi en prod.
+**Notas del orador:** Salida de make airflow-password: «Usuario: admin» y «Contraseña: ...», leídas de Secrets Manager (el secreto <prefijo>/airflow-admin). La contraseña de prod es distinta a la de dev. En la lista de DAGs de prod deben verse pipeline_taxi y resetear_entorno (pausados al nacer); si aparece algún DAG pausado de las prácticas de las clases 5 y 6, es un resto de la base de datos de antes y no importa. El Airflow de prod es el entorno PROD: lo dice la descripción del DAG y el encabezado de cada tarea (PROD, con una advertencia). Errores comunes: la UI sale en blanco (la URL es la del túnel, no la de dev); «Invalid or Expired Auth Token». Tiempo: 1 min. Siguiente: Lanzas pipeline_taxi en prod.
 
 ### Deck completo · slide 124: Lanzas pipeline_taxi en prod
 

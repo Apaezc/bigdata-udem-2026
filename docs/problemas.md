@@ -166,10 +166,10 @@ Busca tu mensaje con **Ctrl+F**. Cada entrada muestra el mensaje exacto, su caus
 <a id="p-timeout-muestra"></a>
 <a id="p-cerre-terminal-muestra"></a>
 <a id="p-sin-muestra"></a>
-### `make muestra`, `make muestra-solo` o `make run-local` salen con error
+### `make muestra`, `make muestra-solo` o `make run-local` dicen «No rule to make target»
 
-- **Síntoma:** el comando imprime `'make muestra' se retiró en la clase 7` (o `run-local`) y sale con error.
-- **Causa:** ya no hay muestra ni modo local sobre el disco. Todo corre contra S3: dev en `s3://<LAKE>/dev/` y prod en `s3://<LAKE>/prod/`.
+- **Síntoma:** el comando imprime `make: *** No rule to make target 'muestra'` (o `muestra-solo`, o `run-local`) y sale con error.
+- **Causa:** esos comandos se retiraron en la clase 7: ya no hay muestra ni modo local sobre el disco. Todo corre contra S3: dev en `s3://<LAKE>/dev/` y prod en `s3://<LAKE>/prod/`.
 - **Qué hacer:** usa `cd ~/bigdata && make correr PASO=bronze`. El crudo se descarga solo la primera vez. Si Spark se queja de los jars, corre antes `cd ~/bigdata && make jars-s3a`.
 - [Volver al paso 12](guia.md#paso-12) · [Volver al paso 13.1](guia.md#paso-13-1)
 
@@ -194,7 +194,7 @@ Busca tu mensaje con **Ctrl+F**. Cada entrada muestra el mensaje exacto, su caus
 <a id="p-java"></a>
 ### Java no es el correcto
 
-- **Síntoma:** `make test` o `make run-local` fallan por Java.
+- **Síntoma:** `make test` o `make correr` fallan por Java.
 - **Causa:** Java no está instalado o no es la versión validada (Java 17).
 - **Qué hacer:** instala Java 17 (versión con la que se validó PySpark 3.5) y revisa `cd ~/bigdata && java -version` y `JAVA_HOME`.
 - [Volver al paso 13.1](guia.md#paso-13-1)
