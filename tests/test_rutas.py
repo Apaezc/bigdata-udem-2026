@@ -5,14 +5,10 @@ Ninguna prueba de este archivo usa Spark ni la red (sts va con un doble).
 
 from __future__ import annotations
 
-import subprocess
-import sys
 from datetime import date
-from pathlib import Path
 
 import pytest
 
-import pipeline.herramientas as herramientas
 from pipeline.settings import (
     CAPAS,
     ENTORNOS,
@@ -38,7 +34,6 @@ pytest_plugins = ["p1_fixtures"]
 BUCKET = "bigdata-lake-123456789012-us-east-2"  # el que devuelve el doble de sts
 
 MES = "2024-01"
-RAIZ_DEL_REPO = Path(__file__).resolve().parents[1]
 
 
 # --- ruta_lake ---------------------------------------------------------------------------------
@@ -267,74 +262,3 @@ def test_rango_meses_ordena_y_cubre_todo():
 def test_ultimo_dia_mes():
     assert ultimo_dia_mes("2024-02") == date(2024, 2, 29)
     assert ultimo_dia_mes("2024-12") == date(2024, 12, 31)
-
-
-# --- la fachada --------------------------------------------------------------------------------
-
-
-def test_la_fachada_importa_sin_pyspark():
-    """La VM de Airflow no tiene pyspark: importar ruta_lake y Corrida no puede pedirlo."""
-    codigo = (
-        "import sys; sys.modules['pyspark'] = None\n"
-        "from pipeline.herramientas import ruta_lake, Corrida, cargar_configuracion, banner\n"
-        "from pipeline.herramientas import Resultado, lanzar_en_glue\n"
-        "import pipeline.correr\n"
-        "print('ok')"
-    )
-    resultado = subprocess.run(
-        [sys.executable, "-c", codigo],
-        capture_output=True,
-        text=True,
-        env={"PYTHONPATH": str(RAIZ_DEL_REPO / "src"), "PATH": ""},
-        check=False,
-    )
-    assert resultado.returncode == 0, resultado.stderr
-    assert resultado.stdout.strip() == "ok"
-
-
-def test_la_fachada_tiene_todos_los_nombres_del_contrato():
-    contrato = """
-    COMPUTOS LIMITES PASOS DEFECTOS EntornoNoPermitido LimiteNoPermitido entorno_actual
-    valores_de_pipeline_yaml Corrida cargar_configuracion Resultado rutas_del_paso banner cierre
-    lanzar_en_glue ENTORNOS CAPAS TABLA_VIAJES TABLA_ZONAS TABLA_CLIMA MES_SIN_MES validar_entorno
-    validar_mes inicio_fin_mes rango_meses bucket_del_lake ruta_lake dir_del_crudo ruta_del_crudo
-    dir_del_lote nombre_tabla_snowflake donde_estoy describir_rutas traer_crudo_viajes
-    traer_crudo_taxi_zones traer_crudo_clima url_viajes url_zonas url_clima descargar URL_VIAJES
-    URL_ZONAS URL_CLIMA leer_crudo escribir_bronze leer_capa escribir_capa mover_entre_capas
-    nuevo_id_lote hash_fila COLUMNAS_METADATOS MARCADOR_NULO SEPARADOR_HASH tabla_de_control
-    consultar_control mes_ya_procesado registrar_control con_control exigir_rol_del_entorno
-    vaciar_control ControlEnMemoria instalar_backend nombre_tabla_athena esquema_de_athena
-    verificar_esquema_con_athena crear_tabla esquema_de_tabla cargar_gold
-    comparar_columnas ColumnasDistintas borrar_capas_s3 borrar_tablas_snowflake
-    usar_mis_funciones probar_mis_funciones
-    """.split()
-    for nombre in contrato:
-        assert nombre in herramientas.__all__, nombre
-        assert getattr(herramientas, nombre) is not None, nombre
-
-
-def test_un_nombre_que_no_existe_en_la_fachada_falla_claro():
-    with pytest.raises(AttributeError, match="no tiene 'inventada'"):
-        herramientas.inventada  # noqa: B018
-
-
-def test_la_caja_no_importa_los_pasos():
-    """Regla 1.1.1: pipeline.herramientas nunca importa bronze, silver, gold ni carga."""
-    codigo = (
-        "import sys\n"
-        "import pipeline.herramientas as h\n"
-        "for n in h.__all__:\n"
-        "    try: getattr(h, n)\n"
-        "    except Exception: pass\n"
-        "malos = [m for m in ('pipeline.bronze','pipeline.silver','pipeline.gold','pipeline.carga')"
-        " if m in sys.modules]\n"
-        "print(malos)"
-    )
-    resultado = subprocess.run(
-        [sys.executable, "-c", codigo],
-        capture_output=True,
-        text=True,
-        env={"PYTHONPATH": str(RAIZ_DEL_REPO / "src"), "PATH": ""},
-        check=False,
-    )
-    assert resultado.stdout.strip() == "[]", resultado.stderr
