@@ -469,7 +469,9 @@ def cuenta_aws() -> str:
 
 
 def _normalizar(texto: Any) -> str:
-    return " ".join(str(texto or "").split())
+    # Se aceptan mayúsculas, espacios de más y comillas alrededor: «Borrar  DEV» vale igual.
+    limpio = str(texto or "").strip().strip("\"'«»“”").lower()
+    return " ".join(limpio.split())
 
 
 def validar_reseteo(entorno: str, params: dict[str, Any], cuenta: str | None = None) -> dict:

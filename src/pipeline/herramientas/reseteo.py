@@ -206,7 +206,18 @@ def contar_control(entorno: str, conexion: Any = None) -> int:
         exigir_rol_del_entorno(entorno, conexion)
         cursor = conexion.cursor()
         archivos.anunciar("CUENTA", tabla, "registros")
-        cursor.execute(f"SELECT COUNT(*) FROM {tabla}")
+        try:
+            cursor.execute(f"SELECT COUNT(*) FROM {tabla}")
+        except Exception as error:
+            # 002003: el esquema o la tabla no existen. Pasa cuando la cuenta no se migró.
+            if "002003" in str(error) or "does not exist" in str(error):
+                raise RuntimeError(
+                    f"No existe {tabla} en tu Snowflake: tu cuenta todavía no tiene la "
+                    "infraestructura de la clase 7. Corre en la terminal: "
+                    "cd ~/bigdata && git pull && make migrar-clase07 (escribe yes cuando el plan "
+                    "diga 0 to destroy) y vuelve a lanzar resetear_entorno."
+                ) from error
+            raise
         return int(cursor.fetchone()[0])
     finally:
         if cerrar:
