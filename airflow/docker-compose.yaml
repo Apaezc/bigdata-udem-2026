@@ -26,6 +26,8 @@ x-airflow-common: &airflow-common
   env_file:
     - path: ./snowflake.env
       required: false
+    - path: ./lake.env
+      required: false
   environment: &airflow-env
     AIRFLOW__CORE__EXECUTOR: LocalExecutor
     AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:${POSTGRES_PASSWORD:?definir POSTGRES_PASSWORD en .env}@postgres/airflow
