@@ -64,6 +64,12 @@ airflow_sano() {
   "$VENV/bin/airflow" version >/dev/null 2>&1
 }
 
+# nginx 1.19.5 o más nuevo acepta -e (log de errores desde el arranque); las versiones viejas, como la de
+# algunas imágenes del Code Editor, fallan con «invalid option: "e"». Sin -e solo cambia que el aviso del
+# arranque va al log por defecto.
+NGINX_LOG=()
+if nginx -h 2>&1 | grep -q -- '-e filename'; then NGINX_LOG=(-e "$BASE/nginx-error.log"); fi
+
 escribir_nginx() {
   # Misma lógica que proxy-studio en la VM: el proxy de Studio quita el prefijo y rechaza %2F.
   cat > "$NGINX_CONF" <<EOF
@@ -138,9 +144,9 @@ up() {
   fi
   escribir_nginx
   if [[ -f "$BASE/nginx.pid" ]] && kill -0 "$(cat "$BASE/nginx.pid")" 2>/dev/null; then
-    nginx -p "$BASE" -e "$BASE/nginx-error.log" -c "$NGINX_CONF" -s reload
+    nginx -p "$BASE" "${NGINX_LOG[@]}" -c "$NGINX_CONF" -s reload
   else
-    nginx -p "$BASE" -e "$BASE/nginx-error.log" -c "$NGINX_CONF"
+    nginx -p "$BASE" "${NGINX_LOG[@]}" -c "$NGINX_CONF"
   fi
   if pgrep -f "airflow standalone" >/dev/null; then
     msg "Airflow ya está corriendo (para tomar cambios de configuración: make airflow-local-down)."
@@ -170,7 +176,7 @@ down() {
     sleep 1
   done
   for p in "${patrones[@]}"; do pkill -9 -f "$p" 2>/dev/null || true; done
-  [[ -f "$BASE/nginx.pid" ]] && nginx -p "$BASE" -e "$BASE/nginx-error.log" -c "$NGINX_CONF" -s stop 2>/dev/null || true
+  [[ -f "$BASE/nginx.pid" ]] && nginx -p "$BASE" "${NGINX_LOG[@]}" -c "$NGINX_CONF" -s stop 2>/dev/null || true
   msg "Airflow local y nginx detenidos."
 }
 
