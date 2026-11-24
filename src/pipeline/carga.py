@@ -56,8 +56,16 @@ TABLAS_A_CARGAR = [
 
 def sql_para_snowsight(entorno: str, tabla_snowflake: str, ddl: str) -> str:
     """El SQL exacto que se corre a mano en Snowsight para crear la tabla (USE ... + CREATE)."""
+    permiso = ""
+    if entorno == "prod":
+        # BIGDATA_PROD es el rol de Airflow en la VM: ningún usuario de Snowsight lo tiene asignado
+        # y ACCOUNTADMIN no puede crear tablas en BIGDATA.PROD. Hay que asignárselo una vez.
+        permiso = (
+            "-- Solo la primera vez, con ACCOUNTADMIN (tu usuario: SELECT CURRENT_USER();):\n"
+            'USE ROLE ACCOUNTADMIN;\nGRANT ROLE BIGDATA_PROD TO USER "<tu usuario>";\n'
+        )
     return (
-        f"USE ROLE BIGDATA_{entorno.upper()};\n"
+        permiso + f"USE ROLE BIGDATA_{entorno.upper()};\n"
         "USE WAREHOUSE BIGDATA_WH;\n"
         "USE DATABASE BIGDATA;\n"
         f"{ddl.format(tabla=tabla_snowflake)};"

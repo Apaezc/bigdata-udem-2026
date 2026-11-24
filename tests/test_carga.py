@@ -207,3 +207,14 @@ def _entorno_con_src() -> dict:
     entorno = dict(os.environ)
     entorno["PYTHONPATH"] = src + os.pathsep + entorno.get("PYTHONPATH", "")
     return entorno
+
+
+def test_el_sql_de_prod_incluye_el_permiso_del_rol_de_prod():
+    sql = carga.sql_para_snowsight("prod", "BIGDATA.PROD.T", carga.DDL_TARIFA_POR_MILLA)
+    assert 'GRANT ROLE BIGDATA_PROD TO USER "<tu usuario>";' in sql
+    assert sql.index("GRANT ROLE") < sql.index("USE ROLE BIGDATA_PROD;")
+
+
+def test_el_sql_de_dev_no_pide_ningun_permiso_extra():
+    sql = carga.sql_para_snowsight("dev", "BIGDATA.DEV.T", carga.DDL_TARIFA_POR_MILLA)
+    assert "GRANT" not in sql
