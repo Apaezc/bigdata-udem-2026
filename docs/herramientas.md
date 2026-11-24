@@ -28,7 +28,7 @@ Cada función que lee, escribe, consulta o borra **dice en voz alta dónde** (`L
 |---|---|
 | `src/pipeline/herramientas/` (esta página), `quality.py`, `engine.py`, `correr.py`, `run.py` | `agregar_metadatos` (en `bronze.py`) |
 | Los `main` de los cuatro pasos y `limpiar_viajes`, `clima_diario`, `limpiar_taxi_zones` y `enriquecer` | `deduplicar` (en `silver.py`) y las tablas resumen que quieras |
-| `debe_ingestar` y `registrar_ingesta` (en `bronze.py`, ya resueltas) | Tus tablas de gold: una función en `gold.py`, sumada a `TABLAS_GOLD` y a `LLAVES_DE_GOLD` |
+| `debe_ingestar` y `registrar_ingesta` (en `bronze.py`, ya resueltas) | Tus tablas de gold: una función en `gold.py`, sumada a `TABLAS_GOLD` |
 | El ejemplo de gold, `tarifa_por_milla_por_barrio`, y su `CREATE TABLE` | El `CREATE TABLE` de tu gold en `carga.py`, sumado a `TABLAS_A_CARGAR` |
 | `pipeline.yaml`, el DAG `pipeline_taxi` y el DAG `resetear_entorno` | Tus pruebas en `tests/` |
 
@@ -205,7 +205,7 @@ Nunca ignora una columna en silencio.
 
 Cada equipo **nombra sus tablas** y viven en `BIGDATA.DEV` (y, ya promovidas, en `BIGDATA.PROD`). Aquí el ejemplo de la casa; cambia el nombre por el de tu tabla.
 
-1. Escribe la función de tu gold en `gold.py` y súmala a `TABLAS_GOLD` y a `LLAVES_DE_GOLD`. Corre el paso gold.
+1. Escribe la función de tu gold en `gold.py` y súmala a `TABLAS_GOLD`. Corre el paso gold.
 2. Escribe el `CREATE TABLE` de tu tabla en `carga.py`, con las columnas de tu gold, y súmalo a `TABLAS_A_CARGAR` (ahí solo se guarda el texto: el código lo muestra, nunca lo ejecuta). La equivalencia de tipos:
 
    | Spark (gold) | Snowflake |

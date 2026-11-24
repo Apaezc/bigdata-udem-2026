@@ -34,7 +34,7 @@ CAJAS = [
     (
         "gold",
         "gold.py",
-        [("Modificar", ["TABLAS_GOLD y", "LLAVES_DE_GOLD"]), ("Crear", ["tu función de gold"])],
+        [("Modificar", ["TABLAS_GOLD"]), ("Crear", ["tu función de gold"])],
     ),
     (
         "snowflake",

@@ -115,7 +115,7 @@ En un merge, `--ours` es **tu fork** y `--theirs` es **la casa** (el repositorio
 | Cualquier otro de `src/`, `airflow/`, `Makefile`, `scripts/`, `infra/` o `tests/` | Cambios de la casa | `--theirs`; no se editan a mano |
 | Algo dentro de `taller2/` | No debería chocar | Avisa al instructor |
 
-Cómo volver a poner tu cambio en `silver.py` o `gold.py`: las funciones `limpiar_viajes`, `clima_diario` y `enriquecer` (en silver) **conservan nombre y firma**, así que tu cambio cabe en el mismo lugar. En gold, `metricas_diarias_zona` y `COLUMNAS` eran de la clase 6 y ya no están: si tu equipo las tenía, copia tu función a `gold.py` y súmala a `TABLAS_GOLD` y `LLAVES_DE_GOLD`.
+Cómo volver a poner tu cambio en `silver.py` o `gold.py`: las funciones `limpiar_viajes`, `clima_diario` y `enriquecer` (en silver) **conservan nombre y firma**, así que tu cambio cabe en el mismo lugar. En gold, `metricas_diarias_zona` y `COLUMNAS` eran de la clase 6 y ya no están: si tu equipo las tenía, copia tu función a `gold.py` y súmala a `TABLAS_GOLD`.
 
 ```bash
 cd ~/bigdata
