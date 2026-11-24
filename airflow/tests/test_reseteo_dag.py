@@ -41,9 +41,7 @@ def test_solo_listar_no_pide_confirmacion():
     assert valores == {"entorno": "dev", "solo_listar": True, "conservar_crudo": False}
 
 
-@pytest.mark.parametrize(
-    "escrito", ["", "borrar", "borrar prod", "BORRAR DEV", "borrar dev ahora", "dev"]
-)
+@pytest.mark.parametrize("escrito", ["", "borrar", "borrar prod", "borrar dev ahora", "dev"])
 def test_una_confirmacion_mala_no_deja_borrar_en_dev(escrito):
     from framework.tasks import ParametrosNoPermitidos, validar_reseteo
 
@@ -54,7 +52,7 @@ def test_una_confirmacion_mala_no_deja_borrar_en_dev(escrito):
 def test_la_confirmacion_correcta_deja_borrar_en_dev():
     from framework.tasks import validar_reseteo
 
-    for escrito in ("borrar dev", "  borrar   dev  "):
+    for escrito in ("borrar dev", "  borrar   dev  ", "BORRAR DEV", "«Borrar dev»"):
         valores = validar_reseteo("dev", _formulario(solo_listar=False, confirmacion=escrito))
         assert valores["solo_listar"] is False
 
