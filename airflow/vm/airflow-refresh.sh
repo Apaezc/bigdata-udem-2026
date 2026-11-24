@@ -53,5 +53,11 @@ print("AIRFLOW_CONN_SNOWFLAKE_DEFAULT=\x27" + c + "\x27")
     || { : > "$AIRFLOW_HOME/snowflake.env"; echo "AVISO: el secreto de Snowflake no es un JSON de conexion valido"; }
 fi
 unset SNOW_JSON
+
+# Bucket del lake para los contenedores (pipeline.herramientas.rutas lo lee de LAKE_BUCKET;
+# en prod nunca se adivina). Sin esta línea correr_bronze falla con «Falta LAKE_BUCKET».
+echo "LAKE_BUCKET=$LAKE" > "$AIRFLOW_HOME/lake.env"
+chmod 600 "$AIRFLOW_HOME/lake.env"
+chown 50000:0 "$AIRFLOW_HOME/lake.env"
 chmod 600 "$AIRFLOW_HOME/snowflake.env"
 chown 50000:0 "$AIRFLOW_HOME/snowflake.env"
