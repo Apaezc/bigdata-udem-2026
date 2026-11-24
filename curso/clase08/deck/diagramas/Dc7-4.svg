@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 440" font-family="Helvetica Neue, Arial, sans-serif">
+<title>La escalera de dev a prod: siete peldaños, y prod solo se alcanza por PR y CI/CD</title><desc>Siete peldaños que suben de izquierda a derecha. Los cuatro primeros son dev, desde el Code Editor: notebook y make test, make correr con code_editor, make correr con glue_small y Airflow del Code Editor. Una línea punteada separa dev de prod. Los tres últimos son prod: pull request y CI, merge y Deploy, y el DAG en la VM.</desc>
+<defs><marker id="m_a" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#2340D8"/></marker><marker id="m_g" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#5F6672"/></marker><marker id="m_b" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#B4622F"/></marker><marker id="m_y" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#FFC83D"/></marker><marker id="m_r" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#B3261E"/></marker></defs>
+<rect x="6" y="340" width="148" height="84" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
+<text x="80.0" y="376.5" font-size="22" fill="#15171C" text-anchor="middle" font-weight="700">Notebook</text>
+<text x="80.0" y="403.5" font-size="22" fill="#5F6672" text-anchor="middle">y make test</text>
+<rect x="164" y="294" width="148" height="84" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
+<text x="238.0" y="330.5" font-size="22" fill="#15171C" text-anchor="middle" font-weight="700">make correr</text>
+<text x="238.0" y="357.5" font-size="22" fill="#5F6672" text-anchor="middle">code_editor</text>
+<rect x="322" y="248" width="148" height="84" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
+<text x="396.0" y="284.5" font-size="22" fill="#15171C" text-anchor="middle" font-weight="700">make correr</text>
+<text x="396.0" y="311.5" font-size="22" fill="#5F6672" text-anchor="middle">glue_small</text>
+<rect x="480" y="202" width="148" height="84" rx="6" fill="#F0EEE7" stroke="#5F6672" stroke-width="1.5"/>
+<text x="554.0" y="238.5" font-size="22" fill="#15171C" text-anchor="middle" font-weight="700">Airflow del</text>
+<text x="554.0" y="265.5" font-size="22" fill="#5F6672" text-anchor="middle">Code Editor</text>
+<rect x="638" y="156" width="148" height="84" rx="6" fill="#FFFFFF" stroke="#15171C" stroke-width="3"/>
+<text x="712.0" y="192.5" font-size="22" fill="#15171C" text-anchor="middle" font-weight="700">Pull request</text>
+<text x="712.0" y="219.5" font-size="22" fill="#5F6672" text-anchor="middle">y CI</text>
+<rect x="796" y="110" width="148" height="84" rx="6" fill="#FFFFFF" stroke="#15171C" stroke-width="3"/>
+<text x="870.0" y="146.5" font-size="22" fill="#15171C" text-anchor="middle" font-weight="700">Merge y</text>
+<text x="870.0" y="173.5" font-size="22" fill="#5F6672" text-anchor="middle">Deploy</text>
+<rect x="954" y="64" width="148" height="84" rx="6" fill="#FFFFFF" stroke="#15171C" stroke-width="3"/>
+<text x="1028.0" y="100.5" font-size="22" fill="#15171C" text-anchor="middle" font-weight="700">DAG en la</text>
+<text x="1028.0" y="127.5" font-size="22" fill="#5F6672" text-anchor="middle">VM (prod)</text>
+<line x1="633" y1="66" x2="633" y2="432" stroke="#B3261E" stroke-width="2.5" stroke-dasharray="8 6"/>
+<text x="621" y="36" font-size="22" fill="#15171C" text-anchor="end" font-weight="700">dev: todo desde el Code Editor</text>
+<text x="645" y="36" font-size="22" fill="#B3261E" text-anchor="start" font-weight="700">prod: solo por PR y CI/CD</text>
+</svg>
