@@ -39,11 +39,13 @@ Qué esperan encontrar y por qué. Una hipótesis que puede resultar falsa es me
 | Definición exacta | <fórmula, umbrales, qué pasa con los nulos> |
 | Por qué lo necesita la pregunta | <una o dos frases: qué no se podía responder sin este cambio> |
 
-## 5. Cómo se probará
+## 5. Cómo se comprobará
 
-- **Pruebas con pytest** (mínimo tres): un caso normal, un caso límite (por ejemplo, justo en el umbral) y un caso con datos malos (nulos o valores imposibles). Describe cada una en una línea con su entrada y su resultado esperado.
-- **Archivo de pruebas:** <`tests/test_silver.py` u otro>
-- **CI:** el PR debe tener los cinco checks en verde antes del merge. Revisor: <integrante distinto de quien escribe el cambio>
+No se escriben pruebas propias: el cambio se comprueba con cifras.
+
+- **Cifras de Athena:** qué consultas sobre silver y gold mostrarán que el cambio hace lo que dice (por ejemplo, conteos por valor de la columna nueva en la tabla del equipo en Snowflake, o en el cuaderno con `limite="1000"`), y la comprobación de que silver no tiene duplicados (`COUNT(*)` contra `COUNT(DISTINCT _hash_fila)`).
+- **Cifras de Snowflake:** qué suma de `viajes` de la tabla del equipo en Snowflake se comparará con las filas de silver (`COUNT(*)` en Athena).
+- **CI y revisión:** el PR debe tener los cinco checks en verde antes del merge. Revisor: <integrante distinto de quien escribe el cambio>
 - **Corrida en Glue:** parámetros previstos (`computo`, `mes`): <valores>
 
 ## 6. Qué cifra responderá la pregunta
@@ -58,7 +60,7 @@ Qué esperan encontrar y por qué. Una hipótesis que puede resultar falsa es me
 | Riesgo | Cómo lo manejaremos |
 |---|---|
 | <por ejemplo, la lluvia se repite en todas las filas del día> | <guardarla una vez por día; contar días con `COUNT(DISTINCT FECHA)`> |
-| <por ejemplo, el cambio deja nulos en silver> | <regla y prueba para ese caso> |
+| <por ejemplo, el cambio deja nulos en silver> | <regla y consulta de Athena que cuente esos casos> |
 | <por ejemplo, Glue se queda sin presupuesto> | <correr un solo mes; apagar al terminar cada sesión> |
 
 ## 8. Acuerdos de trabajo
@@ -90,9 +92,9 @@ Qué esperan encontrar y por qué. Una hipótesis que puede resultar falsa es me
 
 **4. Cambio.** Capa: silver. Archivo: `src/pipeline/silver.py`, dentro de `enriquecer`. Se agrega la columna `RANGO_DISTANCIA` con tres valores: `corto` (menos de 3 millas), `medio` (de 3 a 8) y `largo` (más de 8). Una distancia nula queda como `desconocido`; en el límite exacto, 3.0 es `medio` y 8.0 es `medio`. Gold agrega los viajes por fecha, zona, empresa y `RANGO_DISTANCIA`. Lo necesita la pregunta porque el gold actual solo guarda la distancia promedio del grupo, y con un promedio no se puede separar largos de cortos.
 
-**5. Pruebas.** (a) Una fila de 2.5 millas queda `corto`. (b) Una fila de exactamente 8.0 millas queda `medio`. (c) Una fila con distancia nula queda `desconocido` y no se descarta. Archivo: `tests/test_silver.py`. Revisor del PR: Laura P. Corrida en Glue: `computo=glue_medium`, `mes=2024-01`.
+**5. Cómo se comprobará.** En Snowflake, conteo de viajes de la tabla del equipo por `RANGO_DISTANCIA`; en el cuaderno, que 2.5 millas cae en `corto` y 8.0 en `medio`. En Athena, `COUNT(*)` contra `COUNT(DISTINCT _hash_fila)` en silver. En Snowflake, la suma de `viajes` de la tabla del equipo contra las filas de silver. Revisor del PR: Laura P. Corrida en Glue: `computo=glue_medium`, `mes=2024-01`.
 
-**6. Cifra.** Se calcula en Snowflake, sobre gold, la diferencia porcentual de viajes entre día lluvioso (más de 10 mm) y día seco, por cada `RANGO_DISTANCIA`, usando días y no filas. Si la caída de `largo` es mayor que la de `corto`, la hipótesis se sostiene. Conciliación: filas de bronze menos descartes de silver igual a filas de silver; suma de viajes en silver igual a la de gold; viajes en Snowflake igual a lo registrado en la tabla de control.
+**6. Cifra.** Se calcula en Snowflake, sobre gold, la diferencia porcentual de viajes entre día lluvioso (más de 10 mm) y día seco, por cada `RANGO_DISTANCIA`, usando días y no filas. Si la caída de `largo` es mayor que la de `corto`, la hipótesis se sostiene. Conciliación: filas de bronze menos descartes de silver igual a filas de silver; filas de silver iguales a la suma de `viajes` de gold; filas de la tabla en Snowflake igual a `FILAS` de la tabla de control; `SUM(VIAJES)` igual a las filas de silver.
 
 **7. Riesgos.** La lluvia se repite en todas las filas del día: se guarda una vez por día. Pocos días de lluvia fuerte en enero: se reporta cuántos son (n) en el informe. Presupuesto de Glue: un solo mes y apagar al terminar.
 

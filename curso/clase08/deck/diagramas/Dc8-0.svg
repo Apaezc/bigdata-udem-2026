@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 440" width="1120" height="440">
+<rect width="1120" height="440" fill="#FFFFFF"/>
+<rect x="15" y="20" width="250" height="330" rx="10" fill="#F6E9E0" stroke="#B4622F" stroke-width="3"/>
+<text x="31" y="62" font-family="Helvetica Neue, Arial, sans-serif" font-size="28" font-weight="700" fill="#B4622F">bronze.py</text>
+<text x="31" y="108" font-family="Helvetica Neue, Arial, sans-serif" font-size="22" font-weight="700" fill="#5F6672">Revisar</text>
+<text x="31" y="135" font-family="Helvetica Neue, Arial, sans-serif" font-size="22" fill="#15171C">debe_ingestar</text>
+<text x="31" y="162" font-family="Helvetica Neue, Arial, sans-serif" font-size="22" fill="#15171C">registrar_ingesta</text>
+<text x="31" y="212" font-family="Helvetica Neue, Arial, sans-serif" font-size="22" font-weight="700" fill="#B3261E">Completar</text>
+<text x="31" y="239" font-family="Helvetica Neue, Arial, sans-serif" font-size="22" fill="#15171C">agregar_metadatos</text>
+<path d="M269 185 L291 185" stroke="#5F6672" stroke-width="3"/>
+<rect x="295" y="20" width="250" height="330" rx="10" fill="#E4E8EE" stroke="#6E7F94" stroke-width="3"/>
+<text x="311" y="62" font-family="Helvetica Neue, Arial, sans-serif" font-size="28" font-weight="700" fill="#6E7F94">silver.py</text>
+<text x="311" y="108" font-family="Helvetica Neue, Arial, sans-serif" font-size="22" font-weight="700" fill="#B3261E">Completar</text>
+<text x="311" y="135" font-family="Helvetica Neue, Arial, sans-serif" font-size="22" fill="#15171C">deduplicar</text>
+<text x="311" y="185" font-family="Helvetica Neue, Arial, sans-serif" font-size="22" font-weight="700" fill="#15171C">Modificar</text>
+<text x="311" y="212" font-family="Helvetica Neue, Arial, sans-serif" font-size="22" fill="#15171C">limpiar_viajes</text>
+<text x="311" y="239" font-family="Helvetica Neue, Arial, sans-serif" font-size="22" fill="#15171C">o enriquecer</text>
+<path d="M549 185 L571 185" stroke="#5F6672" stroke-width="3"/>
+<rect x="575" y="20" width="250" height="330" rx="10" fill="#F4EBD2" stroke="#B07F0E" stroke-width="3"/>
+<text x="591" y="62" font-family="Helvetica Neue, Arial, sans-serif" font-size="28" font-weight="700" fill="#B07F0E">gold.py</text>
+<text x="591" y="108" font-family="Helvetica Neue, Arial, sans-serif" font-size="22" font-weight="700" fill="#15171C">Modificar</text>
+<text x="591" y="135" font-family="Helvetica Neue, Arial, sans-serif" font-size="22" fill="#15171C">TABLAS_GOLD</text>
+<text x="591" y="185" font-family="Helvetica Neue, Arial, sans-serif" font-size="22" font-weight="700" fill="#2340D8">Crear</text>
+<text x="591" y="212" font-family="Helvetica Neue, Arial, sans-serif" font-size="22" fill="#15171C">tu función de gold</text>
+<path d="M829 185 L851 185" stroke="#5F6672" stroke-width="3"/>
+<rect x="855" y="20" width="250" height="330" rx="10" fill="#E3E6F6" stroke="#2340D8" stroke-width="3"/>
+<text x="871" y="62" font-family="Helvetica Neue, Arial, sans-serif" font-size="28" font-weight="700" fill="#2340D8">carga.py</text>
+<text x="871" y="108" font-family="Helvetica Neue, Arial, sans-serif" font-size="22" font-weight="700" fill="#5F6672">Revisar</text>
+<text x="871" y="135" font-family="Helvetica Neue, Arial, sans-serif" font-size="22" fill="#15171C">cargar_gold</text>
+<text x="871" y="185" font-family="Helvetica Neue, Arial, sans-serif" font-size="22" font-weight="700" fill="#2340D8">Crear</text>
+<text x="871" y="212" font-family="Helvetica Neue, Arial, sans-serif" font-size="22" fill="#15171C">DDL y tabla en Snowsight</text>
+<text x="15" y="395" font-family="Helvetica Neue, Arial, sans-serif" font-size="22" fill="#5F6672">Revisar: entender, no tocar.  Completar: obligatorio.</text>
+<text x="15" y="425" font-family="Helvetica Neue, Arial, sans-serif" font-size="22" fill="#5F6672">Modificar y Crear: según tu contrato.</text>
+</svg>
