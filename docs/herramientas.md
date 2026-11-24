@@ -30,7 +30,7 @@ Cada función que lee, escribe, consulta o borra **dice en voz alta dónde** (`L
 | Los `main` de los cuatro pasos y `limpiar_viajes`, `clima_diario`, `limpiar_taxi_zones` y `enriquecer` | `deduplicar` (en `silver.py`) y las tablas resumen que quieras |
 | `debe_ingestar` y `registrar_ingesta` (en `bronze.py`, ya resueltas) | Tus tablas de gold: una función en `gold.py`, sumada a `TABLAS_GOLD` |
 | El ejemplo de gold, `tarifa_por_milla_por_barrio`, y su `CREATE TABLE` | El `CREATE TABLE` de tu gold en `carga.py`, sumado a `TABLAS_A_CARGAR` |
-| `pipeline.yaml`, el DAG `pipeline_taxi` y el DAG `resetear_entorno` | Tus pruebas en `tests/` |
+| `pipeline.yaml`, el DAG `pipeline_taxi` y el DAG `resetear_entorno` | Nada más: las pruebas de `agregar_metadatos` y `deduplicar` ya están en `tests/test_equipo_*.py`. |
 
 Tres reglas de la caja: los equipos importan con el nombre del archivo (`from pipeline.herramientas.<archivo> import ...`), nunca desde `pipeline.herramientas` a secas; la caja nunca importa `bronze.py`, `silver.py`, `gold.py` ni `carga.py` (así no hay ciclos); y todo lo que toca el lake dice en voz alta dónde.
 

@@ -130,7 +130,7 @@ WHERE mes = '2024-01';
 
 -- C1. Gold agrega: no tiene una fila por viaje sino una por (fecha, barrio, franja). Lo que se
 --     compara es la SUMA de su columna viajes contra las filas de silver. Si el pipeline está
---     sano, la relación vale 1. Tras reprocesar una vez, vale 8 (no 2).
+--     sano, la relación vale 1. Tras reprocesar una vez, vale 4 (8 contra la cifra limpia).
 SELECT
   (SELECT sum(viajes) FROM bigdata_lake.dev_gold_tarifa_por_milla_barrio
    WHERE mes = '2024-01') AS viajes_en_gold,
