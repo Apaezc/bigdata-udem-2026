@@ -8,15 +8,16 @@ El Taller 2 vale 100 puntos y, junto con el Taller 1, forma la nota de talleres,
 
 En el Taller 1 respondieron preguntas sobre una tabla que ya venía lista. En las clases 5 y 6 construyeron una versión de práctica para entender el problema (la ingesta a su propio disco y el lab de silver y gold). En la clase 7 corrieron, de punta a punta y en dev, el pipeline de la casa (`pipeline_taxi`): bronze con la puerta de la tabla de control, silver, gold y la carga a Snowflake, y vieron cómo se pasa a prod con un PR y el CI/CD. Este taller les pide algo distinto: **extender ese pipeline** para responder **una pregunta que ustedes mismos eligen** sobre la lluvia y los viajes de NYC, y demostrar que la respuesta es confiable.
 
-Una respuesta confiable no es solo un número. Es un número que se puede reproducir (porque el código está probado y versionado), que viene de un pipeline que corre completo en la nube, y que cuadra con lo que había en cada capa del camino. Ese es el problema real del taller: **¿cómo sé que la cifra que le voy a dar a alguien es la correcta?** Las herramientas (pytest, Git, Glue, la tabla de control) están al servicio de esa pregunta.
+Una respuesta confiable no es solo un número. Es un número que se puede reproducir (porque el código está versionado y pasa la revisión y el CI), que viene de un pipeline que corre completo en la nube, y que cuadra con lo que había en cada capa del camino. Ese es el problema real del taller: **¿cómo sé que la cifra que le voy a dar a alguien es la correcta?** Las herramientas (Git, Glue, la tabla de control) están al servicio de esa pregunta.
 
-## 2. Los cinco entregables
+## 2. Los cuatro entregables
 
-1. **El cambio del equipo en el código de su fork.** Tiene dos partes. Primera: las dos funciones que el pipeline deja pendientes a propósito, `agregar_metadatos` (en `bronze.py`) y `deduplicar` (en `silver.py`); sus pruebas pasan de `PENDIENTE` a `OK`. Segunda: lo que su pregunta necesita: una **tabla de gold propia** (una función en `src/pipeline/gold.py`, más su `CREATE TABLE` en `src/pipeline/carga.py`) y, si hace falta, una columna o una regla nueva en `src/pipeline/silver.py`.
-2. **Pruebas del cambio, con CI en verde.** El cambio tiene pruebas con pytest en `tests/`, y el pull request que lo incorpora pasa los checks automáticos de GitHub (Ruff, pytest y la integridad de los DAGs).
-3. **El pipeline completo, corrido desde Airflow en la nube.** El DAG `pipeline_taxi`, con el código del fork del equipo, corre en el Airflow del Code Editor del anfitrión con `computo = glue_small` y termina con sus cuatro tareas (`correr_bronze`, `correr_silver`, `correr_gold` y `cargar_snowflake`) en `success`.
-4. **Conciliación entre capas y respuesta en Snowflake.** Con la tabla de control (`BIGDATA.CONTROL_DEV.WATERMARK`) y consultas sobre bronze, silver y gold, el equipo muestra que las cifras cuadran de una capa a la siguiente, explica cualquier diferencia, y escribe la consulta en Snowflake que responde la pregunta, sobre la tabla del equipo en `BIGDATA.DEV`.
-5. **Costo y calidad documentados.** Un informe corto con lo que costó correr el pipeline (créditos de Snowflake y tiempo de Glue con los workers usados), las reglas de calidad que se aplicaron y lo que detectaron.
+1. **El cambio del equipo en el código de su fork.** Tiene dos partes. Primera: las dos funciones que el pipeline deja pendientes a propósito, `agregar_metadatos` (en `bronze.py`) y `deduplicar` (en `silver.py`); sus pruebas (que ya existen en `tests/test_equipo_*.py`) pasan de `PENDIENTE` a `OK`. Segunda: lo que su pregunta necesita: una **tabla de gold propia** (una función en `src/pipeline/gold.py`, más su `CREATE TABLE` en `src/pipeline/carga.py`) y, si hace falta, una columna o una regla nueva en `src/pipeline/silver.py`.
+2. **El pipeline completo, corrido desde Airflow en la nube.** El DAG `pipeline_taxi`, con el código del fork del equipo, corre en el Airflow del Code Editor del anfitrión con `computo = glue_small` y termina con sus cuatro tareas (`correr_bronze`, `correr_silver`, `correr_gold` y `cargar_snowflake`) en `success`.
+3. **Conciliación entre capas y respuesta en Snowflake.** Con la tabla de control (`BIGDATA.CONTROL_DEV.WATERMARK`) y consultas sobre bronze, silver y gold, el equipo muestra que las cifras cuadran de una capa a la siguiente, explica cualquier diferencia, y escribe la consulta en Snowflake que responde la pregunta, sobre la tabla del equipo en `BIGDATA.DEV`.
+4. **Costo y calidad documentados.** Un informe corto con lo que costó correr el pipeline (créditos de Snowflake y tiempo de Glue con los workers usados), la explicación de cómo aseguraron que no llegaran duplicados de silver a gold (con evidencia en Athena) y las reglas de calidad que se aplicaron y lo que detectaron.
+
+La integración a `main` también cuenta (criterio 3, 5 puntos): el cambio llega con un pull request revisado por otro integrante y con los cinco checks del CI en verde (sección 7). Eso no es un entregable aparte: se ve en el PR.
 
 > **Qué quiere decir «con las funciones del equipo».** En la clase 6 se dijo que el pipeline correría en Glue «con las funciones del equipo». Lo que eso significa es **«con el código de su fork»**. En Glue corre el `bronze.py` de la casa, que hace lo mismo que las cuatro funciones de ingesta que escribieron en la clase 5; esas funciones ya no están en el repositorio: se quedaron en el material de las clases 5 y 6 (etiqueta `antes-limpieza-clase07`) y no son parte del pipeline. El código de ustedes vuelve a escena aquí: en `bronze.py` (los metadatos), en `silver.py` (`deduplicar` y lo que necesite su pregunta), en `gold.py` y en `carga.py`.
 
@@ -41,7 +42,7 @@ Los equipos son los mismos del Taller 1, con el mismo anfitrión (el integrante 
 |---|---|---|
 | Analista de negocio y cumplimiento | La pregunta, las definiciones (por ejemplo, qué es «un día con lluvia»), que se cumpla el contrato y el informe | Cualquiera de los otros tres |
 | Modelador SQL | La conciliación entre capas y la consulta que responde la pregunta | Cualquiera de los otros tres |
-| Ingeniero de datos | El cambio en silver o gold y sus pruebas | Cualquiera de los otros tres |
+| Ingeniero de datos | El cambio en silver o gold | Cualquiera de los otros tres |
 | Operador cloud y calidad | Glue, Airflow, el costo, las reglas de calidad y apagar todo al terminar | Cualquiera de los otros tres |
 
 Si el equipo tiene tres integrantes, quien tenga el rol de analista asume también el de modelador. Si hay un solo integrante, asume los cuatro y lo anota en `contrato.md`. La rotación se escribe en el contrato (sección 1) y el equipo la respeta salvo que el instructor autorice un cambio.
@@ -97,7 +98,7 @@ Ejemplos de preguntas y del cambio que exigen:
 | ¿Se descartan más viajes los días de lluvia? | Cuántos viajes descarta silver cada día | **No es una tabla del pipeline.** Se resuelve como conciliación en SQL: los descartes por tipo se cuentan comparando bronze (las tablas `dev_bronze_*` de Athena, que leen los lotes) con silver (sección 10) |
 | ¿Cómo cambia la propina con lluvia fuerte? | Una variable que distinga lluvia fuerte de ligera | Columna `nivel_lluvia` (umbrales escritos en el contrato), en silver o en tu función de gold |
 
-Tres reglas para elegir el cambio. Primera: debe ser **pequeño y verificable**; es mejor una columna bien probada que tres a medio hacer. Segunda: debe poder explicarse en dos frases y probarse con pocas filas escritas a mano en el test. Tercera: el pipeline exige que cada tabla de gold tenga una **clave única** (`LLAVES_DE_GOLD`): si cambian el grano (por ejemplo, agregar por `rango_distancia`), hay que agregar esa columna a la clave, o la corrida falla con `QualityError`. Todo esto se acuerda con el instructor al llenar `contrato.md`.
+Tres reglas para elegir el cambio. Primera: debe ser **pequeño y verificable**; es mejor una columna bien comprobada que tres a medio hacer. Segunda: debe poder explicarse en dos frases y comprobarse con una consulta de Athena sobre pocas filas. Tercera: debe dejar claro el **grano** de su tabla de gold (qué representa cada fila; por ejemplo, un grupo por `rango_distancia`). Todo esto se acuerda con el instructor al llenar `contrato.md`.
 
 Un cambio que muchos equipos van a considerar: `silver.py` **filtra pero no deduplica**. Los descartes de enero (13 907 viajes) vienen de los filtros, no de duplicados. Deduplicar por `_hash_fila` es justo lo que hace la función `deduplicar` que el equipo debe escribir (entregable 1); no lo cuenten como el cambio de su pregunta.
 
@@ -107,13 +108,13 @@ Si ya firmaron en el contrato una idea que el pipeline no soporta tal cual (una 
 
 Para que el cambio llegue a la respuesta, estos son los pasos, en este orden. Todos los comandos empiezan con `cd ~/bigdata`.
 
-**El banco de trabajo del equipo es el notebook** `curso/clase07/01_construir_paso_a_paso.ipynb` (cópienlo a una carpeta suya, como en la clase 7). Ahí cambian o agregan pasos a cada función, las prueban con `limite="1000"` contra el dev de verdad, y la Celda 35 les dice cuáles difieren de los `.py` (`DISTINTO`): esas son las que copian al archivo. La Celda 36 corre las pruebas del equipo con las funciones del notebook.
+**El banco de trabajo del equipo es el notebook** `curso/clase07/01_construir_paso_a_paso.ipynb` (cópienlo a una carpeta suya, como en la clase 7). Ahí cambian o agregan pasos a cada función, las prueban con `limite="1000"` contra el dev de verdad, y la Celda 35 les dice cuáles difieren de los `.py` (`DISTINTO`): esas son las que copian al archivo. La Celda 36 corre con las funciones del notebook las pruebas que ya existen para `agregar_metadatos` y `deduplicar`.
 
-1. **`bronze.py` y `silver.py`.** Escriban `agregar_metadatos` y `deduplicar` primero en el notebook (Celdas 18 y 27), pruébenlas con `probar_mis_funciones` (Celda 36) y cuando salgan `OK` copien cada función completa a su archivo y borren la marca `# PENDIENTE(equipo)`. Después `make test`: sus pruebas pasan de `PENDIENTE` a `OK`.
+1. **`bronze.py` y `silver.py`.** Escriban `agregar_metadatos` y `deduplicar` primero en el notebook (Celdas 18 y 27), pruébenlas con `probar_mis_funciones` (Celda 36) y cuando salgan `OK` copien cada función completa a su archivo y borren la marca `# PENDIENTE(equipo)`. Después `make test`: las pruebas existentes de esas dos funciones pasan de `PENDIENTE` a `OK`.
 2. **`silver.py` (solo si la pregunta lo necesita).** La columna nueva o la regla, dentro de `limpiar_viajes` o de `enriquecer`. Si el contrato tiene un cambio aquí, sigue valiendo: ahora se ejecuta en el paso gold.
-3. **`gold.py`.** Una función nueva que recibe el enriquecido y devuelve su tabla. Súmenla a `TABLAS_GOLD` con un nombre que lleve el de su equipo, y sus columnas llave a `LLAVES_DE_GOLD`.
+3. **`gold.py`.** Una función nueva que recibe el enriquecido y devuelve su tabla. Súmenla a `TABLAS_GOLD` con un nombre que lleve el de su equipo.
 4. **`carga.py`.** El `CREATE TABLE` de su tabla, con las columnas de su gold y los tipos equivalentes (`date` es `DATE`; `string`, `VARCHAR`; `bigint` o `int`, `NUMBER(38,0)`; `double`, `FLOAT`), sumado a `TABLAS_A_CARGAR`. El código solo muestra ese texto: cada equipo **crea su propia tabla a mano, en Snowsight**, ejecutando ese `CREATE TABLE` (con `USE ROLE BIGDATA_DEV; USE WAREHOUSE BIGDATA_WH; USE DATABASE BIGDATA;` antes). Si la tabla falta, `cargar_snowflake` se detiene e imprime el SQL exacto para ejecutar; luego se vuelve a correr.
-5. **Pruebas.** En `tests/`, y `make test` en verde.
+5. **Comprobar en local.** `make test` en verde (Ruff y las pruebas que ya trae el repositorio, entre ellas las de `agregar_metadatos` y `deduplicar`).
 6. **PR, revisión y merge** (sección 7). Después del merge, el anfitrión hace `git switch main && git pull` y apaga la VM de prod si se encendió.
 7. **Correr el pipeline.** En el Airflow del Code Editor del anfitrión, `pipeline_taxi` con `computo = glue_small`, `limite = todos` y `mes = 2024-01` (para que la respuesta sea del mes completo; con `limite = 1000` solo se prueba).
 8. **La respuesta.** Sale de `BIGDATA.DEV.<TABLA_DE_SU_EQUIPO>`.
@@ -150,14 +151,14 @@ git switch -c t2-nivel-lluvia
 
 ### 7.2 Hacer el cambio y comprobarlo en local
 
-Edita `src/pipeline/silver.py` o `src/pipeline/gold.py` y escribe la prueba en `tests/`. Antes de subir nada, comprueba que todo pasa:
+Edita `src/pipeline/silver.py` o `src/pipeline/gold.py`. Antes de subir nada, comprueba que todo pasa:
 
 ```bash
 cd ~/bigdata
 make test
 ```
 
-`make test` ejecuta Ruff (revisa estilo y errores evidentes) y pytest (corre las pruebas). Es lo mismo que ejecutará GitHub después; si falla aquí, fallará allá.
+`make test` ejecuta Ruff (revisa estilo y errores evidentes) y pytest (corre las pruebas que ya trae el repositorio). Es lo mismo que ejecutará GitHub después; si falla aquí, fallará allá.
 
 **Debes ver:** al final, algo como `N passed` sin ninguna línea `FAILED`.
 
@@ -166,8 +167,8 @@ make test
 ```bash
 cd ~/bigdata
 git status
-git add src/pipeline/silver.py tests/test_silver.py
-git commit -m "Agrega NIVEL_LLUVIA a silver con su prueba"
+git add src/pipeline/silver.py
+git commit -m "Agrega NIVEL_LLUVIA a silver"
 ```
 
 - `git status` lista qué archivos cambiaron; revísalo antes de guardar.
@@ -198,7 +199,7 @@ Si un check sale en rojo, abre **Details**, lee el error, corrígelo en tu rama,
 
 ### 7.6 Revisión y merge
 
-Otro integrante (no quien escribió el cambio) revisa el PR: abre la pestaña **Files changed**, lee el cambio y deja al menos un comentario o una aprobación con **Review changes > Approve**. Cuando el CI esté en verde y haya revisión, quien escribió el cambio hace clic en **Merge pull request** y luego en **Confirm merge**. El merge incorpora la rama a `main`.
+Otro integrante (no quien escribió el cambio) revisa el PR: abre la pestaña **Files changed**, lee el cambio y aprueba con **Review changes > Approve** (un comentario solo no cuenta para el criterio 3). Cuando el CI esté en verde y haya revisión, quien escribió el cambio hace clic en **Merge pull request** y luego en **Confirm merge**. El merge incorpora la rama a `main`.
 
 Después del merge, el workflow **Deploy** (pestaña **Actions**) publica el código nuevo y los DAGs de **prod** y, si cambiaron `src/` o `airflow/`, enciende la VM de Airflow de prod. Espera a que termine en verde. Para la evidencia del taller no se usa esa VM: se usa el Airflow del Code Editor del anfitrión, que corre el código de su árbol de trabajo, así que hay que traer `main`. En la terminal del anfitrión:
 
@@ -228,11 +229,10 @@ mkdir -p taller2 && cp curso/taller2/contrato.md taller2/
 |---|---|
 | `taller2/contrato.md` | El contrato lleno el 18 de nov., actualizado si algo cambió (con una nota de qué cambió y por qué) |
 | `src/pipeline/bronze.py`, `silver.py`, `gold.py` y `carga.py` | El cambio del equipo: `agregar_metadatos`, `deduplicar`, la tabla de gold propia y su `CREATE TABLE` |
-| `tests/test_silver.py`, `tests/test_gold.py` o un archivo nuevo en `tests/` | Las pruebas del cambio (las de `agregar_metadatos` y `deduplicar` ya están en `tests/test_equipo_*.py`) |
 | `taller2/conciliacion.sql` | Las consultas que comparan filas y cifras entre bronze, silver, gold y Snowflake, con un comentario que interprete cada resultado |
 | `taller2/respuesta.sql` | La consulta de Snowflake que responde la pregunta, con la cifra final en un comentario |
-| `taller2/informe.md` | Una a dos páginas: la respuesta a la pregunta en lenguaje claro, la conciliación resumida, el costo y la calidad (sección 9) |
-| `taller2/evidencia/` | Capturas, todas de la cuenta del anfitrión: el PR con el CI en verde, el DAG `pipeline_taxi` del Airflow del Code Editor con las cuatro tareas en `success` (y `computo = glue_small` en los parámetros), el job de Glue terminado y el resultado de `respuesta.sql` |
+| `taller2/informe.md` | Una a dos páginas: la respuesta a la pregunta en lenguaje claro, la conciliación resumida, el costo y la calidad de datos (sección 9) |
+| `taller2/evidencia/` | Capturas, todas de la cuenta del anfitrión: el PR con el CI en verde, el DAG `pipeline_taxi` del Airflow del Code Editor con las cuatro tareas en `success` (y `computo = glue_small` en los parámetros), el job de Glue terminado, el resultado de `respuesta.sql` y las capturas de las consultas de Athena de la sección 9 (antes, después y reproceso) |
 | Coevaluación | Una por integrante, con el enlace que dé el instructor |
 
 Además: el PR del cambio debe aparecer fusionado (*merged*) en el historial del repositorio, y el release `t2-entrega` debe estar publicado.
@@ -241,7 +241,40 @@ Además: el PR del cambio debe aparecer fusionado (*merged*) en el historial del
 
 **Costo.** Los créditos de Snowflake que gastó el equipo en el taller (misma consulta de `costos.md` del Taller 1, con la fecha ajustada) y, para Glue, el trabajo que lanzaron: con cuántos workers, cuánto duró y cuántos meses procesó. Si corrieron con `glue_small` (2 workers) y con `glue_medium` (4), comparen los tiempos y digan si duplicar los workers redujo el tiempo a la mitad (la clase 7 trae una tabla de dimensionamiento con tiempos reales para comparar). Termina con una frase: ¿qué configuración elegirían para correrlo cada mes y por qué?
 
-**Calidad.** Qué reglas aplicó el equipo (las dadas por el pipeline más las propias, si las hay), qué detectaron (cuántas filas descartadas, de qué tipo) y qué decisión tomaron con eso. Una regla que no detectó nada también se reporta: dice que el dato venía bien.
+### Calidad de datos: cómo aseguraron que no llegaran duplicados de silver a gold
+
+Es la parte que más pesa en la nota (25 puntos). La explicación debe poder repetirla otro equipo, con cifras. Debe cubrir cinco puntos:
+
+1. **Qué hace su `deduplicar` y por qué en ese orden.** Qué columna usa (`_hash_fila`), cuál fila conserva entre las repetidas, qué hace `deduplicar` y por qué la casa la aplica a las tres tablas de silver después de limpiarlas: así el cruce de `enriquecer`, en el paso gold, ya no multiplica.
+2. **Evidencia antes y después, con Athena.** En silver, `COUNT(*)` frente a `COUNT(DISTINCT _hash_fila)`: deben ser iguales. Y las filas de silver (`COUNT(*)`) contra la suma de `viajes` en gold y en Snowflake. Peguen la consulta, el resultado y una línea que lo interprete. Para tener «antes» y «después»: (1) escriban `agregar_metadatos`, reseteen dev (y vuelvan a crear su tabla en Snowsight) y corran el mes; (2) con `deduplicar` todavía en `PENDIENTE`, corran de nuevo con `reprocesar` marcado: ese es el «antes» (filas ≠ hashes distintos); (3) escriban `deduplicar` y reprocesen otra vez: ese es el «después». No hace falta otro reset, porque silver lee los dos lotes y los deduplica. Para no gastar Glue, este ejercicio puede hacerse con `limite = 1000`.
+3. **Qué pasó al reprocesar un mes.** Corran el mismo mes dos veces (`reprocesar` marcado) y muestren que ni silver ni gold crecen: mismos conteos, misma suma de `viajes`. Bronze sí crea un lote nuevo en cada reproceso; la prueba de que `deduplicar` funciona es que silver no lo hereda.
+4. **Una advertencia.** Gold sigue teniendo **el mismo número de filas** aunque haya duplicados, porque gold agrupa; lo que se infla es la columna `viajes`. Por eso se compara la **suma** de `viajes` y no el número de filas: contar filas de gold no detecta el problema.
+5. **Qué otras reglas de calidad aplicaron y qué detectaron.** Las del pipeline más las propias, con cuántas filas descartaron y de qué tipo. Una regla que no detectó nada también se reporta: dice que el dato venía bien.
+
+Consultas de ejemplo (Athena, entorno dev; ajusten el mes y el nombre de su tabla de gold):
+
+```sql
+-- 1. Silver sin duplicados: las dos cifras deben ser iguales.
+SELECT COUNT(*) AS filas, COUNT(DISTINCT _hash_fila) AS hashes_distintos
+FROM bigdata_lake.dev_silver_fhvhv
+WHERE mes = '2024-01';
+
+-- 2. Cuántas filas están repetidas y cuántas veces (vacío si todo está bien).
+SELECT _hash_fila, COUNT(*) AS veces
+FROM bigdata_lake.dev_silver_fhvhv
+WHERE mes = '2024-01'
+GROUP BY _hash_fila
+HAVING COUNT(*) > 1
+ORDER BY veces DESC
+LIMIT 20;
+
+-- 3. Silver a gold: cada lado debe dar la misma suma de viajes
+--    (filas de silver contra suma de viajes de gold).
+SELECT (SELECT COUNT(*) FROM bigdata_lake.dev_silver_fhvhv WHERE mes = '2024-01') AS filas_silver,
+       (SELECT SUM(viajes) FROM bigdata_lake.dev_gold_tarifa_por_milla_barrio WHERE mes = '2024-01') AS viajes_gold;
+```
+
+La suma de `viajes` de Snowflake se compara con `SELECT SUM(VIAJES) FROM BIGDATA.DEV.<TABLA_DE_SU_EQUIPO>;` (con el `USE` de la sección 6.1). Las consultas de ejemplo usan la tabla de gold de la casa. Con su propia tabla, comparen las filas de silver (Athena) contra `SELECT SUM(VIAJES) FROM BIGDATA.DEV.<TABLA_DE_SU_EQUIPO>` en Snowflake, si su tabla cuenta viajes. Si no los cuenta, la evidencia de duplicados se hace con la tabla de la casa, que se calcula con la misma corrida. Si `viajes` de gold es un múltiplo exacto de las filas de silver (×4 tras un reproceso: silver duplica cada tabla y el cruce con zonas y clima multiplica otra vez), la causa es una deduplicación que no está actuando.
 
 ## 10. Conciliar y responder con Snowflake
 
@@ -275,18 +308,18 @@ Una consulta de conciliación sin interpretación vale poco: escribe en un comen
 
 ## 11. Rúbrica
 
-Total: 100 puntos. Cada criterio tiene cuatro niveles: sobresaliente (100 % de los puntos del criterio), logrado (75 %), en proceso (40 %) y no logrado (0 %). Aprobar (60 o más) exige que existan los cinco entregables aunque sea de forma básica. 
+Total: 100 puntos. Cada criterio tiene cuatro niveles: sobresaliente (100 % de los puntos del criterio), logrado (75 %), en proceso (40 %) y no logrado (0 %). Aprobar (60 o más) exige que existan los cuatro entregables aunque sea de forma básica. 
 
 | # | Criterio | Pts | Sobresaliente | Logrado | En proceso | No logrado |
 |---|---|---|---|---|---|---|
 | 1 | Pregunta y contrato (`contrato.md`) | 10 | Pregunta específica y medible, cambio justificado por la pregunta, riesgos reales | Pregunta clara; la relación con el cambio es correcta pero se explica poco | Pregunta vaga o cambio que no la afecta | No hay contrato |
 | 2 | El cambio del equipo (metadatos, deduplicado y tabla de gold propia) | 20 | `agregar_metadatos` y `deduplicar` con sus pruebas en `OK`, y una tabla de gold propia correcta y legible, con decisiones (umbrales, nulos) escritas; el pipeline en Glue produce la tabla esperada | Todo correcto y legible; faltan decisiones por escribir | Funciona solo en parte (por ejemplo, falla con nulos, o una de las dos funciones sigue `PENDIENTE`) | No hay cambio, o no corre |
-| 3 | Pruebas y CI | 15 | Al menos tres pruebas (caso normal, caso límite y caso con datos malos), PR fusionado con los cinco checks en verde y revisado por otro integrante | Pruebas correctas pero sin caso con datos malos, o sin revisión de otro integrante | Pruebas que no fallarían si el cambio estuviera mal; checks en verde | Sin pruebas, o merge con CI en rojo |
+| 3 | PR revisado y CI en verde | 5 | PR fusionado con los cinco checks en verde y aprobado por otro integrante | Sin revisión de otro integrante, o con un check en rojo que se corrigió después del merge | PR sin fusionar, o checks en rojo al fusionar | Sin PR |
 | 4 | Pipeline en Glue desde Airflow | 20 | Run completo de `pipeline_taxi` (`glue_small`) con las cuatro tareas en `success`, con el cambio propio, parámetros (`computo`, `limite`, `mes`) anotados y evidencia de la cuenta del anfitrión | Run completo con el cambio, evidencia parcial | Corre en Glue pero sin el cambio propio, o con tareas fallidas | No hay corrida en Glue |
 | 5 | Conciliación y respuesta en Snowflake | 20 | Tres cruces (bronze a silver, silver a gold, gold a Snowflake) que cuadran o con diferencias explicadas; la consulta responde la pregunta y la cifra se interpreta | Dos cruces correctos; la consulta responde la pregunta | Un cruce, o cifras que no cuadran sin explicación | No hay conciliación o la consulta no responde |
-| 6 | Costo y calidad | 15 | Créditos y tiempo medidos, comparación de configuración, reglas de calidad con lo que detectaron y una decisión justificada | Costo medido y reglas descritas; falta la comparación o la decisión | Cifras sin medir (estimadas) | No hay informe |
+| 6 | Costo y calidad de datos | 25 | Créditos y tiempo medidos, comparación de configuración y una explicación de cómo aseguraron que no llegaran duplicados de silver a gold, con evidencia (consultas de Athena antes y después, filas de silver iguales a la suma de `viajes` de gold y de Snowflake, y reproceso de un mes sin crecimiento) y la configuración que elegirían cada mes, con la razón | Costo medido y explicación de la deduplicación con evidencia parcial; falta la comparación de configuración o la decisión | Cifras de costo sin medir (estimadas), o deduplicación explicada sin evidencia | No hay informe |
 
-**Cómo se mide cada cosa.** «Checks en verde» se ve en el PR; «las cuatro tareas en `success`» se ve en la cuadrícula del DAG `pipeline_taxi` en el Airflow del Code Editor del anfitrión; «cuadra» significa que las dos cifras son iguales o que la diferencia está explicada fila por fila (descartes contados por tipo). Quien califica abre el release `t2-entrega` y verifica estos puntos con la evidencia y con lo que hay en el repositorio.
+**Cómo se mide cada cosa.** «Checks en verde» y «aprobado por otro integrante» se ven en el PR; «las cuatro tareas en `success`» se ve en la cuadrícula del DAG `pipeline_taxi` en el Airflow del Code Editor del anfitrión; «cuadra» significa que las dos cifras son iguales o que la diferencia está explicada fila por fila (descartes contados por tipo). Quien califica abre el release `t2-entrega` y verifica estos puntos con la evidencia y con lo que hay en el repositorio.
 
 **Participación.** La nota del equipo se multiplica por un factor de entre 0.7 y 1.0 según la coevaluación y el historial de commits de cada integrante.
 
@@ -308,13 +341,11 @@ Mientras trabajan, esto cuesta dinero cuando está encendido: el **Code Editor**
 |---|---|---|
 | El PR propone como destino el repositorio del curso | En un fork GitHub sugiere el repositorio original | Cambia **base repository** al fork del equipo |
 | El CI falla con un error de formato | Ruff revisa el formato | Corre `make test` en local; para formatear, `ruff format src tests` |
-| La prueba pasa en local y falla en CI | Dependen de un archivo o variable que solo existe en tu entorno | Que la prueba cree sus propios datos con pocas filas escritas a mano |
 | El run de Glue no usa el cambio | El anfitrión no hizo `git pull` de `main` antes de lanzar (en dev, Glue corre el código de su árbol de trabajo) | `cd ~/bigdata && git switch main && git pull` y vuelve a lanzar |
 | Todas las tareas terminan en verde pero dicen `SE SALTÓ` | La tabla de control ya tiene ese mes y `reprocesar` no está marcado | Es lo esperado. Para repetir a propósito, marca `reprocesar` (y recuerda que bronze crea un lote nuevo; `deduplicar` debe estar escrito) |
-| La corrida falla con `QualityError` por clave no única | Cambiaron el grano de gold y `LLAVES_DE_GOLD` no incluye la columna nueva | Agrega la columna a `LLAVES_DE_GOLD` de tu tabla |
 | La carga falla con `ColumnasDistintas` | La tabla de Snowflake no tiene una columna que gold sí trae | Ejecuta el `ALTER TABLE` que sugiere el error y vuelve a lanzar `cargar_snowflake` |
-| Los viajes de gold son un múltiplo exacto (×2, ×8) de silver | `deduplicar` no está escrito y se reprocesó un mes | Escribe `agregar_metadatos` y `deduplicar`, haz `resetear_entorno` en dev y repite el pipeline |
-| Las cifras de silver y gold no cuadran | Gold agrega, y lo que se compara no es la misma magnitud | Compara la suma de viajes, no el número de filas |
+| Los viajes de gold son un múltiplo exacto de silver (×4), o ×8 la cifra limpia | `deduplicar` no está escrito y se reprocesó un mes | Escribe `agregar_metadatos` y `deduplicar`, haz `resetear_entorno` en dev y repite el pipeline |
+| Las cifras de silver y gold no cuadran | Gold agrega, y lo que se compara no es la misma magnitud | Compara la suma de viajes, no el número de filas (con duplicados gold tiene las mismas filas y `viajes` inflado) |
 | Pierden una hora buscando un error de Glue | El error está en los logs, no en Airflow | En Airflow abre el log de la tarea y, desde ahí, el enlace al run de Glue; revisa los logs de ese run |
 
 ## 14. Si algo no está claro

@@ -104,13 +104,6 @@ TABLAS_GOLD = {
 }
 
 
-# Qué columnas identifican una fila de cada tabla (gold exige que no se repitan ni sean nulas).
-# Al agregar tu tabla a TABLAS_GOLD, agrega aquí sus columnas llave.
-LLAVES_DE_GOLD = {
-    "tarifa_por_milla_barrio": ("fecha", "borough", "franja"),
-}
-
-
 # --- el paso ----------------------------------------------------------------------------------
 
 
@@ -129,8 +122,7 @@ def _gold_de_una_tabla(spark: Any, corrida: Any, mes: str, nombre: str, construi
         leidas = enriquecido.count()
 
         gold = construir(enriquecido)
-        llaves = LLAVES_DE_GOLD.get(nombre, ())
-        quality.validar(gold, nombre=f"gold.{nombre}", llaves=llaves, clave_unica=llaves)
+        quality.validar(gold, nombre=f"gold.{nombre}")
         escritas = escribir_capa(gold, entorno, CAPA, nombre, mes)
         return leidas, escritas
 

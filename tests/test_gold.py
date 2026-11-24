@@ -82,8 +82,7 @@ def test_tarifa_por_milla_pasa_calidad_con_la_muestra(muestra_viajes, muestra_zo
         limpiar_viajes(muestra_viajes, MESES), muestra_zonas, clima_diario(muestra_clima)
     )
     gold = tarifa_por_milla_por_barrio(enriquecido)
-    llaves = ("fecha", "borough", "franja")
 
     assert gold.agg({"viajes": "sum"}).first()[0] == 90
-    quality.validar(gold, nombre="gold", llaves=llaves, clave_unica=llaves)
+    quality.validar(gold, nombre="gold")
     assert gold.where("tarifa_por_milla <= 0").count() == 0
