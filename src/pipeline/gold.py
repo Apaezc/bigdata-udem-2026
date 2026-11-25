@@ -136,3 +136,6 @@ def main(spark: Any, corrida: Any) -> list[Resultado]:
         for nombre, construir in TABLAS_GOLD.items():
             resultados.append(_gold_de_una_tabla(spark, corrida, mes, nombre, construir))
     return resultados
+
+
+# Comentario al final de src
