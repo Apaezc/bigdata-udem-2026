@@ -6,8 +6,10 @@ from pyspark.sql import functions as F
 
 from pipeline import quality
 from pipeline.gold import (
+    COLUMNAS_RANGO_DISTANCIA,
     COLUMNAS_TARIFA_POR_MILLA,
     TABLAS_GOLD,
+    equipo_4_rango_distancia,
     tarifa_por_milla_por_barrio,
 )
 from pipeline.silver import clima_diario, enriquecer, limpiar_viajes
@@ -30,8 +32,34 @@ def _enriquecido(spark, filas):
 
 
 def test_tabla_de_la_casa_esta_en_tablas_gold():
-    assert list(TABLAS_GOLD) == ["tarifa_por_milla_barrio"]
+    # TABLAS_GOLD se importó antes del recorte de conftest: es el diccionario del repositorio.
+    assert list(TABLAS_GOLD) == ["tarifa_por_milla_barrio", "equipo_4_rango_distancia"]
     assert TABLAS_GOLD["tarifa_por_milla_barrio"] is tarifa_por_milla_por_barrio
+    assert TABLAS_GOLD["equipo_4_rango_distancia"] is equipo_4_rango_distancia
+
+
+def test_equipo_4_rango_distancia_valores_conocidos(spark):
+    dia = date(2024, 1, 1)
+    esquema = "pickup_date date, distancia_mi double, total_pagado double, lluvia_mm double"
+    enriquecido = spark.createDataFrame(
+        [
+            (dia, 1.0, 10.0, 3.5),  # corto
+            (dia, 1.99, 12.0, 3.5),  # corto
+            (dia, 2.0, 15.0, 3.5),  # medio (2 mi ya es medio)
+            (dia, 5.0, 30.0, 3.5),  # largo (5 mi ya es largo)
+            (dia, 12.0, 50.0, 3.5),  # largo
+        ],
+        esquema,
+    )
+
+    gold = equipo_4_rango_distancia(enriquecido)
+
+    assert gold.columns == COLUMNAS_RANGO_DISTANCIA
+    filas = {r["rango_distancia"]: r for r in gold.collect()}
+    assert {k: filas[k]["viajes"] for k in filas} == {"corto": 2, "medio": 1, "largo": 2}
+    assert filas["largo"]["distancia_total_mi"] == 17.0
+    assert filas["corto"]["ingreso_total"] == 22.0
+    assert all(filas[k]["lluvia_mm"] == 3.5 for k in filas)
 
 
 def test_tarifa_por_milla_valores_conocidos(spark):

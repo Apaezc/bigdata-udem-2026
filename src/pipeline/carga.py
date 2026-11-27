@@ -48,9 +48,21 @@ DDL_TARIFA_POR_MILLA = (
     "TARIFA_POR_MILLA FLOAT)"
 )
 
+# La tabla del EQUIPO 4 (equipo_4_rango_distancia en gold.py): una fila por fecha y rango.
+DDL_EQUIPO_4_RANGO_DISTANCIA = (
+    "CREATE TABLE IF NOT EXISTS {tabla} ("
+    "FECHA DATE, "
+    "RANGO_DISTANCIA VARCHAR, "
+    "LLUVIA_MM FLOAT, "
+    "VIAJES NUMBER(38,0), "
+    "DISTANCIA_TOTAL_MI FLOAT, "
+    "INGRESO_TOTAL FLOAT)"
+)
+
 # Cada entrada: la tabla de gold y el CREATE TABLE que se muestra para su tabla en Snowflake.
 TABLAS_A_CARGAR = [
     {"gold": "tarifa_por_milla_barrio", "ddl": DDL_TARIFA_POR_MILLA},
+    {"gold": "equipo_4_rango_distancia", "ddl": DDL_EQUIPO_4_RANGO_DISTANCIA},
 ]
 
 

@@ -86,9 +86,12 @@ def deduplicar(df: DataFrame) -> DataFrame:
     Dos filas con el mismo hash tienen exactamente los mismos valores en las columnas originales,
     así que no importa cuál de las dos se conserva. Una tabla sin repetidos queda igual.
     """
-    # PENDIENTE(equipo): hoy esta función devuelve df tal cual. Por eso, al reprocesar un mes,
-    # silver tiene cada fila dos veces (una por lote de bronze) y gold las multiplica.
-    return df
+    if "_hash_fila" not in df.columns:
+        # Sin huella no hay cómo reconocer una copia: se devuelve igual (bronze sin metadatos).
+        return df
+    # Una fila por hash. Las copias son idénticas en las columnas originales, así que da igual
+    # cuál queda; las columnas y su orden no cambian.
+    return df.dropDuplicates(["_hash_fila"])
 
 
 # --- funciones puras de la casa ---------------------------------------------------------------
