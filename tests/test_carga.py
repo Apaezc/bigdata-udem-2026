@@ -13,7 +13,8 @@ import pytest
 
 from hueco import MES, corrida_a_mano
 from pipeline import carga
-from pipeline.gold import COLUMNAS_TARIFA_POR_MILLA
+from pipeline.carga import TABLAS_A_CARGAR as TABLAS_DEL_REPOSITORIO
+from pipeline.gold import COLUMNAS_RANGO_DISTANCIA, COLUMNAS_TARIFA_POR_MILLA
 from pipeline.herramientas import bodega
 
 pytest_plugins = ["p1_fixtures", "p4_fixtures"]
@@ -143,8 +144,19 @@ def test_el_ddl_crea_solo_si_no_existe():
     assert "{tabla}" in carga.DDL_TARIFA_POR_MILLA
 
 
-def test_tablas_a_cargar_tiene_la_de_la_casa():
-    assert [e["gold"] for e in carga.TABLAS_A_CARGAR] == ["tarifa_por_milla_barrio"]
+def test_tablas_a_cargar_tiene_la_de_la_casa_y_la_del_equipo_4():
+    # La lista del repositorio (importada antes del recorte de conftest).
+    assert [e["gold"] for e in TABLAS_DEL_REPOSITORIO] == [
+        "tarifa_por_milla_barrio",
+        "equipo_4_rango_distancia",
+    ]
+
+
+def test_el_ddl_del_equipo_4_tiene_las_columnas_de_gold():
+    cuerpo = re.search(r"\((.*)\)", carga.DDL_EQUIPO_4_RANGO_DISTANCIA).group(1)
+    columnas = [definicion.split()[0].lower() for definicion in cuerpo.split(", ")]
+    assert columnas == COLUMNAS_RANGO_DISTANCIA
+    assert "IF NOT EXISTS" in carga.DDL_EQUIPO_4_RANGO_DISTANCIA
 
 
 def test_el_codigo_no_crea_tablas():

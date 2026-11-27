@@ -72,3 +72,30 @@ def muestra_clima_raw(spark):
 def muestra_clima(muestra_clima_raw):
     """El clima de la muestra como queda en bronze: una fila por día (fecha, lluvia_mm, ...)."""
     return clima_a_filas(muestra_clima_raw)
+
+
+# --- EQUIPO 4: las pruebas de la casa corren solo con la tabla de la casa -------------------
+
+
+@pytest.fixture(autouse=True)
+def solo_la_tabla_de_la_casa(monkeypatch):
+    """TABLAS_GOLD y TABLAS_A_CARGAR quedan, en cada prueba, solo con la tabla de la casa.
+
+    Las pruebas del flujo (test_pasos, test_carga, test_correr) cuentan los resultados de UNA tabla.
+    La tabla del equipo 4 sigue la misma receta; su registro se comprueba en test_gold y test_carga
+    con los diccionarios originales.
+    """
+    from pipeline import carga
+
+    monkeypatch.setattr(
+        carga,
+        "TABLAS_A_CARGAR",
+        [e for e in carga.TABLAS_A_CARGAR if e["gold"] == "tarifa_por_milla_barrio"],
+    )
+    try:
+        from pipeline import gold
+    except ImportError:  # sin pyspark (VM de Airflow): no hay gold que recortar
+        return
+    monkeypatch.setattr(
+        gold, "TABLAS_GOLD", {"tarifa_por_milla_barrio": gold.tarifa_por_milla_por_barrio}
+    )

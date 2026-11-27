@@ -97,10 +97,67 @@ def tarifa_por_milla_por_barrio(enriquecido: DataFrame) -> DataFrame:
     )
 
 
+# --- la tabla del EQUIPO 4: viajes por rango de distancia y día --------------------------------
+#
+# Pregunta: «En enero de 2024, ¿los viajes largos caen más que los cortos los días con lluvia?»
+# Grano: una fila por fecha de recogida y rango de distancia (3 rangos x 31 días = 93 filas).
+# La lluvia del día se guarda en cada fila de ese día (la misma en los 3 rangos): para contar días
+# con lluvia se usa COUNT(DISTINCT fecha) y no se suma lluvia_mm (trampa 1 del Taller 1).
+
+COLUMNAS_RANGO_DISTANCIA = [
+    "fecha",
+    "rango_distancia",
+    "lluvia_mm",
+    "viajes",
+    "distancia_total_mi",
+    "ingreso_total",
+]
+
+# Límites de los rangos, en millas. silver ya dejó solo viajes con 0 < distancia < 100 mi, así que
+# todo viaje cae en un rango y no hay nulos.
+LIMITE_CORTO_MI = 2.0
+LIMITE_LARGO_MI = 5.0
+
+
+def _rango_distancia(distancia: F.Column) -> F.Column:
+    """corto (menos de 2 mi), medio (de 2 a menos de 5 mi) o largo (5 mi o más)."""
+    return (
+        F.when(distancia < LIMITE_CORTO_MI, "corto")
+        .when(distancia < LIMITE_LARGO_MI, "medio")
+        .otherwise("largo")
+    )
+
+
+def equipo_4_rango_distancia(enriquecido: DataFrame) -> DataFrame:
+    """Por fecha y rango de distancia: lluvia del día, viajes, millas e ingreso.
+
+    lluvia_mm es la del día (llega por enriquecer); si el clima de un día faltara, queda nula y
+    no se inventa. Viajes, millas e ingreso son sumas: se pueden sumar entre días y rangos.
+    """
+    con_rango = enriquecido.select(
+        F.col("pickup_date").alias("fecha"),
+        _rango_distancia(F.col("distancia_mi")).alias("rango_distancia"),
+        F.col("lluvia_mm"),
+        F.col("distancia_mi"),
+        F.col("total_pagado"),
+    )
+    return (
+        con_rango.groupBy("fecha", "rango_distancia")
+        .agg(
+            F.max("lluvia_mm").alias("lluvia_mm"),
+            F.count(F.lit(1)).alias("viajes"),
+            F.round(F.sum("distancia_mi"), 2).alias("distancia_total_mi"),
+            F.round(F.sum("total_pagado"), 2).alias("ingreso_total"),
+        )
+        .select(*COLUMNAS_RANGO_DISTANCIA)
+    )
+
+
 # nombre de la tabla en gold -> función que la arma a partir del enriquecido. El equipo agrega la
 # suya aquí.
 TABLAS_GOLD = {
     "tarifa_por_milla_barrio": tarifa_por_milla_por_barrio,
+    "equipo_4_rango_distancia": equipo_4_rango_distancia,
 }
 
 
