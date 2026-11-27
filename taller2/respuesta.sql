@@ -50,13 +50,16 @@ ORDER BY CASE RANGO_DISTANCIA WHEN 'corto' THEN 1 WHEN 'medio' THEN 2 ELSE 3 END
 
 -- Resultado:
 --   RANGO   DIAS_SECOS  DIAS_CON_LLUVIA  VIAJES_DIA_SECO  VIAJES_DIA_LLUVIA  CAMBIO_PCT
---   corto   ____        ____             ____             ____               ____
---   medio   ____        ____             ____             ____               ____
---   largo   ____        ____             ____             ____               ____
+--   corto   17          14               223 922          240 658            +7.5
+--   medio   17          14               206 839          214 002            +3.5
+--   largo   17          14               191 455          193 366            +1.0
 --
--- CIFRA FINAL: los días con lluvia, los viajes largos cambian ____ % y los cortos ____ %.
--- Interpretación: ____ (si CAMBIO_PCT de largo es más negativo que el de corto, la hipótesis se
--- confirma; si es igual o menos negativo, se contradice).
+-- CIFRA FINAL: los días con lluvia, los viajes CORTOS suben 7,5 % y los LARGOS solo 1,0 %.
+-- Interpretación: la hipótesis NO se confirma. Con lluvia los viajes no caen en ningún rango:
+-- suben, y suben más cuanto más corto es el viaje. Lo que más crece son los trayectos de menos
+-- de 2 millas, los que con buen tiempo se harían caminando; los largos casi no cambian.
+-- Qué NO dice: enero tiene solo 31 días (14 con lluvia y 17 secos) y no se controlan otros
+-- factores (festivos, eventos, temperatura).
 
 
 -- ---------------------------------------------------------------------
@@ -91,12 +94,14 @@ ORDER BY CASE RANGO_DISTANCIA WHEN 'corto' THEN 1 WHEN 'medio' THEN 2 ELSE 3 END
 
 -- Resultado:
 --   RANGO   DIAS_CON_LLUVIA  VIAJES_REALES  VIAJES_ESPERADOS  CAMBIO_PCT_AJUSTADO
---   corto   ____             ____           ____              ____
---   medio   ____             ____           ____              ____
---   largo   ____             ____           ____              ____
--- Interpretación: ____ (si R1 y R2 apuntan al mismo lado, el resultado no se debe a que llovió
--- más en un día de la semana con más o menos viajes). El cambio se suma, no se promedian
--- porcentajes (trampa 2 del Taller 1).
+--   corto   14               3 369 215      3 218 342         +4.7
+--   medio   14               2 996 025      2 967 097         +1.0
+--   largo   14               2 707 118      2 687 750         +0.7
+-- Interpretación: comparando cada día con lluvia contra los días secos del mismo día de la
+-- semana, el efecto se reduce (parte de la subida de R1 era que llovió más en días de mucha
+-- demanda), pero apunta al mismo lado: los cortos suben 4,7 % y los largos 0,7 %. La lluvia
+-- empuja sobre todo los viajes cortos; en los largos el efecto es casi nulo. El cambio se
+-- calcula con sumas de viajes, no promediando porcentajes (trampa 2 del Taller 1).
 
 
 -- ---------------------------------------------------------------------
@@ -107,4 +112,4 @@ SELECT COUNT(*)              AS FILAS,          -- esperado: 93 (31 días x 3 ra
        SUM(VIAJES)           AS VIAJES,         -- debe ser igual a las filas de silver
        COUNT_IF(LLUVIA_MM IS NULL) AS FILAS_SIN_LLUVIA  -- esperado: 0
 FROM BIGDATA.DEV.EQUIPO_4_RANGO_DISTANCIA;
--- Resultado: FILAS ____ · DIAS ____ · VIAJES ____ · FILAS_SIN_LLUVIA ____
+-- Resultado: FILAS 93 · DIAS 31 · VIAJES 19 650 023 (= filas de silver en Athena)
