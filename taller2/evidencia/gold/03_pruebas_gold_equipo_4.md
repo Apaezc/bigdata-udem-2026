@@ -35,3 +35,24 @@ PYTHONPATH=src .venv/bin/python -m pytest -q tests/test_gold.py
 Las siete pruebas del archivo `tests/test_gold.py` finalizaron satisfactoriamente en el entorno personal de AWS SageMaker.
 
 La validación confirma que la transformación Gold cumple las condiciones comprobadas por las pruebas automatizadas.
+
+### Validación adicional de calidad
+
+Se ejecutaron las pruebas de calidad y construcción de Gold después de alinear la estructura de la tabla con el contrato del equipo 4.
+
+**Comando ejecutado:**
+
+`PYTHONPATH=src .venv/bin/python -m pytest -q tests/test_quality.py tests/test_gold.py`
+
+**Resultado:**
+
+- 17 pruebas aprobadas.
+- Tiempo de ejecución: 39.67 segundos.
+- Sin errores.
+
+**Validaciones confirmadas:**
+
+- Agrupación conjunta de Uber y Lyft.
+- Una fila por fecha y rango de distancia.
+- Ausencia de la columna empresa en la salida.
+- Validación de llaves, unicidad y rangos.
