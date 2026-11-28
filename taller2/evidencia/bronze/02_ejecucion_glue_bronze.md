@@ -17,3 +17,4 @@
 
 ## Conclusión
 La ejecución de la etapa Bronze finalizó exitosamente en AWS Glue para enero de 2024, con procesamiento de todos los registros solicitados y sin reportar errores en el estado final.
+<img width="1080" height="228" alt="image" src="https://github.com/user-attachments/assets/30383516-93a7-448a-9589-8aea2190854d" />
