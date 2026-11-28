@@ -57,7 +57,7 @@ Consultas e interpretación de cada resultado: [`conciliacion.sql`](conciliacion
 
 ## 3. Costo
 
-> **Falta un dato: los créditos de Snowflake (sección 3.1).** Los tiempos de Glue ya están medidos. La consulta que da los créditos está abajo; las cifras estimadas no cuentan, porque la rúbrica las califica como «en proceso».
+Todo lo de esta sección está medido, no estimado. Fecha de corte: 28 de noviembre de 2026, 13:28.
 
 ### 3.1 Créditos de Snowflake
 
@@ -72,12 +72,20 @@ GROUP BY DIA
 ORDER BY DIA;
 ```
 
-| Día | Warehouse | Tamaño | Créditos |
-|---|---|---|---|
-| 2026-11-\_\_ | BIGDATA_WH | X-Small | \_\_\_\_ |
-| **Total del taller** | | | **\_\_\_\_** |
+| Día | Créditos | Qué se hizo ese día |
+|---|---|---|
+| 2026-11-24 | 0,0246 | Clase 8 y preparación del entorno |
+| 2026-11-27 | 0,6621 | Las tres corridas completas del pipeline y las consultas de conciliación |
+| 2026-11-28 | 0,0458 | Las verificaciones de cumplimiento |
+| **Total** | **0,7325** | |
 
-El warehouse es X-Small con suspensión automática a 60 segundos: se cobra por el tiempo encendido, con un mínimo de un minuto por encendido. Conviene correr las consultas seguidas en vez de una por una con pausas. Cuota del resource monitor: 60 créditos; no se amplió.
+Son **0,7325 créditos de una cuota de 60** en el resource monitor de la cuenta: el 1,2 %. No se amplió la cuota. De referencia, el Taller 1 completo costó 0,1381 créditos en una cuenta distinta.
+
+El warehouse es X-Small con suspensión automática a 60 segundos: se cobra por el tiempo que está encendido, con un mínimo de un minuto cada vez que arranca, no por consulta. Por eso el gasto se concentra el 27 de noviembre, que es cuando se corrió el pipeline tres veces y se hicieron casi todas las consultas de conciliación seguidas.
+
+Vale la pena notar de dónde **no** viene el costo: las tablas de gold que llegan a Snowflake tienen 93 y 744 filas. Los 19,65 millones de viajes se procesan en Glue, no en Snowflake. En este diseño, Snowflake cuesta por el tiempo que alguien tiene el warehouse despierto haciendo consultas, no por el volumen de datos.
+
+Evidencia: [`evidencia/costos/creditos_snowflake.png`](evidencia/costos/creditos_snowflake.png).
 
 ### 3.2 Tiempo de Glue
 
