@@ -37,4 +37,4 @@ Como todos los registros pertenecen a una fecha sin lluvia, esta consulta no per
 
 La consulta confirma que los datos Gold están disponibles en Snowflake y contienen la información necesaria para clasificar los viajes por empresa y rango de distancia.
 
-Sin embargo, se requiere analizar un conjunto de fechas que incluya días lluviosos y secos para responder la pregunta de investigación del equipo 4.
+Sin embargo, se requiere analizar un conjunto de fechas que incluya días lluviosos y secos para responder la pregunta de investigación.
