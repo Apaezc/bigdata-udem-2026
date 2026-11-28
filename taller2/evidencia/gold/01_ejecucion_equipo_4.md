@@ -116,4 +116,4 @@ Por lo tanto, se verifica la existencia de los archivos de salida de la tabla `e
 
 ## 6. Alcance de la evidencia
 
-Esta verificación se realizó en la cuenta personal de AWS, en el entorno DEV, para el periodo enero de 2024. No corresponde a una ejecución en la cuenta del anfitrión del taller.
+Esta verificación se realizó en la cuenta personal de AWS, en el entorno DEV, para el periodo enero de 2024.
