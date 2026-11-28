@@ -11,7 +11,7 @@ Los roles rotan respecto al Taller 1: nadie repite.
 | <por confirmar> | <rol> | Analista de negocio y cumplimiento |
 | Andrea Páez Cardona | Analista | Modelador SQL |
 | <por confirmar> | <rol> | Ingeniero de datos |
-| <por confirmar> | <rol> | Operador cloud y calidad |
+| Manuela Restrepo Cespedes | <rol> | Operador cloud y calidad |
 
 Roles del Taller 1: Andrea Páez Cardona (Analista), Ana María Montealegre (Modeladora), Manuela Restrepo Céspedes (Ingeniera de datos), Julian Olaya (Calidad y costos).
 
