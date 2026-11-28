@@ -16,3 +16,4 @@ jr_ee25c45597bb2518d49e512a2216cf704a28cf4dc198ed7add347ef24a79b4be
 
 Paquete utilizado:
 s3://bigdata-lake-753965517062-us-east-2/code/pipeline_taller2.zip
+<img width="1119" height="260" alt="image" src="https://github.com/user-attachments/assets/b1645b1b-28a6-4106-90b1-2d7a5ffeb9d0" />
