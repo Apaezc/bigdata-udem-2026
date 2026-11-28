@@ -6,9 +6,9 @@
 
 | **Integrante** | **Rol en el Taller 1** | **Rol en el Taller 2** |
 |---|---|---|
-| [Completar] | [Completar] | Analista de negocio y cumplimiento |
+| Ana María Montealegre | Modeladora | Analista de negocio y cumplimiento |
 | Andrea Páez Cardona | Analista | Modelador SQL |
-| [Completar] | [Completar] | Ingeniero de datos |
+| Julián Olaya | Calidad y costos | Ingeniero de datos |
 | Manuela Restrepo Céspedes | Ingeniera de datos | Operador cloud y calidad |
 
 Roles del Taller 1: Andrea Páez Cardona (Analista), Ana María Montealegre (Modeladora), Manuela Restrepo Céspedes (Ingeniera de datos), Julián Olaya (Calidad y costos).
@@ -124,7 +124,7 @@ La conclusión estará limitada a enero de 2024 y no se generalizará automátic
 
 ## 8. Acuerdos de trabajo
 
-- **Reunión del equipo:** [Completar días, horas y canal].
+- **Reunión del equipo:** 28/11/2026, 6 pm, Meet.
 - **Revisión de PR:** nadie aprueba su propio cambio; revisa otro integrante.
 - **Merge:** solo con CI en verde y una revisión.
 - **Hitos propios:**
@@ -140,3 +140,4 @@ La conclusión estará limitada a enero de 2024 y no se generalizará automátic
 |---|---|---|
 | 2026-11-27 | Contrato subido al repositorio con la pregunta de rango de distancia y lluvia. | No se había subido el 18 de noviembre. |
 | 2026-11-27 | Se ajustó el alcance de la pregunta y la descripción de Gold para reflejar la granularidad real: fecha y rango de distancia, sin separación por empresa. También se ajustó el número de combinaciones esperado. | La implementación y las consultas actuales agregan los viajes procesados y no conservan `empresa` como dimensión. El contrato debe describir el alcance que realmente se implementó. |
+| 2026-11-28 | Se completaron los roles del Taller 2 de los cuatro integrantes y los acuerdos de trabajo de la sección 8. | Quedaron pendientes cuando se subió el contrato el 27 de noviembre. |
