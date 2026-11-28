@@ -20,5 +20,3 @@ Se identificaron dos archivos Parquet:
 - Tamaño total: 21.4 KiB
 - La tabla `equipo_4_rango_distancia` cuenta con un archivo Parquet generado para enero de 2024.
 
-## Validación pendiente
-Verificar cantidad de registros, unicidad de fecha y rango de distancia, y conciliación de métricas.
