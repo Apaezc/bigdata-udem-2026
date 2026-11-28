@@ -80,3 +80,40 @@ Se utilizaron las tres fuentes disponibles en Silver (viajes, zonas y clima), se
 
 **Nota:** Esta ejecución se realizó con el límite de 1.000 filas establecido en la configuración del profesor. Por lo tanto, los resultados corresponden a esa configuración y no deben interpretarse como el procesamiento completo de todos los viajes del mes.
 
+# Evidencia 02. Verificación de archivos Gold en S3
+
+## 1. Objetivo
+
+Comprobar que el proceso Gold del equipo 4 generó y almacenó correctamente los archivos de salida en Amazon S3, dentro de la cuenta personal de AWS.
+
+## 2. Ubicación verificada
+
+```text
+s3://bigdata-lake-753965517062-us-east-2/dev/gold/equipo_4_rango_distancia/mes=2024-01/
+```
+
+## 3. Comando ejecutado
+
+```bash
+aws s3 ls s3://bigdata-lake-753965517062-us-east-2/dev/gold/equipo_4_rango_distancia/mes=2024-01/
+```
+
+## 4. Resultado obtenido
+
+```text
+2026-11-28 15:58:02          0 _SUCCESS
+2026-11-28 15:58:01       2312 part-00000-78ebb6b1-c87d-49a3-bfb9-1d1406ce9154-c000.snappy.parquet
+```
+
+## 5. Interpretación
+
+La consulta confirma que la carpeta de salida contiene:
+
+- El archivo `_SUCCESS`, que indica que la escritura finalizó correctamente.
+- Un archivo Parquet comprimido con Snappy, que contiene los datos generados por el proceso Gold.
+
+Por lo tanto, se verifica la existencia de los archivos de salida de la tabla `equipo_4_rango_distancia` en S3.
+
+## 6. Alcance de la evidencia
+
+Esta verificación se realizó en la cuenta personal de AWS, en el entorno DEV, para el periodo enero de 2024. No corresponde a una ejecución en la cuenta del anfitrión del taller.
