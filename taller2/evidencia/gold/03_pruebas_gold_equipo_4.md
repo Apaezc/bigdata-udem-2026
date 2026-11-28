@@ -56,3 +56,18 @@ Se ejecutaron las pruebas de calidad y construcción de Gold después de alinear
 - Una fila por fecha y rango de distancia.
 - Ausencia de la columna empresa en la salida.
 - Validación de llaves, unicidad y rangos.
+
+### Validación del pipeline completo
+
+**Comando ejecutado:**
+
+`PYTHONPATH=src .venv/bin/python -m pytest -q tests/test_pasos.py`
+
+**Resultado:**
+
+- 15 pruebas aprobadas.
+- 1 prueba omitida (skipped).
+- Tiempo: 214.85 segundos.
+- Sin pruebas fallidas.
+
+**Entorno:** cuenta personal de AWS SageMaker.
